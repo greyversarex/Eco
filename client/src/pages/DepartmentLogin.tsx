@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { Leaf } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import bgImage from '@assets/Lifestyle-Adopt-Sustainable-Living-Practices_1760999883971.jpg';
@@ -16,18 +16,16 @@ export default function DepartmentLogin() {
   const [, setLocation] = useLocation();
   const [lang, setLang] = useState<Language>('tg');
   const [code, setCode] = useState('');
+  const queryClient = useQueryClient();
   const t = useTranslation(lang);
   const { toast } = useToast();
 
   const loginMutation = useMutation({
     mutationFn: async (accessCode: string) => {
-      const response = await apiRequest('/api/auth/department/login', {
-        method: 'POST',
-        body: JSON.stringify({ accessCode }),
-      });
-      return response;
+      return await apiRequest('POST', '/api/auth/department/login', { accessCode });
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       setLocation('/department/main');
     },
     onError: (error: any) => {

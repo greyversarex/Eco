@@ -1,9 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
+import http from "http";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { db } from "./db";
+import { pool } from "./db";
 
 const app = express();
 app.use(express.json());
@@ -12,10 +13,15 @@ app.use(express.urlencoded({ extended: false }));
 // Setup session store
 const PgSession = connectPgSimple(session);
 
+// Ensure SESSION_SECRET is set in production
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET must be set in production environment');
+}
+
 app.use(
   session({
     store: new PgSession({
-      pool: db as any, // connect-pg-simple expects Pool type
+      pool: pool,
       tableName: 'sessions',
       createTableIfMissing: true,
     }),
@@ -26,6 +32,7 @@ app.use(
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax', // CSRF protection
     },
   })
 );
@@ -62,7 +69,7 @@ app.use((req, res, next) => {
 
 (async () => {
   registerRoutes(app);
-  const server = require('http').createServer(app);
+  const server = http.createServer(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { ShieldCheck } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import bgImage from '@assets/Lifestyle-Adopt-Sustainable-Living-Practices_1760999883971.jpg';
@@ -17,18 +17,16 @@ export default function AdminLogin() {
   const [lang, setLang] = useState<Language>('tg');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const queryClient = useQueryClient();
   const t = useTranslation(lang);
   const { toast } = useToast();
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
-      const response = await apiRequest('/api/auth/admin/login', {
-        method: 'POST',
-        body: JSON.stringify(credentials),
-      });
-      return response;
+      return await apiRequest('POST', '/api/auth/admin/login', credentials);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       setLocation('/admin/dashboard');
     },
     onError: (error: any) => {
