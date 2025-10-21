@@ -72,6 +72,8 @@ export function registerRoutes(app: Express) {
     try {
       const { username, password } = req.body;
       
+      console.log('Admin login attempt:', { username, passwordLength: password?.length });
+      
       if (!username || !password) {
         return res.status(400).json({ error: 'Username and password are required' });
       }
@@ -79,10 +81,13 @@ export function registerRoutes(app: Express) {
       const admin = await storage.getAdminByUsername(username);
       
       if (!admin) {
+        console.log('Admin not found:', username);
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
+      console.log('Admin found, comparing passwords...');
       const passwordMatch = await bcrypt.compare(password, admin.password);
+      console.log('Password match:', passwordMatch);
       
       if (!passwordMatch) {
         return res.status(401).json({ error: 'Invalid credentials' });
