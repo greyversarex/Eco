@@ -61,7 +61,7 @@ export default function DepartmentLogin() {
         className="absolute inset-0 hidden md:block bg-cover bg-center" 
         style={{
           backgroundImage: `url(${bgImage})`,
-          backgroundSize: 'contain',
+          backgroundSize: 'cover',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center center'
         }}
