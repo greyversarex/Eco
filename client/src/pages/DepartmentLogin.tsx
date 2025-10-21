@@ -65,7 +65,7 @@ export default function DepartmentLogin() {
         <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
       </div>
       
-      <div className="w-full max-w-md relative z-10 flex flex-col items-center -mt-16">
+      <div className="w-full max-w-md relative z-10 flex flex-col items-center -mt-16 md:ml-12">
         <div className="text-center space-y-2 mb-6">
           <div className="flex justify-center mb-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
