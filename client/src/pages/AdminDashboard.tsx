@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -27,52 +26,114 @@ import {
 import { Label } from '@/components/ui/label';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Leaf } from 'lucide-react';
-
-// todo: remove mock functionality
-const mockDepartments = [
-  { id: '1', name: 'Раёсати Душанбе', block: 'upper', code: 'ABC123' },
-  { id: '2', name: 'Агентии обухаводонимоси', block: 'upper', code: 'DEF456' },
-  { id: '3', name: 'Сарраёсати Вилоҷи Суғд', block: 'upper', code: 'GHI789' },
-  { id: '4', name: 'Раёсати мониторинги сифати экологӣ', block: 'middle', code: 'JKL012' },
-];
+import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Leaf, Copy } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/lib/auth';
+import { useToast } from '@/hooks/use-toast';
+import type { Department } from '@shared/schema';
 
 export default function AdminDashboard() {
-  const [, setLocation] = useLocation();
   const [lang, setLang] = useState<Language>('tg');
-  const [departments, setDepartments] = useState(mockDepartments);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newDeptName, setNewDeptName] = useState('');
   const [newDeptBlock, setNewDeptBlock] = useState('');
   const t = useTranslation(lang);
+  const { logout } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const handleAddDepartment = () => {
-    if (newDeptName && newDeptBlock) {
-      const newDept = {
-        id: String(departments.length + 1),
-        name: newDeptName,
-        block: newDeptBlock,
-        code: Math.random().toString(36).substring(2, 8).toUpperCase(),
-      };
-      setDepartments([...departments, newDept]);
-      console.log('Added department:', newDept);
+  const { data: departments = [], isLoading } = useQuery<Department[]>({
+    queryKey: ['/api/departments'],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: { name: string; block: string }) => {
+      const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+      return await apiRequest('POST', '/api/departments', { ...data, accessCode: code });
+    },
+    onSuccess: (newDept) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/departments'] });
       setNewDeptName('');
       setNewDeptBlock('');
       setIsAddDialogOpen(false);
+      toast({
+        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+        description: `${lang === 'tg' ? 'Шуъба илова шуд. Рамз' : 'Отдел добавлен. Код'}: ${newDept.accessCode}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Department> }) => {
+      return await apiRequest('PATCH', `/api/departments/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/departments'] });
+      toast({
+        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+        description: lang === 'tg' ? 'Шуъба навсозӣ шуд' : 'Отдел обновлен',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return await apiRequest('DELETE', `/api/departments/${id}`, undefined);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/departments'] });
+      toast({
+        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+        description: lang === 'tg' ? 'Шуъба нест карда шуд' : 'Отдел удален',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleAddDepartment = () => {
+    if (newDeptName && newDeptBlock) {
+      createMutation.mutate({ name: newDeptName, block: newDeptBlock });
     }
   };
 
-  const handleDeleteDepartment = (id: string) => {
-    setDepartments(departments.filter((d) => d.id !== id));
-    console.log('Deleted department:', id);
+  const handleDeleteDepartment = (id: number) => {
+    if (confirm(lang === 'tg' ? 'Шумо мутмаин ҳастед?' : 'Вы уверены?')) {
+      deleteMutation.mutate(id);
+    }
   };
 
-  const handleGenerateCode = (id: string) => {
-    const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setDepartments(
-      departments.map((d) => (d.id === id ? { ...d, code: newCode } : d))
-    );
-    console.log('Generated new code for department:', id, newCode);
+  const handleGenerateCode = (id: number) => {
+    const newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+    updateMutation.mutate({ id, data: { accessCode: newCode } });
+  };
+
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast({
+      title: lang === 'tg' ? 'Нусхабардорӣ шуд' : 'Скопировано',
+      description: lang === 'tg' ? 'Рамз нусхабардорӣ шуд' : 'Код скопирован',
+    });
   };
 
   const getBlockLabel = (block: string) => {
@@ -100,10 +161,7 @@ export default function AdminDashboard() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  console.log('Admin logging out');
-                  setLocation('/admin');
-                }}
+                onClick={logout}
                 data-testid="button-logout"
               >
                 <LogOut className="h-4 w-4" />
@@ -134,7 +192,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">{t.totalMessages}</p>
-                <p className="text-2xl font-semibold text-foreground">247</p>
+                <p className="text-2xl font-semibold text-foreground">-</p>
               </div>
             </div>
           </div>
@@ -162,13 +220,14 @@ export default function AdminDashboard() {
                       value={newDeptName}
                       onChange={(e) => setNewDeptName(e.target.value)}
                       data-testid="input-dept-name"
+                      placeholder={lang === 'tg' ? 'Номи шуъбаро ворид кунед' : 'Введите название отдела'}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="dept-block">{t.block}</Label>
                     <Select value={newDeptBlock} onValueChange={setNewDeptBlock}>
                       <SelectTrigger id="dept-block" data-testid="select-dept-block">
-                        <SelectValue />
+                        <SelectValue placeholder={lang === 'tg' ? 'Блокро интихоб кунед' : 'Выберите блок'} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="upper">{t.upperBlock}</SelectItem>
@@ -177,67 +236,90 @@ export default function AdminDashboard() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button onClick={handleAddDepartment} className="w-full" data-testid="button-save-department">
-                    {t.addDepartment}
+                  <Button 
+                    onClick={handleAddDepartment} 
+                    className="w-full" 
+                    data-testid="button-save-department"
+                    disabled={createMutation.isPending || !newDeptName || !newDeptBlock}
+                  >
+                    {createMutation.isPending ? (lang === 'tg' ? 'Лутфан интизор шавед...' : 'Пожалуйста, подождите...') : t.addDepartment}
                   </Button>
                 </div>
               </DialogContent>
             </Dialog>
           </div>
 
-          <div className="rounded-lg border border-border bg-card">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t.departmentName}</TableHead>
-                  <TableHead>{t.block}</TableHead>
-                  <TableHead>{t.accessCode}</TableHead>
-                  <TableHead className="text-right">{t.actions}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {departments.map((dept) => (
-                  <TableRow key={dept.id}>
-                    <TableCell className="font-medium">{dept.name}</TableCell>
-                    <TableCell>{getBlockLabel(dept.block)}</TableCell>
-                    <TableCell>
-                      <code className="rounded bg-muted px-2 py-1 text-sm font-mono">
-                        {dept.code}
-                      </code>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleGenerateCode(dept.id)}
-                          data-testid={`button-generate-${dept.id}`}
-                        >
-                          <RefreshCw className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => console.log('Edit', dept.id)}
-                          data-testid={`button-edit-${dept.id}`}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteDepartment(dept.id)}
-                          data-testid={`button-delete-${dept.id}`}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          {isLoading ? (
+            <div className="flex items-center justify-center p-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+                <p className="text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</p>
+              </div>
+            </div>
+          ) : departments.length === 0 ? (
+            <div className="rounded-lg border border-border bg-card p-12 text-center">
+              <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">{lang === 'tg' ? 'Ҳоло шуъбае нест' : 'Пока нет отделов'}</p>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-border bg-card">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t.departmentName}</TableHead>
+                    <TableHead>{t.block}</TableHead>
+                    <TableHead>{t.accessCode}</TableHead>
+                    <TableHead className="text-right">{t.actions}</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {departments.map((dept) => (
+                    <TableRow key={dept.id}>
+                      <TableCell className="font-medium">{dept.name}</TableCell>
+                      <TableCell>{getBlockLabel(dept.block)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <code className="rounded bg-muted px-2 py-1 text-sm font-mono">
+                            {dept.accessCode}
+                          </code>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopyCode(dept.accessCode)}
+                            data-testid={`button-copy-${dept.id}`}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleGenerateCode(dept.id)}
+                            data-testid={`button-generate-${dept.id}`}
+                            disabled={updateMutation.isPending}
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteDepartment(dept.id)}
+                            data-testid={`button-delete-${dept.id}`}
+                            disabled={deleteMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </div>
       </div>
     </div>
