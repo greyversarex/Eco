@@ -34,7 +34,7 @@ export default function ObjectUploader({
   const translations = {
     tg: {
       selectFile: 'Интихоби файл',
-      dragDrop: 'Файлро ба ин ҷо кашида андозед ё клик кунед',
+      dragDrop: 'Ҳуҷҷатро интихоб кунед',
       uploading: 'Бор мешавад...',
       uploadComplete: 'Бор шуд',
       remove: 'Хориҷ кардан',
@@ -44,7 +44,7 @@ export default function ObjectUploader({
     },
     ru: {
       selectFile: 'Выбрать файл',
-      dragDrop: 'Перетащите файл сюда или нажмите',
+      dragDrop: 'Выберите файл',
       uploading: 'Загрузка...',
       uploadComplete: 'Загружено',
       remove: 'Удалить',

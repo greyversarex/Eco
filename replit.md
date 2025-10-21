@@ -8,6 +8,13 @@ The platform emphasizes security, data persistence, and future mobile compatibil
 
 ## Recent Changes
 
+**October 21, 2025 - Login Pages Polish & File Upload UX**
+- Added decorative radial gradient background to fill side areas on desktop login pages
+- Creates seamless transition from center image to edges with ecological green tones
+- Simplified file upload button text: "Выберите файл" (RU) / "Ҳуҷҷатро интихоб кунед" (TJ)
+- All changes maintain mobile/desktop responsive behavior
+- Zero LSP diagnostics
+
 **October 21, 2025 - Login Pages Mobile Optimization**
 - Fixed mobile background: Replaced background image with soft light gradient (light gray → light green → soft green) on mobile devices
 - Fixed desktop image cropping: Applied `background-size: contain` with `no-repeat` to prevent circular icons from being cut off
