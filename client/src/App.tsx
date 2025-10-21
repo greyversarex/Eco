@@ -21,6 +21,7 @@ function Router() {
     <Switch>
       <Route path="/" component={DepartmentLogin} />
       <Route path="/admin" component={AdminLogin} />
+      <Route path="/admin-login" component={AdminLogin} />
       <Route path="/admin/dashboard">
         <AdminRoute>
           <AdminDashboard />
