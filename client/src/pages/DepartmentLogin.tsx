@@ -80,7 +80,7 @@ export default function DepartmentLogin() {
 
         <Card className="w-full shadow-2xl border-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.96)' }}>
           <CardHeader>
-            <CardTitle className="text-xl">{t.loginTitle}</CardTitle>
+            <CardTitle className="text-xl text-center">Воридшавӣ</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
