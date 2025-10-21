@@ -133,9 +133,12 @@ export default function DepartmentMain() {
             )}
 
             {departmentsByBlock.upper.length > 0 && departmentsByBlock.middle.length > 0 && (
-              <div className="relative">
+              <div className="relative py-4">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t-2 border-primary"></div>
+                  <div className="w-full border-t-4 border-primary/20"></div>
+                </div>
+                <div className="relative flex justify-center">
+                  <div className="h-3 w-3 rounded-full bg-primary"></div>
                 </div>
               </div>
             )}
@@ -154,9 +157,12 @@ export default function DepartmentMain() {
             )}
 
             {departmentsByBlock.middle.length > 0 && departmentsByBlock.lower.length > 0 && (
-              <div className="relative">
+              <div className="relative py-4">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t-2 border-primary"></div>
+                  <div className="w-full border-t-4 border-primary/20"></div>
+                </div>
+                <div className="relative flex justify-center">
+                  <div className="h-3 w-3 rounded-full bg-primary"></div>
                 </div>
               </div>
             )}
