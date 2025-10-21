@@ -6,6 +6,16 @@
 
 The platform emphasizes security, data persistence, and future mobile compatibility through an API-first architecture. It provides department-level (not individual user) access through unique codes, while administrators manage the system through a separate admin panel.
 
+## Recent Changes
+
+**October 21, 2025 - Messaging System Integration Complete**
+- Fixed ComposeMessage.tsx: Replaced mock data with real API integration (/api/departments/list for department list, POST /api/messages for sending)
+- Fixed Inbox.tsx: Connected to real API for message display with proper inbox/outbox filtering based on URL
+- Fixed shared/schema.ts: Added z.coerce.date() to insertMessageSchema for automatic ISO date string conversion
+- Fixed server/routes.ts: Modified GET /api/messages to return unified message array instead of { inbox, outbox } object
+- All messaging features now fully functional with real data persistence
+- E2E tests passed: Message composition, sending, inbox/outbox display, and department name resolution all working correctly
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
