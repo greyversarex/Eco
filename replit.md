@@ -8,6 +8,15 @@ The platform emphasizes security, data persistence, and future mobile compatibil
 
 ## Recent Changes
 
+**October 21, 2025 - Final Polish & Code Quality**
+- Fixed TypeScript types: Removed `any` types from messages table schema while preserving self-referential foreign key for threading
+- Fixed React warning: Added DialogDescription to AdminDashboard dialog for accessibility compliance
+- Added visual separators: Green decorative dividers between department blocks (upper/middle/lower)
+- Improved routing: Added /admin/inbox redirect to /admin/departments for better UX (admin views messages through departments)
+- E2E tested messaging with new departments: Full workflow confirmed working (CENTRAL001 → GENERAL002)
+- Admin password reset: Updated admin credentials in database for login functionality
+- All LSP errors resolved, no console warnings
+
 **October 21, 2025 - Real Departments Database Update**
 - Updated database with 37 real departments from Ministry of Environmental Protection
 - Departments organized in 3 blocks: Upper (10), Middle (11), Lower (16)

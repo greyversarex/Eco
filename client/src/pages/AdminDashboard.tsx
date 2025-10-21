@@ -12,6 +12,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -233,6 +234,9 @@ export default function AdminDashboard() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{t.addDepartment}</DialogTitle>
+                  <DialogDescription>
+                    {lang === 'tg' ? 'Шуъбаи навро илова кунед' : 'Добавить новый отдел'}
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="space-y-2">
