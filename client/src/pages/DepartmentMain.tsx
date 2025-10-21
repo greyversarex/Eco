@@ -117,51 +117,42 @@ export default function DepartmentMain() {
         ) : (
           <div className="space-y-8">
             {departmentsByBlock.upper.length > 0 && (
-              <section>
-                <h2 className="mb-4 text-xl font-semibold text-foreground">{t.upperBlock}</h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {departmentsByBlock.upper.map((dept) => (
-                    <DepartmentCard
-                      key={dept.id}
-                      name={dept.name}
-                      unreadCount={0}
-                      onClick={() => handleDepartmentClick(dept.id)}
-                    />
-                  ))}
-                </div>
-              </section>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {departmentsByBlock.upper.map((dept) => (
+                  <DepartmentCard
+                    key={dept.id}
+                    name={dept.name}
+                    unreadCount={0}
+                    onClick={() => handleDepartmentClick(dept.id)}
+                  />
+                ))}
+              </div>
             )}
 
             {departmentsByBlock.middle.length > 0 && (
-              <section>
-                <h2 className="mb-4 text-xl font-semibold text-foreground">{t.middleBlock}</h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {departmentsByBlock.middle.map((dept) => (
-                    <DepartmentCard
-                      key={dept.id}
-                      name={dept.name}
-                      unreadCount={0}
-                      onClick={() => handleDepartmentClick(dept.id)}
-                    />
-                  ))}
-                </div>
-              </section>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {departmentsByBlock.middle.map((dept) => (
+                  <DepartmentCard
+                    key={dept.id}
+                    name={dept.name}
+                    unreadCount={0}
+                    onClick={() => handleDepartmentClick(dept.id)}
+                  />
+                ))}
+              </div>
             )}
 
             {departmentsByBlock.lower.length > 0 && (
-              <section>
-                <h2 className="mb-4 text-xl font-semibold text-foreground">{t.lowerBlock}</h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {departmentsByBlock.lower.map((dept) => (
-                    <DepartmentCard
-                      key={dept.id}
-                      name={dept.name}
-                      unreadCount={0}
-                      onClick={() => handleDepartmentClick(dept.id)}
-                    />
-                  ))}
-                </div>
-              </section>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {departmentsByBlock.lower.map((dept) => (
+                  <DepartmentCard
+                    key={dept.id}
+                    name={dept.name}
+                    unreadCount={0}
+                    onClick={() => handleDepartmentClick(dept.id)}
+                  />
+                ))}
+              </div>
             )}
 
             {departments.length === 0 && (
