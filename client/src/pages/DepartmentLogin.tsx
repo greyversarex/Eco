@@ -10,7 +10,7 @@ import { Leaf } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import bgImage from '@assets/photo_stretch_p15_2355x1358_1761065544793.jpg';
+import bgImage from '@assets/photo_extend_40_reflect_2867x1358_1761066978062.jpg';
 
 export default function DepartmentLogin() {
   const [, setLocation] = useLocation();
