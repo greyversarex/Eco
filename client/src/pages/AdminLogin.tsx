@@ -64,7 +64,7 @@ export default function AdminLogin() {
         <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
       </div>
       
-      <div className="w-full max-w-md relative z-10 flex flex-col items-center">
+      <div className="w-full max-w-md relative z-10 flex flex-col items-center -mt-16">
         <div className="text-center space-y-2 mb-6">
           <div className="flex justify-center mb-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
@@ -75,7 +75,7 @@ export default function AdminLogin() {
           <p className="text-sm text-white/95 drop-shadow-md">ЭкоТочикистон</p>
         </div>
 
-        <Card className="w-full shadow-2xl bg-white/98 backdrop-blur-sm border-0">
+        <Card className="w-full shadow-2xl border-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.96)' }}>
           <CardHeader>
             <CardTitle className="text-xl">{t.adminLogin}</CardTitle>
           </CardHeader>
