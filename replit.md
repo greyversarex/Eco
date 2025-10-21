@@ -8,6 +8,13 @@ The platform emphasizes security, data persistence, and future mobile compatibil
 
 ## Recent Changes
 
+**October 21, 2025 - Real Departments Database Update**
+- Updated database with 37 real departments from Ministry of Environmental Protection
+- Departments organized in 3 blocks: Upper (10), Middle (11), Lower (16)
+- New access codes: CENTRAL001, GENERAL002, DUSHANBE003, HYDRO004, etc.
+- Admin credentials: username "admin", password "admin123"
+- Successfully tested: All departments display correctly in both admin and department views
+
 **October 21, 2025 - Messaging System Integration Complete**
 - Fixed ComposeMessage.tsx: Replaced mock data with real API integration (/api/departments/list for department list, POST /api/messages for sending)
 - Fixed Inbox.tsx: Connected to real API for message display with proper inbox/outbox filtering based on URL

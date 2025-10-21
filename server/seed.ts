@@ -22,25 +22,50 @@ async function seed() {
       console.log('✓ Admin user already exists');
     }
 
-    // Sample departments data
+    // Real departments data from Ministry of Environmental Protection
     const departmentData = [
-      // Upper Block
-      { name: 'Раёсати Душанбе', block: 'upper', accessCode: 'DUSHANBE001' },
-      { name: 'Агентии обухаводонимоси', block: 'upper', accessCode: 'AGENT002' },
-      { name: 'Сарраёсати Вилоҷи Суғд', block: 'upper', accessCode: 'SUGHD003' },
-      { name: 'Сарраёсати ВМКБ', block: 'upper', accessCode: 'VMKB004' },
+      // Верхний блок (Upper Block)
+      { name: 'Дастгоҳи марказӣ', block: 'upper', accessCode: 'CENTRAL001' },
+      { name: 'Шуъбаи умумӣ', block: 'upper', accessCode: 'GENERAL002' },
+      { name: 'Сарраёсати ш. Душанбе', block: 'upper', accessCode: 'DUSHANBE003' },
+      { name: 'Агентии обуҳавошиносӣ', block: 'upper', accessCode: 'HYDRO004' },
+      { name: 'Сарраёсати Вилояти Суғд', block: 'upper', accessCode: 'SUGHD005' },
+      { name: 'Сарраёсати ВМКБ', block: 'upper', accessCode: 'GBAO006' },
+      { name: 'Раёсати экспертизаи давлатии экологӣ', block: 'upper', accessCode: 'ECOEXPERT007' },
+      { name: 'Шуъба ва бахшҳои НТМ', block: 'upper', accessCode: 'NTM008' },
+      { name: 'Сарраёсати Вилояти Хатлон', block: 'upper', accessCode: 'KHATLON009' },
+      { name: 'Раёсати КҲМЗ дар минтақаи Кӯлоб', block: 'upper', accessCode: 'KULOB010' },
       
-      // Middle Block
-      { name: 'Раёсати мониторинги сифати экологӣ', block: 'middle', accessCode: 'MONITOR005' },
-      { name: 'Шуъба аз Вилоҷи НТҲ', block: 'middle', accessCode: 'NTH006' },
-      { name: 'Раёсати назорати давлатии истифода', block: 'middle', accessCode: 'NAZORAT007' },
-      { name: 'Раёсати биологияҳои мухосибат', block: 'middle', accessCode: 'BIO008' },
+      // Средний блок (Middle Block)
+      { name: 'Раёсати мониторинг, сиёсати экологӣ, обуҳавошиносӣ ва кадастр', block: 'middle', accessCode: 'MONITOR011' },
+      { name: 'Раёсати кадрҳо, коргузорӣ ва назорат', block: 'middle', accessCode: 'KADRY012' },
+      { name: 'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера', block: 'middle', accessCode: 'ATMOSFERA013' },
+      { name: 'Раёсати рақамикунонӣ ва инноватсия', block: 'middle', accessCode: 'DIGITAL014' },
+      { name: 'Раёсати назорати давлатии истифода ва ҳифзи олами набототу ҳайвонот ва захираҳои моҳӣ', block: 'middle', accessCode: 'WILDLIFE015' },
+      { name: 'Раёсати банақшагирӣ, муҳосибот ва молия', block: 'middle', accessCode: 'FINANCE016' },
+      { name: 'Раёсати робитаҳои байналмилалӣ ва кор бо конвенсияҳои экологӣ', block: 'middle', accessCode: 'INTL017' },
+      { name: 'Бахши таъминоти ҳуқуқӣ', block: 'middle', accessCode: 'LEGAL018' },
+      { name: 'Раёсати назорати давлатии истифода ва ҳифзи замин, канданиҳои фоиданоки маъмули ва муомилот бо партовҳо', block: 'middle', accessCode: 'LAND019' },
+      { name: 'Раёсати назорати давлатии истифода ва ҳифзи захираҳои об', block: 'middle', accessCode: 'WATER020' },
+      { name: 'Бахши ҳудудҳои табии махсус муҳофизатшаванда', block: 'middle', accessCode: 'PROTECTED021' },
       
-      // Lower Block
-      { name: 'Муассисаи давлатии "Худудхои табиӣ"', block: 'lower', accessCode: 'HUDUD009' },
-      { name: 'Муассисаидавлатии "Лаборатория"', block: 'lower', accessCode: 'LAB010' },
-      { name: 'Маркази стандартгузорӣ', block: 'lower', accessCode: 'STANDARD011' },
-      { name: 'Маркази назорати тахлилнок', block: 'lower', accessCode: 'TAHLIL012' },
+      // Нижний блок (Lower Block)
+      { name: 'Муассисаи давлатии "Ҳудудҳои табиии махсус муҳофизатшаванда"', block: 'lower', accessCode: 'NATURE022' },
+      { name: 'Муассисаи давлатии "Лабораторияи илмию тадқиқотии ҳифзи табиат"', block: 'lower', accessCode: 'SCILAB023' },
+      { name: 'Муассисаи давлатии "Маркази илмию тадқиқотии ҳифзи захираҳои об"', block: 'lower', accessCode: 'WATERRES024' },
+      { name: 'Муассисаи давлатии "Маркази миллии амал оид ба ҳифзи муҳити зист"', block: 'lower', accessCode: 'ENVACTION025' },
+      { name: 'Муассисаи давлатии "Маркази миллии иҷрои Конвенсияи Стокголм оид ба ифлоскунандаҳои устувори органикӣ"', block: 'lower', accessCode: 'STOCKHOLM026' },
+      { name: 'Маркази ахбори экологӣ, тарғибот ва барномасозии компютерӣ', block: 'lower', accessCode: 'ECOINFO027' },
+      { name: 'Маркази назоратию таҳлилию ташхисӣ', block: 'lower', accessCode: 'CONTROL028' },
+      { name: 'Маркази стандартикунонӣ, методология ва меъёрҳои экологӣ', block: 'lower', accessCode: 'STANDARD029' },
+      { name: 'Маркази миллии гуногунии биологӣ ва бехатарии биологӣ', block: 'lower', accessCode: 'BIODIV030' },
+      { name: 'Маркази миллии ҳифзи қабати озон', block: 'lower', accessCode: 'OZONE031' },
+      { name: 'Маркази татбиқи лоиҳаҳои сармоягузорӣ', block: 'lower', accessCode: 'INVEST032' },
+      { name: 'Шуъбаи корҳои сохтмону таъмир', block: 'lower', accessCode: 'REPAIR033' },
+      { name: 'Рӯзномаи "Инсон ва табиат"', block: 'lower', accessCode: 'NEWSPAPER034' },
+      { name: 'Маҷаллаи "Ҳифзи табиат"', block: 'lower', accessCode: 'MAGAZINE035' },
+      { name: 'Корхонаи воҳиди давлатии илмию истеҳсолии "Табиат"', block: 'lower', accessCode: 'TABIAT036' },
+      { name: 'Корхонаи воҳиди давлатии "Сайду сайёҳат"', block: 'lower', accessCode: 'HUNTING037' },
     ];
 
     // Check and insert departments
@@ -61,9 +86,9 @@ async function seed() {
     console.log('  Username: admin');
     console.log('  Password: admin123');
     console.log('\nSample Department Codes:');
-    console.log('  DUSHANBE001 - Раёсати Душанбе');
-    console.log('  AGENT002 - Агентии обухаводонимоси');
-    console.log('  SUGHD003 - Сарраёсати Вилоҷи Суғд');
+    console.log('  CENTRAL001 - Дастгоҳи марказӣ');
+    console.log('  DUSHANBE003 - Сарраёсати ш. Душанбе');
+    console.log('  HYDRO004 - Агентии обуҳавошиносӣ');
     console.log('========================\n');
 
   } catch (error) {

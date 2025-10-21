@@ -90,7 +90,7 @@ export class DbStorage implements IStorage {
 
   async createMessage(message: InsertMessage): Promise<Message> {
     const result = await db.insert(messages).values(message).returning();
-    return result[0];
+    return result[0] as Message;
   }
 
   async markMessageAsRead(id: number): Promise<Message | undefined> {
