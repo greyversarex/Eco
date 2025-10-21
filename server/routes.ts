@@ -3,6 +3,7 @@ import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema } from "@shared/schema";
 import { z } from "zod";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 
 // Extend Express Request to include session
 declare module 'express-serve-static-core' {
@@ -331,6 +332,73 @@ export function registerRoutes(app: Express) {
       const messages = await storage.getMessagesByDepartmentPair(req.session.departmentId, otherDeptId);
       res.json(messages);
     } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Object Storage routes (file upload/download)
+  
+  // Get presigned URL for file upload
+  app.post("/api/objects/upload", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error: any) {
+      console.error('Error getting upload URL:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Save attachment info to message after upload
+  app.post("/api/messages/:id/attachment", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { attachmentUrl, attachmentName } = req.body;
+
+      if (!attachmentUrl || !attachmentName) {
+        return res.status(400).json({ error: 'attachmentUrl and attachmentName are required' });
+      }
+
+      // Normalize the uploaded URL to internal path format
+      const objectStorageService = new ObjectStorageService();
+      const normalizedPath = objectStorageService.normalizeObjectEntityPath(attachmentUrl);
+
+      // Set ACL policy for the uploaded file
+      const userId = req.session.departmentId?.toString() || req.session.adminId?.toString() || 'unknown';
+      await objectStorageService.trySetObjectEntityAclPolicy(attachmentUrl, {
+        owner: userId,
+        visibility: "private", // Files in messages are private by default
+      });
+
+      // Update message with attachment info
+      const message = await storage.updateMessageAttachment(id, normalizedPath, attachmentName);
+      
+      if (!message) {
+        return res.status(404).json({ error: 'Message not found' });
+      }
+
+      res.json(message);
+    } catch (error: any) {
+      console.error('Error saving attachment:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Download file from object storage
+  app.get("/objects/:objectPath(*)", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      
+      // Check if user has access to this file
+      // For now, any authenticated user can access files (can be enhanced later)
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error: any) {
+      console.error('Error downloading object:', error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.status(404).json({ error: 'File not found' });
+      }
       res.status(500).json({ error: error.message });
     }
   });

@@ -26,6 +26,7 @@ const mockMessage = {
 Раёсати Душанбе`,
   hasAttachment: true,
   attachmentName: 'loiha_ekologi_2025.pdf',
+  attachmentUrl: '/objects/private/loiha_ekologi_2025.pdf',
 };
 
 export default function MessageView() {
@@ -39,7 +40,15 @@ export default function MessageView() {
   };
 
   const handleDownload = () => {
-    console.log('Downloading attachment');
+    if (mockMessage.attachmentUrl && mockMessage.attachmentName) {
+      // Create a temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = mockMessage.attachmentUrl;
+      link.download = mockMessage.attachmentName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   return (

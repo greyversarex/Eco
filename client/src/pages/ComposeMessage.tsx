@@ -14,8 +14,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft, Upload, X, Leaf } from 'lucide-react';
+import { ArrowLeft, Leaf } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
+import ObjectUploader from '@/components/ObjectUploader';
 
 // todo: remove mock functionality
 const mockDepartments = [
@@ -33,19 +34,18 @@ export default function ComposeMessage() {
   const [recipient, setRecipient] = useState('');
   const [executor, setExecutor] = useState('');
   const [content, setContent] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  const [attachmentUrl, setAttachmentUrl] = useState<string>('');
+  const [attachmentName, setAttachmentName] = useState<string>('');
   const t = useTranslation(lang);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-      console.log('File attached:', e.target.files[0].name);
-    }
+  const handleUploadComplete = (uploadUrl: string, filename: string) => {
+    setAttachmentUrl(uploadUrl);
+    setAttachmentName(filename);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Sending message:', { subject, date, recipient, executor, content, file });
+    console.log('Sending message:', { subject, date, recipient, executor, content, attachmentUrl, attachmentName });
     setLocation('/department/outbox');
   };
 
@@ -172,39 +172,11 @@ export default function ComposeMessage() {
 
               <div className="space-y-2">
                 <Label>{t.attachFile}</Label>
-                {!file ? (
-                  <div className="relative">
-                    <input
-                      type="file"
-                      id="file-upload"
-                      className="hidden"
-                      onChange={handleFileChange}
-                      data-testid="input-file"
-                    />
-                    <label
-                      htmlFor="file-upload"
-                      className="flex cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-border bg-muted/30 px-6 py-12 text-center hover-elevate"
-                    >
-                      <div className="space-y-2">
-                        <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">{t.dragDropFile}</p>
-                      </div>
-                    </label>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-4">
-                    <span className="flex-1 text-sm font-medium text-foreground">{file.name}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setFile(null)}
-                      data-testid="button-remove-file"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
+                <ObjectUploader 
+                  onUploadComplete={handleUploadComplete}
+                  language={lang}
+                  maxSizeMB={100}
+                />
               </div>
 
               <div className="flex gap-4 pt-4">
