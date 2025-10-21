@@ -35,6 +35,7 @@ export default function Inbox() {
 
   const filteredMessages = useMemo(() => {
     if (!user || user.userType !== 'department') return [];
+    if (!Array.isArray(messages)) return [];
     
     const currentDeptId = user.department.id;
     

@@ -225,8 +225,10 @@ export function registerRoutes(app: Express) {
         res.json(messages);
       } else if (req.session.departmentId) {
         // Department can only see their messages
-        const messages = await storage.getMessagesByDepartment(req.session.departmentId);
-        res.json(messages);
+        const { inbox, outbox } = await storage.getMessagesByDepartment(req.session.departmentId);
+        // Combine inbox and outbox into a single array
+        const allMessages = [...inbox, ...outbox];
+        res.json(allMessages);
       }
     } catch (error: any) {
       res.status(500).json({ error: error.message });
