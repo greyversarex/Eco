@@ -48,28 +48,16 @@ export default function DepartmentLogin() {
     <div 
       className="min-h-screen flex items-center justify-center p-4 relative"
       style={{ 
-        background: 'linear-gradient(135deg, #f5f7fa 0%, #e8f5e9 50%, #c8e6c9 100%)'
+        background: 'linear-gradient(135deg, #8fbc8f 0%, #90c695 50%, #a8d5ba 100%)'
       }}
     >
-      <div 
-        className="absolute inset-0 hidden md:block" 
-        style={{
-          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, rgba(232,245,233,0.8) 40%, rgba(200,230,201,0.9) 100%)'
-        }}
-      />
       <div 
         className="absolute inset-0 hidden md:block bg-cover bg-center" 
         style={{
           backgroundImage: `url(${bgImage})`,
-          backgroundSize: 'cover',
+          backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center center'
-        }}
-      />
-      <div 
-        className="absolute inset-0 hidden md:block" 
-        style={{
-          background: 'radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 40%, transparent 60%)'
         }}
       />
       
