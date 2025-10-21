@@ -117,6 +117,14 @@ export default function AdminDepartments() {
               </div>
             )}
 
+            {departmentsByBlock.upper.length > 0 && departmentsByBlock.middle.length > 0 && (
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t-2 border-primary"></div>
+                </div>
+              </div>
+            )}
+
             {departmentsByBlock.middle.length > 0 && (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {departmentsByBlock.middle.map((dept) => (
@@ -127,6 +135,14 @@ export default function AdminDepartments() {
                     onClick={() => handleDepartmentClick(dept.id)}
                   />
                 ))}
+              </div>
+            )}
+
+            {departmentsByBlock.middle.length > 0 && departmentsByBlock.lower.length > 0 && (
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t-2 border-primary"></div>
+                </div>
               </div>
             )}
 
