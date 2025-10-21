@@ -8,6 +8,14 @@ The platform emphasizes security, data persistence, and future mobile compatibil
 
 ## Recent Changes
 
+**October 21, 2025 - Login Pages Mobile Optimization**
+- Fixed mobile background: Replaced background image with soft light gradient (light gray → light green → soft green) on mobile devices
+- Fixed desktop image cropping: Applied `background-size: contain` with `no-repeat` to prevent circular icons from being cut off
+- Improved text contrast: Dark text on mobile (text-foreground), white text with shadows on desktop for optimal readability
+- Applied changes to both DepartmentLogin and AdminLogin pages
+- Architect review passed: All contrast and responsive requirements met
+- Zero LSP diagnostics
+
 **October 21, 2025 - Complete Mobile Responsive Design**
 - Completed comprehensive mobile adaptation across all application pages
 - Created MobileNav component: Sheet-based drawer navigation for mobile devices (visible <768px)
