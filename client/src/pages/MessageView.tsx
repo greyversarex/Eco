@@ -195,10 +195,12 @@ export default function MessageView() {
                       )}
                     </div>
                   </div>
-                  <Button onClick={handleReply} data-testid="button-reply" className="gap-2">
-                    <Reply className="h-4 w-4" />
-                    {t.reply}
-                  </Button>
+                  {user?.userType === 'department' && (
+                    <Button onClick={handleReply} data-testid="button-reply" className="gap-2">
+                      <Reply className="h-4 w-4" />
+                      {t.reply}
+                    </Button>
+                  )}
                 </div>
 
                 {message.attachmentUrl && message.attachmentName && (

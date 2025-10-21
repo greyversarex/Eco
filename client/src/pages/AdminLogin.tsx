@@ -17,6 +17,7 @@ export default function AdminLogin() {
   const [lang, setLang] = useState<Language>('tg');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
   const queryClient = useQueryClient();
   const t = useTranslation(lang);
   const { toast } = useToast();
@@ -26,10 +27,11 @@ export default function AdminLogin() {
       return await apiRequest('POST', '/api/auth/admin/login', credentials);
     },
     onSuccess: () => {
+      setIsSuccess(true);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       setLocation('/admin/dashboard');
     },
-    onError: (error: any) => {
+    onError: (error: any) {
       toast({
         title: lang === 'tg' ? 'Хато' : 'Ошибка',
         description: error.message || (lang === 'tg' ? 'Логин ё парол нодуруст аст' : 'Неверный логин или пароль'),
@@ -40,7 +42,7 @@ export default function AdminLogin() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username && password) {
+    if (username && password && !loginMutation.isPending && !isSuccess) {
       loginMutation.mutate({ username, password });
     }
   };
@@ -92,7 +94,7 @@ export default function AdminLogin() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  disabled={loginMutation.isPending}
+                  disabled={loginMutation.isPending || isSuccess}
                   data-testid="input-username"
                 />
               </div>
@@ -105,17 +107,17 @@ export default function AdminLogin() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  disabled={loginMutation.isPending}
+                  disabled={loginMutation.isPending || isSuccess}
                   data-testid="input-password"
                 />
               </div>
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={loginMutation.isPending}
+                disabled={loginMutation.isPending || isSuccess}
                 data-testid="button-submit"
               >
-                {loginMutation.isPending ? (lang === 'tg' ? 'Лутфан интизор шавед...' : 'Пожалуйста, подождите...') : t.submit}
+                {(loginMutation.isPending || isSuccess) ? (lang === 'tg' ? 'Лутфан интизор шавед...' : 'Пожалуйста, подождите...') : t.submit}
               </Button>
             </form>
           </CardContent>

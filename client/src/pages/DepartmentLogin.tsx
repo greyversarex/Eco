@@ -16,6 +16,7 @@ export default function DepartmentLogin() {
   const [, setLocation] = useLocation();
   const [lang, setLang] = useState<Language>('tg');
   const [code, setCode] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
   const queryClient = useQueryClient();
   const t = useTranslation(lang);
   const { toast } = useToast();
@@ -25,6 +26,7 @@ export default function DepartmentLogin() {
       return await apiRequest('POST', '/api/auth/department/login', { accessCode });
     },
     onSuccess: () => {
+      setIsSuccess(true);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       setLocation('/department/main');
     },
@@ -39,7 +41,7 @@ export default function DepartmentLogin() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (code) {
+    if (code && !loginMutation.isPending && !isSuccess) {
       loginMutation.mutate(code);
     }
   };
@@ -95,7 +97,7 @@ export default function DepartmentLogin() {
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   required
-                  disabled={loginMutation.isPending}
+                  disabled={loginMutation.isPending || isSuccess}
                   data-testid="input-code"
                 />
               </div>
@@ -105,7 +107,7 @@ export default function DepartmentLogin() {
                 disabled={loginMutation.isPending}
                 data-testid="button-submit"
               >
-                {loginMutation.isPending ? (lang === 'tg' ? 'Лутфан интизор шавед...' : 'Пожалуйста, подождите...') : t.submit}
+                {(loginMutation.isPending || isSuccess) ? (lang === 'tg' ? 'Лутфан интизор шавед...' : 'Пожалуйста, подождите...') : t.submit}
               </Button>
             </form>
           </CardContent>
