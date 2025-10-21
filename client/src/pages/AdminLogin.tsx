@@ -56,7 +56,7 @@ export default function AdminLogin() {
       <div 
         className="absolute inset-0" 
         style={{
-          background: 'radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.25) 100%)'
+          background: 'radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.2) 40%, rgba(0,0,0,0.1) 100%)'
         }}
       />
       

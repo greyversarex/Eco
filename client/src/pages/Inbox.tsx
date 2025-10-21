@@ -5,6 +5,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import MessageListItem from '@/components/MessageListItem';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { ArrowLeft, Leaf } from 'lucide-react';
+import bgImage from '@assets/eco-background-light.webp';
 
 // todo: remove mock functionality
 const mockMessages = [
@@ -53,8 +54,19 @@ export default function Inbox() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b border-border bg-background">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-fixed relative"
+      style={{ 
+        backgroundImage: `url(${bgImage})`,
+      }}
+    >
+      <div 
+        className="absolute inset-0" 
+        style={{
+          background: 'rgba(255, 255, 255, 0.92)'
+        }}
+      />
+      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md relative">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-4">
@@ -81,8 +93,8 @@ export default function Inbox() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl">
-        <div className="border-x border-border bg-background min-h-screen">
+      <main className="mx-auto max-w-4xl relative z-10">
+        <div className="border-x border-border bg-background/95 backdrop-blur-sm min-h-screen">
           {mockMessages.map((message) => (
             <MessageListItem
               key={message.id}

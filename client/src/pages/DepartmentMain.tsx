@@ -8,6 +8,7 @@ import { Inbox, Send, PenSquare, LogOut, Leaf } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import type { Department } from '@shared/schema';
+import bgImage from '@assets/eco-background-light.webp';
 
 export default function DepartmentMain() {
   const [, setLocation] = useLocation();
@@ -32,8 +33,19 @@ export default function DepartmentMain() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b border-border bg-background">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-fixed relative"
+      style={{ 
+        backgroundImage: `url(${bgImage})`,
+      }}
+    >
+      <div 
+        className="absolute inset-0" 
+        style={{
+          background: 'rgba(255, 255, 255, 0.92)'
+        }}
+      />
+      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md relative">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-3">
@@ -94,7 +106,7 @@ export default function DepartmentMain() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
