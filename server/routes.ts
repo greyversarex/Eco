@@ -266,6 +266,12 @@ export function registerRoutes(app: Express) {
         return res.status(403).json({ error: 'Cannot send messages on behalf of other departments' });
       }
       
+      // Normalize attachmentUrl if present (convert full GCS URL to internal path)
+      if (data.attachmentUrl) {
+        const objectStorageService = new ObjectStorageService();
+        data.attachmentUrl = objectStorageService.normalizeObjectEntityPath(data.attachmentUrl);
+      }
+      
       const message = await storage.createMessage(data);
       res.json(message);
     } catch (error: any) {
@@ -352,6 +358,52 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Get presigned URL for file download
+  app.post("/api/objects/download", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { messageId } = req.body;
+      
+      if (!messageId) {
+        return res.status(400).json({ error: 'messageId is required' });
+      }
+
+      // Validate messageId is a valid integer
+      const parsedMessageId = parseInt(messageId);
+      if (isNaN(parsedMessageId) || !Number.isInteger(parsedMessageId) || parsedMessageId <= 0) {
+        return res.status(400).json({ error: 'Invalid messageId' });
+      }
+
+      // Get the message to verify access and get attachment info
+      const message = await storage.getMessageById(parsedMessageId);
+      
+      if (!message) {
+        return res.status(404).json({ error: 'Message not found' });
+      }
+
+      if (!message.attachmentUrl) {
+        return res.status(404).json({ error: 'No attachment found' });
+      }
+
+      // Check if user has access to this message
+      if (req.session.departmentId) {
+        if (message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
+          return res.status(403).json({ error: 'Access denied' });
+        }
+      }
+      // Admin users can access all files (already checked by requireAuth middleware)
+
+      const objectStorageService = new ObjectStorageService();
+      const downloadURL = await objectStorageService.getObjectEntityDownloadURL(message.attachmentUrl);
+      res.json({ downloadURL });
+    } catch (error: any) {
+      console.error('Error getting download URL:', error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Save attachment info to message after upload
   app.post("/api/messages/:id/attachment", requireAuth, async (req: Request, res: Response) => {
     try {
@@ -387,21 +439,6 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Download file from object storage
-  app.get("/objects/:objectPath(*)", requireAuth, async (req: Request, res: Response) => {
-    try {
-      const objectStorageService = new ObjectStorageService();
-      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-      
-      // Check if user has access to this file
-      // For now, any authenticated user can access files (can be enhanced later)
-      objectStorageService.downloadObject(objectFile, res);
-    } catch (error: any) {
-      console.error('Error downloading object:', error);
-      if (error instanceof ObjectNotFoundError) {
-        return res.status(404).json({ error: 'File not found' });
-      }
-      res.status(500).json({ error: error.message });
-    }
-  });
+  // Legacy endpoint removed for security - use POST /api/objects/download instead
+  // which properly verifies message access before allowing downloads
 }

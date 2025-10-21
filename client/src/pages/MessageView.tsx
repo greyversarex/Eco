@@ -84,14 +84,33 @@ export default function MessageView() {
     }
   };
 
-  const handleDownload = () => {
-    if (message?.attachmentUrl && message?.attachmentName) {
+  const handleDownload = async () => {
+    if (!message?.attachmentUrl || !message?.attachmentName || !id) {
+      return;
+    }
+
+    try {
+      // Get signed download URL from backend (requires messageId for authorization)
+      const response = await apiRequest('POST', '/api/objects/download', {
+        messageId: id,
+      });
+      
+      const { downloadURL } = response as { downloadURL: string };
+      
+      // Download file using signed URL
       const link = document.createElement('a');
-      link.href = message.attachmentUrl;
+      link.href = downloadURL;
       link.download = message.attachmentName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    } catch (error: any) {
+      console.error('Download error:', error);
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: lang === 'tg' ? 'Хатогӣ ҳангоми боргирӣ' : 'Ошибка при загрузке файла',
+        variant: 'destructive',
+      });
     }
   };
 
