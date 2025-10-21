@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import DepartmentLogin from "@/pages/DepartmentLogin";
 import AdminLogin from "@/pages/AdminLogin";
 import DepartmentMain from "@/pages/DepartmentMain";
+import DepartmentMessages from "@/pages/DepartmentMessages";
 import Inbox from "@/pages/Inbox";
 import MessageView from "@/pages/MessageView";
 import ComposeMessage from "@/pages/ComposeMessage";
@@ -26,6 +27,11 @@ function Router() {
       <Route path="/department/main">
         <DepartmentRoute>
           <DepartmentMain />
+        </DepartmentRoute>
+      </Route>
+      <Route path="/department/messages/:id">
+        <DepartmentRoute>
+          <DepartmentMessages />
         </DepartmentRoute>
       </Route>
       <Route path="/department/inbox">

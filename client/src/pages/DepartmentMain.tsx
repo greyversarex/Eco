@@ -16,8 +16,12 @@ export default function DepartmentMain() {
   const t = useTranslation(lang);
   const { user, logout } = useAuth();
 
-  const { data: departments = [], isLoading } = useQuery<Department[]>({
+  const { data: departments = [], isLoading } = useQuery<Omit<Department, 'accessCode'>[]>({
     queryKey: ['/api/departments/list'],
+  });
+
+  const { data: unreadCounts = {} } = useQuery<Record<number, number>>({
+    queryKey: ['/api/messages/unread/by-department'],
   });
 
   // Group departments by block
@@ -28,8 +32,7 @@ export default function DepartmentMain() {
   };
 
   const handleDepartmentClick = (departmentId: number) => {
-    console.log('Navigating to messages for department:', departmentId);
-    setLocation('/department/inbox');
+    setLocation(`/department/messages/${departmentId}`);
   };
 
   return (
@@ -122,7 +125,7 @@ export default function DepartmentMain() {
                   <DepartmentCard
                     key={dept.id}
                     name={dept.name}
-                    unreadCount={0}
+                    unreadCount={unreadCounts[dept.id] || 0}
                     onClick={() => handleDepartmentClick(dept.id)}
                   />
                 ))}
@@ -135,7 +138,7 @@ export default function DepartmentMain() {
                   <DepartmentCard
                     key={dept.id}
                     name={dept.name}
-                    unreadCount={0}
+                    unreadCount={unreadCounts[dept.id] || 0}
                     onClick={() => handleDepartmentClick(dept.id)}
                   />
                 ))}
@@ -148,7 +151,7 @@ export default function DepartmentMain() {
                   <DepartmentCard
                     key={dept.id}
                     name={dept.name}
-                    unreadCount={0}
+                    unreadCount={unreadCounts[dept.id] || 0}
                     onClick={() => handleDepartmentClick(dept.id)}
                   />
                 ))}
