@@ -17,9 +17,11 @@ export interface IStorage {
   getMessages(): Promise<Message[]>;
   getMessageById(id: number): Promise<Message | undefined>;
   getMessagesByDepartment(departmentId: number): Promise<{ inbox: Message[]; outbox: Message[] }>;
+  getMessagesByDepartmentPair(currentDeptId: number, otherDeptId: number): Promise<{ received: Message[]; sent: Message[] }>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<Message | undefined>;
   getUnreadCountByDepartment(departmentId: number): Promise<number>;
+  getUnreadCountsForAllDepartments(currentDeptId: number): Promise<Record<number, number>>;
 }
 
 // Database storage implementation
@@ -99,6 +101,25 @@ export class DbStorage implements IStorage {
     const result = await db.select().from(messages)
       .where(and(eq(messages.recipientId, departmentId), eq(messages.isRead, false)));
     return result.length;
+  }
+
+  async getMessagesByDepartmentPair(currentDeptId: number, otherDeptId: number): Promise<{ received: Message[]; sent: Message[] }> {
+    const received = await db.select().from(messages)
+      .where(and(eq(messages.recipientId, currentDeptId), eq(messages.senderId, otherDeptId)));
+    const sent = await db.select().from(messages)
+      .where(and(eq(messages.senderId, currentDeptId), eq(messages.recipientId, otherDeptId)));
+    return { received, sent };
+  }
+
+  async getUnreadCountsForAllDepartments(currentDeptId: number): Promise<Record<number, number>> {
+    const allMessages = await db.select().from(messages)
+      .where(and(eq(messages.recipientId, currentDeptId), eq(messages.isRead, false)));
+    
+    const counts: Record<number, number> = {};
+    for (const msg of allMessages) {
+      counts[msg.senderId] = (counts[msg.senderId] || 0) + 1;
+    }
+    return counts;
   }
 }
 

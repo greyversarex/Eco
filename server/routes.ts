@@ -301,4 +301,37 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ error: error.message });
     }
   });
+
+  // Get unread counts for all departments (for department cards)
+  app.get("/api/messages/unread/by-department", requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (!req.session.departmentId) {
+        return res.status(403).json({ error: 'Only departments can check unread counts' });
+      }
+      
+      const counts = await storage.getUnreadCountsForAllDepartments(req.session.departmentId);
+      res.json(counts);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get messages between current department and another department
+  app.get("/api/messages/department/:deptId", requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (!req.session.departmentId) {
+        return res.status(403).json({ error: 'Only departments can access this endpoint' });
+      }
+
+      const otherDeptId = parseInt(req.params.deptId);
+      if (isNaN(otherDeptId)) {
+        return res.status(400).json({ error: 'Invalid department ID' });
+      }
+
+      const messages = await storage.getMessagesByDepartmentPair(req.session.departmentId, otherDeptId);
+      res.json(messages);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 }
