@@ -13,6 +13,8 @@ import Inbox from "@/pages/Inbox";
 import MessageView from "@/pages/MessageView";
 import ComposeMessage from "@/pages/ComposeMessage";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminDepartments from "@/pages/AdminDepartments";
+import AdminDepartmentMessages from "@/pages/AdminDepartmentMessages";
 
 function Router() {
   return (
@@ -22,6 +24,16 @@ function Router() {
       <Route path="/admin/dashboard">
         <AdminRoute>
           <AdminDashboard />
+        </AdminRoute>
+      </Route>
+      <Route path="/admin/departments">
+        <AdminRoute>
+          <AdminDepartments />
+        </AdminRoute>
+      </Route>
+      <Route path="/admin/department/:id">
+        <AdminRoute>
+          <AdminDepartmentMessages />
         </AdminRoute>
       </Route>
       <Route path="/department/main">

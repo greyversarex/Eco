@@ -169,6 +169,16 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => window.location.href = '/admin/departments'}
+                data-testid="button-departments"
+                className="gap-2"
+              >
+                <Mail className="h-4 w-4" />
+                {lang === 'tg' ? 'Паёмҳо' : 'Сообщения'}
+              </Button>
               <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
               <Button
                 variant="ghost"
