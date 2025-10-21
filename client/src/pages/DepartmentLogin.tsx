@@ -46,14 +46,22 @@ export default function DepartmentLogin() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4 relative bg-cover"
+      className="min-h-screen flex items-center justify-center p-4 relative"
       style={{ 
-        backgroundImage: `url(${bgImage})`,
-        backgroundPosition: 'center center'
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #e8f5e9 50%, #c8e6c9 100%)'
       }}
     >
       <div 
-        className="absolute inset-0" 
+        className="absolute inset-0 hidden md:block bg-cover bg-center" 
+        style={{
+          backgroundImage: `url(${bgImage})`,
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center center'
+        }}
+      />
+      <div 
+        className="absolute inset-0 hidden md:block" 
         style={{
           background: 'radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.2) 40%, rgba(0,0,0,0.1) 100%)'
         }}
@@ -70,8 +78,8 @@ export default function DepartmentLogin() {
               <Leaf className="h-8 w-8" />
             </div>
           </div>
-          <h1 className="text-2xl font-semibold text-white drop-shadow-lg">ЭкоТочикистон</h1>
-          <p className="text-sm text-white/95 drop-shadow-md">
+          <h1 className="text-2xl font-semibold text-foreground md:text-white md:drop-shadow-lg">ЭкоТочикистон</h1>
+          <p className="text-sm text-muted-foreground md:text-white/95 md:drop-shadow-md">
             {lang === 'tg' 
               ? 'Платформаи дохилии мубодилаи ҳуҷҷатҳо ва хатҳо' 
               : 'Внутренняя платформа обмена документами и сообщениями'}
@@ -112,7 +120,7 @@ export default function DepartmentLogin() {
         <div className="text-center mt-6">
           <a 
             href="/admin" 
-            className="text-sm text-white/95 hover:text-white transition-colors drop-shadow-md font-medium"
+            className="text-sm text-muted-foreground hover:text-foreground md:text-white/95 md:hover:text-white transition-colors md:drop-shadow-md font-medium"
             data-testid="link-admin"
           >
             {t.adminLogin}
