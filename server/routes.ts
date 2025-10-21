@@ -156,6 +156,18 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Departments list (for authenticated departments to see other departments)
+  app.get("/api/departments/list", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const departments = await storage.getDepartments();
+      // Return departments without access codes for security
+      const sanitizedDepartments = departments.map(({ accessCode, ...dept }) => dept);
+      res.json(sanitizedDepartments);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.post("/api/departments", requireAdmin, async (req: Request, res: Response) => {
     try {
       const data = insertDepartmentSchema.parse(req.body);

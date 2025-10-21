@@ -5,35 +5,28 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import DepartmentCard from '@/components/DepartmentCard';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { Inbox, Send, PenSquare, LogOut, Leaf } from 'lucide-react';
-
-// todo: remove mock functionality
-const mockDepartments = {
-  upper: [
-    { id: '1', name: 'Раёсати Душанбе', unreadCount: 3 },
-    { id: '2', name: 'Агентии обухаводонимоси', unreadCount: 0 },
-    { id: '3', name: 'Сарраёсати Вилоҷи Суғд', unreadCount: 1 },
-    { id: '4', name: 'Сарраёсати ВМКБ', unreadCount: 0 },
-  ],
-  middle: [
-    { id: '5', name: 'Раёсати мониторинги сифати экологӣ', unreadCount: 2 },
-    { id: '6', name: 'Шуъба аз Вилоҷи НТҲ', unreadCount: 0 },
-    { id: '7', name: 'Раёсати назорати давлатии истифода', unreadCount: 0 },
-    { id: '8', name: 'Раёсати биологияҳои мухосибат', unreadCount: 1 },
-  ],
-  lower: [
-    { id: '9', name: 'Муассисаи давлатии "Худудхои табиӣ"', unreadCount: 0 },
-    { id: '10', name: 'Муассисаидавлатии "Лаборатория"', unreadCount: 0 },
-    { id: '11', name: 'Маркази стандартгузорӣ', unreadCount: 0 },
-    { id: '12', name: 'Маркази назорати тахлилнок', unreadCount: 4 },
-  ],
-};
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/lib/auth';
+import type { Department } from '@shared/schema';
 
 export default function DepartmentMain() {
   const [, setLocation] = useLocation();
   const [lang, setLang] = useState<Language>('tg');
   const t = useTranslation(lang);
+  const { user, logout } = useAuth();
 
-  const handleDepartmentClick = (departmentId: string) => {
+  const { data: departments = [], isLoading } = useQuery<Department[]>({
+    queryKey: ['/api/departments/list'],
+  });
+
+  // Group departments by block
+  const departmentsByBlock = {
+    upper: departments.filter((d) => d.block === 'upper'),
+    middle: departments.filter((d) => d.block === 'middle'),
+    lower: departments.filter((d) => d.block === 'lower'),
+  };
+
+  const handleDepartmentClick = (departmentId: number) => {
     console.log('Navigating to messages for department:', departmentId);
     setLocation('/department/inbox');
   };
@@ -50,7 +43,7 @@ export default function DepartmentMain() {
               <div>
                 <h1 className="text-lg font-semibold text-foreground">ЭкоТочикистон</h1>
                 <p className="text-xs text-muted-foreground">
-                  {lang === 'tg' ? 'Раёсати Душанбе' : 'Управление Душанбе'}
+                  {user?.userType === 'department' ? user.department?.name : ''}
                 </p>
               </div>
             </div>
@@ -91,10 +84,7 @@ export default function DepartmentMain() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  console.log('Logging out');
-                  setLocation('/');
-                }}
+                onClick={logout}
                 data-testid="button-logout"
               >
                 <LogOut className="h-4 w-4" />
@@ -105,49 +95,72 @@ export default function DepartmentMain() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="space-y-8">
-          <section>
-            <h2 className="mb-4 text-xl font-semibold text-foreground">{t.upperBlock}</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {mockDepartments.upper.map((dept) => (
-                <DepartmentCard
-                  key={dept.id}
-                  name={dept.name}
-                  unreadCount={dept.unreadCount}
-                  onClick={() => handleDepartmentClick(dept.id)}
-                />
-              ))}
+        {isLoading ? (
+          <div className="flex items-center justify-center p-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+              <p className="text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</p>
             </div>
-          </section>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {departmentsByBlock.upper.length > 0 && (
+              <section>
+                <h2 className="mb-4 text-xl font-semibold text-foreground">{t.upperBlock}</h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {departmentsByBlock.upper.map((dept) => (
+                    <DepartmentCard
+                      key={dept.id}
+                      name={dept.name}
+                      unreadCount={0}
+                      onClick={() => handleDepartmentClick(dept.id)}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
 
-          <section>
-            <h2 className="mb-4 text-xl font-semibold text-foreground">{t.middleBlock}</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {mockDepartments.middle.map((dept) => (
-                <DepartmentCard
-                  key={dept.id}
-                  name={dept.name}
-                  unreadCount={dept.unreadCount}
-                  onClick={() => handleDepartmentClick(dept.id)}
-                />
-              ))}
-            </div>
-          </section>
+            {departmentsByBlock.middle.length > 0 && (
+              <section>
+                <h2 className="mb-4 text-xl font-semibold text-foreground">{t.middleBlock}</h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {departmentsByBlock.middle.map((dept) => (
+                    <DepartmentCard
+                      key={dept.id}
+                      name={dept.name}
+                      unreadCount={0}
+                      onClick={() => handleDepartmentClick(dept.id)}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
 
-          <section>
-            <h2 className="mb-4 text-xl font-semibold text-foreground">{t.lowerBlock}</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {mockDepartments.lower.map((dept) => (
-                <DepartmentCard
-                  key={dept.id}
-                  name={dept.name}
-                  unreadCount={dept.unreadCount}
-                  onClick={() => handleDepartmentClick(dept.id)}
-                />
-              ))}
-            </div>
-          </section>
-        </div>
+            {departmentsByBlock.lower.length > 0 && (
+              <section>
+                <h2 className="mb-4 text-xl font-semibold text-foreground">{t.lowerBlock}</h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {departmentsByBlock.lower.map((dept) => (
+                    <DepartmentCard
+                      key={dept.id}
+                      name={dept.name}
+                      unreadCount={0}
+                      onClick={() => handleDepartmentClick(dept.id)}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {departments.length === 0 && (
+              <div className="text-center p-12">
+                <p className="text-muted-foreground">
+                  {lang === 'tg' ? 'Ҳоло шуъбае нест' : 'Пока нет отделов'}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );
