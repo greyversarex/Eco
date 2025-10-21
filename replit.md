@@ -8,6 +8,15 @@ The platform emphasizes security, data persistence, and future mobile compatibil
 
 ## Recent Changes
 
+**October 21, 2025 - Critical Bug Fixes**
+- Fixed double login submission bug: Added isSuccess flag to DepartmentLogin and AdminLogin to prevent duplicate API calls
+- Fixed data loss during file upload: Added isFileUploading guard in ComposeMessage.handleSubmit to block premature submission
+- Fixed file upload UX: Changed ObjectUploader button text from "Выберите файл" to "Загрузить" for clarity
+- Added upload status propagation: ObjectUploader now reports upload state via onUploadStatusChange callback
+- Added upload progress indicators: Send button shows "Загрузка файла..." during file upload and is disabled
+- All fixes tested with E2E tests - login, message composition, and file upload workflows confirmed working
+- Known issue: File downloads return 403 from Google Cloud Storage (requires ACL configuration or signed URLs)
+
 **October 21, 2025 - Login Pages Polish & File Upload UX**
 - Replaced background image with optimized version for wider screens
 - Added ecological green gradient background (#8fbc8f → #90c695 → #a8d5ba) to fill side areas
