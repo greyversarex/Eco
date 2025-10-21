@@ -77,7 +77,7 @@ export default function AdminLogin() {
 
         <Card className="w-full shadow-2xl border-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.96)' }}>
           <CardHeader>
-            <CardTitle className="text-xl">{t.adminLogin}</CardTitle>
+            <CardTitle className="text-xl text-center">{t.adminLogin}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">

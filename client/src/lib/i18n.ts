@@ -4,7 +4,7 @@ export const translations = {
   tg: {
     // Login Pages
     login: 'Воридшавӣ',
-    loginTitle: 'Воридшавӣ ба ЭкоТочикистон',
+    loginTitle: 'Воридшавӣ',
     departmentCode: 'Рамзи шуъба',
     enterCode: 'Рамзи дастрасиро ворид кунед',
     adminLogin: 'Воридшавии маъмур',
@@ -76,7 +76,7 @@ export const translations = {
   ru: {
     // Login Pages
     login: 'Вход',
-    loginTitle: 'Вход в ЭкоТочикистон',
+    loginTitle: 'Авторизация',
     departmentCode: 'Код отдела',
     enterCode: 'Введите код доступа',
     adminLogin: 'Вход администратора',
