@@ -153,9 +153,10 @@ export default function DepartmentMessages() {
                         subject={message.subject}
                         sender={recipientDept?.name || 'Unknown'}
                         date={new Date(message.createdAt).toLocaleDateString('ru-RU')}
-                        isRead={true}
+                        isRead={message.isRead}
                         hasAttachment={!!message.attachmentUrl}
                         onClick={() => handleMessageClick(message.id)}
+                        isSentMessage={true}
                       />
                     );
                   })
