@@ -158,27 +158,36 @@ export default function AdminDashboard() {
         }}
       />
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md relative">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+        <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0">
                 <Leaf className="h-5 w-5" />
               </div>
-              <div>
-                <h1 className="text-lg font-semibold text-foreground">{t.adminPanel}</h1>
-                <p className="text-xs text-muted-foreground">ЭкоТочикистон</p>
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{t.adminPanel}</h1>
+                <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТочикистон</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => window.location.href = '/admin/departments'}
                 data-testid="button-departments"
-                className="gap-2"
+                className="gap-2 hidden sm:flex"
               >
                 <Mail className="h-4 w-4" />
-                {lang === 'tg' ? 'Паёмҳо' : 'Сообщения'}
+                <span className="hidden md:inline">{lang === 'tg' ? 'Паёмҳо' : 'Сообщения'}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => window.location.href = '/admin/departments'}
+                data-testid="button-departments-mobile"
+                className="sm:hidden"
+              >
+                <Mail className="h-4 w-4" />
               </Button>
               <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
               <Button
@@ -194,8 +203,8 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
-        <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
+        <div className="mb-6 sm:mb-8 grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-lg border border-border bg-card p-6">
             <div className="flex items-center gap-3">
               <div className="rounded-full bg-primary/10 p-3">
@@ -222,13 +231,13 @@ export default function AdminDashboard() {
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-foreground">{t.departments}</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-foreground">{t.departments}</h2>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button data-testid="button-add-department" className="gap-2">
+                <Button data-testid="button-add-department" className="gap-2 w-full sm:w-auto">
                   <Plus className="h-4 w-4" />
-                  {t.addDepartment}
+                  <span className="sm:inline">{t.addDepartment}</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -288,62 +297,67 @@ export default function AdminDashboard() {
               <p className="text-muted-foreground">{lang === 'tg' ? 'Ҳоло шуъбае нест' : 'Пока нет отделов'}</p>
             </div>
           ) : (
-            <div className="rounded-lg border border-border bg-card">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t.departmentName}</TableHead>
-                    <TableHead>{t.block}</TableHead>
-                    <TableHead>{t.accessCode}</TableHead>
-                    <TableHead className="text-right">{t.actions}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {departments.map((dept) => (
-                    <TableRow key={dept.id}>
-                      <TableCell className="font-medium">{dept.name}</TableCell>
-                      <TableCell>{getBlockLabel(dept.block)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <code className="rounded bg-muted px-2 py-1 text-sm font-mono">
-                            {dept.accessCode}
-                          </code>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCopyCode(dept.accessCode)}
-                            data-testid={`button-copy-${dept.id}`}
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleGenerateCode(dept.id)}
-                            data-testid={`button-generate-${dept.id}`}
-                            disabled={updateMutation.isPending}
-                          >
-                            <RefreshCw className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteDepartment(dept.id)}
-                            data-testid={`button-delete-${dept.id}`}
-                            disabled={deleteMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
+            <div className="rounded-lg border border-border bg-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[200px]">{t.departmentName}</TableHead>
+                      <TableHead className="min-w-[120px]">{t.block}</TableHead>
+                      <TableHead className="min-w-[160px]">{t.accessCode}</TableHead>
+                      <TableHead className="text-right min-w-[120px]">{t.actions}</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {departments.map((dept) => (
+                      <TableRow key={dept.id}>
+                        <TableCell className="font-medium">{dept.name}</TableCell>
+                        <TableCell>{getBlockLabel(dept.block)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <code className="rounded bg-muted px-2 py-1 text-sm font-mono whitespace-nowrap">
+                              {dept.accessCode}
+                            </code>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCopyCode(dept.accessCode)}
+                              data-testid={`button-copy-${dept.id}`}
+                              className="shrink-0"
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleGenerateCode(dept.id)}
+                              data-testid={`button-generate-${dept.id}`}
+                              disabled={updateMutation.isPending}
+                              className="shrink-0"
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteDepartment(dept.id)}
+                              data-testid={`button-delete-${dept.id}`}
+                              disabled={deleteMutation.isPending}
+                              className="shrink-0"
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           )}
         </div>

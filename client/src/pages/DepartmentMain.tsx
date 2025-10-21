@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import MobileNav from '@/components/MobileNav';
 import DepartmentCard from '@/components/DepartmentCard';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { Inbox, Send, PenSquare, LogOut, Leaf } from 'lucide-react';
@@ -49,20 +50,20 @@ export default function DepartmentMain() {
         }}
       />
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md relative">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+        <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0">
                 <Leaf className="h-5 w-5" />
               </div>
-              <div>
-                <h1 className="text-lg font-semibold text-foreground">ЭкоТочикистон</h1>
-                <p className="text-xs text-muted-foreground">
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">ЭкоТочикистон</h1>
+                <p className="text-xs text-muted-foreground truncate">
                   {user?.userType === 'department' ? user.department?.name : ''}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               <nav className="hidden md:flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -95,12 +96,23 @@ export default function DepartmentMain() {
                   {t.newMessage}
                 </Button>
               </nav>
+              <MobileNav 
+                lang={lang} 
+                translations={{
+                  inbox: t.inbox,
+                  outbox: t.outbox,
+                  newMessage: t.newMessage,
+                  departments: t.departments,
+                  menu: t.menu,
+                }}
+              />
               <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={logout}
                 data-testid="button-logout"
+                className="flex items-center"
               >
                 <LogOut className="h-4 w-4" />
               </Button>

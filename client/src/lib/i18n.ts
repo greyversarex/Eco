@@ -20,6 +20,7 @@ export const translations = {
     outbox: 'Хатҳои равоншуда',
     newMessage: 'Навиштани хат',
     logout: 'Баромад',
+    menu: 'Меню',
     
     // Department Blocks
     upperBlock: 'Блоки боло',
@@ -92,6 +93,7 @@ export const translations = {
     outbox: 'Исходящие',
     newMessage: 'Новое сообщение',
     logout: 'Выход',
+    menu: 'Меню',
     
     // Department Blocks
     upperBlock: 'Верхний блок',

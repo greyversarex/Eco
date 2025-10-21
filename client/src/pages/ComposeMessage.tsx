@@ -108,24 +108,25 @@ export default function ComposeMessage() {
         }}
       />
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md relative">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setLocation('/department/main')}
                 data-testid="button-back"
+                className="shrink-0"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0">
                   <Leaf className="h-5 w-5" />
                 </div>
-                <div>
-                  <h1 className="text-lg font-semibold text-foreground">{t.newMessage}</h1>
-                  <p className="text-xs text-muted-foreground">ЭкоТочикистон</p>
+                <div className="min-w-0">
+                  <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{t.newMessage}</h1>
+                  <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТочикистон</p>
                 </div>
               </div>
             </div>
@@ -134,12 +135,12 @@ export default function ComposeMessage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+      <main className="mx-auto max-w-4xl px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
         <Card>
-          <CardHeader>
-            <CardTitle>{t.newMessage}</CardTitle>
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="text-lg sm:text-xl">{t.newMessage}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
@@ -224,8 +225,13 @@ export default function ComposeMessage() {
                 />
               </div>
 
-              <div className="flex gap-4 pt-4">
-                <Button type="submit" data-testid="button-send" disabled={sendMessageMutation.isPending}>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
+                <Button 
+                  type="submit" 
+                  data-testid="button-send" 
+                  disabled={sendMessageMutation.isPending}
+                  className="w-full sm:w-auto"
+                >
                   {sendMessageMutation.isPending 
                     ? (lang === 'tg' ? 'Фиристода мешавад...' : 'Отправка...') 
                     : t.send}
@@ -236,6 +242,7 @@ export default function ComposeMessage() {
                   onClick={() => setLocation('/department/main')}
                   data-testid="button-cancel"
                   disabled={sendMessageMutation.isPending}
+                  className="w-full sm:w-auto"
                 >
                   {t.cancel}
                 </Button>

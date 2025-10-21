@@ -58,27 +58,36 @@ export default function AdminDepartments() {
         }}
       />
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md relative">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+        <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0">
                 <Leaf className="h-5 w-5" />
               </div>
-              <div>
-                <h1 className="text-lg font-semibold text-foreground">{t.adminPanel}</h1>
-                <p className="text-xs text-muted-foreground">ЭкоТочикистон</p>
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{t.adminPanel}</h1>
+                <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТочикистон</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setLocation('/admin/dashboard')}
                 data-testid="button-settings"
-                className="gap-2"
+                className="gap-2 hidden sm:flex"
               >
                 <Settings className="h-4 w-4" />
-                {lang === 'tg' ? 'Идора' : 'Управление'}
+                <span className="hidden md:inline">{lang === 'tg' ? 'Идора' : 'Управление'}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLocation('/admin/dashboard')}
+                data-testid="button-settings-mobile"
+                className="sm:hidden"
+              >
+                <Settings className="h-4 w-4" />
               </Button>
               <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
               <Button
