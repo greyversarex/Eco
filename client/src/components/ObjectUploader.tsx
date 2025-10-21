@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface ObjectUploaderProps {
   onUploadComplete?: (uploadUrl: string, filename: string) => void;
+  onUploadStatusChange?: (isUploading: boolean) => void;
   accept?: string;
   maxSizeMB?: number;
   language?: 'tg' | 'ru';
@@ -19,6 +20,7 @@ interface UploadResult {
 
 export default function ObjectUploader({
   onUploadComplete,
+  onUploadStatusChange,
   accept,
   maxSizeMB = 100,
   language = 'tg',
@@ -33,7 +35,7 @@ export default function ObjectUploader({
 
   const translations = {
     tg: {
-      selectFile: 'Интихоби файл',
+      selectFile: 'Бор кардан',
       dragDrop: 'Ҳуҷҷатро интихоб кунед',
       uploading: 'Бор мешавад...',
       uploadComplete: 'Бор шуд',
@@ -43,7 +45,7 @@ export default function ObjectUploader({
       uploadFailed: 'Бор кардан ноком шуд',
     },
     ru: {
-      selectFile: 'Выбрать файл',
+      selectFile: 'Загрузить',
       dragDrop: 'Выберите файл',
       uploading: 'Загрузка...',
       uploadComplete: 'Загружено',
@@ -113,6 +115,9 @@ export default function ObjectUploader({
 
     setIsUploading(true);
     setUploadProgress(0);
+    if (onUploadStatusChange) {
+      onUploadStatusChange(true);
+    }
 
     try {
       // Step 1: Get presigned URL from backend
@@ -132,6 +137,9 @@ export default function ObjectUploader({
         if (xhr.status >= 200 && xhr.status < 300) {
           setUploadComplete(true);
           setIsUploading(false);
+          if (onUploadStatusChange) {
+            onUploadStatusChange(false);
+          }
           
           // Extract the file URL from the presigned URL
           const fileUrl = uploadURL.split('?')[0];
@@ -161,6 +169,9 @@ export default function ObjectUploader({
       console.error('Upload error:', error);
       setIsUploading(false);
       setUploadProgress(0);
+      if (onUploadStatusChange) {
+        onUploadStatusChange(false);
+      }
       
       toast({
         title: t.error,

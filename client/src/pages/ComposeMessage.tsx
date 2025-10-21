@@ -33,6 +33,7 @@ export default function ComposeMessage() {
   const [content, setContent] = useState('');
   const [attachmentUrl, setAttachmentUrl] = useState<string>('');
   const [attachmentName, setAttachmentName] = useState<string>('');
+  const [isFileUploading, setIsFileUploading] = useState(false);
   const t = useTranslation(lang);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -69,6 +70,15 @@ export default function ComposeMessage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isFileUploading) {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: lang === 'tg' ? 'Лутфан интизор шавед, файл бор мешавад' : 'Пожалуйста, подождите, файл загружается',
+        variant: 'destructive',
+      });
+      return;
+    }
     
     if (!user || user.userType !== 'department') {
       toast({
@@ -220,6 +230,7 @@ export default function ComposeMessage() {
                 <Label>{t.attachFile}</Label>
                 <ObjectUploader 
                   onUploadComplete={handleUploadComplete}
+                  onUploadStatusChange={setIsFileUploading}
                   language={lang}
                   maxSizeMB={100}
                 />
@@ -229,12 +240,14 @@ export default function ComposeMessage() {
                 <Button 
                   type="submit" 
                   data-testid="button-send" 
-                  disabled={sendMessageMutation.isPending}
+                  disabled={sendMessageMutation.isPending || isFileUploading}
                   className="w-full sm:w-auto"
                 >
-                  {sendMessageMutation.isPending 
-                    ? (lang === 'tg' ? 'Фиристода мешавад...' : 'Отправка...') 
-                    : t.send}
+                  {isFileUploading
+                    ? (lang === 'tg' ? 'Файл бор мешавад...' : 'Загрузка файла...') 
+                    : sendMessageMutation.isPending 
+                      ? (lang === 'tg' ? 'Фиристода мешавад...' : 'Отправка...') 
+                      : t.send}
                 </Button>
                 <Button
                   type="button"
