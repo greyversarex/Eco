@@ -17,14 +17,11 @@ import { useTranslation, type Language } from '@/lib/i18n';
 import { ArrowLeft, Leaf } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import ObjectUploader from '@/components/ObjectUploader';
-
-// todo: remove mock functionality
-const mockDepartments = [
-  { id: '1', name: 'Раёсати Душанбе' },
-  { id: '2', name: 'Агентии обухаводонимоси' },
-  { id: '3', name: 'Сарраёсати Вилоҷи Суғд' },
-  { id: '4', name: 'Сарраёсати ВМКБ' },
-];
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useAuth } from '@/lib/auth';
+import { useToast } from '@/hooks/use-toast';
+import type { Department } from '@shared/schema';
 
 export default function ComposeMessage() {
   const [, setLocation] = useLocation();
@@ -37,6 +34,33 @@ export default function ComposeMessage() {
   const [attachmentUrl, setAttachmentUrl] = useState<string>('');
   const [attachmentName, setAttachmentName] = useState<string>('');
   const t = useTranslation(lang);
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const { data: departments = [], isLoading: loadingDepartments } = useQuery<Omit<Department, 'accessCode'>[]>({
+    queryKey: ['/api/departments/list'],
+  });
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async (messageData: any) => {
+      return await apiRequest('POST', '/api/messages', messageData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      toast({
+        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+        description: lang === 'tg' ? 'Паём фиристода шуд' : 'Сообщение отправлено',
+      });
+      setLocation('/department/outbox');
+    },
+    onError: (error: any) => {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: error.message || (lang === 'tg' ? 'Хатогӣ ҳангоми фиристодани паём' : 'Ошибка при отправке сообщения'),
+        variant: 'destructive',
+      });
+    },
+  });
 
   const handleUploadComplete = (uploadUrl: string, filename: string) => {
     setAttachmentUrl(uploadUrl);
@@ -45,8 +69,29 @@ export default function ComposeMessage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Sending message:', { subject, date, recipient, executor, content, attachmentUrl, attachmentName });
-    setLocation('/department/outbox');
+    
+    if (!user || user.userType !== 'department') {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: lang === 'tg' ? 'Шумо ворид нашудаед' : 'Вы не авторизованы',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const messageData = {
+      subject,
+      content,
+      senderId: user.department.id,
+      recipientId: parseInt(recipient),
+      executor: executor || null,
+      documentDate: new Date(date).toISOString(),
+      attachmentUrl: attachmentUrl || null,
+      attachmentName: attachmentName || null,
+      replyToId: null,
+    };
+
+    sendMessageMutation.mutate(messageData);
   };
 
   return (
@@ -130,13 +175,13 @@ export default function ComposeMessage() {
                 <Label htmlFor="recipient">
                   {t.recipient} <span className="text-destructive">*</span>
                 </Label>
-                <Select value={recipient} onValueChange={setRecipient} required>
+                <Select value={recipient} onValueChange={setRecipient} required disabled={loadingDepartments}>
                   <SelectTrigger id="recipient" data-testid="select-recipient">
-                    <SelectValue placeholder={t.selectRecipient} />
+                    <SelectValue placeholder={loadingDepartments ? (lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...') : t.selectRecipient} />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockDepartments.map((dept) => (
-                      <SelectItem key={dept.id} value={dept.id}>
+                    {departments.map((dept) => (
+                      <SelectItem key={dept.id} value={dept.id.toString()}>
                         {dept.name}
                       </SelectItem>
                     ))}
@@ -180,14 +225,17 @@ export default function ComposeMessage() {
               </div>
 
               <div className="flex gap-4 pt-4">
-                <Button type="submit" data-testid="button-send">
-                  {t.send}
+                <Button type="submit" data-testid="button-send" disabled={sendMessageMutation.isPending}>
+                  {sendMessageMutation.isPending 
+                    ? (lang === 'tg' ? 'Фиристода мешавад...' : 'Отправка...') 
+                    : t.send}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setLocation('/department/main')}
                   data-testid="button-cancel"
+                  disabled={sendMessageMutation.isPending}
                 >
                   {t.cancel}
                 </Button>

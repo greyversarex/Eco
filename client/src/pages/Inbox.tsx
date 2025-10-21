@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -6,50 +6,60 @@ import MessageListItem from '@/components/MessageListItem';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { ArrowLeft, Leaf } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
-
-// todo: remove mock functionality
-const mockMessages = [
-  {
-    id: '1',
-    subject: 'Дар бораи лоиҳаи нави экологӣ',
-    sender: 'Раёсати Душанбе',
-    date: '20.10.2025',
-    isRead: false,
-    hasAttachment: true,
-  },
-  {
-    id: '2',
-    subject: 'Ҳисобот оиди фаъолияти моҳ',
-    sender: 'Агентии обухаводонимоси',
-    date: '19.10.2025',
-    isRead: true,
-    hasAttachment: false,
-  },
-  {
-    id: '3',
-    subject: 'Дастури иҷрои чораҳои экологӣ',
-    sender: 'Сарраёсати Вилоҷи Суғд',
-    date: '18.10.2025',
-    isRead: false,
-    hasAttachment: true,
-  },
-  {
-    id: '4',
-    subject: 'Маълумот дар бораи назорати сифат',
-    sender: 'Раёсати мониторинги сифати экологӣ',
-    date: '17.10.2025',
-    isRead: true,
-    hasAttachment: false,
-  },
-];
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/lib/auth';
+import type { Message, Department } from '@shared/schema';
+import { format } from 'date-fns';
 
 export default function Inbox() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [lang, setLang] = useState<Language>('tg');
   const t = useTranslation(lang);
+  const { user } = useAuth();
+
+  const isOutbox = location === '/department/outbox';
+  const pageTitle = isOutbox ? t.outbox : t.inbox;
+
+  const { data: messages = [], isLoading: loadingMessages } = useQuery<Message[]>({
+    queryKey: ['/api/messages'],
+  });
+
+  const { data: departments = [], isLoading: loadingDepartments } = useQuery<Omit<Department, 'accessCode'>[]>({
+    queryKey: ['/api/departments/list'],
+  });
+
+  const getDepartmentName = (deptId: number) => {
+    const dept = departments.find(d => d.id === deptId);
+    return dept?.name || '';
+  };
+
+  const filteredMessages = useMemo(() => {
+    if (!user || user.userType !== 'department') return [];
+    
+    const currentDeptId = user.department.id;
+    
+    if (isOutbox) {
+      return messages.filter(msg => msg.senderId === currentDeptId);
+    } else {
+      return messages.filter(msg => msg.recipientId === currentDeptId);
+    }
+  }, [messages, user, isOutbox]);
+
+  const formattedMessages = useMemo(() => {
+    return filteredMessages.map(msg => ({
+      id: msg.id.toString(),
+      subject: msg.subject,
+      sender: isOutbox 
+        ? getDepartmentName(msg.recipientId)
+        : getDepartmentName(msg.senderId),
+      date: format(new Date(msg.documentDate), 'dd.MM.yyyy'),
+      isRead: msg.isRead,
+      hasAttachment: !!msg.attachmentUrl,
+      isSentMessage: isOutbox,
+    }));
+  }, [filteredMessages, isOutbox, departments]);
 
   const handleMessageClick = (messageId: string) => {
-    console.log('Opening message:', messageId);
     setLocation(`/department/message/${messageId}`);
   };
 
@@ -83,7 +93,7 @@ export default function Inbox() {
                   <Leaf className="h-5 w-5" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-foreground">{t.inbox}</h1>
+                  <h1 className="text-lg font-semibold text-foreground">{pageTitle}</h1>
                   <p className="text-xs text-muted-foreground">ЭкоТочикистон</p>
                 </div>
               </div>
@@ -95,13 +105,28 @@ export default function Inbox() {
 
       <main className="mx-auto max-w-4xl relative z-10">
         <div className="border-x border-border bg-background/95 backdrop-blur-sm min-h-screen">
-          {mockMessages.map((message) => (
-            <MessageListItem
-              key={message.id}
-              {...message}
-              onClick={() => handleMessageClick(message.id)}
-            />
-          ))}
+          {loadingMessages || loadingDepartments ? (
+            <div className="flex items-center justify-center p-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+                <p className="text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</p>
+              </div>
+            </div>
+          ) : formattedMessages.length === 0 ? (
+            <div className="flex items-center justify-center p-12">
+              <p className="text-muted-foreground">
+                {lang === 'tg' ? 'Паёме нест' : 'Нет сообщений'}
+              </p>
+            </div>
+          ) : (
+            formattedMessages.map((message) => (
+              <MessageListItem
+                key={message.id}
+                {...message}
+                onClick={() => handleMessageClick(message.id)}
+              />
+            ))
+          )}
         </div>
       </main>
     </div>
