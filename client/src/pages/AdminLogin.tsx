@@ -50,24 +50,29 @@ export default function AdminLogin() {
       className="min-h-screen flex items-center justify-center p-4 relative bg-cover bg-center"
       style={{ backgroundImage: `url(${bgImage})` }}
     >
-      <div className="absolute inset-0 bg-black/30" />
+      <div 
+        className="absolute inset-0" 
+        style={{
+          background: 'radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.25) 100%)'
+        }}
+      />
       
-      <div className="w-full max-w-md space-y-6 relative z-10">
-        <div className="flex justify-end">
-          <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
-        </div>
-        
-        <div className="text-center space-y-2">
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
+      </div>
+      
+      <div className="w-full max-w-md relative z-10 flex flex-col items-center">
+        <div className="text-center space-y-2 mb-6">
           <div className="flex justify-center mb-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
               <ShieldCheck className="h-8 w-8" />
             </div>
           </div>
           <h1 className="text-2xl font-semibold text-white drop-shadow-lg">{t.adminPanel}</h1>
-          <p className="text-sm text-white/90 drop-shadow-md">ЭкоТочикистон</p>
+          <p className="text-sm text-white/95 drop-shadow-md">ЭкоТочикистон</p>
         </div>
 
-        <Card className="shadow-2xl bg-background/95 backdrop-blur-sm">
+        <Card className="w-full shadow-2xl bg-white/98 backdrop-blur-sm border-0">
           <CardHeader>
             <CardTitle className="text-xl">{t.adminLogin}</CardTitle>
           </CardHeader>
@@ -111,10 +116,10 @@ export default function AdminLogin() {
           </CardContent>
         </Card>
         
-        <div className="text-center">
+        <div className="text-center mt-6">
           <a 
             href="/" 
-            className="text-sm text-white/90 hover:text-white transition-colors drop-shadow-md font-medium"
+            className="text-sm text-white/95 hover:text-white transition-colors drop-shadow-md font-medium"
             data-testid="link-department"
           >
             {lang === 'tg' ? 'Воридшавии шуъба' : 'Вход для отдела'}
