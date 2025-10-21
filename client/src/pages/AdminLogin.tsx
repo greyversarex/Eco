@@ -10,7 +10,8 @@ import { ShieldCheck } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import bgImage from '@assets/Lifestyle-Adopt-Sustainable-Living-Practices (1)_1761031309790.jpg';
+
+const bgImageUrl = new URL('../../attached_assets/Lifestyle-Adopt-Sustainable-Living-Practices (1)_1761031309790.jpg', import.meta.url).href;
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
@@ -49,7 +50,7 @@ export default function AdminLogin() {
     <div 
       className="min-h-screen flex items-center justify-center p-4 relative bg-cover"
       style={{ 
-        backgroundImage: `url(${bgImage})`,
+        backgroundImage: `url(${bgImageUrl})`,
         backgroundPosition: 'center center'
       }}
     >
