@@ -31,10 +31,11 @@ export default function AdminLogin() {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       setLocation('/admin/dashboard');
     },
-    onError: (error: any) {
+    onError: (error) => {
+      const err = error as Error;
       toast({
         title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: error.message || (lang === 'tg' ? 'Логин ё парол нодуруст аст' : 'Неверный логин или пароль'),
+        description: err.message || (lang === 'tg' ? 'Логин ё парол нодуруст аст' : 'Неверный логин или пароль'),
         variant: 'destructive',
       });
     },
@@ -122,14 +123,14 @@ export default function AdminLogin() {
             </form>
           </CardContent>
         </Card>
-        
+
         <div className="text-center mt-6">
           <a 
             href="/" 
             className="text-sm text-muted-foreground hover:text-foreground md:text-white/95 md:hover:text-white transition-colors md:drop-shadow-md font-medium"
             data-testid="link-department"
           >
-            {lang === 'tg' ? 'Воридшавии шуъба' : 'Вход для отдела'}
+            {t.departmentLogin}
           </a>
         </div>
       </div>
