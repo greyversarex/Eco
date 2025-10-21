@@ -46,8 +46,11 @@ export default function DepartmentLogin() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4 relative bg-cover bg-center"
-      style={{ backgroundImage: `url(${bgImage})` }}
+      className="min-h-screen flex items-center justify-center p-4 relative bg-cover"
+      style={{ 
+        backgroundImage: `url(${bgImage})`,
+        backgroundPosition: '60% center'
+      }}
     >
       <div 
         className="absolute inset-0" 
