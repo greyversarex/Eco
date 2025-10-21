@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
-  const { data: user, isLoading } = useQuery({
+  const { data: user, isLoading } = useQuery<{ userType: 'department'; department: Department } | { userType: 'admin'; admin: { id: number } }>({
     queryKey: ['/api/auth/me'],
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -109,6 +109,35 @@ export function AdminRoute({ children }: { children: ReactNode }) {
   }
 
   if (!user || user.userType !== 'admin') {
+    return null;
+  }
+
+  return <>{children}</>;
+}
+
+// Authenticated route for both admins and departments
+export function AuthenticatedRoute({ children }: { children: ReactNode }) {
+  const { user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      setLocation('/');
+    }
+  }, [user, isLoading, setLocation]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Загрузка...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
     return null;
   }
 

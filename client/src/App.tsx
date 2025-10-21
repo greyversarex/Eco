@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider, DepartmentRoute, AdminRoute } from "@/lib/auth";
+import { AuthProvider, DepartmentRoute, AdminRoute, AuthenticatedRoute } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
 import DepartmentLogin from "@/pages/DepartmentLogin";
 import AdminLogin from "@/pages/AdminLogin";
@@ -57,9 +57,9 @@ function Router() {
         </DepartmentRoute>
       </Route>
       <Route path="/department/message/:id">
-        <DepartmentRoute>
+        <AuthenticatedRoute>
           <MessageView />
-        </DepartmentRoute>
+        </AuthenticatedRoute>
       </Route>
       <Route path="/department/compose">
         <DepartmentRoute>
