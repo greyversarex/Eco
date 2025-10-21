@@ -53,6 +53,12 @@ export default function AdminLogin() {
       }}
     >
       <div 
+        className="absolute inset-0 hidden md:block" 
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, rgba(232,245,233,0.8) 40%, rgba(200,230,201,0.9) 100%)'
+        }}
+      />
+      <div 
         className="absolute inset-0 hidden md:block bg-cover bg-center" 
         style={{
           backgroundImage: `url(${bgImage})`,
@@ -64,7 +70,7 @@ export default function AdminLogin() {
       <div 
         className="absolute inset-0 hidden md:block" 
         style={{
-          background: 'radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.2) 40%, rgba(0,0,0,0.1) 100%)'
+          background: 'radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 40%, transparent 60%)'
         }}
       />
       
