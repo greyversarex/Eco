@@ -98,13 +98,25 @@ export default function MessageView() {
       
       const { downloadURL } = response as { downloadURL: string };
       
-      // Download file using signed URL
+      // Fetch the file and create a blob to download
+      const fileResponse = await fetch(downloadURL);
+      if (!fileResponse.ok) {
+        throw new Error('Failed to fetch file');
+      }
+      
+      const blob = await fileResponse.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      
+      // Download file using blob URL
       const link = document.createElement('a');
-      link.href = downloadURL;
+      link.href = blobUrl;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      // Clean up blob URL
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
     } catch (error: any) {
       console.error('Download error:', error);
       toast({
