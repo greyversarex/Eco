@@ -42,8 +42,11 @@ export const messages: any = pgTable("messages", {
   recipientId: integer("recipient_id").notNull().references(() => departments.id),
   executor: text("executor"),
   documentDate: timestamp("document_date").notNull(),
+  // Legacy single attachment fields (kept for backward compatibility)
   attachmentUrl: text("attachment_url"),
   attachmentName: text("attachment_name"),
+  // New multiple attachments field
+  attachments: jsonb("attachments").$type<Array<{ url: string; name: string }>>(),
   replyToId: integer("reply_to_id").references((): any => messages.id),
   isRead: boolean("is_read").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -55,6 +58,10 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   isRead: true,
 }).extend({
   documentDate: z.coerce.date(),
+  attachments: z.array(z.object({
+    url: z.string(),
+    name: z.string(),
+  })).optional(),
 });
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;

@@ -9,8 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 interface ObjectUploaderProps {
   onUploadComplete?: (uploadUrl: string, filename: string) => void;
   onUploadStatusChange?: (isUploading: boolean) => void;
+  onAllUploadsComplete?: (files: Array<{ url: string; name: string }>) => void;
   accept?: string;
   maxSizeMB?: number;
+  maxFiles?: number;
   language?: 'tg' | 'ru';
 }
 
@@ -18,18 +20,25 @@ interface UploadResult {
   uploadURL: string;
 }
 
+interface UploadedFile {
+  file: File;
+  url?: string;
+  progress: number;
+  isUploading: boolean;
+  isComplete: boolean;
+}
+
 export default function ObjectUploader({
   onUploadComplete,
   onUploadStatusChange,
+  onAllUploadsComplete,
   accept,
   maxSizeMB = 100,
+  maxFiles = 5,
   language = 'tg',
 }: ObjectUploaderProps) {
-  const [file, setFile] = useState<File | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadComplete, setUploadComplete] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -43,16 +52,20 @@ export default function ObjectUploader({
       error: 'Хатои бор кардан',
       fileTooLarge: 'Андозаи файл аз {maxSize}МБ зиёд аст',
       uploadFailed: 'Бор кардан ноком шуд',
+      maxFilesReached: 'Шумо метавонед танҳо {maxFiles} файл бор кунед',
+      addMore: 'Боз илова кунед',
     },
     ru: {
       selectFile: 'Загрузить',
-      dragDrop: 'Выберите файл',
+      dragDrop: 'Выберите файлы',
       uploading: 'Загрузка...',
       uploadComplete: 'Загружено',
       remove: 'Удалить',
       error: 'Ошибка загрузки',
       fileTooLarge: 'Размер файла превышает {maxSize}МБ',
       uploadFailed: 'Загрузка не удалась',
+      maxFilesReached: 'Вы можете загрузить только {maxFiles} файлов',
+      addMore: 'Добавить еще',
     },
   };
 
@@ -65,26 +78,57 @@ export default function ObjectUploader({
     },
   });
 
-  const handleFileSelect = (selectedFile: File) => {
-    // Check file size
+  const handleFilesSelect = (selectedFiles: FileList | File[]) => {
+    const filesArray = Array.from(selectedFiles);
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
-    if (selectedFile.size > maxSizeBytes) {
+    
+    // Check max files limit
+    if (uploadedFiles.length + filesArray.length > maxFiles) {
       toast({
         title: t.error,
-        description: t.fileTooLarge.replace('{maxSize}', maxSizeMB.toString()),
+        description: t.maxFilesReached.replace('{maxFiles}', maxFiles.toString()),
         variant: 'destructive',
       });
       return;
     }
 
-    setFile(selectedFile);
-    setUploadProgress(0);
-    setUploadComplete(false);
+    // Validate file sizes
+    const validFiles: File[] = [];
+    for (const file of filesArray) {
+      if (file.size > maxSizeBytes) {
+        toast({
+          title: t.error,
+          description: `${file.name}: ${t.fileTooLarge.replace('{maxSize}', maxSizeMB.toString())}`,
+          variant: 'destructive',
+        });
+      } else {
+        validFiles.push(file);
+      }
+    }
+
+    // Add files to upload queue
+    if (validFiles.length > 0) {
+      const newFiles: UploadedFile[] = validFiles.map(file => ({
+        file,
+        progress: 0,
+        isUploading: false,
+        isComplete: false,
+      }));
+      
+      setUploadedFiles(prev => [...prev, ...newFiles]);
+      
+      // Start uploading immediately
+      setTimeout(() => {
+        uploadFiles(newFiles);
+      }, 100);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFileSelect(e.target.files[0]);
+    if (e.target.files && e.target.files.length > 0) {
+      handleFilesSelect(e.target.files);
+      // Reset input
+      e.target.value = '';
     }
   };
 
@@ -93,8 +137,8 @@ export default function ObjectUploader({
     e.stopPropagation();
     setIsDragging(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileSelect(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFilesSelect(e.dataTransfer.files);
     }
   };
 
@@ -110,166 +154,222 @@ export default function ObjectUploader({
     setIsDragging(false);
   };
 
-  const uploadFile = async () => {
-    if (!file) return;
-
-    setIsUploading(true);
-    setUploadProgress(0);
+  const uploadFiles = async (filesToUpload: UploadedFile[]) => {
     if (onUploadStatusChange) {
       onUploadStatusChange(true);
     }
+
+    for (const uploadedFile of filesToUpload) {
+      await uploadSingleFile(uploadedFile);
+    }
+
+    if (onUploadStatusChange) {
+      onUploadStatusChange(false);
+    }
+
+    // Notify parent of all completed uploads
+    if (onAllUploadsComplete) {
+      const completedFiles = uploadedFiles
+        .filter(f => f.isComplete && f.url)
+        .map(f => ({ url: f.url!, name: f.file.name }));
+      onAllUploadsComplete(completedFiles);
+    }
+  };
+
+  const uploadSingleFile = async (uploadedFile: UploadedFile) => {
+    const fileIndex = uploadedFiles.findIndex(f => f.file === uploadedFile.file);
+    if (fileIndex === -1) return;
+
+    // Mark as uploading
+    setUploadedFiles(prev => {
+      const updated = [...prev];
+      updated[fileIndex] = { ...updated[fileIndex], isUploading: true, progress: 0 };
+      return updated;
+    });
 
     try {
       // Step 1: Get presigned URL from backend
       const { uploadURL } = await getUploadUrlMutation.mutateAsync();
 
-      // Step 2: Upload file directly to cloud storage using presigned URL
-      const xhr = new XMLHttpRequest();
+      // Step 2: Upload file directly to cloud storage
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
 
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          const progress = Math.round((e.loaded / e.total) * 100);
-          setUploadProgress(progress);
-        }
-      });
-
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          setUploadComplete(true);
-          setIsUploading(false);
-          if (onUploadStatusChange) {
-            onUploadStatusChange(false);
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const progress = Math.round((e.loaded / e.total) * 100);
+            setUploadedFiles(prev => {
+              const updated = [...prev];
+              updated[fileIndex] = { ...updated[fileIndex], progress };
+              return updated;
+            });
           }
-          
-          // Extract the file URL from the presigned URL
-          const fileUrl = uploadURL.split('?')[0];
-          
-          // Notify parent component
-          if (onUploadComplete) {
-            onUploadComplete(fileUrl, file.name);
+        });
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const fileUrl = uploadURL.split('?')[0];
+            
+            setUploadedFiles(prev => {
+              const updated = [...prev];
+              updated[fileIndex] = {
+                ...updated[fileIndex],
+                url: fileUrl,
+                isUploading: false,
+                isComplete: true,
+                progress: 100,
+              };
+              return updated;
+            });
+
+            // Notify parent component
+            if (onUploadComplete) {
+              onUploadComplete(fileUrl, uploadedFile.file.name);
+            }
+
+            resolve();
+          } else {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
           }
+        });
 
-          toast({
-            title: t.uploadComplete,
-            description: file.name,
-          });
-        } else {
-          throw new Error(`Upload failed with status ${xhr.status}`);
-        }
+        xhr.addEventListener('error', () => {
+          reject(new Error('Network error during upload'));
+        });
+
+        xhr.open('PUT', uploadURL);
+        xhr.setRequestHeader('Content-Type', uploadedFile.file.type || 'application/octet-stream');
+        xhr.send(uploadedFile.file);
       });
 
-      xhr.addEventListener('error', () => {
-        throw new Error('Network error during upload');
+      toast({
+        title: t.uploadComplete,
+        description: uploadedFile.file.name,
       });
-
-      xhr.open('PUT', uploadURL);
-      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-      xhr.send(file);
     } catch (error: any) {
       console.error('Upload error:', error);
-      setIsUploading(false);
-      setUploadProgress(0);
-      if (onUploadStatusChange) {
-        onUploadStatusChange(false);
-      }
+      
+      // Mark as failed
+      setUploadedFiles(prev => {
+        const updated = [...prev];
+        updated[fileIndex] = { ...updated[fileIndex], isUploading: false, progress: 0 };
+        return updated;
+      });
       
       toast({
         title: t.error,
-        description: error.message || t.uploadFailed,
+        description: `${uploadedFile.file.name}: ${error.message || t.uploadFailed}`,
         variant: 'destructive',
       });
     }
   };
 
-  const handleRemoveFile = () => {
-    setFile(null);
-    setUploadProgress(0);
-    setUploadComplete(false);
-    setIsUploading(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  const handleRemoveFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  if (!file) {
-    return (
-      <div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          className="hidden"
-          onChange={handleFileChange}
-          accept={accept}
-          data-testid="input-file-upload"
-        />
-        <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onClick={() => fileInputRef.current?.click()}
-          className={`
-            flex cursor-pointer items-center justify-center rounded-md 
-            border-2 border-dashed px-6 py-12 text-center 
-            hover-elevate transition-colors
-            ${isDragging ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}
-          `}
-          data-testid="dropzone-file-upload"
-        >
-          <div className="space-y-2">
-            <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">{t.dragDrop}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const anyUploading = uploadedFiles.some(f => f.isUploading);
+  const canAddMore = uploadedFiles.length < maxFiles;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-4">
-        <FileIcon className="h-8 w-8 text-primary shrink-0" />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
-          <p className="text-xs text-muted-foreground">
-            {(file.size / 1024 / 1024).toFixed(2)} МБ
-          </p>
+      {uploadedFiles.length === 0 ? (
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={handleFileChange}
+            accept={accept}
+            multiple
+            data-testid="input-file-upload"
+          />
+          <div
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onClick={() => fileInputRef.current?.click()}
+            className={`
+              flex cursor-pointer items-center justify-center rounded-md 
+              border-2 border-dashed px-6 py-12 text-center 
+              hover-elevate transition-colors
+              ${isDragging ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}
+            `}
+            data-testid="dropzone-file-upload"
+          >
+            <div className="space-y-2">
+              <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">{t.dragDrop}</p>
+              <p className="text-xs text-muted-foreground">
+                {language === 'tg' ? `То ${maxFiles} файл` : `До ${maxFiles} файлов`}
+              </p>
+            </div>
+          </div>
         </div>
-        
-        {uploadComplete && (
-          <CheckCircle2 className="h-5 w-5 text-primary shrink-0" data-testid="icon-upload-complete" />
-        )}
-        
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleRemoveFile}
-          disabled={isUploading}
-          data-testid="button-remove-file"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
+      ) : (
+        <>
+          {uploadedFiles.map((uploadedFile, index) => (
+            <div key={index} className="space-y-2">
+              <div className="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-4">
+                <FileIcon className="h-8 w-8 text-primary shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{uploadedFile.file.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {(uploadedFile.file.size / 1024 / 1024).toFixed(2)} МБ
+                  </p>
+                </div>
+                
+                {uploadedFile.isComplete && (
+                  <CheckCircle2 className="h-5 w-5 text-primary shrink-0" data-testid="icon-upload-complete" />
+                )}
+                
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRemoveFile(index)}
+                  disabled={uploadedFile.isUploading}
+                  data-testid={`button-remove-file-${index}`}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
 
-      {isUploading && (
-        <div className="space-y-2">
-          <Progress value={uploadProgress} data-testid="progress-upload" />
-          <p className="text-xs text-center text-muted-foreground">
-            {t.uploading} {uploadProgress}%
-          </p>
-        </div>
-      )}
+              {uploadedFile.isUploading && (
+                <div className="space-y-2">
+                  <Progress value={uploadedFile.progress} data-testid={`progress-upload-${index}`} />
+                  <p className="text-xs text-center text-muted-foreground">
+                    {t.uploading} {uploadedFile.progress}%
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
 
-      {!uploadComplete && !isUploading && (
-        <Button
-          type="button"
-          onClick={uploadFile}
-          className="w-full"
-          data-testid="button-upload"
-        >
-          <Upload className="h-4 w-4 mr-2" />
-          {t.selectFile}
-        </Button>
+          {canAddMore && !anyUploading && (
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFileChange}
+                accept={accept}
+                multiple
+                data-testid="input-file-upload-more"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full"
+                data-testid="button-add-more"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {t.addMore} ({uploadedFiles.length}/{maxFiles})
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
