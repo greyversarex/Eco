@@ -12,6 +12,15 @@ import { useToast } from '@/hooks/use-toast';
 import type { Message, Department } from '@shared/schema';
 import { format } from 'date-fns';
 import bgImage from '@assets/eco-background-light.webp';
+import ObjectUploader from '@/components/ObjectUploader';
+
+interface Attachment {
+  id: number;
+  filename: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedAt: string;
+}
 
 export default function MessageView() {
   const { id } = useParams();
@@ -29,6 +38,12 @@ export default function MessageView() {
 
   const { data: departments = [] } = useQuery<Department[]>({
     queryKey: ['/api/departments'],
+  });
+
+  // Load attachments from database
+  const { data: attachments = [], refetch: refetchAttachments } = useQuery<Attachment[]>({
+    queryKey: ['/api/messages', id, 'attachments'],
+    enabled: !!id,
   });
 
   // Load original message if this is a reply
@@ -84,39 +99,15 @@ export default function MessageView() {
     }
   };
 
-  const handleDownload = async (fileUrl: string, fileName: string) => {
-    if (!id) {
-      return;
-    }
-
+  const handleDownload = async (attachmentId: number, fileName: string) => {
     try {
-      // Get signed download URL from backend (requires messageId for authorization)
-      const response = await apiRequest('POST', '/api/objects/download', {
-        messageId: id,
-        fileUrl,
-      });
-      
-      const { downloadURL } = response as { downloadURL: string };
-      
-      // Fetch the file and create a blob to download
-      const fileResponse = await fetch(downloadURL);
-      if (!fileResponse.ok) {
-        throw new Error('Failed to fetch file');
-      }
-      
-      const blob = await fileResponse.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      
-      // Download file using blob URL
+      // Download directly from database via API
       const link = document.createElement('a');
-      link.href = blobUrl;
+      link.href = `/api/attachments/${attachmentId}`;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
-      // Clean up blob URL
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
     } catch (error: any) {
       console.error('Download error:', error);
       toast({
@@ -127,24 +118,14 @@ export default function MessageView() {
     }
   };
 
-  // Get all attachments (support both old single attachment and new multiple attachments)
-  const getAttachments = (): Array<{ url: string; name: string }> => {
-    if (!message) return [];
-    
-    // If new attachments array exists and is not empty, use it
-    if (message.attachments && Array.isArray(message.attachments) && message.attachments.length > 0) {
-      return message.attachments;
-    }
-    
-    // Fallback to old single attachment fields for backward compatibility
-    if (message.attachmentUrl && message.attachmentName) {
-      return [{ url: message.attachmentUrl, name: message.attachmentName }];
-    }
-    
-    return [];
+  const handleUploadComplete = () => {
+    // Refresh attachments list after upload
+    refetchAttachments();
+    toast({
+      title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+      description: lang === 'tg' ? 'Файл бор шуд' : 'Файл загружен',
+    });
   };
-
-  const attachments = getAttachments();
 
   return (
     <div 
@@ -260,15 +241,20 @@ export default function MessageView() {
                       {lang === 'tg' ? 'Замимашудаҳо' : 'Вложения'} ({attachments.length})
                     </p>
                     {attachments.map((attachment, index) => (
-                      <div key={index} className="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-4">
+                      <div key={attachment.id} className="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-4">
                         <Paperclip className="h-5 w-5 text-muted-foreground" />
-                        <span className="flex-1 text-sm font-medium text-foreground truncate" data-testid={`text-attachment-${index}`}>
-                          {attachment.name}
-                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate" data-testid={`text-attachment-${index}`}>
+                            {attachment.filename}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {(attachment.fileSize / 1024 / 1024).toFixed(2)} МБ
+                          </p>
+                        </div>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDownload(attachment.url, attachment.name)}
+                          onClick={() => handleDownload(attachment.id, attachment.filename)}
                           data-testid={`button-download-${index}`}
                           className="gap-2"
                         >
@@ -277,6 +263,23 @@ export default function MessageView() {
                         </Button>
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {/* Allow sender or recipient to upload files */}
+                {user?.userType === 'department' && message && 
+                  (message.senderId === user.department.id || message.recipientId === user.department.id) && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {lang === 'tg' ? 'Илова кардани файл' : 'Добавить файл'}
+                    </p>
+                    <ObjectUploader 
+                      messageId={parseInt(id || '0')}
+                      onUploadComplete={handleUploadComplete}
+                      language={lang}
+                      maxSizeMB={100}
+                      maxFiles={5}
+                    />
                   </div>
                 )}
               </CardHeader>
