@@ -84,8 +84,8 @@ export default function MessageView() {
     }
   };
 
-  const handleDownload = async () => {
-    if (!message?.attachmentUrl || !message?.attachmentName || !id) {
+  const handleDownload = async (fileUrl: string, fileName: string) => {
+    if (!id) {
       return;
     }
 
@@ -93,6 +93,7 @@ export default function MessageView() {
       // Get signed download URL from backend (requires messageId for authorization)
       const response = await apiRequest('POST', '/api/objects/download', {
         messageId: id,
+        fileUrl,
       });
       
       const { downloadURL } = response as { downloadURL: string };
@@ -100,7 +101,7 @@ export default function MessageView() {
       // Download file using signed URL
       const link = document.createElement('a');
       link.href = downloadURL;
-      link.download = message.attachmentName;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -113,6 +114,25 @@ export default function MessageView() {
       });
     }
   };
+
+  // Get all attachments (support both old single attachment and new multiple attachments)
+  const getAttachments = (): Array<{ url: string; name: string }> => {
+    if (!message) return [];
+    
+    // If new attachments array exists and is not empty, use it
+    if (message.attachments && Array.isArray(message.attachments) && message.attachments.length > 0) {
+      return message.attachments;
+    }
+    
+    // Fallback to old single attachment fields for backward compatibility
+    if (message.attachmentUrl && message.attachmentName) {
+      return [{ url: message.attachmentUrl, name: message.attachmentName }];
+    }
+    
+    return [];
+  };
+
+  const attachments = getAttachments();
 
   return (
     <div 
@@ -222,22 +242,29 @@ export default function MessageView() {
                   )}
                 </div>
 
-                {message.attachmentUrl && message.attachmentName && (
-                  <div className="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-4">
-                    <Paperclip className="h-5 w-5 text-muted-foreground" />
-                    <span className="flex-1 text-sm font-medium text-foreground" data-testid="text-attachment">
-                      {message.attachmentName}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleDownload}
-                      data-testid="button-download"
-                      className="gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      {t.download}
-                    </Button>
+                {attachments.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {lang === 'tg' ? 'Замимашудаҳо' : 'Вложения'} ({attachments.length})
+                    </p>
+                    {attachments.map((attachment, index) => (
+                      <div key={index} className="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-4">
+                        <Paperclip className="h-5 w-5 text-muted-foreground" />
+                        <span className="flex-1 text-sm font-medium text-foreground truncate" data-testid={`text-attachment-${index}`}>
+                          {attachment.name}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownload(attachment.url, attachment.name)}
+                          data-testid={`button-download-${index}`}
+                          className="gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          {t.download}
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardHeader>
