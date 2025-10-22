@@ -30,7 +30,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Data Storage
 
-**Database:** PostgreSQL (Neon Database for serverless deployment) with connection pooling.
+**Database:** PostgreSQL with connection pooling via standard `pg` driver.
 
 **Schema Design:** Includes `Departments` (name, block, access code), `Admins` (hashed passwords), `Messages` (subject, content, sender, recipient, read status, timestamps, executor, document date), `Attachments` (binary file data stored in bytea, filename, file size, MIME type), and `Sessions` tables.
 
@@ -50,7 +50,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Core Dependencies
 
-**Database:** `@neondatabase/serverless`, `drizzle-orm`, `drizzle-kit`, `connect-pg-simple`.
+**Database:** `pg`, `drizzle-orm`, `drizzle-kit`, `connect-pg-simple`.
 **Authentication & Security:** `bcrypt`, `express-session`.
 **Backend Framework:** `express`, `tsx`.
 **Frontend Framework:** `react`, `@tanstack/react-query`, `wouter`.
@@ -61,7 +61,7 @@ Preferred communication style: Simple, everyday language.
 ### Third-Party Services
 
 **Current:**
-- Neon Database (PostgreSQL hosting - or any PostgreSQL provider)
+- Any standard PostgreSQL server (version 13+)
 - Google Fonts (Inter and Roboto)
 
 ### Environment Variables
