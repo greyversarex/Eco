@@ -32,19 +32,19 @@ Preferred communication style: Simple, everyday language.
 
 **Database:** PostgreSQL (Neon Database for serverless deployment) with connection pooling.
 
-**Schema Design:** Includes `Departments` (name, block, access code), `Admins` (hashed passwords), `Messages` (subject, content, sender, recipient, read status, timestamps, multiple attachment support via jsonb array, legacy single attachment fields, executor, document date), and `Sessions` tables.
+**Schema Design:** Includes `Departments` (name, block, access code), `Admins` (hashed passwords), `Messages` (subject, content, sender, recipient, read status, timestamps, executor, document date), `Attachments` (binary file data stored in bytea, filename, file size, MIME type), and `Sessions` tables.
 
 **Migration Management:** Drizzle Kit for schema migrations, with schema defined in `/shared/schema.ts`.
 
 ### File Storage
 
-**Architecture:** S3-compatible cloud storage (Google Cloud Storage) where files are stored, with file metadata (URL, filename) stored in database. Supports up to 5 attachments per message (maxFiles: 5, maxSizeMB: 100 per file).
+**Architecture:** Files stored directly in PostgreSQL database using bytea (binary data) column type. Supports up to 5 attachments per message (maxFiles: 5, maxSizeMB: 100 per file).
 
-**Upload Flow:** Client-side uploads utilize presigned URLs with progress tracking. ObjectUploader component manages multiple file uploads with useEffect-based state synchronization.
+**Upload Flow:** Client-side uploads via multipart/form-data to POST /api/messages/:id/attachments endpoint. ObjectUploader component manages multiple file uploads with progress tracking and automatic list refresh after upload completion.
 
-**Download Flow:** Secure downloads via POST /api/objects/download endpoint with ACL checks based on message authorization. Backend verifies file belongs to message and user has access before providing signed download URL.
+**Download Flow:** Secure downloads via GET /api/attachments/:id endpoint. Backend verifies user has access to message before serving file binary data with appropriate Content-Type and Content-Disposition headers.
 
-**Backward Compatibility:** Legacy single attachment fields (attachmentUrl, attachmentName) maintained for existing messages. MessageView supports both old and new formats seamlessly.
+**Benefits:** Fully autonomous deployment (no external services required), transaction integrity (files and messages in same database), simplified backup/restore, and mobile app compatibility (single database connection).
 
 ## External Dependencies
 
@@ -61,10 +61,11 @@ Preferred communication style: Simple, everyday language.
 ### Third-Party Services
 
 **Current:**
-- Neon Database (PostgreSQL hosting)
+- Neon Database (PostgreSQL hosting - or any PostgreSQL provider)
 - Google Fonts (Inter and Roboto)
-- Google Cloud Storage (for object storage of files)
 
 ### Environment Variables
 
-**Required:** `DATABASE_URL`, `SESSION_SECRET`, `NODE_ENV`, `PRIVATE_OBJECT_DIR`.
+**Required:** `DATABASE_URL`, `SESSION_SECRET`, `NODE_ENV`.
+
+**Note:** No external service credentials required. System is fully autonomous with only database connection needed.
