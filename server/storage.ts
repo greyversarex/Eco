@@ -1,4 +1,4 @@
-import type { Department, InsertDepartment, Admin, InsertAdmin, Message, InsertMessage } from "@shared/schema";
+import type { Department, InsertDepartment, Admin, InsertAdmin, Message, InsertMessage, Attachment, InsertAttachment } from "@shared/schema";
 
 export interface IStorage {
   // Departments
@@ -20,14 +20,19 @@ export interface IStorage {
   getMessagesByDepartmentPair(currentDeptId: number, otherDeptId: number): Promise<{ received: Message[]; sent: Message[] }>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<Message | undefined>;
-  updateMessageAttachment(id: number, attachmentUrl: string, attachmentName: string): Promise<Message | undefined>;
   getUnreadCountByDepartment(departmentId: number): Promise<number>;
   getUnreadCountsForAllDepartments(currentDeptId: number): Promise<Record<number, number>>;
+  
+  // Attachments
+  createAttachment(attachment: InsertAttachment): Promise<Attachment>;
+  getAttachmentsByMessageId(messageId: number): Promise<Attachment[]>;
+  getAttachmentById(id: number): Promise<Attachment | undefined>;
+  deleteAttachmentsByMessageId(messageId: number): Promise<boolean>;
 }
 
 // Database storage implementation
 import { db } from './db';
-import { departments, admins, messages } from '@shared/schema';
+import { departments, admins, messages, attachments } from '@shared/schema';
 import { eq, or, and } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
@@ -98,14 +103,6 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
-  async updateMessageAttachment(id: number, attachmentUrl: string, attachmentName: string): Promise<Message | undefined> {
-    const result = await db.update(messages)
-      .set({ attachmentUrl, attachmentName })
-      .where(eq(messages.id, id))
-      .returning();
-    return result[0];
-  }
-
   async getUnreadCountByDepartment(departmentId: number): Promise<number> {
     const result = await db.select().from(messages)
       .where(and(eq(messages.recipientId, departmentId), eq(messages.isRead, false)));
@@ -129,6 +126,26 @@ export class DbStorage implements IStorage {
       counts[msg.senderId] = (counts[msg.senderId] || 0) + 1;
     }
     return counts;
+  }
+
+  // Attachments
+  async createAttachment(attachment: InsertAttachment): Promise<Attachment> {
+    const result = await db.insert(attachments).values(attachment).returning();
+    return result[0];
+  }
+
+  async getAttachmentsByMessageId(messageId: number): Promise<Attachment[]> {
+    return await db.select().from(attachments).where(eq(attachments.messageId, messageId));
+  }
+
+  async getAttachmentById(id: number): Promise<Attachment | undefined> {
+    const result = await db.select().from(attachments).where(eq(attachments.id, id));
+    return result[0];
+  }
+
+  async deleteAttachmentsByMessageId(messageId: number): Promise<boolean> {
+    const result = await db.delete(attachments).where(eq(attachments.messageId, messageId)).returning();
+    return result.length > 0;
   }
 }
 
