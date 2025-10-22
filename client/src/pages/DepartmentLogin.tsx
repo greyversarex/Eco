@@ -27,11 +27,11 @@ export default function DepartmentLogin() {
     },
     onSuccess: async (data: any) => {
       setIsSuccess(true);
-      queryClient.setQueryData(['/api/auth/me'], {
-        userType: 'department',
-        department: data.department
-      });
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Clear all cache and force fresh fetch
+      queryClient.clear();
+      // Then invalidate auth to force refetch
+      await queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      await new Promise(resolve => setTimeout(resolve, 200));
       setLocation('/department/main');
     },
     onError: (error: any) => {

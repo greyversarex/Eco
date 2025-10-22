@@ -28,11 +28,11 @@ export default function AdminLogin() {
     },
     onSuccess: async (data: any) => {
       setIsSuccess(true);
-      queryClient.setQueryData(['/api/auth/me'], {
-        userType: 'admin',
-        admin: data.admin
-      });
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Clear all cache and force fresh fetch
+      queryClient.clear();
+      // Then invalidate auth to force refetch
+      await queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      await new Promise(resolve => setTimeout(resolve, 200));
       setLocation('/admin/dashboard');
     },
     onError: (error) => {
