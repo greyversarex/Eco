@@ -38,30 +38,11 @@ Preferred communication style: Simple, everyday language.
 
 ### File Storage
 
-**Architecture:** Supabase Storage (S3-compatible) for production deployment. Files stored in cloud bucket, with metadata (URL, filename) in database. Supports up to 5 attachments per message (maxFiles: 5, maxSizeMB: 100 per file).
+**Architecture:** S3-compatible cloud storage (Google Cloud Storage) where files are stored, with file metadata (URL, filename) stored in database. Supports up to 5 attachments per message (maxFiles: 5, maxSizeMB: 100 per file).
 
-**Upload Flow:** 
-1. Client requests presigned upload URL from backend (POST /api/objects/upload)
-2. Backend generates signed URL via Supabase Storage API
-3. Client uploads file directly to Supabase using XMLHttpRequest with progress tracking
-4. ObjectUploader component manages multiple file uploads with useEffect-based state synchronization
+**Upload Flow:** Client-side uploads utilize presigned URLs with progress tracking. ObjectUploader component manages multiple file uploads with useEffect-based state synchronization.
 
-**Download Flow:** 
-1. Client requests download (POST /api/objects/download with messageId and fileUrl)
-2. Backend verifies user has access to message and file belongs to message
-3. Backend generates signed download URL via Supabase Storage API (valid 1 hour)
-4. Client fetches file and triggers browser download using Blob API (for CORS compatibility)
-
-**Storage Implementation:**
-- **Development (Replit):** Can use Replit Object Storage or Supabase Storage
-- **Production (VDS):** Supabase Storage (required for external servers)
-- Backend abstraction layer (ObjectStorageService) supports both providers seamlessly
-
-**Security:**
-- Files stored in private bucket (not publicly accessible)
-- ACL metadata stored with each file (owner, visibility)
-- Message-level access control enforced in API routes
-- Service role key used server-side (bypasses RLS)
+**Download Flow:** Secure downloads via POST /api/objects/download endpoint with ACL checks based on message authorization. Backend verifies file belongs to message and user has access before providing signed download URL.
 
 **Backward Compatibility:** Legacy single attachment fields (attachmentUrl, attachmentName) maintained for existing messages. MessageView supports both old and new formats seamlessly.
 
@@ -80,28 +61,10 @@ Preferred communication style: Simple, everyday language.
 ### Third-Party Services
 
 **Current:**
-- Neon Database (PostgreSQL hosting) - serverless PostgreSQL database
-- Supabase Storage (File storage) - S3-compatible object storage for production
-- Google Fonts (Inter and Roboto) - Cyrillic font support
-
-**Development (Replit):**
-- Optionally use Replit Object Storage (Google Cloud Storage wrapper)
+- Neon Database (PostgreSQL hosting)
+- Google Fonts (Inter and Roboto)
+- Google Cloud Storage (for object storage of files)
 
 ### Environment Variables
 
-**Development (Replit):**
-- `DATABASE_URL` - Neon PostgreSQL connection string
-- `SESSION_SECRET` - Secret for session encryption
-- `NODE_ENV` - Environment mode (development/production)
-- `PRIVATE_OBJECT_DIR` - Replit Object Storage bucket ID (optional if using Supabase)
-
-**Production (VDS Server):**
-- `DATABASE_URL` - Neon PostgreSQL connection string
-- `SESSION_SECRET` - Secret for session encryption  
-- `NODE_ENV=production` - Must be set to production
-- `PORT` - Server port (default 5000)
-- `SUPABASE_URL` - Supabase project URL (https://xxx.supabase.co)
-- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key for server-side operations
-- `SUPABASE_STORAGE_BUCKET` - Storage bucket name (default: ecotajikistan-files)
-
-See `.env.example` for complete configuration template.
+**Required:** `DATABASE_URL`, `SESSION_SECRET`, `NODE_ENV`, `PRIVATE_OBJECT_DIR`.
