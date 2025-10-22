@@ -8,6 +8,19 @@ The platform emphasizes security, data persistence, and future mobile compatibil
 
 ## Recent Changes
 
+**October 22, 2025 - Object Storage File Upload/Download System Complete**
+- Fixed TypeScript error in server/routes.ts: Added explicit `any` type annotation for parsedData to handle Zod schema inference
+- Added GET /objects/:objectPath route: Direct file download through proxy with ACL permission checking
+- Integrated Object Storage with message attachments: Files stored in private bucket with department-based ACL policies
+- ObjectUploader component: Uses /api/objects/upload to get presigned URLs for client-side uploads
+- MessageView component: Downloads files via /api/objects/download with message authorization check
+- ACL security: Only message sender, recipient, or admin can download attachments
+- Configured PRIVATE_OBJECT_DIR environment variable in Replit Secrets for file storage
+- File upload flow: Client → presigned URL → GCS → save metadata to message → set ACL policy
+- File download flow: Request → verify message access → presigned URL → download
+- All routes protected by requireAuth middleware for security
+- Zero LSP diagnostics
+
 **October 22, 2025 - Header Design & Authentication Flow**
 - Added brand green gradient (#8fbc8f → #90c695 → #a8d5ba) to all application headers (AdminDashboard, DepartmentMain)
 - Added optimized logo to DepartmentMain header (previously only had Leaf icon)
