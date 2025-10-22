@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: user, isLoading } = useQuery<{ userType: 'department'; department: Department } | { userType: 'admin'; admin: { id: number } }>({
     queryKey: ['/api/auth/me'],
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always fetch fresh auth data for security
   });
 
   const logoutMutation = useMutation({

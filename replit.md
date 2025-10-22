@@ -2,94 +2,7 @@
 
 ## Overview
 
-ЭкоТочикистон is a secure internal messaging and document management platform designed for governmental/organizational departments in Tajikistan. The system enables departments to exchange official messages and documents in a centralized, controlled environment with bilingual support (Tajik and Russian).
-
-The platform emphasizes security, data persistence, and future mobile compatibility through an API-first architecture. It provides department-level (not individual user) access through unique codes, while administrators manage the system through a separate admin panel.
-
-## Recent Changes
-
-**October 22, 2025 - Object Storage File Upload/Download System Complete**
-- Fixed TypeScript error in server/routes.ts: Added explicit `any` type annotation for parsedData to handle Zod schema inference
-- Added GET /objects/:objectPath route: Direct file download through proxy with ACL permission checking
-- Integrated Object Storage with message attachments: Files stored in private bucket with department-based ACL policies
-- ObjectUploader component: Uses /api/objects/upload to get presigned URLs for client-side uploads
-- MessageView component: Downloads files via /api/objects/download with message authorization check
-- ACL security: Only message sender, recipient, or admin can download attachments
-- Configured PRIVATE_OBJECT_DIR environment variable in Replit Secrets for file storage
-- File upload flow: Client → presigned URL → GCS → save metadata to message → set ACL policy
-- File download flow: Request → verify message access → presigned URL → download
-- All routes protected by requireAuth middleware for security
-- Zero LSP diagnostics
-
-**October 22, 2025 - Header Design & Authentication Flow**
-- Added brand green gradient (#8fbc8f → #90c695 → #a8d5ba) to all application headers (AdminDashboard, DepartmentMain)
-- Added optimized logo to DepartmentMain header (previously only had Leaf icon)
-- Styled all header buttons with white text and transparent white hover effects on green background
-- Fixed double-login issue: Changed login flow to use queryClient.setQueryData instead of invalidateQueries for immediate cache update
-- Authentication now works on first attempt for both admin and department logins
-- All headers now use consistent brand styling with white drop-shadowed text for readability
-- Zero LSP diagnostics
-
-**October 21, 2025 - Critical Bug Fixes**
-- Fixed double login submission bug: Added isSuccess flag to DepartmentLogin and AdminLogin to prevent duplicate API calls
-- Fixed data loss during file upload: Added isFileUploading guard in ComposeMessage.handleSubmit to block premature submission
-- Fixed file upload UX: Changed ObjectUploader button text from "Выберите файл" to "Загрузить" for clarity
-- Added upload status propagation: ObjectUploader now reports upload state via onUploadStatusChange callback
-- Added upload progress indicators: Send button shows "Загрузка файла..." during file upload and is disabled
-- All fixes tested with E2E tests - login, message composition, and file upload workflows confirmed working
-- Known issue: File downloads return 403 from Google Cloud Storage (requires ACL configuration or signed URLs)
-
-**October 21, 2025 - Login Pages Polish & File Upload UX**
-- Replaced background image with optimized version for wider screens
-- Added ecological green gradient background (#8fbc8f → #90c695 → #a8d5ba) to fill side areas
-- Background uses `contain` mode to preserve all circular ecology icons without cropping
-- Simplified file upload button text: "Выберите файл" (RU) / "Ҳуҷҷатро интихоб кунед" (TJ)
-- All changes maintain mobile/desktop responsive behavior
-- Zero LSP diagnostics
-
-**October 21, 2025 - Login Pages Mobile Optimization**
-- Fixed mobile background: Replaced background image with soft light gradient (light gray → light green → soft green) on mobile devices
-- Fixed desktop image cropping: Applied `background-size: contain` with `no-repeat` to prevent circular icons from being cut off
-- Improved text contrast: Dark text on mobile (text-foreground), white text with shadows on desktop for optimal readability
-- Applied changes to both DepartmentLogin and AdminLogin pages
-- Architect review passed: All contrast and responsive requirements met
-- Zero LSP diagnostics
-
-**October 21, 2025 - Complete Mobile Responsive Design**
-- Completed comprehensive mobile adaptation across all application pages
-- Created MobileNav component: Sheet-based drawer navigation for mobile devices (visible <768px)
-- Adapted all headers for mobile: Reduced heights (h-14 on mobile, h-16 on desktop), responsive padding, truncated long text
-- Made AdminDashboard mobile-friendly: Horizontally scrollable table, responsive stats grid (single column on mobile)
-- Improved ComposeMessage form: Single-column layout on mobile, stacked action buttons
-- Enhanced all page layouts with proper responsive breakpoints (sm: 640px, md: 768px, lg: 1024px)
-- Updated pages: DepartmentMain, Inbox, MessageView, ComposeMessage, AdminDashboard, AdminDepartments, DepartmentMessages, AdminDepartmentMessages
-- Added translation key "menu" for mobile navigation
-- Architect review passed: All responsive design changes validated
-- Zero LSP diagnostics - all code type-safe
-
-**October 21, 2025 - Final Polish & Code Quality**
-- Fixed TypeScript types: Removed `any` types from messages table schema while preserving self-referential foreign key for threading
-- Fixed React warning: Added DialogDescription to AdminDashboard dialog for accessibility compliance
-- Added visual separators: Green decorative dividers between department blocks (upper/middle/lower)
-- Improved routing: Added /admin/inbox redirect to /admin/departments for better UX (admin views messages through departments)
-- E2E tested messaging with new departments: Full workflow confirmed working (CENTRAL001 → GENERAL002)
-- Admin password reset: Updated admin credentials in database for login functionality
-- All LSP errors resolved, no console warnings
-
-**October 21, 2025 - Real Departments Database Update**
-- Updated database with 37 real departments from Ministry of Environmental Protection
-- Departments organized in 3 blocks: Upper (10), Middle (11), Lower (16)
-- New access codes: CENTRAL001, GENERAL002, DUSHANBE003, HYDRO004, etc.
-- Admin credentials: username "admin", password "admin123"
-- Successfully tested: All departments display correctly in both admin and department views
-
-**October 21, 2025 - Messaging System Integration Complete**
-- Fixed ComposeMessage.tsx: Replaced mock data with real API integration (/api/departments/list for department list, POST /api/messages for sending)
-- Fixed Inbox.tsx: Connected to real API for message display with proper inbox/outbox filtering based on URL
-- Fixed shared/schema.ts: Added z.coerce.date() to insertMessageSchema for automatic ISO date string conversion
-- Fixed server/routes.ts: Modified GET /api/messages to return unified message array instead of { inbox, outbox } object
-- All messaging features now fully functional with real data persistence
-- E2E tests passed: Message composition, sending, inbox/outbox display, and department name resolution all working correctly
+ЭкоТочикистон is a secure, bilingual (Tajik and Russian) internal messaging and document management platform for governmental/organizational departments in Tajikistan. It centralizes the exchange of official messages and documents, prioritizing security, data persistence, and future mobile compatibility via an API-first architecture. The system grants department-level access using unique codes, while administrators manage the platform through a separate panel.
 
 ## User Preferences
 
@@ -99,162 +12,53 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 
-**Technology Stack:**
-- React with TypeScript
-- Vite as build tool and development server
-- Wouter for client-side routing
-- TanStack Query (React Query) for server state management
-- Tailwind CSS with shadcn/ui component library
-- Radix UI primitives for accessible UI components
+**Technology Stack:** React with TypeScript, Vite, Wouter for routing, TanStack Query for server state management, Tailwind CSS with shadcn/ui and Radix UI for components.
 
-**Design System:**
-- Material Design adapted for enterprise government use
-- Minimalistic design with green as the only accent color (HSL: 142 76% 36%)
-- Light mode primary with dark mode support
-- Inter/Roboto fonts for excellent Cyrillic support
-- High contrast ratios (minimum 4.5:1) for accessibility
-- Bilingual interface (Tajik default, Russian secondary)
+**Design System:** Material Design adapted for government use, minimalistic with green accents (HSL: 142 76% 36%), light mode primary with dark mode support, Inter/Roboto fonts for Cyrillic, high contrast ratios, and a bilingual interface (Tajik default, Russian secondary).
 
-**Key Design Decisions:**
-- API-first: Frontend contains no business logic, only sends requests to backend API and displays responses
-- Component-based architecture using shadcn/ui for consistency
-- Separation of concerns: pages consume reusable components (DepartmentCard, MessageListItem, LanguageSwitcher)
-- Session-based authentication with protected routes
-
-**Rationale:** This architecture ensures the same backend can serve future mobile applications (iOS/Android) without modification. The minimalistic design prioritizes clarity and efficiency for daily administrative tasks.
+**Key Design Decisions:** API-first approach (frontend solely displays backend responses), component-based architecture using shadcn/ui, separation of concerns, and session-based authentication with protected routes.
 
 ### Backend Architecture
 
-**Technology Stack:**
-- Node.js with Express.js
-- TypeScript for type safety
-- RESTful API design
-- Session-based authentication using express-session with PostgreSQL session store
-- Bcrypt for password hashing
+**Technology Stack:** Node.js with Express.js, TypeScript, RESTful API design, session-based authentication with express-session and PostgreSQL session store, and Bcrypt for password hashing.
 
-**API Structure:**
-- Authentication endpoints (`/api/auth/department/login`, `/api/auth/admin/login`, `/api/auth/logout`, `/api/auth/me`)
-- Department management endpoints
-- Message CRUD endpoints with inbox/outbox filtering
-- File attachment handling
+**API Structure:** Endpoints for authentication, department management, message CRUD (with inbox/outbox filtering), and file attachment handling.
 
-**Authentication Model:**
-- Two user types: Department (access code only) and Admin (username/password)
-- Session-based authentication with httpOnly cookies
-- Role-based access control with middleware (`requireAuth`, `requireAdmin`)
-- 30-day session expiration
+**Authentication Model:** Supports two user types (Department via access code, Admin via username/password), uses session-based authentication with httpOnly cookies, role-based access control (`requireAuth`, `requireAdmin`), and 30-day session expiration.
 
-**Data Layer:**
-- Storage abstraction interface (IStorage) with database implementation (DbStorage)
-- Drizzle ORM for type-safe database operations
-- Schema validation using Zod
-
-**Rationale:** RESTful API design ensures complete separation between frontend and backend, enabling future mobile app development. Session-based authentication provides security while maintaining simplicity. The storage abstraction allows for future database migration if needed.
+**Data Layer:** Features a storage abstraction interface (IStorage) with a Drizzle ORM implementation (DbStorage) for type-safe PostgreSQL operations and Zod for schema validation.
 
 ### Data Storage
 
-**Database: PostgreSQL (External Cloud)**
-- Provider: Neon Database (@neondatabase/serverless)
-- Connection pooling for performance
-- WebSocket support for serverless environments
+**Database:** PostgreSQL (Neon Database for serverless deployment) with connection pooling.
 
-**Schema Design:**
+**Schema Design:** Includes `Departments` (name, block, access code), `Admins` (hashed passwords), `Messages` (subject, content, sender, recipient, read status, timestamps, attachment metadata, executor, document date), and `Sessions` tables.
 
-1. **Departments Table:**
-   - Stores department information (name, block grouping, access code)
-   - Access codes are unique identifiers for department login
-   - Block field supports visual grouping (upper/middle/lower)
-
-2. **Admins Table:**
-   - Stores admin credentials with bcrypt-hashed passwords
-   - Separate from departments for security isolation
-
-3. **Messages Table:**
-   - Stores all message metadata (subject, content, sender, recipient)
-   - References departments via foreign keys
-   - Tracks read status and timestamps
-   - Stores file attachment URLs and names (files stored separately)
-   - Includes optional executor field for document tracking
-   - Document date field for official correspondence
-
-4. **Sessions Table:**
-   - Managed by connect-pg-simple for session persistence
-   - Auto-created if missing
-
-**Migration Management:**
-- Drizzle Kit for schema migrations
-- Migrations stored in `/migrations` directory
-- Schema defined in `/shared/schema.ts` for sharing between client and server
-
-**Rationale:** External PostgreSQL database ensures 100% data persistence during code updates and server migrations. Neon provides serverless PostgreSQL ideal for Replit deployment. The schema supports both messaging workflow and administrative oversight.
+**Migration Management:** Drizzle Kit for schema migrations, with schema defined in `/shared/schema.ts`.
 
 ### File Storage
 
-**Planned Architecture:**
-- S3-compatible cloud storage (AWS S3, Backblaze B2, or Supabase Storage)
-- Database stores only file metadata (URL, filename)
-- Actual files stored in cloud storage
-
-**Current Implementation Status:**
-- File upload UI implemented in ComposeMessage component
-- Backend integration pending
-- Storage service configuration needed
-
-**Rationale:** Separating file storage from database ensures scalability, security, and eliminates file size constraints. Cloud storage provides redundancy and global accessibility. This design prevents database bloat and enables efficient file serving.
+**Architecture:** S3-compatible cloud storage (e.g., AWS S3, Backblaze B2, Supabase Storage) where files are stored, with only file metadata (URL, filename) in the database. Client-side uploads utilize presigned URLs, and downloads involve secure proxying with ACL checks based on message authorization.
 
 ## External Dependencies
 
 ### Core Dependencies
 
-**Database:**
-- @neondatabase/serverless: PostgreSQL database provider
-- drizzle-orm: Type-safe ORM for database operations
-- drizzle-kit: Schema migration management
-- connect-pg-simple: PostgreSQL session store for express-session
-
-**Authentication & Security:**
-- bcrypt: Password hashing for admin accounts
-- express-session: Session management middleware
-
-**Backend Framework:**
-- express: Web application framework
-- tsx: TypeScript execution for development
-
-**Frontend Framework:**
-- react: UI library
-- @tanstack/react-query: Server state management
-- wouter: Lightweight routing
-
-**UI Components:**
-- @radix-ui/*: Accessible component primitives (accordion, dialog, dropdown, select, etc.)
-- tailwindcss: Utility-first CSS framework
-- class-variance-authority: Component variant styling
-- lucide-react: Icon library
-
-**Form Handling:**
-- react-hook-form: Form state management
-- @hookform/resolvers: Form validation
-- zod: Schema validation
-
-**Utilities:**
-- date-fns: Date manipulation and formatting
-- clsx / tailwind-merge: Conditional CSS class handling
+**Database:** `@neondatabase/serverless`, `drizzle-orm`, `drizzle-kit`, `connect-pg-simple`.
+**Authentication & Security:** `bcrypt`, `express-session`.
+**Backend Framework:** `express`, `tsx`.
+**Frontend Framework:** `react`, `@tanstack/react-query`, `wouter`.
+**UI Components:** `@radix-ui/*`, `tailwindcss`, `class-variance-authority`, `lucide-react`.
+**Form Handling:** `react-hook-form`, `@hookform/resolvers`, `zod`.
+**Utilities:** `date-fns`, `clsx`, `tailwind-merge`.
 
 ### Third-Party Services
 
-**Required (Not Yet Configured):**
-- S3-compatible storage service for file attachments
-
 **Current:**
 - Neon Database (PostgreSQL hosting)
-- Google Fonts (Inter and Roboto for Cyrillic support)
+- Google Fonts (Inter and Roboto)
+- Google Cloud Storage (for object storage of files)
 
 ### Environment Variables
 
-**Required:**
-- `DATABASE_URL`: PostgreSQL connection string (Neon)
-- `SESSION_SECRET`: Secret key for session encryption (production)
-- `NODE_ENV`: Environment indicator (development/production)
-
-**Pending Configuration:**
-- S3 storage credentials when file upload is implemented
+**Required:** `DATABASE_URL`, `SESSION_SECRET`, `NODE_ENV`, `PRIVATE_OBJECT_DIR`.
