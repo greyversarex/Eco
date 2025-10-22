@@ -10,20 +10,28 @@
 
 ### 1. Backend Изменения
 
-#### ✅ **server/objectStorage.ts** - Полностью переписан
-- Удалена зависимость от `@google-cloud/storage`
-- Добавлена интеграция с `@supabase/storage-js`
-- Реализованы методы для работы с Supabase Storage:
-  - `getObjectEntityUploadURL()` - генерация presigned URL для загрузки
-  - `getObjectEntityDownloadURL()` - генерация presigned URL для скачивания
-  - `normalizeObjectEntityPath()` - нормализация путей Supabase
-  - `downloadObject()` - прямое скачивание через proxy
-  - `trySetObjectEntityAclPolicy()` - установка ACL метаданных
+#### ✅ **server/objectStorage.ts** - Полностью переписан с Hybrid Storage
+- **Сохранена** зависимость от `@google-cloud/storage` для legacy поддержки
+- **Добавлена** интеграция с `@supabase/storage-js` для новых файлов
+- **Реализована hybrid логика:**
+  - Новые файлы (uploads/*) → Supabase Storage
+  - Legacy файлы (replit-objstore-*) → Google Cloud Storage (если PRIVATE_OBJECT_DIR установлен)
+  - Автоматическое определение типа файла по URL паттерну
+- **Методы с dual поддержкой:**
+  - `getObjectEntityUploadURL()` - генерация presigned URL (только Supabase для новых)
+  - `getObjectEntityDownloadURL()` - поддерживает оба типа storage
+  - `downloadObject()` - проксирует загрузку из любого storage
+  - `getObjectEntityFile()` - возвращает файл из правильного storage
+  - `normalizeObjectEntityPath()` - нормализация путей для обоих форматов
+  - `trySetObjectEntityAclPolicy()` - установка ACL для обоих типов
+- **Новый error type:** `LegacyFileUnavailableError` - когда legacy файл недоступен на production
 
-#### ✅ **server/objectAcl.ts** - Упрощен
-- Удалена зависимость от Google Cloud Storage File type
-- Адаптирован для работы с Supabase metadata
-- Сохранена логика проверки доступа
+#### ✅ **server/objectAcl.ts** - Hybrid версия
+- **Восстановлена** зависимость от Google Cloud Storage File type для legacy
+- **Добавлены** функции для работы с Google Cloud Storage ACL:
+  - `setObjectAclPolicy()` - установка ACL для GCS File
+  - `getObjectAclPolicy()` - получение ACL из GCS File
+  - `canAccessObject()` - проверка доступа (поддерживает оба типа)
 
 #### ✅ **server/routes.ts** - Обновлен
 - Удален неиспользуемый импорт `ObjectPermission`
@@ -45,10 +53,10 @@
 ### 3. Package Dependencies
 
 #### ➕ **Добавлено:**
-- `@supabase/storage-js` - Supabase Storage SDK
+- `@supabase/storage-js` - Supabase Storage SDK (для новых файлов)
 
-#### ➖ **Удалено:**
-- `@google-cloud/storage` - Google Cloud Storage SDK
+#### ✅ **Сохранено:**
+- `@google-cloud/storage` - Google Cloud Storage SDK (для legacy файлов)
 
 ### 4. Конфигурация
 
@@ -81,18 +89,21 @@ PRIVATE_OBJECT_DIR=replit-objstore-xxx  # Для Replit Object Storage
 Frontend → Backend → Replit Sidecar → Google Cloud Storage
 ```
 
-### После (Supabase Storage)
+### После (Hybrid Storage)
 
 ```
-Frontend → Backend → Supabase Storage API → Supabase Cloud
+                    ┌─ NEW FILES ─→ Supabase Storage
+Frontend → Backend ─┤
+                    └─ LEGACY FILES ─→ Replit Object Storage (если доступен)
 ```
 
 **Преимущества:**
 - ✅ Работает на любом VDS-сервере (не только Replit)
-- ✅ Прямой доступ к API без прокси
-- ✅ Лучшая производительность
-- ✅ Более простая диагностика проблем
-- ✅ Professional-grade storage с SLA
+- ✅ **Полная обратная совместимость с legacy файлами на Replit**
+- ✅ Автоматическое определение типа файла
+- ✅ Прямой доступ к Supabase API без прокси
+- ✅ Graceful degradation на production (понятная ошибка для legacy файлов)
+- ✅ Professional-grade storage с SLA для новых файлов
 
 ---
 
@@ -144,14 +155,22 @@ Frontend → Backend → Supabase Storage API → Supabase Cloud
    - MessageView.tsx
    - ComposeMessage.tsx
 
-### ⚠️ Несовместимо (ожидаемое поведение):
+### ⚠️ Legacy Файлы - Поведение по Среде:
 
-**Старые файлы из Replit Object Storage НЕ будут доступны после миграции.**
+**Development (Replit с PRIVATE_OBJECT_DIR):**
+- ✅ Старые файлы **ДОСТУПНЫ** через Replit Object Storage
+- ✅ Новые файлы загружаются в Supabase Storage
+- ✅ Оба типа файлов работают одновременно
 
-Если нужно сохранить старые файлы:
-1. Экспортируйте их перед миграцией
-2. Загрузите в Supabase Storage
-3. Обновите URL в базе данных
+**Production (VDS без PRIVATE_OBJECT_DIR):**
+- ❌ Старые файлы **НЕДОСТУПНЫ** (LegacyFileUnavailableError)
+- ✅ Новые файлы работают через Supabase Storage
+- ℹ️ Пользователь получает понятное сообщение о необходимости повторной загрузки
+
+**Миграция legacy файлов (опционально):**
+1. На Replit: экспортируйте старые файлы
+2. Загрузите их в Supabase Storage
+3. Обновите URL в базе данных (заменить `/objects/replit-objstore-*/` на `/objects/uploads/*`)
 
 ---
 
