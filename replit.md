@@ -32,13 +32,19 @@ Preferred communication style: Simple, everyday language.
 
 **Database:** PostgreSQL (Neon Database for serverless deployment) with connection pooling.
 
-**Schema Design:** Includes `Departments` (name, block, access code), `Admins` (hashed passwords), `Messages` (subject, content, sender, recipient, read status, timestamps, attachment metadata, executor, document date), and `Sessions` tables.
+**Schema Design:** Includes `Departments` (name, block, access code), `Admins` (hashed passwords), `Messages` (subject, content, sender, recipient, read status, timestamps, multiple attachment support via jsonb array, legacy single attachment fields, executor, document date), and `Sessions` tables.
 
 **Migration Management:** Drizzle Kit for schema migrations, with schema defined in `/shared/schema.ts`.
 
 ### File Storage
 
-**Architecture:** S3-compatible cloud storage (e.g., AWS S3, Backblaze B2, Supabase Storage) where files are stored, with only file metadata (URL, filename) in the database. Client-side uploads utilize presigned URLs, and downloads involve secure proxying with ACL checks based on message authorization.
+**Architecture:** S3-compatible cloud storage (Google Cloud Storage) where files are stored, with file metadata (URL, filename) stored in database. Supports up to 5 attachments per message (maxFiles: 5, maxSizeMB: 100 per file).
+
+**Upload Flow:** Client-side uploads utilize presigned URLs with progress tracking. ObjectUploader component manages multiple file uploads with useEffect-based state synchronization.
+
+**Download Flow:** Secure downloads via POST /api/objects/download endpoint with ACL checks based on message authorization. Backend verifies file belongs to message and user has access before providing signed download URL.
+
+**Backward Compatibility:** Legacy single attachment fields (attachmentUrl, attachmentName) maintained for existing messages. MessageView supports both old and new formats seamlessly.
 
 ## External Dependencies
 
