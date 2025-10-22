@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { ObjectPermission } from "./objectAcl";
 
 // Extend Express Request to include session
 declare module 'express-serve-static-core' {
@@ -266,9 +267,18 @@ export function registerRoutes(app: Express) {
         return res.status(403).json({ error: 'Cannot send messages on behalf of other departments' });
       }
       
-      // Normalize attachmentUrl if present (convert full GCS URL to internal path)
+      const objectStorageService = new ObjectStorageService();
+      
+      // Normalize attachments array if present
+      if (parsedData.attachments && Array.isArray(parsedData.attachments)) {
+        parsedData.attachments = parsedData.attachments.map((att: any) => ({
+          url: objectStorageService.normalizeObjectEntityPath(att.url),
+          name: att.name,
+        }));
+      }
+      
+      // Normalize old single attachmentUrl if present (for backward compatibility)
       if (parsedData.attachmentUrl && typeof parsedData.attachmentUrl === 'string') {
-        const objectStorageService = new ObjectStorageService();
         parsedData.attachmentUrl = objectStorageService.normalizeObjectEntityPath(parsedData.attachmentUrl);
       }
       
@@ -361,10 +371,14 @@ export function registerRoutes(app: Express) {
   // Get presigned URL for file download
   app.post("/api/objects/download", requireAuth, async (req: Request, res: Response) => {
     try {
-      const { messageId } = req.body;
+      const { messageId, fileUrl } = req.body;
       
       if (!messageId) {
         return res.status(400).json({ error: 'messageId is required' });
+      }
+
+      if (!fileUrl) {
+        return res.status(400).json({ error: 'fileUrl is required' });
       }
 
       // Validate messageId is a valid integer
@@ -373,15 +387,11 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ error: 'Invalid messageId' });
       }
 
-      // Get the message to verify access and get attachment info
+      // Get the message to verify access
       const message = await storage.getMessageById(parsedMessageId);
       
       if (!message) {
         return res.status(404).json({ error: 'Message not found' });
-      }
-
-      if (!message.attachmentUrl) {
-        return res.status(404).json({ error: 'No attachment found' });
       }
 
       // Check if user has access to this message
@@ -392,8 +402,31 @@ export function registerRoutes(app: Express) {
       }
       // Admin users can access all files (already checked by requireAuth middleware)
 
+      // Verify that the fileUrl belongs to this message
       const objectStorageService = new ObjectStorageService();
-      const downloadURL = await objectStorageService.getObjectEntityDownloadURL(message.attachmentUrl);
+      const normalizedFileUrl = objectStorageService.normalizeObjectEntityPath(fileUrl);
+      
+      let fileFound = false;
+      
+      // Check in new attachments array
+      if (message.attachments && Array.isArray(message.attachments)) {
+        fileFound = message.attachments.some((att: any) => {
+          const normalizedAttUrl = objectStorageService.normalizeObjectEntityPath(att.url);
+          return normalizedAttUrl === normalizedFileUrl;
+        });
+      }
+      
+      // Fallback: check old single attachment for backward compatibility
+      if (!fileFound && message.attachmentUrl) {
+        const normalizedOldUrl = objectStorageService.normalizeObjectEntityPath(message.attachmentUrl);
+        fileFound = normalizedOldUrl === normalizedFileUrl;
+      }
+      
+      if (!fileFound) {
+        return res.status(404).json({ error: 'Attachment not found in message' });
+      }
+
+      const downloadURL = await objectStorageService.getObjectEntityDownloadURL(normalizedFileUrl);
       res.json({ downloadURL });
     } catch (error: any) {
       console.error('Error getting download URL:', error);
