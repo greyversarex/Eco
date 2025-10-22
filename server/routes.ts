@@ -259,20 +259,20 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/messages", requireAuth, async (req: Request, res: Response) => {
     try {
-      const data = insertMessageSchema.parse(req.body);
+      const parsedData: any = insertMessageSchema.parse(req.body);
       
       // Ensure sender is the authenticated department
-      if (req.session.departmentId && data.senderId !== req.session.departmentId) {
+      if (req.session.departmentId && parsedData.senderId !== req.session.departmentId) {
         return res.status(403).json({ error: 'Cannot send messages on behalf of other departments' });
       }
       
       // Normalize attachmentUrl if present (convert full GCS URL to internal path)
-      if (data.attachmentUrl) {
+      if (parsedData.attachmentUrl && typeof parsedData.attachmentUrl === 'string') {
         const objectStorageService = new ObjectStorageService();
-        data.attachmentUrl = objectStorageService.normalizeObjectEntityPath(data.attachmentUrl);
+        parsedData.attachmentUrl = objectStorageService.normalizeObjectEntityPath(parsedData.attachmentUrl);
       }
       
-      const message = await storage.createMessage(data);
+      const message = await storage.createMessage(parsedData);
       res.json(message);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -439,6 +439,38 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Direct file download through proxy (with ACL check)
+  app.get("/objects/:objectPath(*)", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const objectPath = `/objects/${req.params.objectPath}`;
+      const objectStorageService = new ObjectStorageService();
+      
+      // Get the object file
+      const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
+      
+      // Check if user has access to this object
+      const userId = req.session.departmentId?.toString() || req.session.adminId?.toString();
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        userId: userId,
+        requestedPermission: ObjectPermission.READ,
+      });
+      
+      if (!canAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      // Download the object
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error: any) {
+      console.error('Error downloading object:', error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      return res.status(500).json({ error: error.message });
+    }
+  });
+  
   // Legacy endpoint removed for security - use POST /api/objects/download instead
   // which properly verifies message access before allowing downloads
 }

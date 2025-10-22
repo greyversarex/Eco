@@ -53,7 +53,7 @@ export default function DepartmentMain() {
       <header 
         className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
         style={{
-          background: 'linear-gradient(135deg, #8fbc8f 0%, #90c695 50%, #a8d5ba 100%)'
+          background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
         }}
       >
         <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
