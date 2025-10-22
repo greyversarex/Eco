@@ -54,13 +54,21 @@ export function registerRoutes(app: Express) {
       req.session.departmentId = department.id;
       req.session.userType = 'department';
       
-      res.json({ 
-        success: true, 
-        department: {
-          id: department.id,
-          name: department.name,
-          block: department.block,
+      // Save session explicitly to ensure it's persisted
+      req.session.save((err: any) => {
+        if (err) {
+          console.error('Session save error:', err);
+          return res.status(500).json({ error: 'Failed to save session' });
         }
+        
+        res.json({ 
+          success: true, 
+          department: {
+            id: department.id,
+            name: department.name,
+            block: department.block,
+          }
+        });
       });
     } catch (error: any) {
       console.error('Department login error:', error);
@@ -92,12 +100,20 @@ export function registerRoutes(app: Express) {
       req.session.adminId = admin.id;
       req.session.userType = 'admin';
       
-      res.json({ 
-        success: true,
-        admin: {
-          id: admin.id,
-          username: admin.username,
+      // Save session explicitly to ensure it's persisted
+      req.session.save((err: any) => {
+        if (err) {
+          console.error('Session save error:', err);
+          return res.status(500).json({ error: 'Failed to save session' });
         }
+        
+        res.json({ 
+          success: true,
+          admin: {
+            id: admin.id,
+            username: admin.username,
+          }
+        });
       });
     } catch (error: any) {
       console.error('Admin login error:', error);
