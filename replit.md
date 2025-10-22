@@ -8,6 +8,15 @@ The platform emphasizes security, data persistence, and future mobile compatibil
 
 ## Recent Changes
 
+**October 22, 2025 - Header Design & Authentication Flow**
+- Added brand green gradient (#8fbc8f → #90c695 → #a8d5ba) to all application headers (AdminDashboard, DepartmentMain)
+- Added optimized logo to DepartmentMain header (previously only had Leaf icon)
+- Styled all header buttons with white text and transparent white hover effects on green background
+- Fixed double-login issue: Changed login flow to use queryClient.setQueryData instead of invalidateQueries for immediate cache update
+- Authentication now works on first attempt for both admin and department logins
+- All headers now use consistent brand styling with white drop-shadowed text for readability
+- Zero LSP diagnostics
+
 **October 21, 2025 - Critical Bug Fixes**
 - Fixed double login submission bug: Added isSuccess flag to DepartmentLogin and AdminLogin to prevent duplicate API calls
 - Fixed data loss during file upload: Added isFileUploading guard in ComposeMessage.handleSubmit to block premature submission

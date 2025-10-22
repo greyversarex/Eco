@@ -5,7 +5,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import MobileNav from '@/components/MobileNav';
 import DepartmentCard from '@/components/DepartmentCard';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { Inbox, Send, PenSquare, LogOut, Leaf } from 'lucide-react';
+import { Inbox, Send, PenSquare, LogOut } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import type { Department } from '@shared/schema';
