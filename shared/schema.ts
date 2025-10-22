@@ -34,7 +34,7 @@ export type InsertAdmin = z.infer<typeof insertAdminSchema>;
 export type Admin = typeof admins.$inferSelect;
 
 // Messages table
-export const messages = pgTable("messages", {
+export const messages: any = pgTable("messages", {
   id: serial("id").primaryKey(),
   subject: text("subject").notNull(),
   content: text("content").notNull(),
@@ -44,7 +44,7 @@ export const messages = pgTable("messages", {
   documentDate: timestamp("document_date").notNull(),
   attachmentUrl: text("attachment_url"),
   attachmentName: text("attachment_name"),
-  replyToId: integer("reply_to_id").references(() => messages.id),
+  replyToId: integer("reply_to_id").references((): any => messages.id),
   isRead: boolean("is_read").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
