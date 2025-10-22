@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Upload, X, FileIcon, CheckCircle2 } from 'lucide-react';
@@ -7,9 +7,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
 interface ObjectUploaderProps {
-  onUploadComplete?: (uploadUrl: string, filename: string) => void;
+  onFilesChange?: (files: Array<{ url: string; name: string }>) => void;
   onUploadStatusChange?: (isUploading: boolean) => void;
-  onAllUploadsComplete?: (files: Array<{ url: string; name: string }>) => void;
   accept?: string;
   maxSizeMB?: number;
   maxFiles?: number;
@@ -29,9 +28,8 @@ interface UploadedFile {
 }
 
 export default function ObjectUploader({
-  onUploadComplete,
+  onFilesChange,
   onUploadStatusChange,
-  onAllUploadsComplete,
   accept,
   maxSizeMB = 100,
   maxFiles = 5,
@@ -41,6 +39,16 @@ export default function ObjectUploader({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Notify parent whenever completed files change
+  useEffect(() => {
+    if (onFilesChange) {
+      const completedFiles = uploadedFiles
+        .filter(f => f.isComplete && f.url)
+        .map(f => ({ url: f.url!, name: f.file.name }));
+      onFilesChange(completedFiles);
+    }
+  }, [uploadedFiles, onFilesChange]);
 
   const translations = {
     tg: {
@@ -166,22 +174,13 @@ export default function ObjectUploader({
     if (onUploadStatusChange) {
       onUploadStatusChange(false);
     }
-
-    // Notify parent of all completed uploads
-    if (onAllUploadsComplete) {
-      const completedFiles = uploadedFiles
-        .filter(f => f.isComplete && f.url)
-        .map(f => ({ url: f.url!, name: f.file.name }));
-      onAllUploadsComplete(completedFiles);
-    }
   };
 
   const uploadSingleFile = async (uploadedFile: UploadedFile) => {
-    const fileIndex = uploadedFiles.findIndex(f => f.file === uploadedFile.file);
-    if (fileIndex === -1) return;
-
     // Mark as uploading
     setUploadedFiles(prev => {
+      const fileIndex = prev.findIndex(f => f.file === uploadedFile.file);
+      if (fileIndex === -1) return prev;
       const updated = [...prev];
       updated[fileIndex] = { ...updated[fileIndex], isUploading: true, progress: 0 };
       return updated;
@@ -199,6 +198,8 @@ export default function ObjectUploader({
           if (e.lengthComputable) {
             const progress = Math.round((e.loaded / e.total) * 100);
             setUploadedFiles(prev => {
+              const fileIndex = prev.findIndex(f => f.file === uploadedFile.file);
+              if (fileIndex === -1) return prev;
               const updated = [...prev];
               updated[fileIndex] = { ...updated[fileIndex], progress };
               return updated;
@@ -211,6 +212,8 @@ export default function ObjectUploader({
             const fileUrl = uploadURL.split('?')[0];
             
             setUploadedFiles(prev => {
+              const fileIndex = prev.findIndex(f => f.file === uploadedFile.file);
+              if (fileIndex === -1) return prev;
               const updated = [...prev];
               updated[fileIndex] = {
                 ...updated[fileIndex],
@@ -221,11 +224,6 @@ export default function ObjectUploader({
               };
               return updated;
             });
-
-            // Notify parent component
-            if (onUploadComplete) {
-              onUploadComplete(fileUrl, uploadedFile.file.name);
-            }
 
             resolve();
           } else {
@@ -251,6 +249,8 @@ export default function ObjectUploader({
       
       // Mark as failed
       setUploadedFiles(prev => {
+        const fileIndex = prev.findIndex(f => f.file === uploadedFile.file);
+        if (fileIndex === -1) return prev;
         const updated = [...prev];
         updated[fileIndex] = { ...updated[fileIndex], isUploading: false, progress: 0 };
         return updated;

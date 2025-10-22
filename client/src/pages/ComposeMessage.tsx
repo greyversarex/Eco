@@ -62,7 +62,7 @@ export default function ComposeMessage() {
     },
   });
 
-  const handleAllUploadsComplete = (files: Array<{ url: string; name: string }>) => {
+  const handleFilesChange = (files: Array<{ url: string; name: string }>) => {
     setAttachments(files);
   };
 
@@ -228,7 +228,7 @@ export default function ComposeMessage() {
               <div className="space-y-2">
                 <Label>{t.attachFile}</Label>
                 <ObjectUploader 
-                  onAllUploadsComplete={handleAllUploadsComplete}
+                  onFilesChange={handleFilesChange}
                   onUploadStatusChange={setIsFileUploading}
                   language={lang}
                   maxSizeMB={100}
