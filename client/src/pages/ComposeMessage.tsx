@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft, Leaf } from 'lucide-react';
+import { ArrowLeft, Leaf, Paperclip, X } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -30,6 +30,8 @@ export default function ComposeMessage() {
   const [recipient, setRecipient] = useState('');
   const [executor, setExecutor] = useState('');
   const [content, setContent] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const t = useTranslation(lang);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -42,11 +44,66 @@ export default function ComposeMessage() {
     mutationFn: async (messageData: any) => {
       return await apiRequest('POST', '/api/messages', messageData);
     },
-    onSuccess: () => {
+    onSuccess: async (data: any) => {
+      const messageId = data.id;
+      
+      // Upload files if any selected
+      if (selectedFiles.length > 0) {
+        setIsUploadingFiles(true);
+        let uploadSuccess = true;
+        let failedFiles: string[] = [];
+        
+        try {
+          for (const file of selectedFiles) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch(`/api/messages/${messageId}/attachments`, {
+              method: 'POST',
+              body: formData,
+            });
+            
+            if (!response.ok) {
+              uploadSuccess = false;
+              failedFiles.push(file.name);
+              console.error(`Failed to upload ${file.name}:`, response.status, await response.text());
+            }
+          }
+        } catch (error) {
+          console.error('Failed to upload files:', error);
+          uploadSuccess = false;
+        } finally {
+          setIsUploadingFiles(false);
+        }
+        
+        if (!uploadSuccess) {
+          // Redirect to message view where user can upload files via ObjectUploader
+          queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+          toast({
+            title: lang === 'tg' ? 'Огоҳӣ' : 'Предупреждение',
+            description: failedFiles.length > 0 
+              ? (lang === 'tg' 
+                  ? `Паём фиристода шуд, вале файлҳо бор нашуданд: ${failedFiles.join(', ')}. Шумо метавонед онҳоро дар саҳифаи паём илова кунед.` 
+                  : `Сообщение отправлено, но файлы не загружены: ${failedFiles.join(', ')}. Вы можете добавить их на странице сообщения.`)
+              : (lang === 'tg' 
+                  ? 'Паём фиристода шуд, вале файлҳо бор нашуданд. Шумо метавонед онҳоро дар саҳифаи паём илова кунед.' 
+                  : 'Сообщение отправлено, но файлы не загружены. Вы можете добавить их на странице сообщения.'),
+            variant: 'destructive',
+          });
+          // Redirect to message view where files can be uploaded
+          setLocation(`/department/message/${messageId}`);
+          return;
+        }
+      }
+      
+      // Success - clear state and redirect
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      setSelectedFiles([]); // Clear files only on success
       toast({
         title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Паём фиристода шуд' : 'Сообщение отправлено',
+        description: selectedFiles.length > 0 
+          ? (lang === 'tg' ? 'Паём ва файлҳо фиристода шуданд' : 'Сообщение и файлы отправлены')
+          : (lang === 'tg' ? 'Паём фиристода шуд' : 'Сообщение отправлено'),
       });
       setLocation('/department/outbox');
     },
@@ -82,6 +139,45 @@ export default function ComposeMessage() {
     };
 
     sendMessageMutation.mutate(messageData);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    
+    const fileArray = Array.from(files);
+    const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+    
+    // Check file size
+    for (const file of fileArray) {
+      if (file.size > maxSize) {
+        toast({
+          title: lang === 'tg' ? 'Хато' : 'Ошибка',
+          description: lang === 'tg' ? `Файл ${file.name} аз 100МБ калонтар аст` : `Файл ${file.name} превышает 100МБ`,
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+    
+    // Check total files
+    const newFiles = [...selectedFiles, ...fileArray];
+    if (newFiles.length > 5) {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: lang === 'tg' ? 'Шумо наметавонед зиёда аз 5 файл илова кунед' : 'Вы не можете добавить более 5 файлов',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setSelectedFiles(newFiles);
+    // Reset input
+    e.target.value = '';
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
   };
 
   return (
@@ -206,16 +302,63 @@ export default function ComposeMessage() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="files">{lang === 'tg' ? 'Илова кардани файл (то 5 адад, 100МБ ҳар як)' : 'Прикрепить файлы (до 5 шт, 100МБ каждый)'}</Label>
+                <div className="space-y-2">
+                  <Input
+                    id="files"
+                    type="file"
+                    multiple
+                    onChange={handleFileSelect}
+                    disabled={selectedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
+                    data-testid="input-files"
+                    className="cursor-pointer"
+                  />
+                  {selectedFiles.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        {lang === 'tg' ? 'Файлҳои интихобшуда' : 'Выбранные файлы'} ({selectedFiles.length}/5)
+                      </p>
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-3">
+                          <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate" data-testid={`text-selected-file-${index}`}>
+                              {file.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {(file.size / 1024 / 1024).toFixed(2)} МБ
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(index)}
+                            data-testid={`button-remove-file-${index}`}
+                            disabled={sendMessageMutation.isPending || isUploadingFiles}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
                 <Button 
                   type="submit" 
                   data-testid="button-send" 
-                  disabled={sendMessageMutation.isPending}
+                  disabled={sendMessageMutation.isPending || isUploadingFiles}
                   className="w-full sm:w-auto"
                 >
-                  {sendMessageMutation.isPending 
-                    ? (lang === 'tg' ? 'Фиристода мешавад...' : 'Отправка...') 
-                    : t.send}
+                  {isUploadingFiles 
+                    ? (lang === 'tg' ? 'Файлҳо бор мешаванд...' : 'Загрузка файлов...') 
+                    : sendMessageMutation.isPending 
+                      ? (lang === 'tg' ? 'Фиристода мешавад...' : 'Отправка...') 
+                      : t.send}
                 </Button>
                 <Button
                   type="button"
