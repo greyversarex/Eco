@@ -51,23 +51,31 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: 'Invalid access code' });
       }
 
-      req.session.departmentId = department.id;
-      req.session.userType = 'department';
-      
-      // Save session explicitly to ensure it's persisted
-      req.session.save((err: any) => {
+      // Regenerate session to clear any previous data
+      req.session.regenerate((err: any) => {
         if (err) {
-          console.error('Session save error:', err);
-          return res.status(500).json({ error: 'Failed to save session' });
+          console.error('Session regenerate error:', err);
+          return res.status(500).json({ error: 'Failed to create session' });
         }
+
+        req.session.departmentId = department.id;
+        req.session.userType = 'department';
         
-        res.json({ 
-          success: true, 
-          department: {
-            id: department.id,
-            name: department.name,
-            block: department.block,
+        // Save the new session
+        req.session.save((saveErr: any) => {
+          if (saveErr) {
+            console.error('Session save error:', saveErr);
+            return res.status(500).json({ error: 'Failed to save session' });
           }
+          
+          res.json({ 
+            success: true, 
+            department: {
+              id: department.id,
+              name: department.name,
+              block: department.block,
+            }
+          });
         });
       });
     } catch (error: any) {
@@ -97,22 +105,30 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      req.session.adminId = admin.id;
-      req.session.userType = 'admin';
-      
-      // Save session explicitly to ensure it's persisted
-      req.session.save((err: any) => {
+      // Regenerate session to clear any previous data
+      req.session.regenerate((err: any) => {
         if (err) {
-          console.error('Session save error:', err);
-          return res.status(500).json({ error: 'Failed to save session' });
+          console.error('Session regenerate error:', err);
+          return res.status(500).json({ error: 'Failed to create session' });
         }
+
+        req.session.adminId = admin.id;
+        req.session.userType = 'admin';
         
-        res.json({ 
-          success: true,
-          admin: {
-            id: admin.id,
-            username: admin.username,
+        // Save the new session
+        req.session.save((saveErr: any) => {
+          if (saveErr) {
+            console.error('Session save error:', saveErr);
+            return res.status(500).json({ error: 'Failed to save session' });
           }
+          
+          res.json({ 
+            success: true,
+            admin: {
+              id: admin.id,
+              username: admin.username,
+            }
+          });
         });
       });
     } catch (error: any) {
