@@ -6,11 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ShieldCheck } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import bgImage from '@assets/eco-bg-wide.png';
+import logoImage from '@assets/1_1761116811064.png';
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
@@ -72,8 +72,8 @@ export default function AdminLogin() {
       <div className="w-full max-w-md relative z-10 flex flex-col items-center -mt-16 md:ml-12">
         <div className="text-center space-y-2 mb-6">
           <div className="flex justify-center mb-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
-              <ShieldCheck className="h-8 w-8" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-lg">
+              <img src={logoImage} alt="ЭкоТочикистон лого" className="h-12 w-12 object-contain" />
             </div>
           </div>
           <h1 className="text-2xl font-semibold text-foreground md:text-white md:drop-shadow-lg">{t.adminPanel}</h1>
