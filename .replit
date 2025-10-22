@@ -19,10 +19,6 @@ localPort = 36089
 externalPort = 3001
 
 [[ports]]
-localPort = 37621
-externalPort = 5000
-
-[[ports]]
 localPort = 41403
 externalPort = 3003
 
@@ -33,6 +29,10 @@ externalPort = 3000
 [[ports]]
 localPort = 42505
 externalPort = 4200
+
+[[ports]]
+localPort = 43553
+externalPort = 5000
 
 [[ports]]
 localPort = 43831
@@ -64,3 +64,4 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_database:1.0.0", "javascript_object_storage:1.0.0"]
+expertMode = true

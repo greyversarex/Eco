@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import type { Department } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
+import logoImage from '@assets/logo-optimized.webp';
 
 export default function DepartmentMain() {
   const [, setLocation] = useLocation();
@@ -49,16 +50,19 @@ export default function DepartmentMain() {
           background: 'rgba(255, 255, 255, 0.92)'
         }}
       />
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md relative">
+      <header 
+        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
+        style={{
+          background: 'linear-gradient(135deg, #8fbc8f 0%, #90c695 50%, #a8d5ba 100%)'
+        }}
+      >
         <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0">
-                <Leaf className="h-5 w-5" />
-              </div>
+              <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
               <div className="min-w-0">
-                <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">ЭкоТочикистон</h1>
-                <p className="text-xs text-muted-foreground truncate">
+                <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">ЭкоТочикистон</h1>
+                <p className="text-xs text-white/90 drop-shadow-sm truncate">
                   {user?.userType === 'department' ? user.department?.name : ''}
                 </p>
               </div>
@@ -70,7 +74,7 @@ export default function DepartmentMain() {
                   size="sm"
                   onClick={() => setLocation('/department/inbox')}
                   data-testid="button-inbox"
-                  className="gap-2"
+                  className="gap-2 text-white hover:bg-white/20"
                 >
                   <Inbox className="h-4 w-4" />
                   {t.inbox}
@@ -80,17 +84,16 @@ export default function DepartmentMain() {
                   size="sm"
                   onClick={() => setLocation('/department/outbox')}
                   data-testid="button-outbox"
-                  className="gap-2"
+                  className="gap-2 text-white hover:bg-white/20"
                 >
                   <Send className="h-4 w-4" />
                   {t.outbox}
                 </Button>
                 <Button
-                  variant="default"
                   size="sm"
                   onClick={() => setLocation('/department/compose')}
                   data-testid="button-compose"
-                  className="gap-2"
+                  className="gap-2 bg-white/20 text-white hover:bg-white/30 border border-white/30"
                 >
                   <PenSquare className="h-4 w-4" />
                   {t.newMessage}
@@ -112,7 +115,7 @@ export default function DepartmentMain() {
                 size="sm"
                 onClick={logout}
                 data-testid="button-logout"
-                className="flex items-center"
+                className="flex items-center text-white hover:bg-white/20"
               >
                 <LogOut className="h-4 w-4" />
               </Button>

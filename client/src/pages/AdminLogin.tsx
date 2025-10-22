@@ -26,9 +26,10 @@ export default function AdminLogin() {
     mutationFn: async (credentials: { username: string; password: string }) => {
       return await apiRequest('POST', '/api/auth/admin/login', credentials);
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       setIsSuccess(true);
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.setQueryData(['/api/auth/me'], data);
+      await new Promise(resolve => setTimeout(resolve, 100));
       setLocation('/admin/dashboard');
     },
     onError: (error) => {

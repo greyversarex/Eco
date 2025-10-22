@@ -25,9 +25,10 @@ export default function DepartmentLogin() {
     mutationFn: async (accessCode: string) => {
       return await apiRequest('POST', '/api/auth/department/login', { accessCode });
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       setIsSuccess(true);
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.setQueryData(['/api/auth/me'], data);
+      await new Promise(resolve => setTimeout(resolve, 100));
       setLocation('/department/main');
     },
     onError: (error: any) => {
