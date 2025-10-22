@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, boolean, integer, customType } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, boolean, integer, customType, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -58,7 +58,10 @@ export const messages: any = pgTable("messages", {
   replyToId: integer("reply_to_id").references((): any => messages.id),
   isRead: boolean("is_read").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  senderIdx: index("messages_sender_id_idx").on(table.senderId),
+  recipientIdx: index("messages_recipient_id_idx").on(table.recipientId),
+}));
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
@@ -79,7 +82,9 @@ export const attachments = pgTable("attachments", {
   fileSize: integer("file_size").notNull(),
   mimeType: text("mime_type").notNull(),
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  messageIdx: index("attachments_message_id_idx").on(table.messageId),
+}));
 
 export const insertAttachmentSchema = z.object({
   messageId: z.number(),

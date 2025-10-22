@@ -5,6 +5,35 @@ import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema } from "
 import { z } from "zod";
 import multer from "multer";
 
+// Allowed MIME types for file uploads
+const ALLOWED_MIME_TYPES = [
+  // Documents
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain',
+  'application/rtf',
+  // Images
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/bmp',
+  'image/tiff',
+  // Archives
+  'application/zip',
+  'application/x-rar-compressed',
+  'application/x-7z-compressed',
+  'application/gzip',
+  // Other
+  'application/json',
+  'text/csv',
+];
+
 // Configure multer for file uploads (store in memory as Buffer)
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -286,10 +315,15 @@ export function registerRoutes(app: Express) {
 
       // Check if user has access to this message
       if (req.session.departmentId) {
+        // Department can only see messages they sent or received
         if (message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
           return res.status(403).json({ error: 'Access denied' });
         }
+      } else if (!req.session.adminId) {
+        // If not department and not admin, deny access
+        return res.status(403).json({ error: 'Access denied' });
       }
+      // Admins can see all messages
       
       res.json(message);
     } catch (error: any) {
@@ -393,6 +427,13 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
+      // Validate MIME type
+      if (!ALLOWED_MIME_TYPES.includes(req.file.mimetype)) {
+        return res.status(400).json({ 
+          error: 'File type not allowed. Please upload documents, images, or archives only.' 
+        });
+      }
+
       // Verify message exists and user has access
       const message = await storage.getMessageById(messageId);
       if (!message) {
@@ -401,10 +442,15 @@ export function registerRoutes(app: Express) {
 
       // Check if user has access to this message
       if (req.session.departmentId) {
+        // Department can only upload to messages they sent or received
         if (message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
           return res.status(403).json({ error: 'Access denied' });
         }
+      } else if (!req.session.adminId) {
+        // If not department and not admin, deny access
+        return res.status(403).json({ error: 'Access denied' });
       }
+      // Admins can upload to any message
 
       // Save file to database
       const attachment = await storage.createAttachment({
@@ -444,10 +490,15 @@ export function registerRoutes(app: Express) {
 
       // Check if user has access to this message
       if (req.session.departmentId) {
+        // Department can only see attachments for messages they sent or received
         if (message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
           return res.status(403).json({ error: 'Access denied' });
         }
+      } else if (!req.session.adminId) {
+        // If not department and not admin, deny access
+        return res.status(403).json({ error: 'Access denied' });
       }
+      // Admins can see all attachments
 
       // Get attachments
       const attachments = await storage.getAttachmentsByMessageId(messageId);
@@ -489,10 +540,15 @@ export function registerRoutes(app: Express) {
 
       // Check if user has access to this message
       if (req.session.departmentId) {
+        // Department can only download attachments for messages they sent or received
         if (message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
           return res.status(403).json({ error: 'Access denied' });
         }
+      } else if (!req.session.adminId) {
+        // If not department and not admin, deny access
+        return res.status(403).json({ error: 'Access denied' });
       }
+      // Admins can download all attachments
 
       // Send file
       res.setHeader('Content-Type', attachment.mimeType);
