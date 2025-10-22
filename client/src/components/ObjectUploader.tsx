@@ -1,35 +1,29 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Upload, X, FileIcon, CheckCircle2 } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
 interface ObjectUploaderProps {
-  onFilesChange?: (files: Array<{ url: string; name: string }>) => void;
-  onUploadStatusChange?: (isUploading: boolean) => void;
+  messageId: number;
+  onUploadComplete?: (attachmentId: number, filename: string) => void;
   accept?: string;
   maxSizeMB?: number;
   maxFiles?: number;
   language?: 'tg' | 'ru';
 }
 
-interface UploadResult {
-  uploadURL: string;
-}
-
 interface UploadedFile {
   file: File;
-  url?: string;
+  attachmentId?: number;
   progress: number;
   isUploading: boolean;
   isComplete: boolean;
 }
 
 export default function ObjectUploader({
-  onFilesChange,
-  onUploadStatusChange,
+  messageId,
+  onUploadComplete,
   accept,
   maxSizeMB = 100,
   maxFiles = 5,
@@ -39,16 +33,6 @@ export default function ObjectUploader({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-
-  // Notify parent whenever completed files change
-  useEffect(() => {
-    if (onFilesChange) {
-      const completedFiles = uploadedFiles
-        .filter(f => f.isComplete && f.url)
-        .map(f => ({ url: f.url!, name: f.file.name }));
-      onFilesChange(completedFiles);
-    }
-  }, [uploadedFiles, onFilesChange]);
 
   const translations = {
     tg: {
@@ -78,13 +62,6 @@ export default function ObjectUploader({
   };
 
   const t = translations[language];
-
-  // Get presigned URL from backend
-  const getUploadUrlMutation = useMutation<UploadResult>({
-    mutationFn: async () => {
-      return await apiRequest('POST', '/api/objects/upload');
-    },
-  });
 
   const handleFilesSelect = (selectedFiles: FileList | File[]) => {
     const filesArray = Array.from(selectedFiles);
@@ -163,16 +140,8 @@ export default function ObjectUploader({
   };
 
   const uploadFiles = async (filesToUpload: UploadedFile[]) => {
-    if (onUploadStatusChange) {
-      onUploadStatusChange(true);
-    }
-
     for (const uploadedFile of filesToUpload) {
       await uploadSingleFile(uploadedFile);
-    }
-
-    if (onUploadStatusChange) {
-      onUploadStatusChange(false);
     }
   };
 
@@ -187,11 +156,11 @@ export default function ObjectUploader({
     });
 
     try {
-      // Step 1: Get presigned URL from backend
-      const { uploadURL } = await getUploadUrlMutation.mutateAsync();
+      // Upload file to database via API
+      const formData = new FormData();
+      formData.append('file', uploadedFile.file);
 
-      // Step 2: Upload file directly to cloud storage
-      await new Promise<void>((resolve, reject) => {
+      const response = await new Promise<{ id: number; filename: string }>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
 
         xhr.upload.addEventListener('progress', (e) => {
@@ -209,23 +178,8 @@ export default function ObjectUploader({
 
         xhr.addEventListener('load', () => {
           if (xhr.status >= 200 && xhr.status < 300) {
-            const fileUrl = uploadURL.split('?')[0];
-            
-            setUploadedFiles(prev => {
-              const fileIndex = prev.findIndex(f => f.file === uploadedFile.file);
-              if (fileIndex === -1) return prev;
-              const updated = [...prev];
-              updated[fileIndex] = {
-                ...updated[fileIndex],
-                url: fileUrl,
-                isUploading: false,
-                isComplete: true,
-                progress: 100,
-              };
-              return updated;
-            });
-
-            resolve();
+            const result = JSON.parse(xhr.responseText);
+            resolve(result);
           } else {
             reject(new Error(`Upload failed with status ${xhr.status}`));
           }
@@ -235,10 +189,28 @@ export default function ObjectUploader({
           reject(new Error('Network error during upload'));
         });
 
-        xhr.open('PUT', uploadURL);
-        xhr.setRequestHeader('Content-Type', uploadedFile.file.type || 'application/octet-stream');
-        xhr.send(uploadedFile.file);
+        xhr.open('POST', `/api/messages/${messageId}/attachments`);
+        xhr.send(formData);
       });
+
+      // Mark as complete
+      setUploadedFiles(prev => {
+        const fileIndex = prev.findIndex(f => f.file === uploadedFile.file);
+        if (fileIndex === -1) return prev;
+        const updated = [...prev];
+        updated[fileIndex] = {
+          ...updated[fileIndex],
+          attachmentId: response.id,
+          isUploading: false,
+          isComplete: true,
+          progress: 100,
+        };
+        return updated;
+      });
+
+      if (onUploadComplete) {
+        onUploadComplete(response.id, response.filename);
+      }
 
       toast({
         title: t.uploadComplete,

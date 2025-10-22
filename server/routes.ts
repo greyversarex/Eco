@@ -306,21 +306,6 @@ export function registerRoutes(app: Express) {
         return res.status(403).json({ error: 'Cannot send messages on behalf of other departments' });
       }
       
-      const objectStorageService = new ObjectStorageService();
-      
-      // Normalize attachments array if present
-      if (parsedData.attachments && Array.isArray(parsedData.attachments)) {
-        parsedData.attachments = parsedData.attachments.map((att: any) => ({
-          url: objectStorageService.normalizeObjectEntityPath(att.url),
-          name: att.name,
-        }));
-      }
-      
-      // Normalize old single attachmentUrl if present (for backward compatibility)
-      if (parsedData.attachmentUrl && typeof parsedData.attachmentUrl === 'string') {
-        parsedData.attachmentUrl = objectStorageService.normalizeObjectEntityPath(parsedData.attachmentUrl);
-      }
-      
       const message = await storage.createMessage(parsedData);
       res.json(message);
     } catch (error: any) {

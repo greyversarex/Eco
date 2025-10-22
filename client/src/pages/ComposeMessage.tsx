@@ -16,7 +16,6 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { ArrowLeft, Leaf } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
-import ObjectUploader from '@/components/ObjectUploader';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -31,8 +30,6 @@ export default function ComposeMessage() {
   const [recipient, setRecipient] = useState('');
   const [executor, setExecutor] = useState('');
   const [content, setContent] = useState('');
-  const [attachments, setAttachments] = useState<Array<{ url: string; name: string }>>([]);
-  const [isFileUploading, setIsFileUploading] = useState(false);
   const t = useTranslation(lang);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -62,21 +59,8 @@ export default function ComposeMessage() {
     },
   });
 
-  const handleFilesChange = (files: Array<{ url: string; name: string }>) => {
-    setAttachments(files);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (isFileUploading) {
-      toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Лутфан интизор шавед, файл бор мешавад' : 'Пожалуйста, подождите, файл загружается',
-        variant: 'destructive',
-      });
-      return;
-    }
     
     if (!user || user.userType !== 'department') {
       toast({
@@ -94,9 +78,6 @@ export default function ComposeMessage() {
       recipientId: parseInt(recipient),
       executor: executor || null,
       documentDate: new Date(date).toISOString(),
-      attachments: attachments.length > 0 ? attachments : null,
-      attachmentUrl: null,
-      attachmentName: null,
       replyToId: null,
     };
 
@@ -225,29 +206,16 @@ export default function ComposeMessage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>{t.attachFile}</Label>
-                <ObjectUploader 
-                  onFilesChange={handleFilesChange}
-                  onUploadStatusChange={setIsFileUploading}
-                  language={lang}
-                  maxSizeMB={100}
-                  maxFiles={5}
-                />
-              </div>
-
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
                 <Button 
                   type="submit" 
                   data-testid="button-send" 
-                  disabled={sendMessageMutation.isPending || isFileUploading}
+                  disabled={sendMessageMutation.isPending}
                   className="w-full sm:w-auto"
                 >
-                  {isFileUploading
-                    ? (lang === 'tg' ? 'Файл бор мешавад...' : 'Загрузка файла...') 
-                    : sendMessageMutation.isPending 
-                      ? (lang === 'tg' ? 'Фиристода мешавад...' : 'Отправка...') 
-                      : t.send}
+                  {sendMessageMutation.isPending 
+                    ? (lang === 'tg' ? 'Фиристода мешавад...' : 'Отправка...') 
+                    : t.send}
                 </Button>
                 <Button
                   type="button"
