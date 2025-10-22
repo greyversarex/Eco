@@ -3,8 +3,15 @@ import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema } from "@shared/schema";
 import { z } from "zod";
-import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import { ObjectPermission } from "./objectAcl";
+import multer from "multer";
+
+// Configure multer for file uploads (store in memory as Buffer)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB max file size
+  },
+});
 
 // Extend Express Request to include session
 declare module 'express-serve-static-core' {
@@ -386,42 +393,23 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Object Storage routes (file upload/download)
-  
-  // Get presigned URL for file upload
-  app.post("/api/objects/upload", requireAuth, async (req: Request, res: Response) => {
+  // File attachment routes (PostgreSQL storage)
+
+  // Upload file attachment to message
+  app.post("/api/messages/:id/attachments", requireAuth, upload.single('file'), async (req: Request, res: Response) => {
     try {
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      res.json({ uploadURL });
-    } catch (error: any) {
-      console.error('Error getting upload URL:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  // Get presigned URL for file download
-  app.post("/api/objects/download", requireAuth, async (req: Request, res: Response) => {
-    try {
-      const { messageId, fileUrl } = req.body;
+      const messageId = parseInt(req.params.id);
       
-      if (!messageId) {
-        return res.status(400).json({ error: 'messageId is required' });
+      if (isNaN(messageId)) {
+        return res.status(400).json({ error: 'Invalid message ID' });
       }
 
-      if (!fileUrl) {
-        return res.status(400).json({ error: 'fileUrl is required' });
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      // Validate messageId is a valid integer
-      const parsedMessageId = parseInt(messageId);
-      if (isNaN(parsedMessageId) || !Number.isInteger(parsedMessageId) || parsedMessageId <= 0) {
-        return res.status(400).json({ error: 'Invalid messageId' });
-      }
-
-      // Get the message to verify access
-      const message = await storage.getMessageById(parsedMessageId);
-      
+      // Verify message exists and user has access
+      const message = await storage.getMessageById(messageId);
       if (!message) {
         return res.status(404).json({ error: 'Message not found' });
       }
@@ -432,110 +420,103 @@ export function registerRoutes(app: Express) {
           return res.status(403).json({ error: 'Access denied' });
         }
       }
-      // Admin users can access all files (already checked by requireAuth middleware)
 
-      // Verify that the fileUrl belongs to this message
-      const objectStorageService = new ObjectStorageService();
-      const normalizedFileUrl = objectStorageService.normalizeObjectEntityPath(fileUrl);
-      
-      let fileFound = false;
-      
-      // Check in new attachments array
-      if (message.attachments && Array.isArray(message.attachments)) {
-        fileFound = message.attachments.some((att: any) => {
-          const normalizedAttUrl = objectStorageService.normalizeObjectEntityPath(att.url);
-          return normalizedAttUrl === normalizedFileUrl;
-        });
-      }
-      
-      // Fallback: check old single attachment for backward compatibility
-      if (!fileFound && message.attachmentUrl) {
-        const normalizedOldUrl = objectStorageService.normalizeObjectEntityPath(message.attachmentUrl);
-        fileFound = normalizedOldUrl === normalizedFileUrl;
-      }
-      
-      if (!fileFound) {
-        return res.status(404).json({ error: 'Attachment not found in message' });
-      }
+      // Save file to database
+      const attachment = await storage.createAttachment({
+        messageId,
+        filename: req.file.originalname,
+        fileData: req.file.buffer,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+      });
 
-      const downloadURL = await objectStorageService.getObjectEntityDownloadURL(normalizedFileUrl);
-      res.json({ downloadURL });
+      res.json({
+        id: attachment.id,
+        filename: attachment.filename,
+        fileSize: attachment.fileSize,
+        mimeType: attachment.mimeType,
+      });
     } catch (error: any) {
-      console.error('Error getting download URL:', error);
-      if (error instanceof ObjectNotFoundError) {
-        return res.status(404).json({ error: 'File not found' });
-      }
+      console.error('Error uploading attachment:', error);
       res.status(500).json({ error: error.message });
     }
   });
 
-  // Save attachment info to message after upload
-  app.post("/api/messages/:id/attachment", requireAuth, async (req: Request, res: Response) => {
+  // Get attachments for a message
+  app.get("/api/messages/:id/attachments", requireAuth, async (req: Request, res: Response) => {
     try {
-      const id = parseInt(req.params.id);
-      const { attachmentUrl, attachmentName } = req.body;
-
-      if (!attachmentUrl || !attachmentName) {
-        return res.status(400).json({ error: 'attachmentUrl and attachmentName are required' });
+      const messageId = parseInt(req.params.id);
+      
+      if (isNaN(messageId)) {
+        return res.status(400).json({ error: 'Invalid message ID' });
       }
 
-      // Normalize the uploaded URL to internal path format
-      const objectStorageService = new ObjectStorageService();
-      const normalizedPath = objectStorageService.normalizeObjectEntityPath(attachmentUrl);
-
-      // Set ACL policy for the uploaded file
-      const userId = req.session.departmentId?.toString() || req.session.adminId?.toString() || 'unknown';
-      await objectStorageService.trySetObjectEntityAclPolicy(attachmentUrl, {
-        owner: userId,
-        visibility: "private", // Files in messages are private by default
-      });
-
-      // Update message with attachment info
-      const message = await storage.updateMessageAttachment(id, normalizedPath, attachmentName);
-      
+      // Verify message exists and user has access
+      const message = await storage.getMessageById(messageId);
       if (!message) {
         return res.status(404).json({ error: 'Message not found' });
       }
 
-      res.json(message);
+      // Check if user has access to this message
+      if (req.session.departmentId) {
+        if (message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
+          return res.status(403).json({ error: 'Access denied' });
+        }
+      }
+
+      // Get attachments
+      const attachments = await storage.getAttachmentsByMessageId(messageId);
+      
+      // Return without file data
+      res.json(attachments.map(att => ({
+        id: att.id,
+        filename: att.filename,
+        fileSize: att.fileSize,
+        mimeType: att.mimeType,
+        uploadedAt: att.uploadedAt,
+      })));
     } catch (error: any) {
-      console.error('Error saving attachment:', error);
+      console.error('Error fetching attachments:', error);
       res.status(500).json({ error: error.message });
     }
   });
 
-  // Direct file download through proxy (with ACL check)
-  app.get("/objects/:objectPath(*)", requireAuth, async (req: Request, res: Response) => {
+  // Download specific attachment
+  app.get("/api/attachments/:id", requireAuth, async (req: Request, res: Response) => {
     try {
-      const objectPath = `/objects/${req.params.objectPath}`;
-      const objectStorageService = new ObjectStorageService();
+      const attachmentId = parseInt(req.params.id);
       
-      // Get the object file
-      const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
-      
-      // Check if user has access to this object
-      const userId = req.session.departmentId?.toString() || req.session.adminId?.toString();
-      const canAccess = await objectStorageService.canAccessObjectEntity({
-        objectFile,
-        userId: userId,
-        requestedPermission: ObjectPermission.READ,
-      });
-      
-      if (!canAccess) {
-        return res.status(403).json({ error: 'Access denied' });
+      if (isNaN(attachmentId)) {
+        return res.status(400).json({ error: 'Invalid attachment ID' });
       }
-      
-      // Download the object
-      objectStorageService.downloadObject(objectFile, res);
+
+      // Get attachment
+      const attachment = await storage.getAttachmentById(attachmentId);
+      if (!attachment) {
+        return res.status(404).json({ error: 'Attachment not found' });
+      }
+
+      // Verify message exists and user has access
+      const message = await storage.getMessageById(attachment.messageId);
+      if (!message) {
+        return res.status(404).json({ error: 'Message not found' });
+      }
+
+      // Check if user has access to this message
+      if (req.session.departmentId) {
+        if (message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
+          return res.status(403).json({ error: 'Access denied' });
+        }
+      }
+
+      // Send file
+      res.setHeader('Content-Type', attachment.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(attachment.filename)}"`);
+      res.setHeader('Content-Length', attachment.fileSize.toString());
+      res.send(attachment.fileData);
     } catch (error: any) {
-      console.error('Error downloading object:', error);
-      if (error instanceof ObjectNotFoundError) {
-        return res.status(404).json({ error: 'File not found' });
-      }
-      return res.status(500).json({ error: error.message });
+      console.error('Error downloading attachment:', error);
+      res.status(500).json({ error: error.message });
     }
   });
-  
-  // Legacy endpoint removed for security - use POST /api/objects/download instead
-  // which properly verifies message access before allowing downloads
 }
