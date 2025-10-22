@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import MessageListItem from '@/components/MessageListItem';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft, Leaf } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
+import logoImage from '@assets/logo-optimized.webp';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import type { Message, Department } from '@shared/schema';
@@ -91,9 +92,7 @@ export default function Inbox() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0">
-                  <Leaf className="h-5 w-5" />
-                </div>
+                <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0" />
                 <div className="min-w-0">
                   <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{pageTitle}</h1>
                   <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТочикистон</p>

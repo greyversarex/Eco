@@ -27,13 +27,14 @@ import {
 import { Label } from '@/components/ui/label';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Leaf, Copy } from 'lucide-react';
+import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import type { Department } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
+import logoImage from '@assets/logo-optimized.webp';
 
 export default function AdminDashboard() {
   const [lang, setLang] = useState<Language>('tg');
@@ -161,9 +162,7 @@ export default function AdminDashboard() {
         <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-              <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0">
-                <Leaf className="h-5 w-5" />
-              </div>
+              <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0" />
               <div className="min-w-0">
                 <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{t.adminPanel}</h1>
                 <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТочикистон</p>
