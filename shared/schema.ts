@@ -1,6 +1,19 @@
-import { pgTable, text, serial, timestamp, boolean, integer, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, boolean, integer, customType } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Custom bytea type for storing binary data (files) in PostgreSQL
+const bytea = customType<{ data: Buffer; notNull: false; default: false }>({
+  dataType() {
+    return 'bytea';
+  },
+  toDriver(value: Buffer): Buffer {
+    return value;
+  },
+  fromDriver(value: unknown): Buffer {
+    return value as Buffer;
+  },
+});
 
 // Departments table
 export const departments = pgTable("departments", {
@@ -42,11 +55,6 @@ export const messages: any = pgTable("messages", {
   recipientId: integer("recipient_id").notNull().references(() => departments.id),
   executor: text("executor"),
   documentDate: timestamp("document_date").notNull(),
-  // Legacy single attachment fields (kept for backward compatibility)
-  attachmentUrl: text("attachment_url"),
-  attachmentName: text("attachment_name"),
-  // New multiple attachments field
-  attachments: jsonb("attachments").$type<Array<{ url: string; name: string }>>(),
   replyToId: integer("reply_to_id").references((): any => messages.id),
   isRead: boolean("is_read").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -58,13 +66,30 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   isRead: true,
 }).extend({
   documentDate: z.coerce.date(),
-  attachments: z.array(z.object({
-    url: z.string(),
-    name: z.string(),
-  })).optional(),
 });
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
+
+// Attachments table - stores files in database
+export const attachments = pgTable("attachments", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").notNull().references(() => messages.id, { onDelete: 'cascade' }),
+  filename: text("filename").notNull(),
+  fileData: bytea("file_data").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+});
+
+export const insertAttachmentSchema = z.object({
+  messageId: z.number(),
+  filename: z.string(),
+  fileData: z.instanceof(Buffer),
+  fileSize: z.number(),
+  mimeType: z.string(),
+});
+export type InsertAttachment = z.infer<typeof insertAttachmentSchema>;
+export type Attachment = typeof attachments.$inferSelect;
 
 // Note: Sessions table is managed by connect-pg-simple
 // It will be created automatically with the correct schema
