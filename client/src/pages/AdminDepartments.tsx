@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import DepartmentCard from '@/components/DepartmentCard';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { LogOut, Leaf, Settings } from 'lucide-react';
+import { LogOut, Settings } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import type { Department, Message } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
+import logoImage from '@assets/logo-optimized.webp';
 
 export default function AdminDepartments() {
   const [, setLocation] = useLocation();
@@ -57,16 +58,19 @@ export default function AdminDepartments() {
           background: 'rgba(255, 255, 255, 0.92)'
         }}
       />
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md relative">
+      <header 
+        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
+        style={{
+          background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
+        }}
+      >
         <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-              <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0">
-                <Leaf className="h-5 w-5" />
-              </div>
+              <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
               <div className="min-w-0">
-                <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{t.adminPanel}</h1>
-                <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТочикистон</p>
+                <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{t.adminPanel}</h1>
+                <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">ЭкоТочикистон</p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4 shrink-0">
@@ -75,7 +79,7 @@ export default function AdminDepartments() {
                 size="sm"
                 onClick={() => setLocation('/admin/dashboard')}
                 data-testid="button-settings"
-                className="gap-2 hidden sm:flex"
+                className="gap-2 hidden sm:flex text-white hover:bg-white/20"
               >
                 <Settings className="h-4 w-4" />
                 <span className="hidden md:inline">{lang === 'tg' ? 'Идора' : 'Управление'}</span>
@@ -85,7 +89,7 @@ export default function AdminDepartments() {
                 size="sm"
                 onClick={() => setLocation('/admin/dashboard')}
                 data-testid="button-settings-mobile"
-                className="sm:hidden"
+                className="sm:hidden text-white hover:bg-white/20"
               >
                 <Settings className="h-4 w-4" />
               </Button>
@@ -95,6 +99,7 @@ export default function AdminDepartments() {
                 size="sm"
                 onClick={logout}
                 data-testid="button-logout"
+                className="text-white hover:bg-white/20"
               >
                 <LogOut className="h-4 w-4" />
               </Button>
