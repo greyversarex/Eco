@@ -31,8 +31,7 @@ export default function ComposeMessage() {
   const [recipient, setRecipient] = useState('');
   const [executor, setExecutor] = useState('');
   const [content, setContent] = useState('');
-  const [attachmentUrl, setAttachmentUrl] = useState<string>('');
-  const [attachmentName, setAttachmentName] = useState<string>('');
+  const [attachments, setAttachments] = useState<Array<{ url: string; name: string }>>([]);
   const [isFileUploading, setIsFileUploading] = useState(false);
   const t = useTranslation(lang);
   const { user } = useAuth();
@@ -63,9 +62,8 @@ export default function ComposeMessage() {
     },
   });
 
-  const handleUploadComplete = (uploadUrl: string, filename: string) => {
-    setAttachmentUrl(uploadUrl);
-    setAttachmentName(filename);
+  const handleAllUploadsComplete = (files: Array<{ url: string; name: string }>) => {
+    setAttachments(files);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -96,8 +94,9 @@ export default function ComposeMessage() {
       recipientId: parseInt(recipient),
       executor: executor || null,
       documentDate: new Date(date).toISOString(),
-      attachmentUrl: attachmentUrl || null,
-      attachmentName: attachmentName || null,
+      attachments: attachments.length > 0 ? attachments : null,
+      attachmentUrl: null,
+      attachmentName: null,
       replyToId: null,
     };
 
@@ -229,10 +228,11 @@ export default function ComposeMessage() {
               <div className="space-y-2">
                 <Label>{t.attachFile}</Label>
                 <ObjectUploader 
-                  onUploadComplete={handleUploadComplete}
+                  onAllUploadsComplete={handleAllUploadsComplete}
                   onUploadStatusChange={setIsFileUploading}
                   language={lang}
                   maxSizeMB={100}
+                  maxFiles={5}
                 />
               </div>
 
