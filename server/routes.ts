@@ -4,7 +4,6 @@ import bcrypt from "bcrypt";
 import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import { ObjectPermission } from "./objectAcl";
 
 // Extend Express Request to include session
 declare module 'express-serve-static-core' {
@@ -486,7 +485,6 @@ export function registerRoutes(app: Express) {
       const canAccess = await objectStorageService.canAccessObjectEntity({
         objectFile,
         userId: userId,
-        requestedPermission: ObjectPermission.READ,
       });
       
       if (!canAccess) {

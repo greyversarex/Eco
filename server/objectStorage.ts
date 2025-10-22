@@ -253,4 +253,72 @@ export class ObjectStorageService {
 
     return data.publicUrl;
   }
+
+  /**
+   * Download a file and stream it to the response
+   * Used for proxy downloads
+   */
+  async downloadObject(
+    objectFile: { bucket: string; path: string },
+    res: any,
+    cacheTtlSec: number = 3600
+  ): Promise<void> {
+    try {
+      const client = getSupabaseStorageClient();
+
+      // Download the file
+      const { data, error } = await client
+        .from(objectFile.bucket)
+        .download(objectFile.path);
+
+      if (error || !data) {
+        throw new Error(error?.message || 'Failed to download file');
+      }
+
+      // Get file metadata for content type
+      const extension = objectFile.path.split('.').pop()?.toLowerCase();
+      const contentType = getContentType(extension);
+
+      // Set headers
+      res.set({
+        'Content-Type': contentType,
+        'Content-Length': data.size,
+        'Cache-Control': `private, max-age=${cacheTtlSec}`,
+        'Content-Disposition': `attachment; filename="${objectFile.path.split('/').pop()}"`,
+      });
+
+      // Convert blob to stream and pipe to response
+      const arrayBuffer = await data.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      res.send(buffer);
+    } catch (error: any) {
+      console.error('Error downloading file:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Error downloading file' });
+      }
+    }
+  }
+}
+
+/**
+ * Get content type based on file extension
+ */
+function getContentType(extension?: string): string {
+  const types: Record<string, string> = {
+    pdf: 'application/pdf',
+    doc: 'application/msword',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    xls: 'application/vnd.ms-excel',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    gif: 'image/gif',
+    txt: 'text/plain',
+    csv: 'text/csv',
+    zip: 'application/zip',
+    rar: 'application/x-rar-compressed',
+  };
+
+  return types[extension || ''] || 'application/octet-stream';
 }
