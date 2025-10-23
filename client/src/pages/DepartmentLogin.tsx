@@ -10,6 +10,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import bgImage from '@assets/eco-bg-wide.png';
+import bgMobileImage from '@assets/eco-mobile-bg.png';
 import logoImage from '@assets/logo-optimized.webp';
 
 export default function DepartmentLogin() {
@@ -52,9 +53,9 @@ export default function DepartmentLogin() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4 relative"
+      className="min-h-screen flex items-center justify-center p-4 relative bg-cover bg-center"
       style={{ 
-        background: 'linear-gradient(135deg, #8fbc8f 0%, #90c695 50%, #a8d5ba 100%)'
+        backgroundImage: `url(${bgMobileImage})`
       }}
     >
       <div 

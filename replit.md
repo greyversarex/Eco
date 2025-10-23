@@ -14,9 +14,9 @@ Preferred communication style: Simple, everyday language.
 
 **Technology Stack:** React with TypeScript, Vite, Wouter for routing, TanStack Query for server state management, Tailwind CSS with shadcn/ui and Radix UI for components.
 
-**Design System:** Material Design adapted for government use, minimalistic with green accents (HSL: 142 76% 36%), light mode primary with dark mode support, Inter/Roboto fonts for Cyrillic, high contrast ratios, and a bilingual interface (Tajik default, Russian secondary).
+**Design System:** Material Design adapted for government use, minimalistic with green accents (HSL: 142 76% 36%), light mode primary with dark mode support, Inter/Roboto fonts for Cyrillic, high contrast ratios, and a bilingual interface (Tajik default, Russian secondary). Authentication pages feature adaptive backgrounds: eco-themed imagery with green leaves and globe on mobile devices (`eco-mobile-bg.png`), and circular eco icons layout on desktop (`eco-bg-wide.png`). All department pages include consistent green gradient headers with ЭкоТоҷикистон logo.
 
-**Key Design Decisions:** API-first approach (frontend solely displays backend responses), component-based architecture using shadcn/ui, separation of concerns, and session-based authentication with protected routes.
+**Key Design Decisions:** API-first approach (frontend solely displays backend responses), component-based architecture using shadcn/ui, separation of concerns, and session-based authentication with protected routes. Public monitoring dashboard (`/monitoring`) accessible from login page provides real-time view of all 37 departments with unread message counts, grouped by facility blocks (Upper/Болой, Middle/Миёнаги, Lower/Поинтар).
 
 ### Backend Architecture
 
