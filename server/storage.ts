@@ -22,6 +22,7 @@ export interface IStorage {
   markMessageAsRead(id: number): Promise<Message | undefined>;
   getUnreadCountByDepartment(departmentId: number): Promise<number>;
   getUnreadCountsForAllDepartments(currentDeptId: number): Promise<Record<number, number>>;
+  getAllDepartmentsUnreadCounts(): Promise<Record<number, number>>;
   
   // Attachments
   createAttachment(attachment: InsertAttachment): Promise<Attachment>;
@@ -124,6 +125,17 @@ export class DbStorage implements IStorage {
     const counts: Record<number, number> = {};
     for (const msg of allMessages) {
       counts[msg.senderId] = (counts[msg.senderId] || 0) + 1;
+    }
+    return counts;
+  }
+
+  async getAllDepartmentsUnreadCounts(): Promise<Record<number, number>> {
+    const allMessages = await db.select().from(messages)
+      .where(eq(messages.isRead, false));
+    
+    const counts: Record<number, number> = {};
+    for (const msg of allMessages) {
+      counts[msg.recipientId] = (counts[msg.recipientId] || 0) + 1;
     }
     return counts;
   }

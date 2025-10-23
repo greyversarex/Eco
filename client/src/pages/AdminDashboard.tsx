@@ -170,7 +170,7 @@ export default function AdminDashboard() {
               <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
               <div className="min-w-0">
                 <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{t.adminPanel}</h1>
-                <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">ЭкоТочикистон</p>
+                <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">ЭкоТоҷикистон</p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-4 shrink-0">

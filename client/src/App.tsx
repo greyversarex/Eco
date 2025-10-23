@@ -15,11 +15,13 @@ import ComposeMessage from "@/pages/ComposeMessage";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminDepartments from "@/pages/AdminDepartments";
 import AdminDepartmentMessages from "@/pages/AdminDepartmentMessages";
+import MonitoringDashboard from "@/pages/MonitoringDashboard";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={DepartmentLogin} />
+      <Route path="/monitoring" component={MonitoringDashboard} />
       <Route path="/admin" component={AdminLogin} />
       <Route path="/admin-login" component={AdminLogin} />
       <Route path="/admin/dashboard">

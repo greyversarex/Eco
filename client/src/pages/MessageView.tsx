@@ -158,8 +158,8 @@ export default function MessageView() {
                   <Leaf className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">{message?.subject || 'ЭкоТочикистон'}</h1>
-                  <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТочикистон</p>
+                  <h1 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">{message?.subject || 'ЭкоТоҷикистон'}</h1>
+                  <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТоҷикистон</p>
                 </div>
               </div>
             </div>

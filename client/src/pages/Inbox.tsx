@@ -95,7 +95,7 @@ export default function Inbox() {
                 <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0" />
                 <div className="min-w-0">
                   <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{pageTitle}</h1>
-                  <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТочикистон</p>
+                  <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТоҷикистон</p>
                 </div>
               </div>
             </div>

@@ -193,7 +193,12 @@ export default function ComposeMessage() {
           background: 'rgba(255, 255, 255, 0.92)'
         }}
       />
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md relative">
+      <header 
+        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
+        style={{
+          background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
+        }}
+      >
         <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
@@ -202,17 +207,17 @@ export default function ComposeMessage() {
                 size="sm"
                 onClick={() => setLocation('/department/main')}
                 data-testid="button-back"
-                className="shrink-0"
+                className="shrink-0 text-white hover:bg-white/20"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0">
+                <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white shrink-0">
                   <Leaf className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{t.newMessage}</h1>
-                  <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТочикистон</p>
+                  <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{t.newMessage}</h1>
+                  <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">ЭкоТоҷикистон</p>
                 </div>
               </div>
             </div>
@@ -303,22 +308,37 @@ export default function ComposeMessage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="files">{lang === 'tg' ? 'Илова кардани файл (то 5 адад, 100МБ ҳар як)' : 'Прикрепить файлы (до 5 шт, 100МБ каждый)'}</Label>
-                <div className="space-y-2">
-                  <Input
-                    id="files"
-                    type="file"
-                    multiple
-                    onChange={handleFileSelect}
-                    disabled={selectedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
-                    data-testid="input-files"
-                    className="cursor-pointer"
-                  />
+                <Label>{lang === 'tg' ? 'Илова кардани файл (то 5 адад, 100МБ ҳар як)' : 'Прикрепить файлы (до 5 шт, 100МБ каждый)'}</Label>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="files"
+                      type="file"
+                      multiple
+                      onChange={handleFileSelect}
+                      disabled={selectedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
+                      data-testid="input-files"
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('files')?.click()}
+                      disabled={selectedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
+                      className="gap-2"
+                    >
+                      <Paperclip className="h-4 w-4" />
+                      {lang === 'tg' ? 'Интихоб кардани файлҳо' : 'Выбрать файлы'}
+                    </Button>
+                    {selectedFiles.length > 0 && (
+                      <span className="text-sm text-muted-foreground">
+                        {lang === 'tg' ? 'Файлҳои интихобшуда' : 'Выбрано файлов'}: {selectedFiles.length}/5
+                      </span>
+                    )}
+                  </div>
                   {selectedFiles.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">
-                        {lang === 'tg' ? 'Файлҳои интихобшуда' : 'Выбранные файлы'} ({selectedFiles.length}/5)
-                      </p>
                       {selectedFiles.map((file, index) => (
                         <div key={index} className="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-3">
                           <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />

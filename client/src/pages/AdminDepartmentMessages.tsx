@@ -70,7 +70,7 @@ export default function AdminDepartmentMessages() {
                   <h1 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">
                     {department?.name || (lang === 'tg' ? 'Шуъба' : 'Отдел')}
                   </h1>
-                  <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТочикистон - {t.adminPanel}</p>
+                  <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТоҷикистон - {t.adminPanel}</p>
                 </div>
               </div>
             </div>
