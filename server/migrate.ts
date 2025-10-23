@@ -4,7 +4,7 @@ import { db, pool } from './db';
 
 async function main() {
   console.log('Running migrations...');
-  await migrate(db, { migrationsFolder: 'drizzle' });
+  await migrate(db, { migrationsFolder: 'migrations' });
   console.log('Migrations finished!');
   await pool.end();
 }
