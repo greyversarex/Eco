@@ -14,8 +14,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft, Leaf, Paperclip, X } from 'lucide-react';
+import { ArrowLeft, Paperclip, X } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
+import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -211,14 +212,10 @@ export default function ComposeMessage() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white shrink-0">
-                  <Leaf className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{t.newMessage}</h1>
-                  <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">ЭкоТоҷикистон</p>
-                </div>
+              <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{t.newMessage}</h1>
+                <p className="text-xs text-white/90 drop-shadow-sm truncate">ЭкоТоҷикистон</p>
               </div>
             </div>
             <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
