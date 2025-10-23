@@ -51,9 +51,12 @@ cp .env.example .env
 # Отредактируйте .env / Edit .env with your DATABASE_URL
 
 # 5. Примените миграции / Run migrations
-npm run db:push
+npm run db:migrate
 
-# 6. Запустите приложение / Start application
+# 6. Создайте администратора и департаменты / Create admin and departments
+npm run db:seed
+
+# 7. Запустите приложение / Start application
 npm run dev
 ```
 
@@ -86,7 +89,9 @@ ecotajikistan/
 ```bash
 # Разработка / Development
 npm run dev              # Запуск dev сервера / Start dev server
-npm run db:push          # Применить изменения БД / Apply DB changes
+npm run db:generate      # Сгенерировать миграции / Generate migrations
+npm run db:migrate       # Применить миграции / Apply migrations
+npm run db:seed          # Создать тестовые данные / Create seed data
 
 # Production
 npm start                # Запуск production сервера / Start production server
@@ -143,8 +148,9 @@ For complete deployment guide see [DEPLOYMENT.md](./DEPLOYMENT.md)
 2. Настройте PostgreSQL / Setup PostgreSQL
 3. Установите зависимости: `npm install`
 4. Настройте `.env` файл / Configure `.env` file
-5. Примените миграции: `npm run db:push`
-6. Запустите: `npm start` или используйте PM2
+5. Примените миграции: `npm run db:migrate`
+6. Создайте данные: `npm run db:seed`
+7. Запустите: `npm start` или используйте PM2
 
 ## 📖 Документация / Documentation
 
@@ -175,7 +181,8 @@ For complete deployment guide see [DEPLOYMENT.md](./DEPLOYMENT.md)
 2. Добавьте методы в `server/storage.ts`
 3. Создайте API endpoints в `server/routes.ts`
 4. Создайте React компоненты в `client/src/`
-5. Примените миграции: `npm run db:push`
+5. Сгенерируйте миграции: `npm run db:generate`
+6. Примените миграции: `npm run db:migrate`
 
 ### Тестирование / Testing
 
@@ -195,7 +202,7 @@ psql $DATABASE_URL
 ```bash
 git pull origin main
 npm install
-npm run db:push
+npm run db:migrate
 pm2 restart ecotajikistan  # or systemctl restart ecotajikistan
 ```
 

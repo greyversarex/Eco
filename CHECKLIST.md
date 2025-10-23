@@ -113,7 +113,7 @@
 
 - [ ] Применены миграции
   ```bash
-  npm run db:push
+  npm run db:migrate
   ```
 
 - [ ] Создан первый администратор и департаменты
@@ -353,7 +353,7 @@ pm2 status
 # Обновление приложения
 git pull origin main
 npm install
-npm run db:push
+npm run db:migrate
 pm2 restart ecotajikistan
 
 # Резервное копирование БД

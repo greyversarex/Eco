@@ -77,18 +77,18 @@ export type Message = typeof messages.$inferSelect;
 export const attachments = pgTable("attachments", {
   id: serial("id").primaryKey(),
   messageId: integer("message_id").notNull().references(() => messages.id, { onDelete: 'cascade' }),
-  filename: text("filename").notNull(),
+  file_name: text("file_name").notNull(),
   fileData: bytea("file_data").notNull(),
   fileSize: integer("file_size").notNull(),
   mimeType: text("mime_type").notNull(),
-  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   messageIdx: index("attachments_message_id_idx").on(table.messageId),
 }));
 
 export const insertAttachmentSchema = z.object({
   messageId: z.number(),
-  filename: z.string(),
+  file_name: z.string(),
   fileData: z.instanceof(Buffer),
   fileSize: z.number(),
   mimeType: z.string(),

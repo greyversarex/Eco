@@ -455,7 +455,7 @@ export function registerRoutes(app: Express) {
       // Save file to database
       const attachment = await storage.createAttachment({
         messageId,
-        filename: req.file.originalname,
+        file_name: req.file.originalname,
         fileData: req.file.buffer,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
@@ -463,7 +463,7 @@ export function registerRoutes(app: Express) {
 
       res.json({
         id: attachment.id,
-        filename: attachment.filename,
+        filename: attachment.file_name,
         fileSize: attachment.fileSize,
         mimeType: attachment.mimeType,
       });
@@ -506,10 +506,10 @@ export function registerRoutes(app: Express) {
       // Return without file data
       res.json(attachments.map(att => ({
         id: att.id,
-        filename: att.filename,
+        filename: att.file_name,
         fileSize: att.fileSize,
         mimeType: att.mimeType,
-        uploadedAt: att.uploadedAt,
+        createdAt: att.createdAt,
       })));
     } catch (error: any) {
       console.error('Error fetching attachments:', error);
@@ -552,7 +552,7 @@ export function registerRoutes(app: Express) {
 
       // Send file
       res.setHeader('Content-Type', attachment.mimeType);
-      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(attachment.filename)}"`);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(attachment.file_name)}"`);
       res.setHeader('Content-Length', attachment.fileSize.toString());
       res.send(attachment.fileData);
     } catch (error: any) {

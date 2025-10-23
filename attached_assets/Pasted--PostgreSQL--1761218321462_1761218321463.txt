@@ -1,0 +1,44 @@
+Мы переносим проект "ЭкоТочикистон" на выделенный сервер с PostgreSQL и столкнулись с рядом проблем. Я вносил некоторые правки вручную, но нам нужно системное решение, чтобы проект был стабильным и готовым к дальнейшим обновлениям.
+Текущая главная проблема: При загрузке файлов возникает ошибка column "filename" of relation "attachments" does not exist. Мы выяснили, что это происходит из-за рассинхронизации между схемой в коде (shared/schema.ts) и реальной структурой таблиц в базе данных. Команда drizzle-kit push не решает проблему корректно.
+Пожалуйста, выполни следующие действия, чтобы полностью исправить проект:
+1. Исправить конфигурацию сессий для работы по HTTP (временно):
+В файле server/index.ts найди настройку cookie внутри session.
+Замени строку secure: process.env.NODE_ENV === 'production', на secure: false,.
+2. Исправить все несоответствия в именах полей для вложений:
+В файле server/routes.ts убедись, что во всех блоках, связанных с вложениями (/api/messages/:id/attachments и /api/attachments/:id), используется file_name (с нижним подчеркиванием), а не filename. Также проверь, что используется createdAt, а не uploadedAt.
+3. Внедрить правильный механизм миграций Drizzle:
+Шаг 3.1: В файле package.json, в секцию "scripts", добавь две новые команды:
+code
+JSON
+"db:generate": "drizzle-kit generate",
+"db:migrate": "tsx server/migrate.ts"
+```>    *   **Шаг 3.2:** Создай новый файл `server/migrate.ts` со следующим содержимым:
+```javascript
+import 'dotenv/config';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import { db, pool } from './db';
+
+async function main() {
+  console.log('Running migrations...');
+  await migrate(db, { migrationsFolder: 'drizzle' });
+  console.log('Migrations finished!');
+  await pool.end();
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
+4. Сгенерировать первую миграцию:
+Выполни в терминале проекта команду npm run db:generate. Это должно создать папку drizzle с SQL-файлом миграции, который будет содержать правильную схему для всех таблиц, включая attachments с колонкой file_name.
+5. Зафиксируй все эти изменения в репозитории.
+Итоговая цель: После того как я получу эти обновления, я должен смочь выполнить на сервере следующие команды, чтобы с нуля развернуть рабочую версию:
+git pull
+npm install
+sudo -u postgres psql -c "DROP DATABASE ecotajikistan;" (полная очистка)
+sudo -u postgres psql -c "CREATE DATABASE ecotajikistan;"
+npm run db:migrate (создание всех таблиц по новому "чертежу")
+npm run db:seed (заполнение данными)
+npm run build
+pm2 start ...
+После этого приложение должно работать корректно, включая загрузку файлов. Спасибо!
