@@ -70,6 +70,26 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
 }
 
 export function registerRoutes(app: Express) {
+  // Monitoring route - public access for viewing unread counts (MUST BE FIRST!)
+  app.get("/api/monitoring/unread-stats", async (req: Request, res: Response) => {
+    try {
+      const departments = await storage.getDepartments();
+      const unreadCounts = await storage.getAllDepartmentsUnreadCounts();
+      
+      // Combine department info with unread counts
+      const stats = departments.map(dept => ({
+        id: dept.id,
+        name: dept.name,
+        block: dept.block,
+        unreadCount: unreadCounts[dept.id] || 0,
+      }));
+      
+      res.json(stats);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Authentication routes
   
   // Department login
@@ -280,26 +300,6 @@ export function registerRoutes(app: Express) {
       }
       
       res.json({ success: true });
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  // Monitoring route - public access for viewing unread counts
-  app.get("/api/monitoring/unread-stats", async (req: Request, res: Response) => {
-    try {
-      const departments = await storage.getDepartments();
-      const unreadCounts = await storage.getAllDepartmentsUnreadCounts();
-      
-      // Combine department info with unread counts
-      const stats = departments.map(dept => ({
-        id: dept.id,
-        name: dept.name,
-        block: dept.block,
-        unreadCount: unreadCounts[dept.id] || 0,
-      }));
-      
-      res.json(stats);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
