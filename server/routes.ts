@@ -34,6 +34,25 @@ const ALLOWED_MIME_TYPES = [
   'text/csv',
 ];
 
+// Helper function to properly decode filename with UTF-8 support
+function decodeFilename(filename: string): string {
+  try {
+    // Try to decode if it's percent-encoded
+    const decoded = decodeURIComponent(filename);
+    return decoded;
+  } catch (e) {
+    // If decoding fails, try Buffer approach for proper UTF-8 handling
+    try {
+      // Convert Latin1 encoded string to UTF-8
+      const buffer = Buffer.from(filename, 'latin1');
+      return buffer.toString('utf8');
+    } catch (err) {
+      // If all fails, return original
+      return filename;
+    }
+  }
+}
+
 // Configure multer for file uploads (store in memory as Buffer)
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -502,10 +521,11 @@ export function registerRoutes(app: Express) {
       }
       // Admins can upload to any message
 
-      // Save file to database
+      // Save file to database with properly decoded filename
+      const decodedFilename = decodeFilename(req.file.originalname);
       const attachment = await storage.createAttachment({
         messageId,
-        file_name: req.file.originalname,
+        file_name: decodedFilename,
         fileData: req.file.buffer,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,

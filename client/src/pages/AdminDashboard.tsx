@@ -39,8 +39,13 @@ import logoImage from '@assets/logo-optimized.webp';
 export default function AdminDashboard() {
   const [lang, setLang] = useState<Language>('tg');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [newDeptName, setNewDeptName] = useState('');
   const [newDeptBlock, setNewDeptBlock] = useState('');
+  const [editDeptName, setEditDeptName] = useState('');
+  const [editDeptBlock, setEditDeptBlock] = useState('');
+  const [editDeptCode, setEditDeptCode] = useState('');
   const t = useTranslation(lang);
   const { logout } = useAuth();
   const { toast } = useToast();
@@ -129,6 +134,32 @@ export default function AdminDashboard() {
   const handleGenerateCode = (id: number) => {
     const newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
     updateMutation.mutate({ id, data: { accessCode: newCode } });
+  };
+
+  const handleEditDepartment = (dept: Department) => {
+    setEditingDept(dept);
+    setEditDeptName(dept.name);
+    setEditDeptBlock(dept.block);
+    setEditDeptCode(dept.accessCode);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingDept && editDeptName && editDeptBlock && editDeptCode) {
+      updateMutation.mutate({ 
+        id: editingDept.id, 
+        data: { 
+          name: editDeptName, 
+          block: editDeptBlock, 
+          accessCode: editDeptCode 
+        } 
+      });
+      setIsEditDialogOpen(false);
+      setEditingDept(null);
+      setEditDeptName('');
+      setEditDeptBlock('');
+      setEditDeptCode('');
+    }
   };
 
   const handleCopyCode = (code: string) => {
@@ -287,6 +318,61 @@ export default function AdminDashboard() {
                 </div>
               </DialogContent>
             </Dialog>
+
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{lang === 'tg' ? 'Таҳрир кардани шуъба' : 'Редактировать отдел'}</DialogTitle>
+                  <DialogDescription>
+                    {lang === 'tg' ? 'Маълумоти шуъбаро тағйир диҳед' : 'Изменить информацию об отделе'}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-dept-name">{t.departmentName}</Label>
+                    <Input
+                      id="edit-dept-name"
+                      value={editDeptName}
+                      onChange={(e) => setEditDeptName(e.target.value)}
+                      data-testid="input-edit-dept-name"
+                      placeholder={lang === 'tg' ? 'Номи шуъбаро ворид кунед' : 'Введите название отдела'}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-dept-block">{t.block}</Label>
+                    <Select value={editDeptBlock} onValueChange={setEditDeptBlock}>
+                      <SelectTrigger id="edit-dept-block" data-testid="select-edit-dept-block">
+                        <SelectValue placeholder={lang === 'tg' ? 'Блокро интихоб кунед' : 'Выберите блок'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="upper">{t.upperBlock}</SelectItem>
+                        <SelectItem value="middle">{t.middleBlock}</SelectItem>
+                        <SelectItem value="lower">{t.lowerBlock}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-dept-code">{t.accessCode}</Label>
+                    <Input
+                      id="edit-dept-code"
+                      value={editDeptCode}
+                      onChange={(e) => setEditDeptCode(e.target.value.toUpperCase())}
+                      data-testid="input-edit-dept-code"
+                      placeholder={lang === 'tg' ? 'Рамзи воридшавиро ворид кунед' : 'Введите код доступа'}
+                      className="font-mono"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleSaveEdit} 
+                    className="w-full" 
+                    data-testid="button-save-edit-department"
+                    disabled={updateMutation.isPending || !editDeptName || !editDeptBlock || !editDeptCode}
+                  >
+                    {updateMutation.isPending ? (lang === 'tg' ? 'Лутфан интизор шавед...' : 'Пожалуйста, подождите...') : (lang === 'tg' ? 'Захира кардан' : 'Сохранить')}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {isLoading ? (
@@ -336,6 +422,15 @@ export default function AdminDashboard() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditDepartment(dept)}
+                              data-testid={`button-edit-${dept.id}`}
+                              className="shrink-0"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"
