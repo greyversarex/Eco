@@ -64,11 +64,17 @@ export default function MonitoringDashboard() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{t.monitoring}</h1>
-                <p className="text-xs text-white/90 drop-shadow-sm truncate">ЭкоТоҷикистон</p>
-              </div>
+              <button 
+                onClick={() => setLocation('/')}
+                className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity"
+                data-testid="button-home"
+              >
+                <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
+                <div className="min-w-0">
+                  <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{t.monitoring}</h1>
+                  <p className="text-xs text-white/90 drop-shadow-sm truncate">ЭкоТоҷикистон</p>
+                </div>
+              </button>
             </div>
             <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
           </div>

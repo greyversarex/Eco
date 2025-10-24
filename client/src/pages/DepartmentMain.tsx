@@ -59,7 +59,11 @@ export default function DepartmentMain() {
       >
         <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <button 
+              onClick={() => setLocation('/department/main')}
+              className="flex items-center gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity"
+              data-testid="button-home"
+            >
               <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
               <div className="min-w-0">
                 <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">ЭкоТоҷикистон</h1>
@@ -67,7 +71,7 @@ export default function DepartmentMain() {
                   {user?.userType === 'department' ? user.department?.name : ''}
                 </p>
               </div>
-            </div>
+            </button>
             <div className="flex items-center gap-2 md:gap-4">
               <nav className="hidden md:flex items-center gap-2">
                 <Button

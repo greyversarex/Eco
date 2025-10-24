@@ -153,7 +153,11 @@ export default function MessageView() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <button 
+                onClick={() => setLocation('/department/main')}
+                className="flex items-center gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity"
+                data-testid="button-home"
+              >
                 <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0">
                   <Leaf className="h-5 w-5" />
                 </div>
@@ -161,7 +165,7 @@ export default function MessageView() {
                   <h1 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">{message?.subject || 'ЭкоТоҷикистон'}</h1>
                   <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТоҷикистон</p>
                 </div>
-              </div>
+              </button>
             </div>
             <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
           </div>
