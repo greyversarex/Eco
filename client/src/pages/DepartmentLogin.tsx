@@ -68,7 +68,7 @@ export default function DepartmentLogin() {
         }}
       />
       
-      <div className="absolute top-4 left-4 z-20">
+      <div className="absolute top-8 left-4 z-20">
         <Button 
           variant="outline"
           size="sm"
