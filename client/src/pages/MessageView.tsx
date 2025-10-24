@@ -99,6 +99,10 @@ export default function MessageView() {
     }
   };
 
+  // Determine if current message is sent or received
+  const isSentMessage = message && user?.userType === 'department' && message.senderId === user.department.id;
+  const backLocation = isSentMessage ? '/department/outbox' : '/department/inbox';
+
   const deleteMessageMutation = useMutation({
     mutationFn: async (messageId: string) => {
       return await apiRequest('DELETE', `/api/messages/${messageId}`, undefined);
@@ -108,11 +112,11 @@ export default function MessageView() {
         title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
         description: lang === 'tg' ? 'Ҳуҷҷат нест карда шуд' : 'Документ удален',
       });
-      // Invalidate queries and go back
+      // Invalidate queries and go back to appropriate list
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/by-department'] });
-      setLocation('/department/inbox');
+      setLocation(backLocation);
     },
     onError: (error: any) => {
       toast({
@@ -179,16 +183,21 @@ export default function MessageView() {
           background: 'rgba(255, 255, 255, 0.92)'
         }}
       />
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md relative">
+      <header 
+        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
+        style={{
+          background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
+        }}
+      >
         <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setLocation('/department/inbox')}
+                onClick={() => setLocation(backLocation)}
                 data-testid="button-back"
-                className="shrink-0"
+                className="shrink-0 text-white hover:bg-white/20"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
@@ -197,12 +206,12 @@ export default function MessageView() {
                 className="flex items-center gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity"
                 data-testid="button-home"
               >
-                <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0">
+                <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white shrink-0 drop-shadow-md">
                   <Leaf className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">{message?.subject || 'ЭкоТоҷикистон'}</h1>
-                  <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТоҷикистон</p>
+                  <h1 className="text-sm sm:text-base md:text-lg font-semibold text-white drop-shadow-md truncate">{message?.subject || 'ЭкоТоҷикистон'}</h1>
+                  <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">ЭкоТоҷикистон</p>
                 </div>
               </button>
             </div>

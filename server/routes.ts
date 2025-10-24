@@ -379,6 +379,11 @@ export function registerRoutes(app: Express) {
         return res.status(403).json({ error: 'Cannot send messages on behalf of other departments' });
       }
       
+      // Decode executor (document number) if present
+      if (parsedData.executor) {
+        parsedData.executor = decodeFilename(parsedData.executor);
+      }
+      
       const message = await storage.createMessage(parsedData);
       res.json(message);
     } catch (error: any) {
@@ -429,6 +434,70 @@ export function registerRoutes(app: Express) {
       }
       
       res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Bulk delete messages
+  app.post("/api/messages/bulk-delete", requireAuth, async (req: Request, res: Response) => {
+    try {
+      // Validate request body with Zod
+      const bulkDeleteSchema = z.object({
+        messageIds: z.array(z.number().int().positive()).min(1),
+      });
+      
+      const parsed = bulkDeleteSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ 
+          error: 'Invalid message IDs - must be an array of positive integers',
+          details: parsed.error.errors 
+        });
+      }
+      
+      const { messageIds } = parsed.data;
+      
+      // Verify permissions for each message
+      const deletedCount = { success: 0, failed: 0 };
+      
+      for (const messageId of messageIds) {
+        try {
+          // messageId is already validated as positive integer by Zod
+          const message = await storage.getMessageById(messageId);
+          
+          if (!message) {
+            deletedCount.failed++;
+            continue;
+          }
+          
+          // Check permissions - both departments and admins can delete
+          const isDepartment = req.session.departmentId;
+          const isAdmin = req.session.adminId;
+          
+          // Departments can only delete messages they sent or received
+          if (isDepartment && message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
+            deletedCount.failed++;
+            continue;
+          }
+          
+          // Admins can delete any message (no additional check needed)
+          
+          const deleted = await storage.deleteMessage(messageId);
+          if (deleted) {
+            deletedCount.success++;
+          } else {
+            deletedCount.failed++;
+          }
+        } catch (err) {
+          deletedCount.failed++;
+        }
+      }
+      
+      res.json({ 
+        success: true,
+        deleted: deletedCount.success,
+        failed: deletedCount.failed
+      });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

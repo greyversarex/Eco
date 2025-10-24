@@ -4,19 +4,23 @@ import { Button } from '@/components/ui/button';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import MessageListItem from '@/components/MessageListItem';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import type { Message, Department } from '@shared/schema';
 import { format } from 'date-fns';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Inbox() {
   const [location, setLocation] = useLocation();
   const [lang, setLang] = useState<Language>('tg');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const t = useTranslation(lang);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const isOutbox = location === '/department/outbox';
   const pageTitle = isOutbox ? t.outbox : t.inbox;
@@ -61,6 +65,57 @@ export default function Inbox() {
     }));
   }, [filteredMessages, isOutbox, departments]);
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (messageIds: string[]) => {
+      return apiRequest('POST', '/api/messages/bulk-delete', { messageIds });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      setSelectedIds(new Set());
+      toast({
+        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+        description: lang === 'tg' ? 'Паёмҳо нест карда шуданд' : 'Сообщения удалены',
+      });
+    },
+    onError: () => {
+      toast({
+        title: lang === 'tg' ? 'Хатогӣ' : 'Ошибка',
+        description: lang === 'tg' ? 'Хатогӣ ҳангоми нест кардан' : 'Ошибка при удалении',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleToggleSelect = (messageId: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(messageId)) {
+      newSelected.delete(messageId);
+    } else {
+      newSelected.add(messageId);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.size === formattedMessages.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(formattedMessages.map(m => m.id)));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    
+    const confirmMessage = lang === 'tg' 
+      ? `Шумо мутмаин ҳастед, ки мехоҳед ${selectedIds.size} паёмро нест кунед?`
+      : `Вы уверены, что хотите удалить ${selectedIds.size} сообщений?`;
+    
+    if (confirm(confirmMessage)) {
+      bulkDeleteMutation.mutate(Array.from(selectedIds));
+    }
+  };
+
   const handleMessageClick = (messageId: string) => {
     setLocation(`/department/message/${messageId}`);
   };
@@ -78,7 +133,12 @@ export default function Inbox() {
           background: 'rgba(255, 255, 255, 0.92)'
         }}
       />
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md relative">
+      <header 
+        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
+        style={{
+          background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
+        }}
+      >
         <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
@@ -87,7 +147,7 @@ export default function Inbox() {
                 size="sm"
                 onClick={() => setLocation('/department/main')}
                 data-testid="button-back"
-                className="shrink-0"
+                className="shrink-0 text-white hover:bg-white/20"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
@@ -96,14 +156,34 @@ export default function Inbox() {
                 className="flex items-center gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity"
                 data-testid="button-home"
               >
-                <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0" />
+                <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0 drop-shadow-md" />
                 <div className="min-w-0">
-                  <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{pageTitle}</h1>
-                  <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТоҷикистон</p>
+                  <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{pageTitle}</h1>
+                  <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">ЭкоТоҷикистон</p>
                 </div>
               </button>
             </div>
-            <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
+            <div className="flex items-center gap-2">
+              {selectedIds.size > 0 && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleBulkDelete}
+                    disabled={bulkDeleteMutation.isPending}
+                    data-testid="button-bulk-delete"
+                    className="gap-1 text-white hover:bg-red-500/20"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="hidden sm:inline">
+                      {lang === 'tg' ? 'Нест кардан' : 'Удалить'} ({selectedIds.size})
+                    </span>
+                    <span className="sm:hidden">({selectedIds.size})</span>
+                  </Button>
+                </>
+              )}
+              <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
+            </div>
           </div>
         </div>
       </header>
@@ -124,13 +204,31 @@ export default function Inbox() {
               </p>
             </div>
           ) : (
-            formattedMessages.map((message) => (
-              <MessageListItem
-                key={message.id}
-                {...message}
-                onClick={() => handleMessageClick(message.id)}
-              />
-            ))
+            <>
+              <div className="border-b border-border px-4 py-2 bg-muted/30">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSelectAll}
+                  data-testid="button-select-all"
+                  className="text-xs"
+                >
+                  {selectedIds.size === formattedMessages.length
+                    ? (lang === 'tg' ? 'Бекор кардани интихоб' : 'Снять выделение')
+                    : (lang === 'tg' ? 'Интихоби ҳама' : 'Выбрать все')}
+                </Button>
+              </div>
+              {formattedMessages.map((message) => (
+                <MessageListItem
+                  key={message.id}
+                  {...message}
+                  onClick={() => handleMessageClick(message.id)}
+                  selectable={true}
+                  isSelected={selectedIds.has(message.id)}
+                  onToggleSelect={() => handleToggleSelect(message.id)}
+                />
+              ))}
+            </>
           )}
         </div>
       </main>
