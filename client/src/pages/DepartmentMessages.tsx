@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import MessageListItem from '@/components/MessageListItem';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, LogOut } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { Message, Department } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
@@ -48,7 +48,12 @@ export default function DepartmentMessages() {
           background: 'rgba(255, 255, 255, 0.92)'
         }}
       />
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md relative">
+      <header 
+        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
+        style={{
+          background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
+        }}
+      >
         <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
@@ -57,7 +62,7 @@ export default function DepartmentMessages() {
                 size="sm"
                 onClick={() => setLocation('/department/main')}
                 data-testid="button-back"
-                className="shrink-0"
+                className="shrink-0 text-white hover:bg-white/20"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
@@ -66,16 +71,30 @@ export default function DepartmentMessages() {
                 className="flex items-center gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity"
                 data-testid="button-home"
               >
-                <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0" />
+                <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0 drop-shadow-md" />
                 <div className="min-w-0">
-                  <h1 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">
+                  <h1 className="text-sm sm:text-base md:text-lg font-semibold text-white drop-shadow-md truncate">
                     {department?.name || (lang === 'tg' ? 'Шуъба' : 'Отдел')}
                   </h1>
-                  <p className="text-xs text-muted-foreground hidden sm:block">ЭкоТоҷикистон</p>
+                  <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">ЭкоТоҷикистон</p>
                 </div>
               </button>
             </div>
-            <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  fetch('/api/auth/logout', { method: 'POST' })
+                    .then(() => setLocation('/'));
+                }}
+                data-testid="button-logout"
+                className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+              </Button>
+              <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
+            </div>
           </div>
         </div>
       </header>
