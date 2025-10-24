@@ -35,7 +35,7 @@ export interface IStorage {
 // Database storage implementation
 import { db } from './db';
 import { departments, admins, messages, attachments } from '@shared/schema';
-import { eq, or, and } from 'drizzle-orm';
+import { eq, or, and, desc } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
   // Departments
@@ -81,7 +81,7 @@ export class DbStorage implements IStorage {
 
   // Messages
   async getMessages(): Promise<Message[]> {
-    return await db.select().from(messages);
+    return await db.select().from(messages).orderBy(desc(messages.createdAt));
   }
 
   async getMessageById(id: number): Promise<Message | undefined> {
@@ -90,8 +90,8 @@ export class DbStorage implements IStorage {
   }
 
   async getMessagesByDepartment(departmentId: number): Promise<{ inbox: Message[]; outbox: Message[] }> {
-    const inbox = await db.select().from(messages).where(eq(messages.recipientId, departmentId));
-    const outbox = await db.select().from(messages).where(eq(messages.senderId, departmentId));
+    const inbox = await db.select().from(messages).where(eq(messages.recipientId, departmentId)).orderBy(desc(messages.createdAt));
+    const outbox = await db.select().from(messages).where(eq(messages.senderId, departmentId)).orderBy(desc(messages.createdAt));
     return { inbox, outbox };
   }
 
@@ -121,9 +121,11 @@ export class DbStorage implements IStorage {
 
   async getMessagesByDepartmentPair(currentDeptId: number, otherDeptId: number): Promise<{ received: Message[]; sent: Message[] }> {
     const received = await db.select().from(messages)
-      .where(and(eq(messages.recipientId, currentDeptId), eq(messages.senderId, otherDeptId)));
+      .where(and(eq(messages.recipientId, currentDeptId), eq(messages.senderId, otherDeptId)))
+      .orderBy(desc(messages.createdAt));
     const sent = await db.select().from(messages)
-      .where(and(eq(messages.senderId, currentDeptId), eq(messages.recipientId, otherDeptId)));
+      .where(and(eq(messages.senderId, currentDeptId), eq(messages.recipientId, otherDeptId)))
+      .orderBy(desc(messages.createdAt));
     return { received, sent };
   }
 
