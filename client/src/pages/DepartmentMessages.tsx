@@ -90,7 +90,6 @@ export default function DepartmentMessages() {
                 <PenSquare className="h-4 w-4" />
                 <span>{lang === 'tg' ? 'Ҳуҷҷати нав' : 'Новый документ'}</span>
               </Button>
-              <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
             </div>
           </div>
         </div>
