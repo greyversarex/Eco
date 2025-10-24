@@ -61,18 +61,18 @@ export default function DepartmentMain() {
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
             <button 
               onClick={() => setLocation('/department/main')}
-              className="flex items-center gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity flex-1 md:flex-initial"
               data-testid="button-home"
             >
-              <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">ЭкоТоҷикистон</h1>
+              <img src={logoImage} alt="Логотип" className="h-8 w-8 sm:h-10 sm:w-10 object-contain shrink-0 drop-shadow-md" />
+              <div className="min-w-0 hidden sm:block">
+                <h1 className="text-sm sm:text-base md:text-lg font-semibold text-white drop-shadow-md truncate">ЭкоТоҷикистон</h1>
                 <p className="text-xs text-white/90 drop-shadow-sm truncate">
                   {user?.userType === 'department' ? user.department?.name : ''}
                 </p>
               </div>
             </button>
-            <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4">
               <nav className="hidden md:flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -105,7 +105,8 @@ export default function DepartmentMain() {
                 </Button>
               </nav>
               <MobileNav 
-                lang={lang} 
+                lang={lang}
+                onLanguageChange={setLang}
                 translations={{
                   inbox: t.inbox,
                   outbox: t.outbox,
@@ -114,16 +115,18 @@ export default function DepartmentMain() {
                   menu: t.menu,
                 }}
               />
-              <Button
-                size="sm"
-                onClick={logout}
-                data-testid="button-logout"
-                className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
-              </Button>
-              <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
+              <div className="hidden sm:flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={logout}
+                  data-testid="button-logout"
+                  className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+                </Button>
+                <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
+              </div>
             </div>
           </div>
         </div>

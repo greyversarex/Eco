@@ -7,12 +7,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Menu, Inbox, Send, PenSquare, Home } from 'lucide-react';
+import { Menu, Inbox, Send, PenSquare, Home, LogOut } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useAuth } from '@/lib/auth';
 import type { Language } from '@/lib/i18n';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface MobileNavProps {
   lang: Language;
+  onLanguageChange: (lang: Language) => void;
   translations: {
     inbox: string;
     outbox: string;
@@ -22,13 +25,19 @@ interface MobileNavProps {
   };
 }
 
-export default function MobileNav({ lang, translations }: MobileNavProps) {
+export default function MobileNav({ lang, onLanguageChange, translations }: MobileNavProps) {
   const [, setLocation] = useLocation();
   const [open, setOpen] = useState(false);
+  const { logout } = useAuth();
 
   const navigateTo = (path: string) => {
     setLocation(path);
     setOpen(false);
+  };
+
+  const handleLogout = () => {
+    setOpen(false);
+    logout();
   };
 
   return (
@@ -37,52 +46,74 @@ export default function MobileNav({ lang, translations }: MobileNavProps) {
         <Button 
           variant="ghost" 
           size="sm"
-          className="md:hidden"
+          className="md:hidden text-white hover:bg-white/20"
           data-testid="button-mobile-menu"
         >
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[280px] sm:w-[320px]">
-        <SheetHeader>
-          <SheetTitle>{translations.menu}</SheetTitle>
+      <SheetContent side="right" className="w-[300px] flex flex-col">
+        <SheetHeader className="border-b pb-4">
+          <SheetTitle className="text-xl">{translations.menu}</SheetTitle>
         </SheetHeader>
-        <div className="flex flex-col gap-2 mt-6">
+        <div className="flex flex-col gap-3 mt-6 flex-1">
           <Button
-            variant="ghost"
-            className="justify-start gap-3 h-12"
+            variant="outline"
+            className="justify-start gap-3 h-14 text-base font-medium border-2 hover:bg-primary/5 hover:border-primary/50"
             onClick={() => navigateTo('/department/main')}
             data-testid="mobile-nav-departments"
           >
-            <Home className="h-5 w-5" />
-            <span className="text-base">{translations.departments}</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <Home className="h-5 w-5 text-primary" />
+            </div>
+            <span>{translations.departments}</span>
           </Button>
           <Button
-            variant="ghost"
-            className="justify-start gap-3 h-12"
+            variant="outline"
+            className="justify-start gap-3 h-14 text-base font-medium border-2 hover:bg-primary/5 hover:border-primary/50"
             onClick={() => navigateTo('/department/inbox')}
             data-testid="mobile-nav-inbox"
           >
-            <Inbox className="h-5 w-5" />
-            <span className="text-base">{translations.inbox}</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <Inbox className="h-5 w-5 text-primary" />
+            </div>
+            <span>{translations.inbox}</span>
           </Button>
           <Button
-            variant="ghost"
-            className="justify-start gap-3 h-12"
+            variant="outline"
+            className="justify-start gap-3 h-14 text-base font-medium border-2 hover:bg-primary/5 hover:border-primary/50"
             onClick={() => navigateTo('/department/outbox')}
             data-testid="mobile-nav-outbox"
           >
-            <Send className="h-5 w-5" />
-            <span className="text-base">{translations.outbox}</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <Send className="h-5 w-5 text-primary" />
+            </div>
+            <span>{translations.outbox}</span>
           </Button>
           <Button
-            variant="default"
-            className="justify-start gap-3 h-12 mt-4"
+            className="justify-start gap-3 h-14 text-base font-medium bg-primary hover:bg-primary/90 shadow-md"
             onClick={() => navigateTo('/department/compose')}
             data-testid="mobile-nav-compose"
           >
-            <PenSquare className="h-5 w-5" />
-            <span className="text-base">{translations.newMessage}</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20">
+              <PenSquare className="h-5 w-5 text-white" />
+            </div>
+            <span>{translations.newMessage}</span>
+          </Button>
+        </div>
+        <div className="border-t pt-4 space-y-3">
+          <div className="flex items-center justify-between px-2">
+            <span className="text-sm text-muted-foreground">{lang === 'tg' ? 'Забон' : 'Язык'}</span>
+            <LanguageSwitcher currentLang={lang} onLanguageChange={onLanguageChange} />
+          </div>
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-3 h-12 text-base font-medium border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+            onClick={handleLogout}
+            data-testid="mobile-nav-logout"
+          >
+            <LogOut className="h-5 w-5" />
+            <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
           </Button>
         </div>
       </SheetContent>
