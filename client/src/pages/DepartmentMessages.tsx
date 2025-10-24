@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import MessageListItem from '@/components/MessageListItem';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft, LogOut } from 'lucide-react';
+import { ArrowLeft, LogOut, PenSquare } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { Message, Department } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
@@ -83,6 +83,15 @@ export default function DepartmentMessages() {
             <div className="flex items-center gap-2">
               <Button
                 size="sm"
+                onClick={() => setLocation('/department/compose')}
+                data-testid="button-compose"
+                className="hidden md:flex items-center gap-2 bg-primary hover:bg-primary/90 text-white border-0 font-medium shadow-md"
+              >
+                <PenSquare className="h-4 w-4" />
+                <span>{lang === 'tg' ? 'Ҳуҷҷати нав' : 'Новый документ'}</span>
+              </Button>
+              <Button
+                size="sm"
                 onClick={() => {
                   fetch('/api/auth/logout', { method: 'POST' })
                     .then(() => setLocation('/'));
@@ -112,7 +121,7 @@ export default function DepartmentMessages() {
             <div className="bg-background/95 backdrop-blur-sm border-x border-t border-border rounded-t-lg">
               <TabsList className="w-full grid grid-cols-2 h-12">
                 <TabsTrigger value="received" data-testid="tab-received">
-                  {lang === 'tg' ? 'Гирифташуда' : 'Полученные'}
+                  {lang === 'tg' ? 'Воридшуда' : 'Полученные'}
                   {messages?.received && messages.received.length > 0 && (
                     <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-xs text-primary">
                       {messages.received.length}
@@ -120,7 +129,7 @@ export default function DepartmentMessages() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="sent" data-testid="tab-sent">
-                  {lang === 'tg' ? 'Фиристодашуда' : 'Отправленные'}
+                  {lang === 'tg' ? 'Ирсолшуда' : 'Отправленные'}
                   {messages?.sent && messages.sent.length > 0 && (
                     <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-xs text-primary">
                       {messages.sent.length}
