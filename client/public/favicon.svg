@@ -1,5 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <circle cx="100" cy="100" r="95" fill="#1a8f3f" stroke="#ffffff" stroke-width="6"/>
-  <circle cx="100" cy="100" r="80" fill="#1a8f3f" stroke="#ffffff" stroke-width="2"/>
-  <text x="100" y="120" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="white" text-anchor="middle">Э</text>
+  <defs>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a9d4a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#5cb85c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6fca6f;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="url(#greenGrad)"/>
+  
+  <!-- Leaf shape -->
+  <path d="M100 50 Q65 70 65 105 Q65 140 100 165 Q135 140 135 105 Q135 70 100 50 Z" 
+        fill="white" opacity="0.95"/>
+  
+  <!-- Main vein -->
+  <line x1="100" y1="60" x2="100" y2="155" 
+        stroke="#4a9d4a" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Left side veins -->
+  <path d="M100 80 Q85 90 78 100" 
+        stroke="#4a9d4a" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M100 100 Q85 110 78 120" 
+        stroke="#4a9d4a" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M100 120 Q85 130 80 140" 
+        stroke="#4a9d4a" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  
+  <!-- Right side veins -->
+  <path d="M100 80 Q115 90 122 100" 
+        stroke="#4a9d4a" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M100 100 Q115 110 122 120" 
+        stroke="#4a9d4a" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M100 120 Q115 130 120 140" 
+        stroke="#4a9d4a" stroke-width="2.5" stroke-linecap="round" fill="none"/>
 </svg>
