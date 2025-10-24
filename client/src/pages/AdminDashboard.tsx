@@ -226,13 +226,13 @@ export default function AdminDashboard() {
               </Button>
               <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
               <Button
-                variant="ghost"
                 size="sm"
                 onClick={logout}
                 data-testid="button-logout"
-                className="text-white hover:bg-white/20"
+                className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
               >
                 <LogOut className="h-4 w-4" />
+                <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
               </Button>
             </div>
           </div>
