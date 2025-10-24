@@ -35,12 +35,12 @@ export interface IStorage {
 // Database storage implementation
 import { db } from './db';
 import { departments, admins, messages, attachments } from '@shared/schema';
-import { eq, or, and, desc } from 'drizzle-orm';
+import { eq, or, and, desc, asc } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
   // Departments
   async getDepartments(): Promise<Department[]> {
-    return await db.select().from(departments);
+    return await db.select().from(departments).orderBy(asc(departments.id));
   }
 
   async getDepartmentById(id: number): Promise<Department | undefined> {

@@ -34,12 +34,21 @@ export default function MessageListItem({
     onToggleSelect?.();
   };
 
+  const handleItemClick = () => {
+    // In delete mode, only checkbox should work
+    if (!selectable) {
+      onClick();
+    }
+  };
+
   return (
     <div
-      className={`flex items-center justify-between border-b border-border px-6 py-4 cursor-pointer hover-elevate ${
+      className={`flex items-center justify-between border-b border-border px-6 py-4 ${
+        !selectable ? 'cursor-pointer hover-elevate' : 'cursor-default'
+      } ${
         !isRead && !isSentMessage ? 'bg-primary/5' : 'bg-background'
       } ${isSelected ? 'bg-primary/10' : ''}`}
-      onClick={onClick}
+      onClick={handleItemClick}
       data-testid={`message-item-${id}`}
     >
       {selectable && (
