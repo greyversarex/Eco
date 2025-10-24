@@ -19,7 +19,7 @@ const bytea = customType<{ data: Buffer; notNull: false; default: false }>({
 export const departments = pgTable("departments", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  block: text("block").notNull(), // 'upper', 'middle', 'lower'
+  block: text("block").notNull(), // 'upper', 'middle', 'lower', 'district'
   accessCode: text("access_code").notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

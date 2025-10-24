@@ -31,6 +31,7 @@ export default function DepartmentMain() {
     upper: departments.filter((d) => d.block === 'upper'),
     middle: departments.filter((d) => d.block === 'middle'),
     lower: departments.filter((d) => d.block === 'lower'),
+    district: departments.filter((d) => d.block === 'district'),
   };
 
   const handleDepartmentClick = (departmentId: number) => {
@@ -185,6 +186,30 @@ export default function DepartmentMain() {
             {departmentsByBlock.lower.length > 0 && (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {departmentsByBlock.lower.map((dept) => (
+                  <DepartmentCard
+                    key={dept.id}
+                    name={dept.name}
+                    unreadCount={unreadCounts[dept.id] || 0}
+                    onClick={() => handleDepartmentClick(dept.id)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {departmentsByBlock.lower.length > 0 && departmentsByBlock.district.length > 0 && (
+              <div className="relative py-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t-4 border-primary/20"></div>
+                </div>
+                <div className="relative flex justify-center">
+                  <div className="h-3 w-3 rounded-full bg-primary"></div>
+                </div>
+              </div>
+            )}
+
+            {departmentsByBlock.district.length > 0 && (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {departmentsByBlock.district.map((dept) => (
                   <DepartmentCard
                     key={dept.id}
                     name={dept.name}

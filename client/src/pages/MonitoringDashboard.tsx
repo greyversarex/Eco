@@ -29,6 +29,7 @@ export default function MonitoringDashboard() {
     upper: stats.filter(d => d.block === 'upper'),
     middle: stats.filter(d => d.block === 'middle'),
     lower: stats.filter(d => d.block === 'lower'),
+    district: stats.filter(d => d.block === 'district'),
   };
 
   return (
@@ -120,6 +121,22 @@ export default function MonitoringDashboard() {
                 <h2 className="mb-4 text-lg font-semibold text-foreground">{t.lowerBlock}</h2>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {groupedDepartments.lower.map((dept) => (
+                    <DepartmentCard
+                      key={dept.id}
+                      name={dept.name}
+                      unreadCount={dept.unreadCount}
+                      onClick={() => {}}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {groupedDepartments.district.length > 0 && (
+              <section>
+                <h2 className="mb-4 text-lg font-semibold text-foreground">{t.districtBlock}</h2>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {groupedDepartments.district.map((dept) => (
                     <DepartmentCard
                       key={dept.id}
                       name={dept.name}
