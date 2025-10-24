@@ -16,7 +16,7 @@ Preferred communication style: Simple, everyday language.
 
 **Design System:** Material Design adapted for government use, minimalistic with green accents (HSL: 142 76% 36%), light mode primary with dark mode support, Inter/Roboto fonts for Cyrillic, high contrast ratios, and a bilingual interface (Tajik default, Russian secondary). Authentication pages feature adaptive backgrounds: eco-themed imagery with green leaves and globe on mobile devices (`eco-mobile-bg.png`), and circular eco icons layout on desktop (`eco-bg-wide.png`). All department pages include consistent green gradient headers with ЭкоТоҷикистон logo.
 
-**Key Design Decisions:** API-first approach (frontend solely displays backend responses), component-based architecture using shadcn/ui, separation of concerns, and session-based authentication with protected routes. Public monitoring dashboard (`/monitoring`) accessible from login page provides real-time view of all 37 departments with unread message counts, grouped by facility blocks (Upper/Болой, Middle/Миёнаги, Lower/Поинтар).
+**Key Design Decisions:** API-first approach (frontend solely displays backend responses), component-based architecture using shadcn/ui, separation of concerns, and session-based authentication with protected routes. Public monitoring dashboard (`/monitoring`) accessible from login page provides real-time view of all 37 departments with unread message counts, grouped by facility blocks (Upper/Болой, Middle/Миёнаги, Lower/Поинтар). Admin panel includes full department management with edit dialog allowing manual changes to department name, block assignment, and access codes.
 
 ### Backend Architecture
 
@@ -40,7 +40,7 @@ Preferred communication style: Simple, everyday language.
 
 **Architecture:** Files stored directly in PostgreSQL database using bytea (binary data) column type. Supports up to 5 attachments per message (maxFiles: 5, maxSizeMB: 100 per file).
 
-**Upload Flow:** Client-side uploads via multipart/form-data to POST /api/messages/:id/attachments endpoint. ObjectUploader component manages multiple file uploads with progress tracking and automatic list refresh after upload completion.
+**Upload Flow:** Client-side uploads via multipart/form-data to POST /api/messages/:id/attachments endpoint. ObjectUploader component manages multiple file uploads with progress tracking and automatic list refresh after upload completion. Filenames with Cyrillic/UTF-8 characters are properly decoded using percent-decoding with fallback to latin1→UTF-8 conversion.
 
 **Download Flow:** Secure downloads via GET /api/attachments/:id endpoint. Backend verifies user has access to message before serving file binary data with appropriate Content-Type and Content-Disposition headers.
 
