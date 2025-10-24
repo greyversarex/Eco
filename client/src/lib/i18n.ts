@@ -5,8 +5,8 @@ export const translations = {
     // Login Pages
     login: 'Воридшавӣ',
     loginTitle: 'Воридшавӣ',
-    departmentCode: 'Рамзи шуъба',
-    enterCode: 'Рамзи дастрасиро ворид кунед',
+    departmentCode: 'Рамзро ворид кунед',
+    enterCode: '',
     adminLogin: 'Воридшавии маъмур',
     monitoring: 'Назорат',
     departmentLogin: 'Воридшавии шуъба',
@@ -18,23 +18,24 @@ export const translations = {
     
     // Navigation
     mainScreen: 'Экрани асосӣ',
-    inbox: 'Хатҳои воридшуда',
-    outbox: 'Хатҳои равоншуда',
-    newMessage: 'Навиштани хат',
+    inbox: 'Ҳуҷҷатҳои воридгардида',
+    outbox: 'Ҳуҷҷатҳои ирсолгардида',
+    newMessage: 'Ҳуҷҷати нав',
     logout: 'Баромад',
     menu: 'Меню',
     
     // Department Blocks
-    upperBlock: 'Блоки боло',
-    middleBlock: 'Блоки миёна',
-    lowerBlock: 'Блоки поён',
+    upperBlock: 'Кумитаи ҳифзи муҳити зист',
+    middleBlock: 'Раёсатҳо',
+    lowerBlock: 'Муссисаҳои тиҷоратӣ, ғайритиҷоратӣ ва Марказҳо',
+    districtBlock: 'Шуъба ва бахшҳои КҲМЗ дар Ноҳияи тобеи ҷумҳурӣ',
     
     // Messages
-    unreadMessages: 'хатҳои хонданашуда',
+    unreadMessages: 'ҳуҷҷатҳои хонданашуда',
     subject: 'Мавзӯъ',
     documentType: 'Навъи ҳуҷҷат',
     date: 'Сана',
-    recipient: 'Гиранда',
+    recipient: 'Ирсол намудан ба',
     sender: 'Фиристанда',
     content: 'Мундариҷа',
     executor: 'Иҷрокунанда (НИШ)',
@@ -43,17 +44,19 @@ export const translations = {
     download: 'Боргирӣ кардан',
     reply: 'Ҷавоб додан',
     send: 'Фиристодан',
-    cancel: 'Бекор кардан',
-    selectRecipient: 'Гирандаро интихоб кунед',
+    cancel: 'Нест кардан',
+    selectRecipient: 'Интихоб кунед',
     enterSubject: 'Мавзӯъро ворид кунед',
     enterContent: 'Мундариҷаро ворид кунед',
     read: 'Хондашуда',
     delivered: 'Расонидашуда',
+    deleteMessage: 'Нест кардан',
+    deleteConfirm: 'Шумо мутмаин ҳастед, ки мехоҳед ин ҳуҷҷатро нест кунед?',
     
     // Admin Panel
     adminPanel: 'Панели маъмурӣ',
     departments: 'Шуъбаҳо',
-    allMessages: 'Ҳамаи хатҳо',
+    allMessages: 'Ҳамаи ҳуҷҷатҳо',
     statistics: 'Оморҳо',
     departmentName: 'Номи шуъба',
     block: 'Блок',
@@ -63,7 +66,7 @@ export const translations = {
     edit: 'Таҳрир',
     delete: 'Нест кардан',
     generate: 'Эҷод кардан',
-    totalMessages: 'Ҳамагӣ хатҳо',
+    totalMessages: 'Ҳамагӣ ҳуҷҷатҳо',
     
     // Status
     status: 'Вазъият',
@@ -80,8 +83,8 @@ export const translations = {
     // Login Pages
     login: 'Вход',
     loginTitle: 'Авторизация',
-    departmentCode: 'Код отдела',
-    enterCode: 'Введите код доступа',
+    departmentCode: 'Введите код',
+    enterCode: '',
     adminLogin: 'Вход администратора',
     monitoring: 'Мониторинг',
     departmentLogin: 'Вход для отделов',
@@ -93,23 +96,24 @@ export const translations = {
     
     // Navigation
     mainScreen: 'Главный экран',
-    inbox: 'Входящие',
-    outbox: 'Исходящие',
-    newMessage: 'Новое сообщение',
+    inbox: 'Входящие документы',
+    outbox: 'Исходящие документы',
+    newMessage: 'Новый документ',
     logout: 'Выход',
     menu: 'Меню',
     
     // Department Blocks
-    upperBlock: 'Верхний блок',
-    middleBlock: 'Средний блок',
-    lowerBlock: 'Нижний блок',
+    upperBlock: 'Комитет по охране окружающей среды',
+    middleBlock: 'Управления',
+    lowerBlock: 'Коммерческие, некоммерческие учреждения и Центры',
+    districtBlock: 'Отделы и секторы КООС в районах республиканского подчинения',
     
     // Messages
-    unreadMessages: 'непрочитанных',
+    unreadMessages: 'непрочитанных документов',
     subject: 'Тема',
     documentType: 'Тип документа',
     date: 'Дата',
-    recipient: 'Получатель',
+    recipient: 'Отправить в',
     sender: 'Отправитель',
     content: 'Содержание',
     executor: 'Исполнитель (ФИО)',
@@ -118,17 +122,19 @@ export const translations = {
     download: 'Скачать',
     reply: 'Ответить',
     send: 'Отправить',
-    cancel: 'Отмена',
-    selectRecipient: 'Выберите получателя',
+    cancel: 'Удалить',
+    selectRecipient: 'Выберите',
     enterSubject: 'Введите тему',
     enterContent: 'Введите содержание',
     read: 'Прочитано',
     delivered: 'Доставлено',
+    deleteMessage: 'Удалить',
+    deleteConfirm: 'Вы уверены, что хотите удалить этот документ?',
     
     // Admin Panel
     adminPanel: 'Панель администратора',
     departments: 'Отделы',
-    allMessages: 'Все сообщения',
+    allMessages: 'Все документы',
     statistics: 'Статистика',
     departmentName: 'Название отдела',
     block: 'Блок',
@@ -138,7 +144,7 @@ export const translations = {
     edit: 'Редактировать',
     delete: 'Удалить',
     generate: 'Сгенерировать',
-    totalMessages: 'Всего сообщений',
+    totalMessages: 'Всего документов',
     
     // Status
     status: 'Статус',

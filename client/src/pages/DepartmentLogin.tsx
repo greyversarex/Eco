@@ -78,11 +78,6 @@ export default function DepartmentLogin() {
             <img src={logoImage} alt="ЭкоТоҷикистон лого" className="h-20 w-20 object-contain drop-shadow-lg" />
           </div>
           <h1 className="text-2xl font-semibold text-foreground md:text-white md:drop-shadow-lg">ЭкоТоҷикистон</h1>
-          <p className="text-sm text-muted-foreground md:text-white/95 md:drop-shadow-md">
-            {lang === 'tg' 
-              ? 'Платформаи дохилии мубодилаи ҳуҷҷатҳо ва хатҳо' 
-              : 'Внутренняя платформа обмена документами и сообщениями'}
-          </p>
         </div>
 
         <Card className="w-full shadow-2xl border-0" style={{ backgroundColor: 'rgba(255, 255, 255, 0.96)' }}>
@@ -116,14 +111,15 @@ export default function DepartmentLogin() {
           </CardContent>
         </Card>
 
-        <div className="text-center mt-6">
-          <a 
-            href="/monitoring" 
-            className="text-sm text-muted-foreground hover:text-foreground md:text-white/95 md:hover:text-white transition-colors md:drop-shadow-md font-medium"
-            data-testid="link-monitoring"
+        <div className="text-center mt-6 w-full">
+          <Button 
+            variant="outline"
+            onClick={() => setLocation('/monitoring')}
+            className="w-full bg-white/90 hover:bg-white border-2 border-primary text-primary hover:text-primary font-semibold shadow-lg"
+            data-testid="button-monitoring"
           >
             {t.monitoring}
-          </a>
+          </Button>
         </div>
       </div>
     </div>
