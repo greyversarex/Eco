@@ -74,7 +74,7 @@ export default function DepartmentCard({ name, unreadCount, onClick }: Departmen
         <h3 className="text-base font-medium text-foreground flex-1">{name}</h3>
         {unreadCount > 0 && (
           <div 
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold shrink-0"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white text-xs font-semibold shrink-0"
             data-testid={`badge-unread-${name}`}
           >
             {unreadCount}
