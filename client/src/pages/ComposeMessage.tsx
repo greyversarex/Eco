@@ -356,7 +356,7 @@ export default function ComposeMessage() {
                   </p>
                 ) : (
                   <div className="border rounded-md p-4 space-y-3 max-h-64 overflow-y-auto">
-                    {departments.filter(dept => dept.id !== user?.department?.id).map((dept) => (
+                    {departments.filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined)).map((dept) => (
                       <div key={dept.id} className="flex items-center space-x-2">
                         <Checkbox
                           id={`recipient-${dept.id}`}

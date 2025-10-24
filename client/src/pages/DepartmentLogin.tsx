@@ -68,6 +68,18 @@ export default function DepartmentLogin() {
         }}
       />
       
+      <div className="absolute top-4 left-4 z-20">
+        <Button 
+          variant="outline"
+          size="sm"
+          onClick={() => setLocation('/monitoring')}
+          className="bg-white/90 hover:bg-white border-2 border-primary text-primary hover:text-primary font-semibold shadow-lg"
+          data-testid="button-monitoring"
+        >
+          {t.monitoring}
+        </Button>
+      </div>
+
       <div className="absolute top-4 right-4 z-20">
         <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
       </div>
@@ -110,17 +122,6 @@ export default function DepartmentLogin() {
             </form>
           </CardContent>
         </Card>
-
-        <div className="text-center mt-6 w-full">
-          <Button 
-            variant="outline"
-            onClick={() => setLocation('/monitoring')}
-            className="w-full bg-white/90 hover:bg-white border-2 border-primary text-primary hover:text-primary font-semibold shadow-lg"
-            data-testid="button-monitoring"
-          >
-            {t.monitoring}
-          </Button>
-        </div>
       </div>
     </div>
   );
