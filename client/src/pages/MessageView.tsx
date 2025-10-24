@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Message, Department } from '@shared/schema';
 import { format } from 'date-fns';
 import bgImage from '@assets/eco-background-light.webp';
+import logoImage from '@assets/logo-optimized.webp';
 import ObjectUploader from '@/components/ObjectUploader';
 
 interface Attachment {
@@ -206,9 +207,7 @@ export default function MessageView() {
                 className="flex items-center gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity"
                 data-testid="button-home"
               >
-                <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white shrink-0 drop-shadow-md">
-                  <Leaf className="h-5 w-5" />
-                </div>
+                <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0 drop-shadow-md" />
                 <div className="min-w-0">
                   <h1 className="text-sm sm:text-base md:text-lg font-semibold text-white drop-shadow-md truncate">{message?.subject || 'ЭкоТоҷикистон'}</h1>
                   <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">ЭкоТоҷикистон</p>

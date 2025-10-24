@@ -37,19 +37,31 @@ const ALLOWED_MIME_TYPES = [
 // Helper function to properly decode filename with UTF-8 support
 function decodeFilename(filename: string): string {
   try {
-    // Try to decode if it's percent-encoded
-    const decoded = decodeURIComponent(filename);
-    return decoded;
-  } catch (e) {
-    // If decoding fails, try Buffer approach for proper UTF-8 handling
-    try {
-      // Convert Latin1 encoded string to UTF-8
-      const buffer = Buffer.from(filename, 'latin1');
-      return buffer.toString('utf8');
-    } catch (err) {
-      // If all fails, return original
+    // First try percent-encoding decoding
+    if (filename.includes('%')) {
+      return decodeURIComponent(filename);
+    }
+    
+    // Check if already proper UTF-8 (no mojibake characters)
+    const hasMojibake = /[Ð-Ñ]/.test(filename);
+    if (!hasMojibake) {
       return filename;
     }
+    
+    // Try to fix mojibake: convert from latin1 to UTF-8
+    const buffer = Buffer.from(filename, 'latin1');
+    const decoded = buffer.toString('utf8');
+    
+    // Verify the decode worked (should not have mojibake anymore)
+    const stillHasMojibake = /Ð|Ñ/.test(decoded);
+    if (!stillHasMojibake || decoded.length < filename.length) {
+      return decoded;
+    }
+    
+    return filename;
+  } catch (e) {
+    // If all fails, return original
+    return filename;
   }
 }
 
@@ -642,10 +654,10 @@ export function registerRoutes(app: Express) {
       // Get attachments
       const attachments = await storage.getAttachmentsByMessageId(messageId);
       
-      // Return without file data
+      // Return without file data, decode filenames for display
       res.json(attachments.map(att => ({
         id: att.id,
-        filename: att.file_name,
+        filename: decodeFilename(att.file_name),
         fileSize: att.fileSize,
         mimeType: att.mimeType,
         createdAt: att.createdAt,
@@ -689,9 +701,10 @@ export function registerRoutes(app: Express) {
       }
       // Admins can download all attachments
 
-      // Send file
+      // Send file with decoded filename
+      const decodedFilename = decodeFilename(attachment.file_name);
       res.setHeader('Content-Type', attachment.mimeType);
-      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(attachment.file_name)}"`);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(decodedFilename)}"`);
       res.setHeader('Content-Length', attachment.fileSize.toString());
       res.send(attachment.fileData);
     } catch (error: any) {

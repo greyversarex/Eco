@@ -18,6 +18,7 @@ export default function Inbox() {
   const [location, setLocation] = useLocation();
   const [lang, setLang] = useState<Language>('tg');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
   const t = useTranslation(lang);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -66,12 +67,13 @@ export default function Inbox() {
   }, [filteredMessages, isOutbox, departments]);
 
   const bulkDeleteMutation = useMutation({
-    mutationFn: async (messageIds: string[]) => {
+    mutationFn: async (messageIds: number[]) => {
       return apiRequest('POST', '/api/messages/bulk-delete', { messageIds });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
       setSelectedIds(new Set());
+      setIsDeleteMode(false);
       toast({
         title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
         description: lang === 'tg' ? 'Паёмҳо нест карда шуданд' : 'Сообщения удалены',
@@ -112,7 +114,15 @@ export default function Inbox() {
       : `Вы уверены, что хотите удалить ${selectedIds.size} сообщений?`;
     
     if (confirm(confirmMessage)) {
-      bulkDeleteMutation.mutate(Array.from(selectedIds));
+      const messageIds = Array.from(selectedIds).map(id => parseInt(id, 10));
+      bulkDeleteMutation.mutate(messageIds);
+    }
+  };
+  
+  const handleToggleDeleteMode = () => {
+    setIsDeleteMode(!isDeleteMode);
+    if (isDeleteMode) {
+      setSelectedIds(new Set());
     }
   };
 
@@ -164,21 +174,43 @@ export default function Inbox() {
               </button>
             </div>
             <div className="flex items-center gap-2">
-              {selectedIds.size > 0 && (
+              {!isDeleteMode ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleToggleDeleteMode}
+                  data-testid="button-toggle-delete"
+                  className="gap-1 text-white hover:bg-red-500/20"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">
+                    {lang === 'tg' ? 'Нест кардан' : 'Удалить'}
+                  </span>
+                </Button>
+              ) : (
                 <>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleBulkDelete}
-                    disabled={bulkDeleteMutation.isPending}
+                    disabled={selectedIds.size === 0 || bulkDeleteMutation.isPending}
                     data-testid="button-bulk-delete"
-                    className="gap-1 text-white hover:bg-red-500/20"
+                    className="gap-1 text-white hover:bg-green-600/20"
                   >
                     <Trash2 className="h-4 w-4" />
                     <span className="hidden sm:inline">
-                      {lang === 'tg' ? 'Нест кардан' : 'Удалить'} ({selectedIds.size})
+                      {lang === 'tg' ? 'Нест кардан' : 'Удалить'} {selectedIds.size > 0 && `(${selectedIds.size})`}
                     </span>
-                    <span className="sm:hidden">({selectedIds.size})</span>
+                    <span className="sm:hidden">{selectedIds.size > 0 && `(${selectedIds.size})`}</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleToggleDeleteMode}
+                    data-testid="button-cancel-delete"
+                    className="gap-1 text-white hover:bg-white/20"
+                  >
+                    {lang === 'tg' ? 'Бекор кардан' : 'Отмена'}
                   </Button>
                 </>
               )}
@@ -205,25 +237,27 @@ export default function Inbox() {
             </div>
           ) : (
             <>
-              <div className="border-b border-border px-4 py-2 bg-muted/30">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSelectAll}
-                  data-testid="button-select-all"
-                  className="text-xs"
-                >
-                  {selectedIds.size === formattedMessages.length
-                    ? (lang === 'tg' ? 'Бекор кардани интихоб' : 'Снять выделение')
-                    : (lang === 'tg' ? 'Интихоби ҳама' : 'Выбрать все')}
-                </Button>
-              </div>
+              {isDeleteMode && (
+                <div className="border-b border-border px-4 py-2 bg-muted/30">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSelectAll}
+                    data-testid="button-select-all"
+                    className="text-xs"
+                  >
+                    {selectedIds.size === formattedMessages.length
+                      ? (lang === 'tg' ? 'Бекор кардани интихоб' : 'Снять выделение')
+                      : (lang === 'tg' ? 'Интихоби ҳама' : 'Выбрать все')}
+                  </Button>
+                </div>
+              )}
               {formattedMessages.map((message) => (
                 <MessageListItem
                   key={message.id}
                   {...message}
                   onClick={() => handleMessageClick(message.id)}
-                  selectable={true}
+                  selectable={isDeleteMode}
                   isSelected={selectedIds.has(message.id)}
                   onToggleSelect={() => handleToggleSelect(message.id)}
                 />
