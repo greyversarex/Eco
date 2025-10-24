@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import MessageListItem from '@/components/MessageListItem';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft, LogOut, PenSquare } from 'lucide-react';
+import { ArrowLeft, PenSquare } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { Message, Department } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
@@ -85,22 +85,10 @@ export default function DepartmentMessages() {
                 size="sm"
                 onClick={() => setLocation('/department/compose')}
                 data-testid="button-compose"
-                className="hidden md:flex items-center gap-2 bg-primary hover:bg-primary/90 text-white border-0 font-medium shadow-md"
+                className="hidden md:flex items-center gap-2 bg-white/20 text-white hover:bg-white/30 border border-white/30"
               >
                 <PenSquare className="h-4 w-4" />
                 <span>{lang === 'tg' ? 'Ҳуҷҷати нав' : 'Новый документ'}</span>
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => {
-                  fetch('/api/auth/logout', { method: 'POST' })
-                    .then(() => setLocation('/'));
-                }}
-                data-testid="button-logout"
-                className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
               </Button>
               <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
             </div>
