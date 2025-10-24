@@ -385,6 +385,36 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  app.delete("/api/messages/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Get the message to check permissions
+      const message = await storage.getMessageById(id);
+      if (!message) {
+        return res.status(404).json({ error: 'Message not found' });
+      }
+      
+      // Check if user has permission to delete (sender or recipient or admin)
+      const isDepartment = req.session.departmentId;
+      const isAdmin = req.session.adminId;
+      
+      if (isDepartment && message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
+        return res.status(403).json({ error: 'No permission to delete this message' });
+      }
+      
+      const deleted = await storage.deleteMessage(id);
+      
+      if (!deleted) {
+        return res.status(500).json({ error: 'Failed to delete message' });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Get unread count for current department
   app.get("/api/messages/unread/count", requireAuth, async (req: Request, res: Response) => {
     try {

@@ -20,6 +20,7 @@ export interface IStorage {
   getMessagesByDepartmentPair(currentDeptId: number, otherDeptId: number): Promise<{ received: Message[]; sent: Message[] }>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<Message | undefined>;
+  deleteMessage(id: number): Promise<boolean>;
   getUnreadCountByDepartment(departmentId: number): Promise<number>;
   getUnreadCountsForAllDepartments(currentDeptId: number): Promise<Record<number, number>>;
   getAllDepartmentsUnreadCounts(): Promise<Record<number, number>>;
@@ -102,6 +103,14 @@ export class DbStorage implements IStorage {
   async markMessageAsRead(id: number): Promise<Message | undefined> {
     const result = await db.update(messages).set({ isRead: true }).where(eq(messages.id, id)).returning();
     return result[0];
+  }
+
+  async deleteMessage(id: number): Promise<boolean> {
+    // First delete all attachments for this message
+    await this.deleteAttachmentsByMessageId(id);
+    // Then delete the message itself
+    const result = await db.delete(messages).where(eq(messages.id, id)).returning();
+    return result.length > 0;
   }
 
   async getUnreadCountByDepartment(departmentId: number): Promise<number> {

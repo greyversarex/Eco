@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft, Download, Reply, Paperclip, Leaf } from 'lucide-react';
+import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -96,6 +96,45 @@ export default function MessageView() {
   const handleReply = () => {
     if (id) {
       setLocation(`/department/compose?replyTo=${id}`);
+    }
+  };
+
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (messageId: string) => {
+      return await apiRequest('DELETE', `/api/messages/${messageId}`, undefined);
+    },
+    onSuccess: () => {
+      toast({
+        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+        description: lang === 'tg' ? 'Ҳуҷҷат нест карда шуд' : 'Документ удален',
+      });
+      // Invalidate queries and go back
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/by-department'] });
+      setLocation('/department/inbox');
+    },
+    onError: (error: any) => {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: error.message || (lang === 'tg' ? 'Хатогӣ ҳангоми несткунии ҳуҷҷат' : 'Ошибка при удалении документа'),
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleDelete = () => {
+    if (!id) return;
+    
+    // Confirm deletion
+    const confirmed = window.confirm(
+      lang === 'tg' 
+        ? 'Шумо мутмаин ҳастед, ки мехоҳед ин ҳуҷҷатро нест кунед?' 
+        : 'Вы уверены, что хотите удалить этот документ?'
+    );
+    
+    if (confirmed) {
+      deleteMessageMutation.mutate(id);
     }
   };
 
@@ -232,10 +271,24 @@ export default function MessageView() {
                     </div>
                   </div>
                   {user?.userType === 'department' && (
-                    <Button onClick={handleReply} data-testid="button-reply" className="gap-2">
-                      <Reply className="h-4 w-4" />
-                      {t.reply}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button onClick={handleReply} data-testid="button-reply" className="gap-2">
+                        <Reply className="h-4 w-4" />
+                        {t.reply}
+                      </Button>
+                      <Button 
+                        onClick={handleDelete} 
+                        data-testid="button-delete" 
+                        variant="destructive"
+                        className="gap-2"
+                        disabled={deleteMessageMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        {deleteMessageMutation.isPending 
+                          ? (lang === 'tg' ? 'Нест шуда истодааст...' : 'Удаление...') 
+                          : (lang === 'tg' ? 'Нест кардан' : 'Удалить')}
+                      </Button>
+                    </div>
                   )}
                 </div>
 
