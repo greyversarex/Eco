@@ -4,13 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
@@ -28,7 +22,7 @@ export default function ComposeMessage() {
   const [lang, setLang] = useState<Language>('tg');
   const [subject, setSubject] = useState('');
   const [date, setDate] = useState('');
-  const [recipient, setRecipient] = useState('');
+  const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
   const [executor, setExecutor] = useState('');
   const [content, setContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -129,17 +123,30 @@ export default function ComposeMessage() {
       return;
     }
 
-    const messageData = {
-      subject,
-      content,
-      senderId: user.department.id,
-      recipientId: parseInt(recipient),
-      executor: executor || null,
-      documentDate: new Date(date).toISOString(),
-      replyToId: null,
-    };
+    // Validate that at least one recipient is selected
+    if (selectedRecipients.length === 0) {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: lang === 'tg' ? 'Ҳадди ақал як гиранда интихоб кунед' : 'Выберите хотя бы одного получателя',
+        variant: 'destructive',
+      });
+      return;
+    }
 
-    sendMessageMutation.mutate(messageData);
+    // Create messages for all selected recipients
+    for (const recipientId of selectedRecipients) {
+      const messageData = {
+        subject,
+        content,
+        senderId: user.department.id,
+        recipientId: recipientId,
+        executor: executor || null,
+        documentDate: new Date(date).toISOString(),
+        replyToId: null,
+      };
+
+      sendMessageMutation.mutate(messageData);
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -267,21 +274,46 @@ export default function ComposeMessage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="recipient">
+                <Label>
                   {t.recipient} <span className="text-destructive">*</span>
                 </Label>
-                <Select value={recipient} onValueChange={setRecipient} required disabled={loadingDepartments}>
-                  <SelectTrigger id="recipient" data-testid="select-recipient">
-                    <SelectValue placeholder={loadingDepartments ? (lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...') : t.selectRecipient} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map((dept) => (
-                      <SelectItem key={dept.id} value={dept.id.toString()}>
-                        {dept.name}
-                      </SelectItem>
+                {loadingDepartments ? (
+                  <p className="text-sm text-muted-foreground">
+                    {lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}
+                  </p>
+                ) : (
+                  <div className="border rounded-md p-4 space-y-3 max-h-64 overflow-y-auto">
+                    {departments.filter(dept => dept.id !== user?.department?.id).map((dept) => (
+                      <div key={dept.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`recipient-${dept.id}`}
+                          checked={selectedRecipients.includes(dept.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedRecipients([...selectedRecipients, dept.id]);
+                            } else {
+                              setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
+                            }
+                          }}
+                          data-testid={`checkbox-recipient-${dept.id}`}
+                        />
+                        <label
+                          htmlFor={`recipient-${dept.id}`}
+                          className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                          {dept.name}
+                        </label>
+                      </div>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                )}
+                {selectedRecipients.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {lang === 'tg' 
+                      ? `Интихоб шуд: ${selectedRecipients.length}` 
+                      : `Выбрано: ${selectedRecipients.length}`}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
