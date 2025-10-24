@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2 } from 'lucide-react';
+import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -214,7 +214,21 @@ export default function MessageView() {
                 </div>
               </button>
             </div>
-            <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  fetch('/api/auth/logout', { method: 'POST' })
+                    .then(() => setLocation('/'));
+                }}
+                data-testid="button-logout"
+                className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+              </Button>
+              <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
+            </div>
           </div>
         </div>
       </header>

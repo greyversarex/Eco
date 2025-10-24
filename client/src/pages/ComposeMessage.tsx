@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft, Paperclip, X } from 'lucide-react';
+import { ArrowLeft, Paperclip, X, LogOut } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -304,7 +304,21 @@ export default function ComposeMessage() {
                 </div>
               </button>
             </div>
-            <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  fetch('/api/auth/logout', { method: 'POST' })
+                    .then(() => setLocation('/'));
+                }}
+                data-testid="button-logout"
+                className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+              </Button>
+              <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
+            </div>
           </div>
         </div>
       </header>
