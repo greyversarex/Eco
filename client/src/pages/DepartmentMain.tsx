@@ -65,7 +65,7 @@ export default function DepartmentMain() {
               data-testid="button-home"
             >
               <img src={logoImage} alt="Логотип" className="h-8 w-8 sm:h-10 sm:w-10 object-contain shrink-0 drop-shadow-md" />
-              <div className="min-w-0 hidden sm:block">
+              <div className="min-w-0">
                 <h1 className="text-sm sm:text-base md:text-lg font-semibold text-white drop-shadow-md truncate">ЭкоТоҷикистон</h1>
                 <p className="text-xs text-white/90 drop-shadow-sm truncate">
                   {user?.userType === 'department' ? user.department?.name : ''}

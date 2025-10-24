@@ -58,35 +58,32 @@ export default function MobileNav({ lang, onLanguageChange, translations }: Mobi
         </SheetHeader>
         <div className="flex flex-col gap-3 mt-6 flex-1">
           <Button
-            variant="outline"
-            className="justify-start gap-3 h-14 text-base font-medium border-2 hover:bg-primary/5 hover:border-primary/50"
+            className="justify-start gap-3 h-14 text-base font-medium bg-primary hover:bg-primary/90 shadow-md"
             onClick={() => navigateTo('/department/main')}
             data-testid="mobile-nav-departments"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-              <Home className="h-5 w-5 text-primary" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20">
+              <Home className="h-5 w-5 text-white" />
             </div>
             <span>{translations.departments}</span>
           </Button>
           <Button
-            variant="outline"
-            className="justify-start gap-3 h-14 text-base font-medium border-2 hover:bg-primary/5 hover:border-primary/50"
+            className="justify-start gap-3 h-14 text-base font-medium bg-primary hover:bg-primary/90 shadow-md"
             onClick={() => navigateTo('/department/inbox')}
             data-testid="mobile-nav-inbox"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-              <Inbox className="h-5 w-5 text-primary" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20">
+              <Inbox className="h-5 w-5 text-white" />
             </div>
             <span>{translations.inbox}</span>
           </Button>
           <Button
-            variant="outline"
-            className="justify-start gap-3 h-14 text-base font-medium border-2 hover:bg-primary/5 hover:border-primary/50"
+            className="justify-start gap-3 h-14 text-base font-medium bg-primary hover:bg-primary/90 shadow-md"
             onClick={() => navigateTo('/department/outbox')}
             data-testid="mobile-nav-outbox"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-              <Send className="h-5 w-5 text-primary" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20">
+              <Send className="h-5 w-5 text-white" />
             </div>
             <span>{translations.outbox}</span>
           </Button>
