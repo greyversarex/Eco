@@ -224,7 +224,6 @@ export default function AdminDashboard() {
               >
                 <Mail className="h-4 w-4" />
               </Button>
-              <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
               <Button
                 size="sm"
                 onClick={logout}
@@ -234,6 +233,7 @@ export default function AdminDashboard() {
                 <LogOut className="h-4 w-4" />
                 <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
               </Button>
+              <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
             </div>
           </div>
         </div>
