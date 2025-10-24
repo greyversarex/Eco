@@ -111,7 +111,7 @@ export default function ComposeMessage() {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!user || user.userType !== 'department') {
@@ -134,18 +134,91 @@ export default function ComposeMessage() {
     }
 
     // Create messages for all selected recipients
-    for (const recipientId of selectedRecipients) {
-      const messageData = {
-        subject,
-        content,
-        senderId: user.department.id,
-        recipientId: recipientId,
-        executor: executor || null,
-        documentDate: new Date(date).toISOString(),
-        replyToId: null,
-      };
+    setIsUploadingFiles(true);
+    try {
+      const createdMessageIds: number[] = [];
+      
+      // Step 1: Create all messages
+      for (const recipientId of selectedRecipients) {
+        const messageData = {
+          subject,
+          content,
+          senderId: user.department.id,
+          recipientId: recipientId,
+          executor: executor || null,
+          documentDate: new Date(date).toISOString(),
+          replyToId: null,
+        };
 
-      sendMessageMutation.mutate(messageData);
+        const response = await apiRequest('POST', '/api/messages', messageData);
+        createdMessageIds.push(response.id);
+      }
+
+      // Step 2: Upload files to all created messages
+      if (selectedFiles.length > 0) {
+        let uploadSuccess = true;
+        let failedFiles: string[] = [];
+        
+        for (const messageId of createdMessageIds) {
+          for (const file of selectedFiles) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch(`/api/messages/${messageId}/attachments`, {
+              method: 'POST',
+              body: formData,
+            });
+            
+            if (!response.ok) {
+              uploadSuccess = false;
+              failedFiles.push(file.name);
+              console.error(`Failed to upload ${file.name} to message ${messageId}:`, response.status, await response.text());
+            }
+          }
+        }
+        
+        if (!uploadSuccess) {
+          toast({
+            title: lang === 'tg' ? 'Огоҳӣ' : 'Предупреждение',
+            description: lang === 'tg' 
+              ? `Паёмҳо фиристода шуданд, вале баъзе файлҳо бор нашуданд: ${failedFiles.join(', ')}` 
+              : `Сообщения отправлены, но некоторые файлы не загружены: ${failedFiles.join(', ')}`,
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+            description: lang === 'tg' 
+              ? `${selectedRecipients.length} паём ва файлҳо фиристода шуданд` 
+              : `${selectedRecipients.length} сообщений и файлы отправлены`,
+          });
+        }
+      } else {
+        toast({
+          title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+          description: lang === 'tg' 
+            ? `${selectedRecipients.length} паём фиристода шуд` 
+            : `${selectedRecipients.length} сообщений отправлено`,
+        });
+      }
+
+      // Step 3: Clear form and redirect
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      setSubject('');
+      setContent('');
+      setSelectedRecipients([]);
+      setExecutor('');
+      setDate('');
+      setSelectedFiles([]);
+      setLocation('/department/outbox');
+    } catch (error: any) {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: error.message || (lang === 'tg' ? 'Хатогӣ ҳангоми фиристодани паёмҳо' : 'Ошибка при отправке сообщений'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploadingFiles(false);
     }
   };
 
