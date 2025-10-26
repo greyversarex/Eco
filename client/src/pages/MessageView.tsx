@@ -313,6 +313,11 @@ export default function MessageView() {
                     </div>
                   )}
                 </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed" data-testid="text-content">
+                  {message.content}
+                </div>
 
                 {attachments.length > 0 && (
                   <div className="space-y-2">
@@ -361,11 +366,6 @@ export default function MessageView() {
                     />
                   </div>
                 )}
-              </CardHeader>
-              <CardContent>
-                <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed" data-testid="text-content">
-                  {message.content}
-                </div>
               </CardContent>
             </Card>
           </div>
