@@ -34,6 +34,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Department } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
+import { Footer } from '@/components/Footer';
 
 export default function AdminDashboard() {
   const [lang, setLang] = useState<Language>('tg');
@@ -484,6 +485,7 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

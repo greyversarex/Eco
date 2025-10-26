@@ -11,6 +11,7 @@ import { useAuth } from '@/lib/auth';
 import type { Department } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
+import { Footer } from '@/components/Footer';
 
 export default function DepartmentMain() {
   const [, setLocation] = useLocation();
@@ -268,6 +269,7 @@ export default function DepartmentMain() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

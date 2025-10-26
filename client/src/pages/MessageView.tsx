@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import ObjectUploader from '@/components/ObjectUploader';
+import { Footer } from '@/components/Footer';
 
 interface Attachment {
   id: number;
@@ -369,6 +370,7 @@ export default function MessageView() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

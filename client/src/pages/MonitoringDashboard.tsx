@@ -8,6 +8,7 @@ import { ArrowLeft, Search } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import { useQuery } from '@tanstack/react-query';
 import logoImage from '@assets/logo-optimized.webp';
+import { Footer } from '@/components/Footer';
 
 interface DepartmentStats {
   id: number;
@@ -175,6 +176,7 @@ export default function MonitoringDashboard() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

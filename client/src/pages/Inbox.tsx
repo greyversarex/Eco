@@ -12,6 +12,7 @@ import type { Message, Department } from '@shared/schema';
 import { format } from 'date-fns';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { Footer } from '@/components/Footer';
 
 export default function Inbox() {
   const [location, setLocation] = useLocation();
@@ -276,6 +277,7 @@ export default function Inbox() {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

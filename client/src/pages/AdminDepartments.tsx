@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth';
 import type { Department, Message } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
+import { Footer } from '@/components/Footer';
 
 export default function AdminDepartments() {
   const [, setLocation] = useLocation();
@@ -245,6 +246,7 @@ export default function AdminDepartments() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

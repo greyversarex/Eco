@@ -11,17 +11,18 @@
   - Search design: Thin line input with Search icon, centered max-width layout
   - Case-insensitive filtering across all department blocks (upper, middle, lower, district)
 - **Fixed ComposeMessage Layout:** Removed excessive white space below message composition form
-  - Changed background to `fixed inset-0 -z-10` positioned behind content instead of wrapping content
+  - Root cause: `bg-fixed` class was causing background to stretch to 100vh
+  - Solution: Removed `bg-fixed` from container, kept background on wrapper div
   - Background image and semi-transparent white layer combined using CSS `linear-gradient`
-  - Header and main content no longer wrapped in background container
-  - Reduced padding to minimal spacing (~1cm after form)
+  - Reduced padding to minimal spacing (py-6) after header for compact layout
+  - Page now ends naturally after footer without extra whitespace
 - **Added Footer Component:** Created reusable footer with contact information in header style
   - Same green gradient background as header (`linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)`)
   - White text with hover effects (hover:bg-white/20)
   - Contact info: www.tajnature.tj, info@tajnature.tj, (+992) 905 12 34 56
   - Icons (Globe, Mail, Phone) with clickable links
-  - Added to ComposeMessage page
-  - Reduced padding after header (py-6 instead of py-4 sm:py-8) for compact layout
+  - Added to all major pages: ComposeMessage, DepartmentMain, Inbox, AdminDepartments, AdminDashboard, MonitoringDashboard, MessageView
+  - Footer provides consistent branding and contact information across the platform
 
 ### October 26, 2025 - Calendar Localization and UI Improvements
 - **Fixed Tajik Calendar Localization:** Calendar now properly displays months in Tajik (Январ, Феврал, Март, etc.)
