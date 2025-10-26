@@ -352,6 +352,7 @@ export default function ComposeMessage() {
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
+                    placeholder="рӯз. моҳ. сол"
                     required
                     data-testid="input-date"
                   />
