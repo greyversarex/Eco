@@ -61,6 +61,10 @@ export default function DepartmentCard({ name, unreadCount, onClick }: Departmen
   const iconName = departmentIcons[name] || 'building-2';
   const IconComponent = iconMap[iconName] || Building2;
   
+  const words = name.split(' ');
+  const firstWord = words[0];
+  const restOfWords = words.slice(1).join(' ');
+  
   return (
     <Card
       className="relative cursor-pointer p-6 hover-elevate active-elevate-2 transition-colors"
@@ -75,11 +79,21 @@ export default function DepartmentCard({ name, unreadCount, onClick }: Departmen
           {unreadCount}
         </div>
       )}
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+      <div className="flex items-start gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0 mt-0.5">
           <IconComponent className="h-5 w-5" />
         </div>
-        <h3 className="text-base font-medium text-foreground flex-1">{name}</h3>
+        <div className="flex-1">
+          <h3 className="text-base font-medium text-foreground leading-snug">
+            {firstWord}
+            {restOfWords && (
+              <>
+                <br />
+                {restOfWords}
+              </>
+            )}
+          </h3>
+        </div>
       </div>
     </Card>
   );
