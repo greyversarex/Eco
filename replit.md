@@ -2,6 +2,19 @@
 
 ## Recent Changes
 
+### October 26, 2025 - Search Functionality and Layout Fixes
+- **Search Functionality "Ҷустуҷӯ" Added:** All department card pages now include search input field before block sections
+  - Added to DepartmentMain.tsx: Search filters all 50 departments by name with real-time results
+  - Added to AdminDepartments.tsx: Search filters departments in admin message view
+  - Added to MonitoringDashboard.tsx: Search filters departments in public monitoring view
+  - Added to AdminDashboard.tsx: Search filters departments in admin management table
+  - Search design: Thin line input with Search icon, centered max-width layout
+  - Case-insensitive filtering across all department blocks (upper, middle, lower, district)
+- **Fixed ComposeMessage Layout:** Removed white empty space below message composition form
+  - Changed container from `min-h-screen` to content-based height with `pb-8` padding
+  - Added `pointer-events-none` to overlay to prevent click blocking
+  - Form now ends naturally without extra whitespace
+
 ### October 26, 2025 - Calendar Localization and UI Improvements
 - **Fixed Tajik Calendar Localization:** Calendar now properly displays months in Tajik (Январ, Феврал, Март, etc.)
   - Implemented full locale object for react-day-picker with Tajik month names and weekday names
