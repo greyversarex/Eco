@@ -354,8 +354,8 @@ export default function ComposeMessage() {
                     onChange={(value) => setDate(value)}
                     placeholder={lang === 'tg' ? 'Санаро интихоб кунед' : 'Выберите дату'}
                     required
+                    className="md:w-64"
                   />
-                  <p className="text-xs text-muted-foreground ml-[5px] mr-[5px]">рӯз. моҳ. сол</p>
                 </div>
               </div>
 
@@ -379,7 +379,7 @@ export default function ComposeMessage() {
                           setSelectedRecipients(allDeptIds);
                         }
                       }}
-                      className="h-8 text-xs"
+                      className="h-8 text-xs bg-green-500/10 hover:bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30"
                       data-testid="button-select-all-recipients"
                     >
                       {selectedRecipients.length === departments.filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined)).length

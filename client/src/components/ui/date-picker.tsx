@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { cn } from "@/lib/utils";
@@ -10,32 +9,39 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-// Таджикская локализация
+// Таджикская локализация для react-day-picker
 const tjLocale = {
-  months: [
-    "Январ",
-    "Феврал",
-    "Март",
-    "Апрел",
-    "Май",
-    "Июн",
-    "Июл",
-    "Август",
-    "Сентябр",
-    "Октябр",
-    "Ноябр",
-    "Декабр",
-  ],
-  weekdaysShort: ["Яш", "Дш", "Сш", "Чш", "Пш", "Ҷм", "Шб"],
-  weekdaysLong: [
-    "Якшанбе",
-    "Душанбе",
-    "Сешанбе",
-    "Чоршанбе",
-    "Панҷшанбе",
-    "Ҷумъа",
-    "Шанбе",
-  ],
+  localize: {
+    day: (n: number) => ["Яш", "Дш", "Сш", "Чш", "Пш", "Ҷм", "Шб"][n],
+    month: (n: number) => [
+      "Январ",
+      "Феврал",
+      "Март",
+      "Апрел",
+      "Май",
+      "Июн",
+      "Июл",
+      "Август",
+      "Сентябр",
+      "Октябр",
+      "Ноябр",
+      "Декабр",
+    ][n],
+    ordinalNumber: (n: number) => String(n),
+    era: (n: number) => (n === 1 ? "н.э." : "до н.э."),
+    quarter: (n: number) => `${n}`,
+    dayPeriod: () => "",
+  },
+  formatLong: {
+    date: () => "d. M. yyyy",
+    time: () => "HH:mm",
+    dateTime: () => "d. M. yyyy HH:mm",
+  },
+  code: "tg",
+  options: {
+    weekStartsOn: 1,
+    firstWeekContainsDate: 1,
+  },
 };
 
 interface DatePickerProps {
@@ -116,10 +122,7 @@ export function DatePicker({
             mode="single"
             selected={selectedDate}
             onSelect={handleSelect}
-            formatters={{
-              formatMonthCaption: (date) => `${tjLocale.months[date.getMonth()]} ${date.getFullYear()}`,
-              formatWeekdayName: (date) => tjLocale.weekdaysShort[date.getDay()],
-            }}
+            locale={tjLocale as any}
             showOutsideDays={false}
             className="rdp-custom"
             classNames={{
