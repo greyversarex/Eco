@@ -2,6 +2,14 @@
 
 ## Recent Changes
 
+### October 26, 2025 - UI Improvements: Block Labels and Message Layout
+- **Fixed Message View Layout:** Content/comment now displays immediately after executor field instead of after attachments (MessageView.tsx)
+- **Added Block Headers:** All three department views now show block titles before each department group:
+  - AdminDepartments.tsx: Added block headers and visual separators for all 4 blocks
+  - MonitoringDashboard.tsx: Already had block headers (verified)
+  - DepartmentMain.tsx: Already had block headers (verified)
+- **District Block Integration:** Ensured "Ноҳияҳои тобеи марказ" block appears with proper heading and visual separator on all pages
+
 ### October 26, 2025 - Added District Block with 13 New Departments
 - **New Department Block:** Added "Ноҳияҳои тобеи марказ" (Districts Under Central Administration) as the fourth hierarchical block
 - **13 New Departments Added:** 

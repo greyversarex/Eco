@@ -32,6 +32,7 @@ export default function AdminDepartments() {
     upper: departments.filter((d) => d.block === 'upper'),
     middle: departments.filter((d) => d.block === 'middle'),
     lower: departments.filter((d) => d.block === 'lower'),
+    district: departments.filter((d) => d.block === 'district'),
   };
 
   // Calculate message counts for each department (both sent and received)
@@ -119,15 +120,18 @@ export default function AdminDepartments() {
         ) : (
           <div className="space-y-8">
             {departmentsByBlock.upper.length > 0 && (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {departmentsByBlock.upper.map((dept) => (
-                  <DepartmentCard
-                    key={dept.id}
-                    name={dept.name}
-                    unreadCount={getMessageCountForDepartment(dept.id)}
-                    onClick={() => handleDepartmentClick(dept.id)}
-                  />
-                ))}
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold text-foreground px-2">{t.upperBlock}</h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {departmentsByBlock.upper.map((dept) => (
+                    <DepartmentCard
+                      key={dept.id}
+                      name={dept.name}
+                      unreadCount={getMessageCountForDepartment(dept.id)}
+                      onClick={() => handleDepartmentClick(dept.id)}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
@@ -143,15 +147,18 @@ export default function AdminDepartments() {
             )}
 
             {departmentsByBlock.middle.length > 0 && (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {departmentsByBlock.middle.map((dept) => (
-                  <DepartmentCard
-                    key={dept.id}
-                    name={dept.name}
-                    unreadCount={getMessageCountForDepartment(dept.id)}
-                    onClick={() => handleDepartmentClick(dept.id)}
-                  />
-                ))}
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold text-foreground px-2">{t.middleBlock}</h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {departmentsByBlock.middle.map((dept) => (
+                    <DepartmentCard
+                      key={dept.id}
+                      name={dept.name}
+                      unreadCount={getMessageCountForDepartment(dept.id)}
+                      onClick={() => handleDepartmentClick(dept.id)}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
@@ -167,15 +174,45 @@ export default function AdminDepartments() {
             )}
 
             {departmentsByBlock.lower.length > 0 && (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {departmentsByBlock.lower.map((dept) => (
-                  <DepartmentCard
-                    key={dept.id}
-                    name={dept.name}
-                    unreadCount={getMessageCountForDepartment(dept.id)}
-                    onClick={() => handleDepartmentClick(dept.id)}
-                  />
-                ))}
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold text-foreground px-2">{t.lowerBlock}</h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {departmentsByBlock.lower.map((dept) => (
+                    <DepartmentCard
+                      key={dept.id}
+                      name={dept.name}
+                      unreadCount={getMessageCountForDepartment(dept.id)}
+                      onClick={() => handleDepartmentClick(dept.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {departmentsByBlock.lower.length > 0 && departmentsByBlock.district.length > 0 && (
+              <div className="relative py-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t-4 border-primary/20"></div>
+                </div>
+                <div className="relative flex justify-center">
+                  <div className="h-3 w-3 rounded-full bg-primary"></div>
+                </div>
+              </div>
+            )}
+
+            {departmentsByBlock.district.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold text-foreground px-2">{t.districtBlock}</h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {departmentsByBlock.district.map((dept) => (
+                    <DepartmentCard
+                      key={dept.id}
+                      name={dept.name}
+                      unreadCount={getMessageCountForDepartment(dept.id)}
+                      onClick={() => handleDepartmentClick(dept.id)}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
