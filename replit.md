@@ -10,7 +10,8 @@
   - "Имрӯз" (Today) button available in calendar popover for quick date selection
 - **UI Refinements in ComposeMessage:**
   - Removed "рӯз. моҳ. сол" helper text below date picker
-  - Date field width reduced to md:w-64 on medium+ screens for better layout
+  - Added standalone "Имрӯз" button next to date picker field for quick selection of current date
+  - Date field now uses flex layout (flex-1) with "Імрӯз" button (shrink-0) to prevent deformation
   - "Ҳамаро қайд кардан" (Select All) button now has green styling (bg-green-500/10 hover:bg-green-500/20 text-green-700)
 
 ### October 26, 2025 - Custom Tajik Calendar Implementation
