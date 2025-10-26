@@ -220,14 +220,13 @@
 
   html {
     @apply m-0 p-0;
-    height: auto !important;
-    min-height: 0 !important;
+    height: 100% !important;
+    overflow-x: hidden;
   }
   
   body {
     @apply m-0 p-0;
-    height: auto !important;
-    min-height: 0 !important;
+    min-height: 100%;
   }
   
   #root {

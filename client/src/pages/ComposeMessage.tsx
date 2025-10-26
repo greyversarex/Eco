@@ -268,9 +268,8 @@ export default function ComposeMessage() {
       style={{ 
         backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${bgImage})`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat'
       }}
     >
       <header 
