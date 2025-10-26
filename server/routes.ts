@@ -115,6 +115,8 @@ export function registerRoutes(app: Express) {
         unreadCount: unreadCounts[dept.id] || 0,
       }));
       
+      // Cache for 30 seconds for monitoring dashboard
+      res.setHeader('Cache-Control', 'public, max-age=30');
       res.json(stats);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -283,6 +285,8 @@ export function registerRoutes(app: Express) {
       const departments = await storage.getDepartments();
       // Return departments without access codes for security
       const sanitizedDepartments = departments.map(({ accessCode, ...dept }) => dept);
+      // Cache for 5 minutes since departments rarely change
+      res.setHeader('Cache-Control', 'private, max-age=300');
       res.json(sanitizedDepartments);
     } catch (error: any) {
       res.status(500).json({ error: error.message });

@@ -8,8 +8,8 @@ import { useTranslation, type Language } from '@/lib/i18n';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import bgImage from '@assets/eco-bg-wide.png';
-import bgMobileImage from '@assets/eco-mobile-bg.png';
+import bgImage from '@assets/eco-bg-wide.webp';
+import bgMobileImage from '@assets/eco-mobile-bg.webp';
 import logoImage from '@assets/logo-optimized.webp';
 
 export default function AdminLogin() {
