@@ -273,7 +273,7 @@ export default function ComposeMessage() {
       }}
     >
       <header 
-        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md"
+        className="border-b border-border/20 backdrop-blur-md"
         style={{
           background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
         }}
