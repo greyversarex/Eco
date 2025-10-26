@@ -76,7 +76,7 @@ export default function DepartmentMessages() {
                   <h1 className="text-sm sm:text-base md:text-lg font-semibold text-white drop-shadow-md truncate">
                     {department?.name || (lang === 'tg' ? 'Шуъба' : 'Отдел')}
                   </h1>
-                  <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">ЭкоТоҷикистон</p>
+                  <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">Портали электронӣ</p>
                 </div>
               </button>
             </div>
