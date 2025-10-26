@@ -220,8 +220,6 @@
 
   html, body, #root {
     @apply m-0 p-0;
-    min-height: 0;
-    height: auto;
   }
 
   body {

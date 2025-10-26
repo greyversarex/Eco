@@ -264,12 +264,12 @@ export default function ComposeMessage() {
 
   return (
     <div 
-      className="flex flex-col min-h-0"
+      className="flex flex-col min-h-screen"
       style={{ 
         backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${bgImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'scroll',
+        backgroundRepeat: 'no-repeat',
       }}
     >
       <header 
@@ -320,7 +320,7 @@ export default function ComposeMessage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-3 py-6 sm:px-4 md:px-6 lg:px-8">
+      <main className="flex-1 mx-auto max-w-4xl w-full px-3 py-6 sm:px-4 md:px-6 lg:px-8 pb-8">
         <Card>
           <CardHeader className="px-4 sm:px-6">
             <CardTitle className="text-lg sm:text-xl">{t.newMessage}</CardTitle>

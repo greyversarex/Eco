@@ -3,7 +3,7 @@ import { Mail, Phone, Globe } from 'lucide-react';
 export function Footer() {
   return (
     <footer 
-      className="border-t border-border/20 backdrop-blur-md mt-8"
+      className="border-t border-border/20 backdrop-blur-md flex-shrink-0"
       style={{
         background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
       }}
