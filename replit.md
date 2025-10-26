@@ -2,6 +2,17 @@
 
 ## Recent Changes
 
+### October 26, 2025 - Calendar Localization and UI Improvements
+- **Fixed Tajik Calendar Localization:** Calendar now properly displays months in Tajik (Январ, Феврал, Март, etc.)
+  - Implemented full locale object for react-day-picker with Tajik month names and weekday names
+  - Calendar header now shows "Октябр 2025" format with Tajik month names
+  - Weekdays display as "Яш, Дш, Сш, Чш, Пш, Ҷм, Шб"
+  - "Имрӯз" (Today) button available in calendar popover for quick date selection
+- **UI Refinements in ComposeMessage:**
+  - Removed "рӯз. моҳ. сол" helper text below date picker
+  - Date field width reduced to md:w-64 on medium+ screens for better layout
+  - "Ҳамаро қайд кардан" (Select All) button now has green styling (bg-green-500/10 hover:bg-green-500/20 text-green-700)
+
 ### October 26, 2025 - Custom Tajik Calendar Implementation
 - **Custom DatePicker Component:** Created fully localized Tajik calendar using react-day-picker library
   - Replaced native browser date input with custom component (client/src/components/ui/date-picker.tsx)
