@@ -11,10 +11,10 @@
   - Search design: Thin line input with Search icon, centered max-width layout
   - Case-insensitive filtering across all department blocks (upper, middle, lower, district)
 - **Fixed ComposeMessage Layout:** Removed white empty space below message composition form
-  - Removed separate overlay div with `absolute inset-0` that was causing extra space
-  - Combined background image and semi-transparent white layer using CSS `linear-gradient`
-  - Added `bg-fixed` for elegant parallax effect
-  - Form now ends naturally without extra whitespace below buttons
+  - Changed background to `fixed inset-0 -z-10` positioned behind content instead of wrapping content
+  - Background image and semi-transparent white layer combined using CSS `linear-gradient`
+  - Header and main content no longer wrapped in background container
+  - Form now ends naturally with only `pb-8` padding, no extra whitespace
 
 ### October 26, 2025 - Calendar Localization and UI Improvements
 - **Fixed Tajik Calendar Localization:** Calendar now properly displays months in Tajik (Январ, Феврал, Март, etc.)
