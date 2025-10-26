@@ -66,7 +66,7 @@ export default function AdminDepartments() {
       >
         <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <div className="flex items-start gap-2 sm:gap-3 min-w-0 flex-1 pt-2">
               <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
               <div className="min-w-0">
                 <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{t.adminPanel}</h1>

@@ -65,7 +65,7 @@ export default function MonitoringDashboard() {
               </Button>
               <button 
                 onClick={() => setLocation('/')}
-                className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity"
+                className="flex items-start gap-2 sm:gap-3 hover:opacity-80 transition-opacity pt-1"
                 data-testid="button-home"
               >
                 <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />

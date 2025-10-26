@@ -162,7 +162,7 @@ export default function Inbox() {
               </Button>
               <button 
                 onClick={() => setLocation('/department/main')}
-                className="flex items-center gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity"
+                className="flex items-start gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity pt-1"
                 data-testid="button-home"
               >
                 <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0 drop-shadow-md" />

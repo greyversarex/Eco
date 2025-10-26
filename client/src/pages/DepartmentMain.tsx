@@ -60,7 +60,7 @@ export default function DepartmentMain() {
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
             <button 
               onClick={() => setLocation('/department/main')}
-              className="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity flex-1 md:flex-initial"
+              className="flex items-start gap-2 min-w-0 hover:opacity-80 transition-opacity flex-1 md:flex-initial pt-2"
               data-testid="button-home"
             >
               <img src={logoImage} alt="Логотип" className="h-8 w-8 sm:h-10 sm:w-10 object-contain shrink-0 drop-shadow-md" />

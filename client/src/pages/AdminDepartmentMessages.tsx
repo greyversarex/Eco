@@ -63,7 +63,7 @@ export default function AdminDepartmentMessages() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="flex items-start gap-2 sm:gap-3 min-w-0 pt-1">
                 <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0" />
                 <div className="min-w-0">
                   <h1 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">
