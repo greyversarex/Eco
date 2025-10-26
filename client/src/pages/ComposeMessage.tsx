@@ -318,7 +318,7 @@ export default function ComposeMessage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8">
+      <main className="mx-auto max-w-4xl px-3 py-6 sm:px-4 md:px-6 lg:px-8">
         <Card>
           <CardHeader className="px-4 sm:px-6">
             <CardTitle className="text-lg sm:text-xl">{t.newMessage}</CardTitle>
