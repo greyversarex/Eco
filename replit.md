@@ -14,6 +14,7 @@
   - Date field now uses flex layout (flex-1) with "Імрӯз" button (shrink-0) to prevent deformation
   - "Ҳамаро қайд кардан" (Select All) button now uses primary styling matching the "Имрӯз" button design
   - Both "Имрӯз" and "Ҳамаро қайд кардан" buttons use variant="default" for consistent primary coloring
+  - Fixed DatePicker component to properly sync with external value changes (added useEffect)
 
 ### October 26, 2025 - Custom Tajik Calendar Implementation
 - **Custom DatePicker Component:** Created fully localized Tajik calendar using react-day-picker library
