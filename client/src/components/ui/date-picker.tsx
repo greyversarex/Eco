@@ -117,7 +117,7 @@ export function DatePicker({
             selected={selectedDate}
             onSelect={handleSelect}
             formatters={{
-              formatMonthCaption: (date) => tjLocale.months[date.getMonth()],
+              formatMonthCaption: (date) => `${tjLocale.months[date.getMonth()]} ${date.getFullYear()}`,
               formatWeekdayName: (date) => tjLocale.weekdaysShort[date.getDay()],
             }}
             showOutsideDays={false}
