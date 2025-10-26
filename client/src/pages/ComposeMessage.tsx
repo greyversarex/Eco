@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DatePicker } from '@/components/ui/date-picker';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { ArrowLeft, Paperclip, X, LogOut } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
@@ -347,14 +348,12 @@ export default function ComposeMessage() {
                   <Label htmlFor="date">
                     {t.date} <span className="text-destructive">*</span>
                   </Label>
-                  <Input
+                  <DatePicker
                     id="date"
-                    type="date"
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    placeholder="рӯз. моҳ. сол"
+                    onChange={(value) => setDate(value)}
+                    placeholder={lang === 'tg' ? 'Санаро интихоб кунед' : 'Выберите дату'}
                     required
-                    data-testid="input-date"
                   />
                   <p className="text-xs text-muted-foreground">рӯз. моҳ. сол</p>
                 </div>
