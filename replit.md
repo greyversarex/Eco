@@ -1,5 +1,27 @@
 # ЭкоТоҷикистон Platform
 
+## Recent Changes
+
+### October 26, 2025 - Added District Block with 13 New Departments
+- **New Department Block:** Added "Ноҳияҳои тобеи марказ" (Districts Under Central Administration) as the fourth hierarchical block
+- **13 New Departments Added:** 
+  - Шуъбаи КҲМЗ дар ноҳияи Варзоб (DISTRICT038)
+  - Шуъбаи КҲМЗ дар ноҳияи Рудакӣ (DISTRICT039)
+  - Шуъбаи КҲМЗ дар шаҳри Ҳисор (DISTRICT040)
+  - Шуъбаи КҲМЗ дар ноҳияи Шаҳринав (DISTRICT041)
+  - Шуъбаи КҲМЗ дар шаҳри Турсунзода (DISTRICT042)
+  - Шуъбаи КҲМЗ дар шаҳри Ваҳдат (DISTRICT043)
+  - Шуъбаи КҲМЗ дар ноҳияи Файзобод (DISTRICT044)
+  - Шуъбаи КҲМЗ дар ноҳияи Рашт (DISTRICT045)
+  - Бахши КҲМЗ дар шаҳри Роғун (DISTRICT046)
+  - Бахши КҲМЗ дар ноҳичи Лахш (DISTRICT047)
+  - Бахши КҲМЗ дар ноҳияи Сангвор (DISTRICT048)
+  - Бахши КҲМЗ дар ноҳияи Нуробод (DISTRICT049)
+  - Бахши КҲМЗ дар ноҳияи Тоҷикобод (DISTRICT050)
+- **Updated Components:** Modified AdminDashboard.tsx to support district block selection and display, updated translations in i18n.ts
+- **Database Seed:** Updated server/seed.ts to automatically create all 50 departments (37 original + 13 new) on deployment
+- **Total Departments:** System now manages 50 departments across 4 blocks
+
 ## Overview
 
 ЭкоТоҷикистон is a secure, bilingual (Tajik and Russian) internal messaging and document management platform for governmental/organizational departments in Tajikistan. It centralizes the exchange of official messages and documents, prioritizing security, data persistence, and future mobile compatibility via an API-first architecture. The system grants department-level access using unique codes, while administrators manage the platform through a separate panel.
@@ -16,7 +38,7 @@ Preferred communication style: Simple, everyday language.
 
 **Design System:** Material Design adapted for government use, minimalistic with green accents (HSL: 142 76% 36%), light mode primary with dark mode support, Inter/Roboto fonts for Cyrillic, high contrast ratios, and a bilingual interface (Tajik default, Russian secondary). Authentication pages feature adaptive backgrounds: eco-themed imagery with green leaves and globe on mobile devices (`eco-mobile-bg.png`), and circular eco icons layout on desktop (`eco-bg-wide.png`). All department pages include consistent green gradient headers with ЭкоТоҷикистон logo.
 
-**Key Design Decisions:** API-first approach (frontend solely displays backend responses), component-based architecture using shadcn/ui, separation of concerns, and session-based authentication with protected routes. Public monitoring dashboard (`/monitoring`) accessible from login page provides real-time view of all 37 departments with unread message counts, grouped by facility blocks (Upper/Болой, Middle/Миёнаги, Lower/Поинтар). Admin panel includes full department management with edit dialog allowing manual changes to department name, block assignment, and access codes.
+**Key Design Decisions:** API-first approach (frontend solely displays backend responses), component-based architecture using shadcn/ui, separation of concerns, and session-based authentication with protected routes. Public monitoring dashboard (`/monitoring`) accessible from login page provides real-time view of all 50 departments with unread message counts, grouped by facility blocks (Upper/Болой, Middle/Миёнаги, Lower/Поинтар, District/Ноҳияҳои тобеи марказ). Admin panel includes full department management with edit dialog allowing manual changes to department name, block assignment, and access codes.
 
 ### Backend Architecture
 
@@ -32,7 +54,13 @@ Preferred communication style: Simple, everyday language.
 
 **Database:** PostgreSQL with connection pooling via standard `pg` driver.
 
-**Schema Design:** Includes `Departments` (name, block, access code), `Admins` (hashed passwords), `Messages` (subject, content, sender, recipient, read status, timestamps, executor, document date), `Attachments` (binary file data stored in bytea, filename, file size, MIME type), and `Sessions` tables.
+**Schema Design:** Includes `Departments` (name, block ['upper', 'middle', 'lower', 'district'], access code), `Admins` (hashed passwords), `Messages` (subject, content, sender, recipient, read status, timestamps, executor, document date), `Attachments` (binary file data stored in bytea, filename, file size, MIME type), and `Sessions` tables.
+
+**Department Blocks:** The system organizes departments into four hierarchical blocks:
+- **Upper Block** (Кумитаи ҳифзи муҳити зист): 10 departments - Central office and regional administrations
+- **Middle Block** (Раёсатҳо): 11 departments - Management divisions and operational departments
+- **Lower Block** (Муссисаҳои тиҷоратӣ, ғайритиҷоратӣ ва Марказҳо): 16 departments - Commercial/non-commercial institutions and centers
+- **District Block** (Ноҳияҳои тобеи марказ): 13 departments - District branches in centrally-subordinated regions (Varzob, Rudaki, Hisor, Shahrinav, Tursunzoda, Vahdat, Fayzobod, Rasht, Roghun, Lakhsh, Sangvor, Nurobod, Tojikobod)
 
 **Migration Management:** Drizzle Kit for schema migrations, with schema defined in `/shared/schema.ts`.
 

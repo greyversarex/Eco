@@ -28,7 +28,7 @@ export const translations = {
     upperBlock: 'Кумитаи ҳифзи муҳити зист',
     middleBlock: 'Раёсатҳо',
     lowerBlock: 'Муссисаҳои тиҷоратӣ, ғайритиҷоратӣ ва Марказҳо',
-    districtBlock: 'Шуъба ва бахшҳои КҲМЗ дар Ноҳияи тобеи ҷумҳурӣ',
+    districtBlock: 'Ноҳияҳои тобеи марказ',
     
     // Messages
     unreadMessages: 'ҳуҷҷатҳои хонданашуда',
@@ -106,7 +106,7 @@ export const translations = {
     upperBlock: 'Комитет по охране окружающей среды',
     middleBlock: 'Управления',
     lowerBlock: 'Коммерческие, некоммерческие учреждения и Центры',
-    districtBlock: 'Отделы и секторы КООС в районах республиканского подчинения',
+    districtBlock: 'Районы центрального подчинения',
     
     // Messages
     unreadMessages: 'непрочитанных документов',

@@ -67,6 +67,21 @@ async function seed() {
       { name: 'Маҷаллаи "Ҳифзи табиат"', block: 'lower', accessCode: 'MAGAZINE035' },
       { name: 'Корхонаи воҳиди давлатии илмию истеҳсолии "Табиат"', block: 'lower', accessCode: 'TABIAT036' },
       { name: 'Корхонаи воҳиди давлатии "Сайду сайёҳат"', block: 'lower', accessCode: 'HUNTING037' },
+      
+      // Ноҳияҳои тобеи марказ (Districts Under Central Administration)
+      { name: 'Шуъбаи КҲМЗ дар ноҳияи Варзоб', block: 'district', accessCode: 'DISTRICT038' },
+      { name: 'Шуъбаи КҲМЗ дар ноҳияи Рудакӣ', block: 'district', accessCode: 'DISTRICT039' },
+      { name: 'Шуъбаи КҲМЗ дар шаҳри Ҳисор', block: 'district', accessCode: 'DISTRICT040' },
+      { name: 'Шуъбаи КҲМЗ дар ноҳияи Шаҳринав', block: 'district', accessCode: 'DISTRICT041' },
+      { name: 'Шуъбаи КҲМЗ дар шаҳри Турсунзода', block: 'district', accessCode: 'DISTRICT042' },
+      { name: 'Шуъбаи КҲМЗ дар шаҳри Ваҳдат', block: 'district', accessCode: 'DISTRICT043' },
+      { name: 'Шуъбаи КҲМЗ дар ноҳияи Файзобод', block: 'district', accessCode: 'DISTRICT044' },
+      { name: 'Шуъбаи КҲМЗ дар ноҳияи Рашт', block: 'district', accessCode: 'DISTRICT045' },
+      { name: 'Бахши КҲМЗ дар шаҳри Роғун', block: 'district', accessCode: 'DISTRICT046' },
+      { name: 'Бахши КҲМЗ дар ноҳичи Лахш', block: 'district', accessCode: 'DISTRICT047' },
+      { name: 'Бахши КҲМЗ дар ноҳияи Сангвор', block: 'district', accessCode: 'DISTRICT048' },
+      { name: 'Бахши КҲМЗ дар ноҳияи Нуробод', block: 'district', accessCode: 'DISTRICT049' },
+      { name: 'Бахши КҲМЗ дар ноҳияи Тоҷикобод', block: 'district', accessCode: 'DISTRICT050' },
     ];
 
     // Check and insert departments

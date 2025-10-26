@@ -173,6 +173,7 @@ export default function AdminDashboard() {
   const getBlockLabel = (block: string) => {
     if (block === 'upper') return t.upperBlock;
     if (block === 'middle') return t.middleBlock;
+    if (block === 'district') return t.districtBlock;
     return t.lowerBlock;
   };
 
@@ -304,6 +305,7 @@ export default function AdminDashboard() {
                         <SelectItem value="upper">{t.upperBlock}</SelectItem>
                         <SelectItem value="middle">{t.middleBlock}</SelectItem>
                         <SelectItem value="lower">{t.lowerBlock}</SelectItem>
+                        <SelectItem value="district">{t.districtBlock}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -348,6 +350,7 @@ export default function AdminDashboard() {
                         <SelectItem value="upper">{t.upperBlock}</SelectItem>
                         <SelectItem value="middle">{t.middleBlock}</SelectItem>
                         <SelectItem value="lower">{t.lowerBlock}</SelectItem>
+                        <SelectItem value="district">{t.districtBlock}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
