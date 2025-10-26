@@ -20,25 +20,6 @@ import { Footer } from '@/components/Footer';
 
 export default function ComposeMessage() {
   
-  useEffect(() => {
-    document.body.style.backgroundImage = `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${bgImage})`;
-    document.body.style.backgroundSize = 'cover';
-    document.body.style.backgroundPosition = 'top center';
-    document.body.style.backgroundRepeat = 'no-repeat';
-    document.body.style.backgroundAttachment = 'scroll';
-    document.body.style.minHeight = '0';
-    document.body.style.height = 'auto';
-    
-    return () => {
-      document.body.style.backgroundImage = '';
-      document.body.style.backgroundSize = '';
-      document.body.style.backgroundPosition = '';
-      document.body.style.backgroundRepeat = '';
-      document.body.style.backgroundAttachment = '';
-      document.body.style.minHeight = '';
-      document.body.style.height = '';
-    };
-  }, []);
   const [, setLocation] = useLocation();
   const [lang, setLang] = useState<Language>('tg');
   const [subject, setSubject] = useState('');
@@ -283,9 +264,16 @@ export default function ComposeMessage() {
   };
 
   return (
-    <div className="flex flex-col">
+    <div 
+      className="min-h-screen bg-cover bg-center relative"
+      style={{ backgroundImage: `url(${bgImage})` }}
+    >
+      <div 
+        className="absolute inset-0" 
+        style={{ backgroundColor: 'rgba(255, 255, 255, 0.92)' }}
+      />
       <header 
-        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md"
+        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
         style={{
           background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
         }}
@@ -332,7 +320,7 @@ export default function ComposeMessage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl w-full px-3 py-6 sm:px-4 md:px-6 lg:px-8">
+      <main className="mx-auto max-w-4xl w-full px-3 py-6 sm:px-4 md:px-6 lg:px-8 relative z-10">
         <Card>
           <CardHeader className="px-4 sm:px-6">
             <CardTitle className="text-lg sm:text-xl">{t.newMessage}</CardTitle>
@@ -568,7 +556,9 @@ export default function ComposeMessage() {
           </CardContent>
         </Card>
       </main>
-      <Footer />
+      <div className="relative z-10">
+        <Footer />
+      </div>
     </div>
   );
 }
