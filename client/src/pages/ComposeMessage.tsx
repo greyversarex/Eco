@@ -348,14 +348,31 @@ export default function ComposeMessage() {
                   <Label htmlFor="date">
                     {t.date} <span className="text-destructive">*</span>
                   </Label>
-                  <DatePicker
-                    id="date"
-                    value={date}
-                    onChange={(value) => setDate(value)}
-                    placeholder={lang === 'tg' ? 'Санаро интихоб кунед' : 'Выберите дату'}
-                    required
-                    className="md:w-64"
-                  />
+                  <div className="flex gap-2">
+                    <DatePicker
+                      id="date"
+                      value={date}
+                      onChange={(value) => setDate(value)}
+                      placeholder={lang === 'tg' ? 'Санаро интихоб кунед' : 'Выберите дату'}
+                      required
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const today = new Date();
+                        const year = today.getFullYear();
+                        const month = String(today.getMonth() + 1).padStart(2, "0");
+                        const day = String(today.getDate()).padStart(2, "0");
+                        setDate(`${year}-${month}-${day}`);
+                      }}
+                      className="shrink-0"
+                      data-testid="button-today"
+                    >
+                      {lang === 'tg' ? 'Имрӯз' : 'Сегодня'}
+                    </Button>
+                  </div>
                 </div>
               </div>
 
