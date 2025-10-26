@@ -207,7 +207,7 @@ export default function MessageView() {
                 data-testid="button-home"
               >
                 <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0 drop-shadow-md" />
-                <div className="min-w-0">
+                <div className="min-w-0 text-left">
                   <h1 className="text-sm sm:text-base md:text-lg font-semibold text-white drop-shadow-md truncate">{message?.subject || 'Портали электронӣ'}</h1>
                   <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">Портали электронӣ</p>
                 </div>

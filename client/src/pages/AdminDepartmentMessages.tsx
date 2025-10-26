@@ -65,7 +65,7 @@ export default function AdminDepartmentMessages() {
               </Button>
               <div className="flex items-start gap-2 sm:gap-3 min-w-0 pt-1">
                 <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0" />
-                <div className="min-w-0">
+                <div className="min-w-0 text-left">
                   <h1 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">
                     {department?.name || (lang === 'tg' ? 'Шуъба' : 'Отдел')}
                   </h1>

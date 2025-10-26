@@ -72,7 +72,7 @@ export default function DepartmentMessages() {
                 data-testid="button-home"
               >
                 <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0 drop-shadow-md" />
-                <div className="min-w-0">
+                <div className="min-w-0 text-left">
                   <h1 className="text-sm sm:text-base md:text-lg font-semibold text-white drop-shadow-md truncate">
                     {department?.name || (lang === 'tg' ? 'Шуъба' : 'Отдел')}
                   </h1>

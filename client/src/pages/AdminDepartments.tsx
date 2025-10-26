@@ -68,7 +68,7 @@ export default function AdminDepartments() {
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
             <div className="flex items-start gap-2 sm:gap-3 min-w-0 flex-1 pt-2">
               <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
-              <div className="min-w-0">
+              <div className="min-w-0 text-left">
                 <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{t.adminPanel}</h1>
                 <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">Портали электронӣ</p>
               </div>
