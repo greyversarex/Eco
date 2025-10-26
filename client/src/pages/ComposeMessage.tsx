@@ -16,6 +16,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import type { Department } from '@shared/schema';
+import { Footer } from '@/components/Footer';
 
 export default function ComposeMessage() {
   const [, setLocation] = useLocation();
@@ -317,7 +318,7 @@ export default function ComposeMessage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 pb-8">
+      <main className="mx-auto max-w-4xl px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8">
         <Card>
           <CardHeader className="px-4 sm:px-6">
             <CardTitle className="text-lg sm:text-xl">{t.newMessage}</CardTitle>
@@ -553,6 +554,7 @@ export default function ComposeMessage() {
           </CardContent>
         </Card>
       </main>
+      <Footer />
     </>
   );
 }

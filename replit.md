@@ -2,7 +2,7 @@
 
 ## Recent Changes
 
-### October 26, 2025 - Search Functionality and Layout Fixes
+### October 26, 2025 - Search, Layout, and Footer Updates
 - **Search Functionality "Ҷустуҷӯ" Added:** All department card pages now include search input field before block sections
   - Added to DepartmentMain.tsx: Search filters all 50 departments by name with real-time results
   - Added to AdminDepartments.tsx: Search filters departments in admin message view
@@ -10,11 +10,17 @@
   - Added to AdminDashboard.tsx: Search filters departments in admin management table
   - Search design: Thin line input with Search icon, centered max-width layout
   - Case-insensitive filtering across all department blocks (upper, middle, lower, district)
-- **Fixed ComposeMessage Layout:** Removed white empty space below message composition form
+- **Fixed ComposeMessage Layout:** Removed excessive white space below message composition form
   - Changed background to `fixed inset-0 -z-10` positioned behind content instead of wrapping content
   - Background image and semi-transparent white layer combined using CSS `linear-gradient`
   - Header and main content no longer wrapped in background container
-  - Form now ends naturally with only `pb-8` padding, no extra whitespace
+  - Reduced padding to minimal spacing (~1cm after form)
+- **Added Footer Component:** Created reusable footer with contact information
+  - Website: www.tajnature.tj
+  - Email: info@tajnature.tj
+  - Phone: (+992) 905 12 34 56
+  - Footer displays icons (Globe, Mail, Phone) with links
+  - Added to ComposeMessage page with proper spacing
 
 ### October 26, 2025 - Calendar Localization and UI Improvements
 - **Fixed Tajik Calendar Localization:** Calendar now properly displays months in Tajik (Январ, Феврал, Март, etc.)
