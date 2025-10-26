@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { cn } from "@/lib/utils";
@@ -67,6 +67,15 @@ export function DatePicker({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     value ? new Date(value) : undefined
   );
+
+  // Обновляем selectedDate когда меняется value проп
+  useEffect(() => {
+    if (value) {
+      setSelectedDate(new Date(value));
+    } else {
+      setSelectedDate(undefined);
+    }
+  }, [value]);
 
   const handleSelect = (date: Date | undefined) => {
     setSelectedDate(date);
