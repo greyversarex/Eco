@@ -67,19 +67,19 @@ export default function DepartmentCard({ name, unreadCount, onClick }: Departmen
       onClick={onClick}
       data-testid={`card-department-${name}`}
     >
+      {unreadCount > 0 && (
+        <div 
+          className="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white text-xs font-semibold shadow-md"
+          data-testid={`badge-unread-${name}`}
+        >
+          {unreadCount}
+        </div>
+      )}
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
           <IconComponent className="h-5 w-5" />
         </div>
         <h3 className="text-base font-medium text-foreground flex-1">{name}</h3>
-        {unreadCount > 0 && (
-          <div 
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white text-xs font-semibold shrink-0"
-            data-testid={`badge-unread-${name}`}
-          >
-            {unreadCount}
-          </div>
-        )}
       </div>
     </Card>
   );
