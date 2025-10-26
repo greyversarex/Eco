@@ -263,7 +263,15 @@ export default function ComposeMessage() {
   };
 
   return (
-    <div className="bg-background">
+    <div 
+      className="flex flex-col min-h-0"
+      style={{ 
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'scroll',
+      }}
+    >
       <header 
         className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md"
         style={{
