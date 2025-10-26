@@ -359,7 +359,7 @@ export default function ComposeMessage() {
                     />
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="default"
                       onClick={() => {
                         const today = new Date();
                         const year = today.getFullYear();
@@ -384,7 +384,7 @@ export default function ComposeMessage() {
                   {!loadingDepartments && departments.filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined)).length > 0 && (
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="default"
                       size="sm"
                       onClick={() => {
                         const allDeptIds = departments
@@ -396,7 +396,7 @@ export default function ComposeMessage() {
                           setSelectedRecipients(allDeptIds);
                         }
                       }}
-                      className="h-8 text-xs bg-green-500/10 hover:bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30"
+                      className="h-8 text-xs"
                       data-testid="button-select-all-recipients"
                     >
                       {selectedRecipients.length === departments.filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined)).length
