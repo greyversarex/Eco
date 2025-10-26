@@ -58,7 +58,7 @@ export default function Inbox() {
       sender: isOutbox 
         ? getDepartmentName(msg.recipientId)
         : getDepartmentName(msg.senderId),
-      date: format(new Date(msg.documentDate), 'dd.MM.yyyy'),
+      date: format(new Date(msg.documentDate), 'd. M. yyyy'),
       isRead: msg.isRead,
       hasAttachment: !!msg.attachmentUrl,
       isSentMessage: isOutbox,

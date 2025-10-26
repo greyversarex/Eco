@@ -261,7 +261,7 @@ export default function MessageView() {
                     <div className="text-sm text-muted-foreground mt-1">
                       <span className="font-medium">{t.sender}:</span> {getSenderName(originalMessage.senderId)}
                       {' • '}
-                      <span>{format(new Date(originalMessage.documentDate), 'dd.MM.yyyy')}</span>
+                      <span>{format(new Date(originalMessage.documentDate), 'd. M. yyyy')}</span>
                     </div>
                   </div>
                   <div className="text-sm text-muted-foreground line-clamp-3" data-testid="original-content">
@@ -281,7 +281,7 @@ export default function MessageView() {
                         <span className="font-medium">{t.sender}:</span> {getSenderName(message.senderId)}
                       </p>
                       <p data-testid="text-date">
-                        <span className="font-medium">{t.date}:</span> {format(new Date(message.documentDate), 'dd.MM.yyyy')}
+                        <span className="font-medium">{t.date}:</span> {format(new Date(message.documentDate), 'd. M. yyyy')}
                       </p>
                       {message.executor && (
                         <p data-testid="text-executor">
