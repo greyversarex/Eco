@@ -359,9 +359,34 @@ export default function ComposeMessage() {
               </div>
 
               <div className="space-y-2">
-                <Label>
-                  {t.recipient} <span className="text-destructive">*</span>
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label>
+                    {t.recipient} <span className="text-destructive">*</span>
+                  </Label>
+                  {!loadingDepartments && departments.filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined)).length > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const allDeptIds = departments
+                          .filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined))
+                          .map(dept => dept.id);
+                        if (selectedRecipients.length === allDeptIds.length) {
+                          setSelectedRecipients([]);
+                        } else {
+                          setSelectedRecipients(allDeptIds);
+                        }
+                      }}
+                      className="h-8 text-xs"
+                      data-testid="button-select-all-recipients"
+                    >
+                      {selectedRecipients.length === departments.filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined)).length
+                        ? (lang === 'tg' ? 'Бекор кардан' : 'Отменить все')
+                        : (lang === 'tg' ? 'Ҳамаро қайд кардан' : 'Выбрать все')}
+                    </Button>
+                  )}
+                </div>
                 {loadingDepartments ? (
                   <p className="text-sm text-muted-foreground">
                     {lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}
