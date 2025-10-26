@@ -23,9 +23,11 @@ export default function ComposeMessage() {
   useEffect(() => {
     document.body.style.backgroundImage = `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${bgImage})`;
     document.body.style.backgroundSize = 'cover';
-    document.body.style.backgroundPosition = 'center';
+    document.body.style.backgroundPosition = 'top center';
     document.body.style.backgroundRepeat = 'no-repeat';
-    document.body.style.backgroundAttachment = 'fixed';
+    document.body.style.backgroundAttachment = 'scroll';
+    document.body.style.minHeight = '0';
+    document.body.style.height = 'auto';
     
     return () => {
       document.body.style.backgroundImage = '';
@@ -33,6 +35,8 @@ export default function ComposeMessage() {
       document.body.style.backgroundPosition = '';
       document.body.style.backgroundRepeat = '';
       document.body.style.backgroundAttachment = '';
+      document.body.style.minHeight = '';
+      document.body.style.height = '';
     };
   }, []);
   const [, setLocation] = useLocation();
@@ -279,7 +283,7 @@ export default function ComposeMessage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col">
       <header 
         className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md"
         style={{
@@ -328,7 +332,7 @@ export default function ComposeMessage() {
         </div>
       </header>
 
-      <main className="flex-1 mx-auto max-w-4xl w-full px-3 py-6 sm:px-4 md:px-6 lg:px-8 pb-8">
+      <main className="mx-auto max-w-4xl w-full px-3 py-6 sm:px-4 md:px-6 lg:px-8">
         <Card>
           <CardHeader className="px-4 sm:px-6">
             <CardTitle className="text-lg sm:text-xl">{t.newMessage}</CardTitle>
