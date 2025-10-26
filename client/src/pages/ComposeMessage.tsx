@@ -356,6 +356,7 @@ export default function ComposeMessage() {
                     required
                     data-testid="input-date"
                   />
+                  <p className="text-xs text-muted-foreground">рӯз. моҳ. сол</p>
                 </div>
               </div>
 
