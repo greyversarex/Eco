@@ -355,7 +355,7 @@ export default function ComposeMessage() {
                     placeholder={lang === 'tg' ? 'Санаро интихоб кунед' : 'Выберите дату'}
                     required
                   />
-                  <p className="text-xs text-muted-foreground ml-10">рӯз. моҳ. сол</p>
+                  <p className="text-xs text-muted-foreground ml-[5px] mr-[5px]">рӯз. моҳ. сол</p>
                 </div>
               </div>
 
