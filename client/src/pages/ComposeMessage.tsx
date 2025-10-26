@@ -263,19 +263,13 @@ export default function ComposeMessage() {
 
   return (
     <div 
-      className="bg-cover bg-center relative pb-8"
+      className="bg-cover bg-center bg-fixed pb-8"
       style={{ 
-        backgroundImage: `url(${bgImage})`,
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${bgImage})`,
       }}
     >
-      <div 
-        className="absolute inset-0 pointer-events-none" 
-        style={{
-          background: 'rgba(255, 255, 255, 0.92)'
-        }}
-      />
       <header 
-        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
+        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md"
         style={{
           background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
         }}
