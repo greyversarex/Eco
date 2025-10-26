@@ -218,7 +218,19 @@
     @apply border-border;
   }
 
-  html, body, #root {
+  html {
+    @apply m-0 p-0;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  
+  body {
+    @apply m-0 p-0;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  
+  #root {
     @apply m-0 p-0;
   }
 
