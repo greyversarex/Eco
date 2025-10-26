@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,22 @@ import type { Department } from '@shared/schema';
 import { Footer } from '@/components/Footer';
 
 export default function ComposeMessage() {
+  
+  useEffect(() => {
+    document.body.style.backgroundImage = `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${bgImage})`;
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundPosition = 'center';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundAttachment = 'fixed';
+    
+    return () => {
+      document.body.style.backgroundImage = '';
+      document.body.style.backgroundSize = '';
+      document.body.style.backgroundPosition = '';
+      document.body.style.backgroundRepeat = '';
+      document.body.style.backgroundAttachment = '';
+    };
+  }, []);
   const [, setLocation] = useLocation();
   const [lang, setLang] = useState<Language>('tg');
   const [subject, setSubject] = useState('');
@@ -263,15 +279,7 @@ export default function ComposeMessage() {
   };
 
   return (
-    <div 
-      className="flex flex-col min-h-screen"
-      style={{ 
-        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${bgImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
+    <div className="flex flex-col min-h-screen">
       <header 
         className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md"
         style={{
