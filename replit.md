@@ -2,6 +2,13 @@
 
 ## Recent Changes
 
+### October 26, 2025 - Header Alignment and Date Input Placeholder
+- **Header Text Alignment:** Changed header text alignment from center to left (items-start) across all pages for logo and title text
+  - Applied to all department pages: DepartmentMain, Inbox, ComposeMessage, MessageView, DepartmentMessages
+  - Applied to all admin pages: AdminDepartments, AdminDashboard, AdminDepartmentMessages
+  - Applied to MonitoringDashboard
+- **Date Input Placeholder:** Added "рӯз. моҳ. сол" placeholder to date input field in ComposeMessage form
+
 ### October 26, 2025 - UI Refinements and Date Format Update
 - **Department Card Layout:** Modified text display to show first word on first line, remaining text on second line (DepartmentCard.tsx)
 - **Unread Badge Positioning:** Moved unread message count badges to top-right corner of department cards using absolute positioning with shadow effect
