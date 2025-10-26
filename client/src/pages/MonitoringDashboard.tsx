@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import DepartmentCard from '@/components/DepartmentCard';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Search } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import { useQuery } from '@tanstack/react-query';
 import logoImage from '@assets/logo-optimized.webp';
@@ -18,17 +19,23 @@ interface DepartmentStats {
 export default function MonitoringDashboard() {
   const [, setLocation] = useLocation();
   const [lang, setLang] = useState<Language>('tg');
+  const [searchQuery, setSearchQuery] = useState('');
   const t = useTranslation(lang);
 
   const { data: stats = [], isLoading } = useQuery<DepartmentStats[]>({
     queryKey: ['/api/monitoring/unread-stats'],
   });
 
+  // Filter departments by search query
+  const filteredStats = stats.filter((dept) =>
+    dept.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const groupedDepartments = {
-    upper: stats.filter(d => d.block === 'upper'),
-    middle: stats.filter(d => d.block === 'middle'),
-    lower: stats.filter(d => d.block === 'lower'),
-    district: stats.filter(d => d.block === 'district'),
+    upper: filteredStats.filter(d => d.block === 'upper'),
+    middle: filteredStats.filter(d => d.block === 'middle'),
+    lower: filteredStats.filter(d => d.block === 'lower'),
+    district: filteredStats.filter(d => d.block === 'district'),
   };
 
   return (
@@ -88,6 +95,20 @@ export default function MonitoringDashboard() {
           </div>
         ) : (
           <div className="space-y-8">
+            {/* Поисковик */}
+            <div className="max-w-xl mx-auto">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder={lang === 'tg' ? 'Ҷустуҷӯ' : 'Поиск'}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-10 border-muted-foreground/20 focus:border-primary"
+                  data-testid="input-search"
+                />
+              </div>
+            </div>
             {groupedDepartments.upper.length > 0 && (
               <section>
                 <h2 className="mb-4 text-lg font-semibold text-foreground">{t.upperBlock}</h2>

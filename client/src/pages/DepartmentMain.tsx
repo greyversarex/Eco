@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import MobileNav from '@/components/MobileNav';
 import DepartmentCard from '@/components/DepartmentCard';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { Inbox, Send, PenSquare, LogOut } from 'lucide-react';
+import { Inbox, Send, PenSquare, LogOut, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import type { Department } from '@shared/schema';
@@ -14,6 +15,7 @@ import logoImage from '@assets/logo-optimized.webp';
 export default function DepartmentMain() {
   const [, setLocation] = useLocation();
   const [lang, setLang] = useState<Language>('tg');
+  const [searchQuery, setSearchQuery] = useState('');
   const t = useTranslation(lang);
   const { user, logout } = useAuth();
 
@@ -25,12 +27,17 @@ export default function DepartmentMain() {
     queryKey: ['/api/messages/unread/by-department'],
   });
 
+  // Filter departments by search query
+  const filteredDepartments = departments.filter((dept) =>
+    dept.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   // Group departments by block
   const departmentsByBlock = {
-    upper: departments.filter((d) => d.block === 'upper'),
-    middle: departments.filter((d) => d.block === 'middle'),
-    lower: departments.filter((d) => d.block === 'lower'),
-    district: departments.filter((d) => d.block === 'district'),
+    upper: filteredDepartments.filter((d) => d.block === 'upper'),
+    middle: filteredDepartments.filter((d) => d.block === 'middle'),
+    lower: filteredDepartments.filter((d) => d.block === 'lower'),
+    district: filteredDepartments.filter((d) => d.block === 'district'),
   };
 
   const handleDepartmentClick = (departmentId: number) => {
@@ -140,6 +147,20 @@ export default function DepartmentMain() {
           </div>
         ) : (
           <div className="space-y-8">
+            {/* Поисковик */}
+            <div className="max-w-xl mx-auto">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder={lang === 'tg' ? 'Ҷустуҷӯ' : 'Поиск'}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-10 border-muted-foreground/20 focus:border-primary"
+                  data-testid="input-search"
+                />
+              </div>
+            </div>
             {departmentsByBlock.upper.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold text-foreground px-2">{t.upperBlock}</h2>

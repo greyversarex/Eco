@@ -263,13 +263,13 @@ export default function ComposeMessage() {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-fixed relative"
+      className="bg-cover bg-center relative pb-8"
       style={{ 
         backgroundImage: `url(${bgImage})`,
       }}
     >
       <div 
-        className="absolute inset-0" 
+        className="absolute inset-0 pointer-events-none" 
         style={{
           background: 'rgba(255, 255, 255, 0.92)'
         }}

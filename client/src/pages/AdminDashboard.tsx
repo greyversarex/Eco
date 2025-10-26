@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy } from 'lucide-react';
+import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -37,6 +37,7 @@ import logoImage from '@assets/logo-optimized.webp';
 
 export default function AdminDashboard() {
   const [lang, setLang] = useState<Language>('tg');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
@@ -50,9 +51,14 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: departments = [], isLoading } = useQuery<Department[]>({
+  const { data: allDepartments = [], isLoading } = useQuery<Department[]>({
     queryKey: ['/api/departments'],
   });
+
+  // Filter departments by search query
+  const departments = allDepartments.filter((dept) =>
+    dept.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const createMutation = useMutation({
     mutationFn: async (data: { name: string; block: string }) => {
@@ -247,7 +253,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">{t.departments}</p>
-                <p className="text-2xl font-semibold text-foreground">{departments.length}</p>
+                <p className="text-2xl font-semibold text-foreground">{allDepartments.length}</p>
               </div>
             </div>
           </div>
@@ -266,6 +272,21 @@ export default function AdminDashboard() {
         </div>
 
         <div className="space-y-4">
+          {/* Поисковик */}
+          <div className="max-w-xl">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder={lang === 'tg' ? 'Ҷустуҷӯ' : 'Поиск'}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-10 border-muted-foreground/20 focus:border-primary"
+                data-testid="input-search"
+              />
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <h2 className="text-lg sm:text-xl font-semibold text-foreground">{t.departments}</h2>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
