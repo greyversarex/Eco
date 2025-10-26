@@ -265,15 +265,13 @@ export default function ComposeMessage() {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center relative"
-      style={{ backgroundImage: `url(${bgImage})` }}
+      className="bg-cover bg-center"
+      style={{ 
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${bgImage})`
+      }}
     >
-      <div 
-        className="absolute inset-0" 
-        style={{ backgroundColor: 'rgba(255, 255, 255, 0.92)' }}
-      />
       <header 
-        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
+        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md"
         style={{
           background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
         }}
@@ -320,7 +318,7 @@ export default function ComposeMessage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl w-full px-3 py-6 sm:px-4 md:px-6 lg:px-8 relative z-10">
+      <main className="mx-auto max-w-4xl w-full px-3 py-6 sm:px-4 md:px-6 lg:px-8">
         <Card>
           <CardHeader className="px-4 sm:px-6">
             <CardTitle className="text-lg sm:text-xl">{t.newMessage}</CardTitle>
@@ -556,9 +554,7 @@ export default function ComposeMessage() {
           </CardContent>
         </Card>
       </main>
-      <div className="relative z-10">
-        <Footer />
-      </div>
+      <Footer />
     </div>
   );
 }
