@@ -25,7 +25,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -234,7 +233,6 @@ export default function AdminDashboard() {
                 <LogOut className="h-4 w-4" />
                 <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
               </Button>
-              <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
             </div>
           </div>
         </div>

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import DepartmentCard from '@/components/DepartmentCard';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { ArrowLeft } from 'lucide-react';
@@ -76,7 +75,6 @@ export default function MonitoringDashboard() {
                 </div>
               </button>
             </div>
-            <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
           </div>
         </div>
       </header>

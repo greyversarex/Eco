@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import MobileNav from '@/components/MobileNav';
 import DepartmentCard from '@/components/DepartmentCard';
 import { useTranslation, type Language } from '@/lib/i18n';
@@ -125,7 +124,6 @@ export default function DepartmentMain() {
                   <LogOut className="h-4 w-4" />
                   <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
                 </Button>
-                <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
               </div>
             </div>
           </div>

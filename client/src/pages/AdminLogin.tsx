@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -69,10 +68,6 @@ export default function AdminLogin() {
           backgroundPosition: 'center center'
         }}
       />
-      
-      <div className="absolute top-4 right-4 z-20">
-        <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
-      </div>
       
       <div className="w-full max-w-md relative z-10 flex flex-col items-center -mt-16 md:ml-12">
         <div className="text-center space-y-2 mb-6">

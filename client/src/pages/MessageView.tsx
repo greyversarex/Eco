@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useLocation, useParams } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -227,7 +226,6 @@ export default function MessageView() {
                 <LogOut className="h-4 w-4" />
                 <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
               </Button>
-              <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
             </div>
           </div>
         </div>

@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import MessageListItem from '@/components/MessageListItem';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { ArrowLeft, Trash2, LogOut } from 'lucide-react';
@@ -226,7 +225,6 @@ export default function Inbox() {
                 <LogOut className="h-4 w-4" />
                 <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
               </Button>
-              <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
             </div>
           </div>
         </div>

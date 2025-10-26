@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { ArrowLeft, Paperclip, X, LogOut } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
@@ -317,7 +316,6 @@ export default function ComposeMessage() {
                 <LogOut className="h-4 w-4" />
                 <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
               </Button>
-              <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
             </div>
           </div>
         </div>

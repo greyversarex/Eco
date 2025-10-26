@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useLocation, useRoute } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import MessageListItem from '@/components/MessageListItem';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { ArrowLeft } from 'lucide-react';
@@ -74,7 +73,6 @@ export default function AdminDepartmentMessages() {
                 </div>
               </div>
             </div>
-            <LanguageSwitcher currentLang={lang} onLanguageChange={setLang} />
           </div>
         </div>
       </header>
