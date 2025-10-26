@@ -2,6 +2,15 @@
 
 ## Recent Changes
 
+### October 26, 2025 - Custom Tajik Calendar Implementation
+- **Custom DatePicker Component:** Created fully localized Tajik calendar using react-day-picker library
+  - Replaced native browser date input with custom component (client/src/components/ui/date-picker.tsx)
+  - Full Tajik localization: months, weekdays, and custom buttons
+  - Tajik button labels: "Имрӯз" (Today) and "Тоза кардан" (Clear)
+  - Date format display: "d. M. yyyy" (рӯз. моҳ. сол)
+  - Integrated into ComposeMessage form with text hint below input field
+  - Added custom CSS styles for calendar appearance matching app design
+
 ### October 26, 2025 - Header Alignment and Date Input Placeholder
 - **Header Text Alignment:** Changed header text alignment from center to left (items-start) across all pages for logo and title text
   - Applied to all department pages: DepartmentMain, Inbox, ComposeMessage, MessageView, DepartmentMessages
