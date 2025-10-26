@@ -12,7 +12,8 @@
   - Removed "рӯз. моҳ. сол" helper text below date picker
   - Added standalone "Имрӯз" button next to date picker field for quick selection of current date
   - Date field now uses flex layout (flex-1) with "Імрӯз" button (shrink-0) to prevent deformation
-  - "Ҳамаро қайд кардан" (Select All) button now has green styling (bg-green-500/10 hover:bg-green-500/20 text-green-700)
+  - "Ҳамаро қайд кардан" (Select All) button now uses primary styling matching the "Имрӯз" button design
+  - Both "Имрӯз" and "Ҳамаро қайд кардан" buttons use variant="default" for consistent primary coloring
 
 ### October 26, 2025 - Custom Tajik Calendar Implementation
 - **Custom DatePicker Component:** Created fully localized Tajik calendar using react-day-picker library
