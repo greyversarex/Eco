@@ -263,12 +263,7 @@ export default function ComposeMessage() {
   };
 
   return (
-    <div 
-      className="bg-cover bg-center"
-      style={{ 
-        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), url(${bgImage})`,
-      }}
-    >
+    <div className="bg-background">
       <header 
         className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md"
         style={{
