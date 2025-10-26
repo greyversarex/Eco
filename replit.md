@@ -2,6 +2,16 @@
 
 ## Recent Changes
 
+### October 26, 2025 - UI Refinements and Date Format Update
+- **Department Card Layout:** Modified text display to show first word on first line, remaining text on second line (DepartmentCard.tsx)
+- **Unread Badge Positioning:** Moved unread message count badges to top-right corner of department cards using absolute positioning with shadow effect
+- **Select All Recipients:** Added "Ҳамаро қайд кардан" (Select All) button in message compose form for recipient selection with toggle functionality
+- **Date Format Change:** Updated date format from dd.MM.yyyy to d. M. yyyy (рӯз. моҳ. сол) across all pages (Inbox.tsx, MessageView.tsx)
+  - Example: "26. 10. 2025" instead of "26.10.2025"
+- **Login Page Subtitle:** Added "Портали рақамии Кумитаи ҳифзи муҳити зист" subtitle below main title on both department and admin login pages
+- **Header Text Update:** Changed header text from "ЭкоТоҷикистон" to "Портали электронӣ" across all pages
+- **Language Switcher Removal:** Completely removed LanguageSwitcher component from all pages for single-language operation
+
 ### October 26, 2025 - UI Improvements: Block Labels and Message Layout
 - **Fixed Message View Layout:** Content/comment now displays immediately after executor field instead of after attachments (MessageView.tsx)
 - **Added Block Headers:** All three department views now show block titles before each department group:
