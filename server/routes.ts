@@ -435,7 +435,7 @@ export function registerRoutes(app: Express) {
         content: req.body.content,
         senderId: parseInt(req.body.senderId),
         executor: req.body.executor || null,
-        documentDate: req.body.documentDate,
+        documentDate: new Date(req.body.documentDate),
         replyToId: null,
       };
 
