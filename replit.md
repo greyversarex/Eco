@@ -2,6 +2,33 @@
 
 ## Recent Updates
 
+### October 27, 2025 - Broadcast Messaging Optimization & UI Improvements
+**Critical Performance Fix:** Resolved severe hang/timeout when sending messages to all departments (49 recipients).
+
+**Problem Identified:**
+- Sending to 49 departments with 2 files required **147 HTTP requests** (49 for messages + 98 for file uploads)
+- Total time: **~3 minutes** for completion
+- Each file uploaded 49 times (massive bandwidth waste)
+- UI appeared frozen during this process
+
+**Solution Implemented:**
+- New optimized backend endpoint: `POST /api/messages/broadcast`
+  - Accepts multipart/form-data with recipientIds (JSON array) + files + message fields
+  - Uploads files **once** from client, creates server-side copies for each recipient
+  - Reduces **147 requests → 1 request** (98% reduction)
+  - Expected time: **~3-5 seconds** vs 3 minutes (60x faster)
+- Frontend smart routing: uses broadcast for multiple recipients, keeps original endpoint for single recipient
+- Security maintained: authentication, senderId validation, MIME type checking
+
+**UI Improvements:**
+- Removed "(то 5 адад, 100МБ ҳар як)" text from file upload section (cleaner interface)
+- Changed file selection button from outline to primary green color (consistency with other buttons)
+
+**Architecture Notes:**
+- Files stored once in database per message (not per recipient-file combination)
+- Atomic operations per recipient with isolated error handling
+- Failed recipients tracked in response JSON for transparency
+
 ### October 26, 2025 - Comprehensive Performance Optimization for Slow Internet
 Platform optimized for 2G/3G networks common in rural Tajikistan, achieving 85% reduction in data transfer:
 
