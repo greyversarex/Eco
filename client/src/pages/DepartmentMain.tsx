@@ -47,7 +47,7 @@ export default function DepartmentMain() {
 
   return (
     <div 
-      className="min-h-screen flex flex-col bg-cover bg-center bg-fixed relative"
+      className="min-h-screen bg-cover bg-center bg-fixed relative"
       style={{ 
         backgroundImage: `url(${bgImage})`,
       }}
@@ -138,7 +138,7 @@ export default function DepartmentMain() {
         </div>
       </header>
 
-      <main className="flex-1 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <div className="text-center">

@@ -132,7 +132,7 @@ export default function Inbox() {
 
   return (
     <div 
-      className="min-h-screen flex flex-col bg-cover bg-center bg-fixed relative"
+      className="min-h-screen bg-cover bg-center bg-fixed relative"
       style={{ 
         backgroundImage: `url(${bgImage})`,
       }}
@@ -231,7 +231,7 @@ export default function Inbox() {
         </div>
       </header>
 
-      <main className="flex-1 mx-auto max-w-4xl relative z-10">
+      <main className="mx-auto max-w-4xl relative z-10">
         <div className="border-x border-border bg-background/95 backdrop-blur-sm min-h-screen">
           {loadingMessages || loadingDepartments ? (
             <div className="flex items-center justify-center p-12">
