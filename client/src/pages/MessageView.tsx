@@ -269,28 +269,28 @@ export default function MessageView() {
               </Card>
             )}
 
-            <Card>
-              <CardHeader className="space-y-4">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <h2 className="text-xl font-semibold text-foreground" data-testid="text-subject">{message.subject}</h2>
-                    <div className="space-y-1 text-sm text-muted-foreground">
+            <Card className="border-border/40">
+              <CardHeader className="pb-6 space-y-6 border-b">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-3">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground" data-testid="text-subject">{message.subject}</h2>
+                    <div className="space-y-2 text-base text-muted-foreground">
                       <p data-testid="text-sender">
-                        <span className="font-medium">{t.sender}:</span> {getSenderName(message.senderId)}
+                        <span className="font-semibold text-foreground">{t.sender}:</span> {getSenderName(message.senderId)}
                       </p>
                       <p data-testid="text-date">
-                        <span className="font-medium">{t.date}:</span> {format(new Date(message.documentDate), 'd. M. yyyy')}
+                        <span className="font-semibold text-foreground">{t.date}:</span> {format(new Date(message.documentDate), 'd. M. yyyy')}
                       </p>
                       {message.executor && (
                         <p data-testid="text-executor">
-                          <span className="font-medium">{t.executor}:</span> {message.executor}
+                          <span className="font-semibold text-foreground">{t.executor}:</span> {message.executor}
                         </p>
                       )}
                     </div>
                   </div>
                   {user?.userType === 'department' && (
-                    <div className="flex gap-2">
-                      <Button onClick={handleReply} data-testid="button-reply" className="gap-2">
+                    <div className="flex gap-2 shrink-0">
+                      <Button onClick={handleReply} data-testid="button-reply" className="gap-2" size="lg">
                         <Reply className="h-4 w-4" />
                         {t.reply}
                       </Button>
@@ -298,6 +298,7 @@ export default function MessageView() {
                         onClick={handleDelete} 
                         data-testid="button-delete" 
                         variant="destructive"
+                        size="lg"
                         className="gap-2"
                         disabled={deleteMessageMutation.isPending}
                       >
@@ -310,55 +311,38 @@ export default function MessageView() {
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-8">
-                <section
-                  className="rounded-2xl border-2 border-emerald-200/70 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-50/40 via-white to-white dark:from-slate-800 dark:via-slate-900 dark:to-slate-900 shadow-lg shadow-emerald-100/30 dark:shadow-none overflow-hidden"
-                  data-testid="section-content"
-                >
-                  <div className="flex items-center gap-3 px-6 py-4 border-b-2 border-emerald-100/70 dark:border-emerald-900/40 bg-gradient-to-r from-emerald-50 to-white dark:from-slate-800 dark:to-slate-900">
-                    <Leaf className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                    <h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-100" data-testid="heading-content">
-                      {lang === 'tg' ? 'Мазмун' : 'Содержимое сообщения'}
-                    </h3>
+              <CardContent className="pt-8 space-y-8">
+                <div className="prose prose-lg max-w-none" data-testid="text-content">
+                  <div className="whitespace-pre-line text-lg leading-relaxed text-foreground">
+                    {message.content}
                   </div>
-                  <div className="px-6 py-6 sm:px-8 sm:py-8 bg-white dark:bg-slate-900">
-                    <div
-                      className="whitespace-pre-line text-base sm:text-lg leading-relaxed sm:leading-8 text-gray-900 dark:text-gray-100"
-                      data-testid="text-content"
-                    >
-                      {message.content}
-                    </div>
-                  </div>
-                </section>
+                </div>
 
                 {attachments.length > 0 && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Paperclip className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                      <p className="text-base font-semibold text-emerald-900 dark:text-emerald-100">
-                        {lang === 'tg' ? 'Замимашудаҳо' : 'Вложения'} ({attachments.length})
-                      </p>
-                    </div>
-                    <div className="space-y-2">
+                  <div className="space-y-4 pt-4 border-t">
+                    <h3 className="text-xl font-semibold text-foreground">
+                      {lang === 'tg' ? 'Замимашудаҳо' : 'Вложения'} ({attachments.length})
+                    </h3>
+                    <div className="space-y-3">
                       {attachments.map((attachment, index) => (
-                        <div key={attachment.id} className="flex items-center gap-3 rounded-lg border-2 border-emerald-100 dark:border-emerald-900/40 bg-white dark:bg-slate-900 p-4 hover:border-emerald-200 dark:hover:border-emerald-800 transition-colors">
-                          <Paperclip className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                        <div key={attachment.id} className="flex items-center gap-4 rounded-lg border border-border bg-card p-5 hover:bg-accent/50 transition-colors">
+                          <Paperclip className="h-6 w-6 text-muted-foreground shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate" data-testid={`text-attachment-${index}`}>
+                            <p className="text-base font-medium text-foreground truncate" data-testid={`text-attachment-${index}`}>
                               {attachment.filename}
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-sm text-muted-foreground">
                               {(attachment.fileSize / 1024 / 1024).toFixed(2)} МБ
                             </p>
                           </div>
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            variant="outline"
+                            size="lg"
                             onClick={() => handleDownload(attachment.id, attachment.filename)}
                             data-testid={`button-download-${index}`}
-                            className="gap-2 hover:bg-emerald-50 dark:hover:bg-emerald-950"
+                            className="gap-2 shrink-0"
                           >
-                            <Download className="h-4 w-4" />
+                            <Download className="h-5 w-5" />
                             {t.download}
                           </Button>
                         </div>
