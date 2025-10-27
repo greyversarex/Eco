@@ -231,7 +231,7 @@ export default function Inbox() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl relative z-10">
+      <main className="mx-auto max-w-6xl relative z-10">
         <div className="border-x border-border bg-background/95 backdrop-blur-sm min-h-screen">
           {loadingMessages || loadingDepartments ? (
             <div className="flex items-center justify-center p-12">

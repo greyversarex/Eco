@@ -95,7 +95,7 @@ export default function DepartmentMessages() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl relative z-10 py-6">
+      <main className="mx-auto max-w-6xl relative z-10 py-6">
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
