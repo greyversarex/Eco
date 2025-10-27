@@ -101,7 +101,14 @@ export default function MessageView() {
 
   // Determine if current message is sent or received
   const isSentMessage = message && user?.userType === 'department' && message.senderId === user.department.id;
-  const backLocation = isSentMessage ? '/department/outbox' : '/department/inbox';
+  
+  // Determine back location based on user type
+  let backLocation = '/department/inbox';
+  if (user?.userType === 'admin') {
+    backLocation = '/admin/departments';
+  } else if (isSentMessage) {
+    backLocation = '/department/outbox';
+  }
 
   const deleteMessageMutation = useMutation({
     mutationFn: async (messageId: string) => {
