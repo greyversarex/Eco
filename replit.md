@@ -2,7 +2,7 @@
 
 ## Recent Updates
 
-### October 27, 2025 - Broadcast Messaging Optimization & UI Improvements
+### October 27, 2025 - Broadcast Messaging Optimization & UX Enhancements
 **Critical Performance Fix:** Resolved severe hang/timeout when sending messages to all departments (49 recipients).
 
 **Problem Identified:**
@@ -20,7 +20,18 @@
 - Frontend smart routing: uses broadcast for multiple recipients, keeps original endpoint for single recipient
 - Security maintained: authentication, senderId validation, MIME type checking
 
-**UI Improvements:**
+**UX Improvements:**
+- **Message Card Hover Effect:** Added visual feedback when hovering over message cards:
+  - Green border highlight (hover:border-primary)
+  - Subtle shadow effect (hover:shadow-md)
+  - Background highlight (hover:bg-primary/5)
+  - Smooth transition animation (200ms)
+  - Effect only applies to unselected, clickable cards to preserve selection state
+- **File Upload Workflow Simplification:** 
+  - Removed ability to upload files to existing messages (inbox/outbox view)
+  - Files can only be attached during message composition
+  - Clearer, more intuitive workflow for users
+  - Reduced code complexity and potential confusion
 - Removed "(то 5 адад, 100МБ ҳар як)" text from file upload section (cleaner interface)
 - Changed file selection button from outline to primary green color (consistency with other buttons)
 
