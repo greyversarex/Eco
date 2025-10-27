@@ -185,7 +185,7 @@ export default function AdminDashboard() {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-fixed relative"
+      className="min-h-screen flex flex-col bg-cover bg-center bg-fixed relative"
       style={{ 
         backgroundImage: `url(${bgImage})`,
       }}
@@ -245,7 +245,7 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
+      <div className="flex-1 mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
         <div className="mb-6 sm:mb-8 grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-lg border border-border bg-card p-6">
             <div className="flex items-center gap-3">

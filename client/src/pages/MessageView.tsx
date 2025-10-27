@@ -163,7 +163,7 @@ export default function MessageView() {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-fixed relative"
+      className="min-h-screen flex flex-col bg-cover bg-center bg-fixed relative"
       style={{ 
         backgroundImage: `url(${bgImage})`,
       }}
@@ -222,7 +222,7 @@ export default function MessageView() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
+      <main className="flex-1 mx-auto max-w-4xl px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
