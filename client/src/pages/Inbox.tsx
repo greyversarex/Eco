@@ -251,15 +251,14 @@ export default function Inbox() {
               {isDeleteMode && (
                 <div className="border-b border-border px-4 py-2 bg-muted/30">
                   <Button
-                    variant="ghost"
                     size="sm"
                     onClick={handleSelectAll}
                     data-testid="button-select-all"
-                    className="text-xs text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-500 dark:hover:bg-green-950"
+                    className="gap-2 bg-green-600 text-white hover:bg-green-700 border-0 font-medium shadow-sm"
                   >
                     {selectedIds.size === formattedMessages.length
                       ? (lang === 'tg' ? 'Бекор кардани интихоб' : 'Снять выделение')
-                      : (lang === 'tg' ? 'Интихоби ҳама' : 'Выбрать все')}
+                      : (lang === 'tg' ? 'Ҳамаро қайд кардан' : 'Выбрать все')}
                   </Button>
                 </div>
               )}
