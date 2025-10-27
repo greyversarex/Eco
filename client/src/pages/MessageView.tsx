@@ -22,6 +22,19 @@ interface Attachment {
   uploadedAt: string;
 }
 
+const formatDateTajik = (date: Date, lang: Language) => {
+  const monthsTajik = [
+    'январ', 'феврал', 'март', 'апрел', 'май', 'июн',
+    'июл', 'август', 'сентябр', 'октябр', 'ноябр', 'декабр'
+  ];
+  
+  const day = date.getDate();
+  const month = lang === 'tg' ? monthsTajik[date.getMonth()] : monthsTajik[date.getMonth()];
+  const year = date.getFullYear();
+  
+  return `${day} ${month} ${year}`;
+};
+
 export default function MessageView() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
@@ -169,7 +182,18 @@ export default function MessageView() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950 relative">
+    <div 
+      className="min-h-screen flex flex-col bg-cover bg-center bg-fixed relative"
+      style={{ 
+        backgroundImage: `url(${bgImage})`,
+      }}
+    >
+      <div 
+        className="absolute inset-0" 
+        style={{
+          background: 'rgba(255, 255, 255, 0.92)'
+        }}
+      />
       <header 
         className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
         style={{
@@ -235,7 +259,7 @@ export default function MessageView() {
         ) : (
           <div className="space-y-4">
             {originalMessage && (
-              <Card className="bg-muted/30" data-testid="original-message">
+              <Card className="bg-white dark:bg-slate-900" data-testid="original-message">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Reply className="h-4 w-4" />
@@ -248,7 +272,7 @@ export default function MessageView() {
                     <div className="text-sm text-muted-foreground mt-1">
                       <span className="font-medium">{t.sender}:</span> {getSenderName(originalMessage.senderId)}
                       {' • '}
-                      <span>{format(new Date(originalMessage.documentDate), 'd. M. yyyy')}</span>
+                      <span>{formatDateTajik(new Date(originalMessage.documentDate), lang)}</span>
                     </div>
                   </div>
                   <div className="text-sm text-muted-foreground line-clamp-3" data-testid="original-content">
@@ -258,7 +282,7 @@ export default function MessageView() {
               </Card>
             )}
 
-            <Card className="border-border/40">
+            <Card className="border-border/40 bg-white dark:bg-slate-900">
               <CardHeader className="pb-6 space-y-6 border-b">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-3">
@@ -268,7 +292,7 @@ export default function MessageView() {
                         <span className="font-semibold text-foreground">{t.sender}:</span> {getSenderName(message.senderId)}
                       </p>
                       <p data-testid="text-date">
-                        <span className="font-semibold text-foreground">{t.date}:</span> {format(new Date(message.documentDate), 'd. M. yyyy')}
+                        <span className="font-semibold text-foreground">{t.date}:</span> {formatDateTajik(new Date(message.documentDate), lang)}
                       </p>
                       {message.executor && (
                         <p data-testid="text-executor">

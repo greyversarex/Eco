@@ -125,6 +125,34 @@ export default function ComposeMessage() {
       return;
     }
 
+    // Validate required fields
+    if (!subject.trim()) {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: lang === 'tg' ? 'Мавзуъро ворид кунед' : 'Введите тему',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!date) {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: lang === 'tg' ? 'Санаро интихоб кунед' : 'Выберите дату',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!content.trim()) {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: lang === 'tg' ? 'Мазмунро ворид кунед' : 'Введите содержание',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     // Validate that at least one recipient is selected
     if (selectedRecipients.length === 0) {
       toast({
@@ -360,7 +388,6 @@ export default function ComposeMessage() {
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     placeholder={t.enterSubject}
-                    required
                     data-testid="input-subject"
                   />
                 </div>
@@ -375,7 +402,6 @@ export default function ComposeMessage() {
                       value={date}
                       onChange={(value) => setDate(value)}
                       placeholder={lang === 'tg' ? 'Санаро интихоб кунед' : 'Выберите дату'}
-                      required
                       className="flex-1"
                     />
                     <Button
@@ -486,7 +512,6 @@ export default function ComposeMessage() {
                   onChange={(e) => setContent(e.target.value)}
                   placeholder={t.enterContent}
                   rows={8}
-                  required
                   data-testid="textarea-content"
                 />
               </div>
