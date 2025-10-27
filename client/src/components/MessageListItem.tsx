@@ -43,8 +43,10 @@ export default function MessageListItem({
 
   return (
     <div
-      className={`flex items-center justify-between border-b border-border px-6 py-4 ${
-        !selectable ? 'cursor-pointer hover-elevate' : 'cursor-default'
+      className={`flex items-center justify-between border-b border-border px-6 py-4 transition-all duration-200 ${
+        !selectable && !isSelected ? 'cursor-pointer hover:border-primary hover:shadow-md hover:bg-primary/5' : ''
+      } ${
+        selectable && !isSelected ? 'cursor-default' : ''
       } ${
         !isRead && !isSentMessage ? 'bg-primary/5' : 'bg-background'
       } ${isSelected ? 'bg-primary/10' : ''}`}

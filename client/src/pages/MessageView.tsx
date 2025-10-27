@@ -12,7 +12,6 @@ import type { Message, Department } from '@shared/schema';
 import { format } from 'date-fns';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
-import ObjectUploader from '@/components/ObjectUploader';
 import { Footer } from '@/components/Footer';
 
 interface Attachment {
@@ -42,7 +41,7 @@ export default function MessageView() {
   });
 
   // Load attachments from database
-  const { data: attachments = [], refetch: refetchAttachments } = useQuery<Attachment[]>({
+  const { data: attachments = [] } = useQuery<Attachment[]>({
     queryKey: ['/api/messages', id, 'attachments'],
     enabled: !!id,
   });
@@ -160,15 +159,6 @@ export default function MessageView() {
         variant: 'destructive',
       });
     }
-  };
-
-  const handleUploadComplete = () => {
-    // Refresh attachments list after upload
-    refetchAttachments();
-    toast({
-      title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-      description: lang === 'tg' ? 'Файл бор шуд' : 'Файл загружен',
-    });
   };
 
   return (
@@ -346,23 +336,6 @@ export default function MessageView() {
                         </Button>
                       </div>
                     ))}
-                  </div>
-                )}
-
-                {/* Allow sender or recipient to upload files */}
-                {user?.userType === 'department' && message && 
-                  (message.senderId === user.department.id || message.recipientId === user.department.id) && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {lang === 'tg' ? 'Илова кардани файл' : 'Добавить файл'}
-                    </p>
-                    <ObjectUploader 
-                      messageId={parseInt(id || '0')}
-                      onUploadComplete={handleUploadComplete}
-                      language={lang}
-                      maxSizeMB={100}
-                      maxFiles={5}
-                    />
                   </div>
                 )}
               </CardContent>
