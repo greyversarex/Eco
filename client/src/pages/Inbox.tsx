@@ -255,7 +255,7 @@ export default function Inbox() {
                     size="sm"
                     onClick={handleSelectAll}
                     data-testid="button-select-all"
-                    className="text-xs"
+                    className="text-xs text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-500 dark:hover:bg-green-950"
                   >
                     {selectedIds.size === formattedMessages.length
                       ? (lang === 'tg' ? 'Бекор кардани интихоб' : 'Снять выделение')
