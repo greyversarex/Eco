@@ -21,12 +21,11 @@
 - Security maintained: authentication, senderId validation, MIME type checking
 
 **UX Improvements:**
-- **Message Card Hover Effect:** Added visual feedback when hovering over message cards:
-  - Green border highlight (hover:border-primary)
-  - Subtle shadow effect (hover:shadow-md)
-  - Background highlight (hover:bg-primary/5)
-  - Smooth transition animation (200ms)
-  - Effect only applies to unselected, clickable cards to preserve selection state
+- **Hover Effects for Better Visual Feedback:**
+  - **Message Cards:** Green border, shadow, and background highlight on hover with smooth transitions
+  - **Department Cards:** Matching hover effects (green border, shadow, background) for consistent UX
+  - Effects only apply to clickable items, preserving selection states
+  - Smooth 200ms transition animations for polished interactions
 - **File Upload Workflow Simplification:** 
   - Removed ability to upload files to existing messages (inbox/outbox view)
   - Files can only be attached during message composition
