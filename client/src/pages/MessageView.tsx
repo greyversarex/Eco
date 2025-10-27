@@ -310,39 +310,60 @@ export default function MessageView() {
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed" data-testid="text-content">
-                  {message.content}
-                </div>
+              <CardContent className="space-y-8">
+                <section
+                  className="rounded-2xl border-2 border-emerald-200/70 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-50/40 via-white to-white dark:from-slate-800 dark:via-slate-900 dark:to-slate-900 shadow-lg shadow-emerald-100/30 dark:shadow-none overflow-hidden"
+                  data-testid="section-content"
+                >
+                  <div className="flex items-center gap-3 px-6 py-4 border-b-2 border-emerald-100/70 dark:border-emerald-900/40 bg-gradient-to-r from-emerald-50 to-white dark:from-slate-800 dark:to-slate-900">
+                    <Leaf className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    <h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-100" data-testid="heading-content">
+                      {lang === 'tg' ? 'Мазмун' : 'Содержимое сообщения'}
+                    </h3>
+                  </div>
+                  <div className="px-6 py-6 sm:px-8 sm:py-8 bg-white dark:bg-slate-900">
+                    <div
+                      className="whitespace-pre-line text-base sm:text-lg leading-relaxed sm:leading-8 text-gray-900 dark:text-gray-100"
+                      data-testid="text-content"
+                    >
+                      {message.content}
+                    </div>
+                  </div>
+                </section>
 
                 {attachments.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {lang === 'tg' ? 'Замимашудаҳо' : 'Вложения'} ({attachments.length})
-                    </p>
-                    {attachments.map((attachment, index) => (
-                      <div key={attachment.id} className="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-4">
-                        <Paperclip className="h-5 w-5 text-muted-foreground" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate" data-testid={`text-attachment-${index}`}>
-                            {attachment.filename}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {(attachment.fileSize / 1024 / 1024).toFixed(2)} МБ
-                          </p>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Paperclip className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                      <p className="text-base font-semibold text-emerald-900 dark:text-emerald-100">
+                        {lang === 'tg' ? 'Замимашудаҳо' : 'Вложения'} ({attachments.length})
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      {attachments.map((attachment, index) => (
+                        <div key={attachment.id} className="flex items-center gap-3 rounded-lg border-2 border-emerald-100 dark:border-emerald-900/40 bg-white dark:bg-slate-900 p-4 hover:border-emerald-200 dark:hover:border-emerald-800 transition-colors">
+                          <Paperclip className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate" data-testid={`text-attachment-${index}`}>
+                              {attachment.filename}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {(attachment.fileSize / 1024 / 1024).toFixed(2)} МБ
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownload(attachment.id, attachment.filename)}
+                            data-testid={`button-download-${index}`}
+                            className="gap-2 hover:bg-emerald-50 dark:hover:bg-emerald-950"
+                          >
+                            <Download className="h-4 w-4" />
+                            {t.download}
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDownload(attachment.id, attachment.filename)}
-                          data-testid={`button-download-${index}`}
-                          className="gap-2"
-                        >
-                          <Download className="h-4 w-4" />
-                          {t.download}
-                        </Button>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
               </CardContent>
