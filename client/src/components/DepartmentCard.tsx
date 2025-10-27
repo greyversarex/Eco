@@ -67,7 +67,7 @@ export default function DepartmentCard({ name, unreadCount, onClick }: Departmen
   
   return (
     <Card
-      className="relative cursor-pointer p-6 hover-elevate active-elevate-2 transition-colors"
+      className="relative cursor-pointer p-6 transition-all duration-200 hover:border-primary hover:shadow-md hover:bg-primary/5"
       onClick={onClick}
       data-testid={`card-department-${name}`}
     >
