@@ -135,38 +135,65 @@ export default function ComposeMessage() {
       return;
     }
 
-    // Create messages for all selected recipients
     setIsUploadingFiles(true);
     try {
-      const createdMessageIds: number[] = [];
-      
-      // Step 1: Create all messages
-      for (const recipientId of selectedRecipients) {
+      // Use optimized broadcast endpoint for multiple recipients
+      if (selectedRecipients.length > 1) {
+        const formData = new FormData();
+        formData.append('recipientIds', JSON.stringify(selectedRecipients));
+        formData.append('subject', subject);
+        formData.append('content', content);
+        formData.append('senderId', user.department.id.toString());
+        formData.append('executor', executor || '');
+        formData.append('documentDate', new Date(date).toISOString());
+        
+        // Attach all files
+        selectedFiles.forEach(file => {
+          formData.append('files', file);
+        });
+
+        const response = await fetch('/api/messages/broadcast', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to send messages');
+        }
+
+        const result = await response.json();
+        
+        toast({
+          title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+          description: lang === 'tg' 
+            ? `${result.messagesCreated} паём${selectedFiles.length > 0 ? ' ва файлҳо' : ''} фиристода ${selectedFiles.length > 0 ? 'шуданд' : 'шуд'}` 
+            : `${result.messagesCreated} сообщений${selectedFiles.length > 0 ? ' и файлы' : ''} отправлено`,
+        });
+      } else {
+        // Single recipient - use original endpoint
         const messageData = {
           subject,
           content,
           senderId: user.department.id,
-          recipientId: recipientId,
+          recipientId: selectedRecipients[0],
           executor: executor || null,
           documentDate: new Date(date).toISOString(),
           replyToId: null,
         };
 
-        const response = await apiRequest('POST', '/api/messages', messageData);
-        createdMessageIds.push(response.id);
-      }
+        const message = await apiRequest('POST', '/api/messages', messageData);
 
-      // Step 2: Upload files to all created messages
-      if (selectedFiles.length > 0) {
-        let uploadSuccess = true;
-        let failedFiles: string[] = [];
-        
-        for (const messageId of createdMessageIds) {
+        // Upload files if any
+        if (selectedFiles.length > 0) {
+          let uploadSuccess = true;
+          let failedFiles: string[] = [];
+          
           for (const file of selectedFiles) {
             const formData = new FormData();
             formData.append('file', file);
             
-            const response = await fetch(`/api/messages/${messageId}/attachments`, {
+            const response = await fetch(`/api/messages/${message.id}/attachments`, {
               method: 'POST',
               body: formData,
             });
@@ -174,37 +201,32 @@ export default function ComposeMessage() {
             if (!response.ok) {
               uploadSuccess = false;
               failedFiles.push(file.name);
-              console.error(`Failed to upload ${file.name} to message ${messageId}:`, response.status, await response.text());
             }
           }
-        }
-        
-        if (!uploadSuccess) {
-          toast({
-            title: lang === 'tg' ? 'Огоҳӣ' : 'Предупреждение',
-            description: lang === 'tg' 
-              ? `Паёмҳо фиристода шуданд, вале баъзе файлҳо бор нашуданд: ${failedFiles.join(', ')}` 
-              : `Сообщения отправлены, но некоторые файлы не загружены: ${failedFiles.join(', ')}`,
-            variant: 'destructive',
-          });
+          
+          if (!uploadSuccess) {
+            toast({
+              title: lang === 'tg' ? 'Огоҳӣ' : 'Предупреждение',
+              description: lang === 'tg' 
+                ? `Паём фиристода шуд, вале баъзе файлҳо бор нашуданд` 
+                : `Сообщение отправлено, но некоторые файлы не загружены`,
+              variant: 'destructive',
+            });
+          } else {
+            toast({
+              title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+              description: lang === 'tg' ? 'Паём ва файлҳо фиристода шуданд' : 'Сообщение и файлы отправлены',
+            });
+          }
         } else {
           toast({
             title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-            description: lang === 'tg' 
-              ? `${selectedRecipients.length} паём ва файлҳо фиристода шуданд` 
-              : `${selectedRecipients.length} сообщений и файлы отправлены`,
+            description: lang === 'tg' ? 'Паём фиристода шуд' : 'Сообщение отправлено',
           });
         }
-      } else {
-        toast({
-          title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-          description: lang === 'tg' 
-            ? `${selectedRecipients.length} паём фиристода шуд` 
-            : `${selectedRecipients.length} сообщений отправлено`,
-        });
       }
 
-      // Step 3: Clear form and redirect
+      // Clear form and redirect
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
       setSubject('');
       setContent('');
@@ -470,7 +492,7 @@ export default function ComposeMessage() {
               </div>
 
               <div className="space-y-2">
-                <Label>{lang === 'tg' ? 'Илова кардани файл (то 5 адад, 100МБ ҳар як)' : 'Прикрепить файлы (до 5 шт, 100МБ каждый)'}</Label>
+                <Label>{lang === 'tg' ? 'Илова кардани файл' : 'Прикрепить файлы'}</Label>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <input
@@ -484,7 +506,7 @@ export default function ComposeMessage() {
                     />
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="default"
                       size="sm"
                       onClick={() => document.getElementById('files')?.click()}
                       disabled={selectedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}

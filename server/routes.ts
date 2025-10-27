@@ -410,6 +410,97 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Broadcast message to multiple recipients with file attachments
+  app.post("/api/messages/broadcast", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
+    try {
+      // Parse recipient IDs from JSON field
+      const recipientIdsRaw = JSON.parse(req.body.recipientIds || '[]');
+      
+      if (!Array.isArray(recipientIdsRaw) || recipientIdsRaw.length === 0) {
+        return res.status(400).json({ error: 'At least one recipient required' });
+      }
+
+      // Convert to numbers
+      const recipientIds: number[] = recipientIdsRaw.map((id: any) => {
+        const num = typeof id === 'number' ? id : parseInt(String(id), 10);
+        if (isNaN(num)) {
+          throw new Error(`Invalid recipient ID: ${id}`);
+        }
+        return num;
+      });
+
+      // Validate and parse message data
+      const messageData = {
+        subject: req.body.subject,
+        content: req.body.content,
+        senderId: parseInt(req.body.senderId),
+        executor: req.body.executor || null,
+        documentDate: req.body.documentDate,
+        replyToId: null,
+      };
+
+      // Ensure sender is the authenticated department
+      if (req.session.departmentId && messageData.senderId !== req.session.departmentId) {
+        return res.status(403).json({ error: 'Cannot send messages on behalf of other departments' });
+      }
+
+      // Decode executor if present
+      if (messageData.executor) {
+        messageData.executor = decodeFilename(messageData.executor);
+      }
+
+      // Validate files
+      const files = req.files as Express.Multer.File[] || [];
+      for (const file of files) {
+        if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+          return res.status(400).json({ 
+            error: `File type not allowed: ${file.originalname}. Please upload documents, images, or archives only.` 
+          });
+        }
+      }
+
+      // Create messages for all recipients
+      const createdMessages: number[] = [];
+      const failedRecipients: number[] = [];
+
+      for (const recipientId of recipientIds) {
+        try {
+          const fullMessageData: any = {
+            ...messageData,
+            recipientId,
+          };
+          const message = await storage.createMessage(fullMessageData);
+          createdMessages.push(message.id);
+
+          // Attach files to this message
+          for (const file of files) {
+            await storage.createAttachment({
+              messageId: message.id,
+              fileData: file.buffer,
+              file_name: file.originalname,
+              fileSize: file.size,
+              mimeType: file.mimetype,
+            });
+          }
+        } catch (error) {
+          console.error(`Failed to create message for recipient ${recipientId}:`, error);
+          failedRecipients.push(recipientId);
+        }
+      }
+
+      res.json({
+        success: true,
+        messagesCreated: createdMessages.length,
+        messageIds: createdMessages,
+        failedRecipients,
+        filesAttached: files.length,
+      });
+    } catch (error: any) {
+      console.error('Error in broadcast:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.patch("/api/messages/:id/read", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
