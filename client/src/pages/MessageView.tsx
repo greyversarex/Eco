@@ -169,18 +169,7 @@ export default function MessageView() {
   };
 
   return (
-    <div 
-      className="min-h-screen flex flex-col bg-cover bg-center bg-fixed relative"
-      style={{ 
-        backgroundImage: `url(${bgImage})`,
-      }}
-    >
-      <div 
-        className="absolute inset-0" 
-        style={{
-          background: 'rgba(255, 255, 255, 0.92)'
-        }}
-      />
+    <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950 relative">
       <header 
         className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
         style={{
