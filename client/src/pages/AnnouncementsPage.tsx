@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft, Plus, LogOut, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, LogOut, Trash2, Paperclip, Download } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -279,6 +279,37 @@ export default function AnnouncementsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-base leading-relaxed whitespace-pre-line">{announcement.content}</div>
+                  
+                  {announcement.attachments && announcement.attachments.length > 0 && (
+                    <div className="pt-4 mt-4 border-t">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Paperclip className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          {lang === 'tg' ? 'Файлҳои замимашуда' : 'Прикрепленные файлы'}
+                          {' '}({announcement.attachments.length})
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {announcement.attachments.map((attachment) => (
+                          <a
+                            key={attachment.id}
+                            href={`/api/announcement-attachments/${attachment.id}`}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm transition-colors"
+                            data-testid={`button-download-attachment-${attachment.id}`}
+                          >
+                            <Download className="h-4 w-4" />
+                            <span className="truncate max-w-[200px]">{attachment.file_name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              ({(attachment.fileSize / 1024).toFixed(1)} KB)
+                            </span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
