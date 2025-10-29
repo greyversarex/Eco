@@ -18,8 +18,8 @@ export const translations = {
     
     // Navigation
     mainScreen: 'Экрани асосӣ',
-    inbox: 'Ҳуҷҷатҳои воридгардида',
-    outbox: 'Ҳуҷҷатҳои ирсолгардида',
+    inbox: 'Ҳуҷҷатҳои воридшуда',
+    outbox: 'Ҳуҷҷатҳои ирсолшуда',
     newMessage: 'Ҳуҷҷати нав',
     logout: 'Баромад',
     menu: 'Меню',
