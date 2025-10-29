@@ -96,5 +96,88 @@ export const insertAttachmentSchema = z.object({
 export type InsertAttachment = z.infer<typeof insertAttachmentSchema>;
 export type Attachment = typeof attachments.$inferSelect;
 
+// Assignments table (Поручения / Супоришҳо)
+export const assignments = pgTable("assignments", {
+  id: serial("id").primaryKey(),
+  topic: text("topic").notNull(), // Мавзӯъ: "Нақшаи корӣ", "Протоколи назоратӣ", etc.
+  executors: text("executors").array().notNull(), // Исполнители (массив имён)
+  deadline: timestamp("deadline").notNull(), // Мӯҳлати иҷро
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAssignmentSchema = createInsertSchema(assignments).omit({
+  id: true,
+  createdAt: true,
+  isCompleted: true,
+  completedAt: true,
+}).extend({
+  deadline: z.coerce.date(),
+});
+export type InsertAssignment = z.infer<typeof insertAssignmentSchema>;
+export type Assignment = typeof assignments.$inferSelect;
+
+// Assignment attachments
+export const assignmentAttachments = pgTable("assignment_attachments", {
+  id: serial("id").primaryKey(),
+  assignmentId: integer("assignment_id").notNull().references(() => assignments.id, { onDelete: 'cascade' }),
+  file_name: text("file_name").notNull(),
+  fileData: bytea("file_data").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  assignmentIdx: index("assignment_attachments_assignment_id_idx").on(table.assignmentId),
+}));
+
+export const insertAssignmentAttachmentSchema = z.object({
+  assignmentId: z.number(),
+  file_name: z.string(),
+  fileData: z.instanceof(Buffer),
+  fileSize: z.number(),
+  mimeType: z.string(),
+});
+export type InsertAssignmentAttachment = z.infer<typeof insertAssignmentAttachmentSchema>;
+export type AssignmentAttachment = typeof assignmentAttachments.$inferSelect;
+
+// Announcements table (Объявления / Эълонҳо)
+export const announcements = pgTable("announcements", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAnnouncementSchema = createInsertSchema(announcements).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
+export type Announcement = typeof announcements.$inferSelect;
+
+// Announcement attachments
+export const announcementAttachments = pgTable("announcement_attachments", {
+  id: serial("id").primaryKey(),
+  announcementId: integer("announcement_id").notNull().references(() => announcements.id, { onDelete: 'cascade' }),
+  file_name: text("file_name").notNull(),
+  fileData: bytea("file_data").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  announcementIdx: index("announcement_attachments_announcement_id_idx").on(table.announcementId),
+}));
+
+export const insertAnnouncementAttachmentSchema = z.object({
+  announcementId: z.number(),
+  file_name: z.string(),
+  fileData: z.instanceof(Buffer),
+  fileSize: z.number(),
+  mimeType: z.string(),
+});
+export type InsertAnnouncementAttachment = z.infer<typeof insertAnnouncementAttachmentSchema>;
+export type AnnouncementAttachment = typeof announcementAttachments.$inferSelect;
+
 // Note: Sessions table is managed by connect-pg-simple
 // It will be created automatically with the correct schema
