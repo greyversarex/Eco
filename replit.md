@@ -2,6 +2,44 @@
 
 ## Recent Updates
 
+### October 29, 2025 - Assignments and Announcements System
+**New Feature:** Comprehensive assignments (супоришҳо) and announcements (эълонҳо) management system for platform-wide coordination.
+
+**Assignments Feature:**
+- **Database Schema:** Created `assignments` and `assignmentAttachments` tables with support for multiple executors, deadlines, and completion tracking
+- **Progress Indicator:** Visual progress bar with color gradient (red→yellow→green) showing time remaining until deadline
+  - Red zone: deadline approaching or overdue
+  - Yellow zone: moderate time remaining
+  - Green zone: completed assignments
+- **Countdown Timer:** Real-time display of days remaining until deadline
+- **Workflow Features:**
+  - Topic selection from predefined list (4 categories: work plans, control protocols, board decisions, meeting protocols)
+  - Multi-select executor assignment (47 personnel from full organizational roster)
+  - Date picker for deadline setting
+  - "Иҷро шуд" (Completed) button to mark assignments as done
+  - Status indicators: "Иҷрошуда" (completed) vs "Иҷронашуда" (not completed)
+- **Access Control:** Only "Раёсати кадрҳо, коргузорӣ ва назорат" department can create assignments
+
+**Announcements Feature:**
+- **Database Schema:** Created `announcements` and `announcementAttachments` tables
+- **Simple Workflow:** Title and content text fields for creating platform-wide announcements
+- **Chronological Display:** Announcements shown with Tajik date formatting (e.g., "29 октябр 2025")
+- **Access Control:** Same restricted creation rights as assignments
+
+**Technical Implementation:**
+- **API Endpoints:** Full CRUD operations with Zod validation on all POST requests
+  - `GET/POST /api/assignments`, `GET /api/assignments/:id`, `PATCH /api/assignments/:id/complete`, `DELETE /api/assignments/:id`
+  - `GET/POST /api/announcements`, `GET /api/announcements/:id`, `DELETE /api/announcements/:id`
+- **Storage Layer:** Type-safe methods in DbStorage using Drizzle ORM
+- **Frontend:** Two new pages (AssignmentsPage, AnnouncementsPage) integrated into routing with lazy loading
+- **Security:** Request validation via `insertAssignmentSchema` and `insertAnnouncementSchema` prevents malformed payloads
+- **UI Integration:** New buttons on department main page provide direct access to both features
+
+**Architecture Notes:**
+- Supports future file attachment functionality (schema ready, implementation pending if needed)
+- Follows existing design patterns: green gradient headers, bilingual interface, session-based auth
+- All validation centralized in shared schemas for frontend-backend consistency
+
 ### October 27, 2025 - Broadcast Messaging Optimization & UX Enhancements
 **Critical Performance Fix:** Resolved severe hang/timeout when sending messages to all departments (49 recipients).
 
