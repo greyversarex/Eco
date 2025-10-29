@@ -161,21 +161,21 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
           return (
             <>
               <div className="flex items-center justify-between mb-2">
-                <div className="text-xs font-medium text-muted-foreground">Прогресс выполнения</div>
-                <div className="text-xs font-semibold text-gray-700">
+                <div className="text-sm font-semibold text-gray-700">Индикатори иҷроиш</div>
+                <div className="text-sm font-bold text-gray-800">
                   {Math.round(progressPercent)}%
                 </div>
               </div>
-              <div className="relative h-3 rounded-full overflow-hidden bg-gray-100 border border-gray-200 shadow-inner">
+              <div className="relative h-6 rounded-lg overflow-hidden bg-gray-200 border-2 border-gray-300 shadow-md">
                 <div
-                  className="absolute inset-0 transition-all duration-700 ease-out rounded-full"
+                  className="absolute inset-0 transition-all duration-700 ease-out"
                   style={{
                     background: getProgressGradient(),
                   }}
                   data-testid="progress-bar"
                 />
               </div>
-              <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+              <div className="flex justify-between mt-2 text-sm font-medium text-gray-600">
                 <span>{daysPassed} рӯз гузашт</span>
                 <span>{daysLeft} рӯз боқӣ</span>
               </div>
