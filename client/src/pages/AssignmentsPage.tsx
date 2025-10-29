@@ -503,6 +503,38 @@ export default function AssignmentsPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <AssignmentProgress deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                  
+                  {assignment.attachments && assignment.attachments.length > 0 && (
+                    <div className="pt-3 border-t">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Paperclip className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          {lang === 'tg' ? 'Файлҳои замимашуда' : 'Прикрепленные файлы'}
+                          {' '}({assignment.attachments.length})
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {assignment.attachments.map((attachment) => (
+                          <a
+                            key={attachment.id}
+                            href={`/api/assignment-attachments/${attachment.id}`}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm transition-colors"
+                            data-testid={`button-download-attachment-${attachment.id}`}
+                          >
+                            <Download className="h-4 w-4" />
+                            <span className="truncate max-w-[200px]">{attachment.file_name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              ({(attachment.fileSize / 1024).toFixed(1)} KB)
+                            </span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
                   {!assignment.isCompleted && (
                     <Button
                       onClick={() => completeAssignmentMutation.mutate(assignment.id)}
