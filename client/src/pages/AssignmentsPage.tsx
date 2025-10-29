@@ -282,7 +282,10 @@ export default function AssignmentsPage() {
   };
 
   const canCreate = user?.userType === 'department' && user.department?.name === 'Раёсати кадрҳо, коргузорӣ ва назорат';
-  const canDelete = user?.userType === 'department' && user.department?.name === 'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера';
+  const canDelete = user?.userType === 'department' && (
+    user.department?.name === 'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера' ||
+    user.department?.name === 'Раёсати кадрҳо, коргузорӣ ва назорат'
+  );
 
   return (
     <div

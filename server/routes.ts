@@ -913,11 +913,15 @@ export function registerRoutes(app: Express) {
   // Delete assignment
   app.delete("/api/assignments/:id", requireAuth, async (req: Request, res: Response) => {
     try {
-      // Check if user is from the authorized department for deletion
+      // Check if user is from authorized departments for deletion
       if (req.session.departmentId) {
         const dept = await storage.getDepartmentById(req.session.departmentId);
-        if (!dept || dept.name !== 'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера') {
-          return res.status(403).json({ error: 'Only Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера department can delete assignments' });
+        const allowedDepts = [
+          'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера',
+          'Раёсати кадрҳо, коргузорӣ ва назорат'
+        ];
+        if (!dept || !allowedDepts.includes(dept.name)) {
+          return res.status(403).json({ error: 'Access denied' });
         }
       } else if (!req.session.adminId) {
         return res.status(403).json({ error: 'Access denied' });
@@ -1018,11 +1022,15 @@ export function registerRoutes(app: Express) {
   // Delete announcement
   app.delete("/api/announcements/:id", requireAuth, async (req: Request, res: Response) => {
     try {
-      // Check if user is from the authorized department for deletion
+      // Check if user is from authorized departments for deletion
       if (req.session.departmentId) {
         const dept = await storage.getDepartmentById(req.session.departmentId);
-        if (!dept || dept.name !== 'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера') {
-          return res.status(403).json({ error: 'Only Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера department can delete announcements' });
+        const allowedDepts = [
+          'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера',
+          'Раёсати кадрҳо, коргузорӣ ва назорат'
+        ];
+        if (!dept || !allowedDepts.includes(dept.name)) {
+          return res.status(403).json({ error: 'Access denied' });
         }
       } else if (!req.session.adminId) {
         return res.status(403).json({ error: 'Access denied' });
