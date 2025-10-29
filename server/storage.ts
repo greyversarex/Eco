@@ -1,4 +1,13 @@
-import type { Department, InsertDepartment, Admin, InsertAdmin, Message, InsertMessage, Attachment, InsertAttachment } from "@shared/schema";
+import type { 
+  Department, InsertDepartment, 
+  Admin, InsertAdmin, 
+  Message, InsertMessage, 
+  Attachment, InsertAttachment,
+  Assignment, InsertAssignment,
+  AssignmentAttachment, InsertAssignmentAttachment,
+  Announcement, InsertAnnouncement,
+  AnnouncementAttachment, InsertAnnouncementAttachment
+} from "@shared/schema";
 
 export interface IStorage {
   // Departments
@@ -30,11 +39,36 @@ export interface IStorage {
   getAttachmentsByMessageId(messageId: number): Promise<Attachment[]>;
   getAttachmentById(id: number): Promise<Attachment | undefined>;
   deleteAttachmentsByMessageId(messageId: number): Promise<boolean>;
+  
+  // Assignments
+  getAssignments(): Promise<Assignment[]>;
+  getAssignmentById(id: number): Promise<Assignment | undefined>;
+  createAssignment(assignment: InsertAssignment): Promise<Assignment>;
+  updateAssignment(id: number, assignment: Partial<InsertAssignment>): Promise<Assignment | undefined>;
+  deleteAssignment(id: number): Promise<boolean>;
+  markAssignmentAsCompleted(id: number): Promise<Assignment | undefined>;
+  
+  // Assignment Attachments
+  createAssignmentAttachment(attachment: InsertAssignmentAttachment): Promise<AssignmentAttachment>;
+  getAssignmentAttachments(assignmentId: number): Promise<AssignmentAttachment[]>;
+  getAssignmentAttachmentById(id: number): Promise<AssignmentAttachment | undefined>;
+  
+  // Announcements
+  getAnnouncements(): Promise<Announcement[]>;
+  getAnnouncementById(id: number): Promise<Announcement | undefined>;
+  createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
+  updateAnnouncement(id: number, announcement: Partial<InsertAnnouncement>): Promise<Announcement | undefined>;
+  deleteAnnouncement(id: number): Promise<boolean>;
+  
+  // Announcement Attachments
+  createAnnouncementAttachment(attachment: InsertAnnouncementAttachment): Promise<AnnouncementAttachment>;
+  getAnnouncementAttachments(announcementId: number): Promise<AnnouncementAttachment[]>;
+  getAnnouncementAttachmentById(id: number): Promise<AnnouncementAttachment | undefined>;
 }
 
 // Database storage implementation
 import { db } from './db';
-import { departments, admins, messages, attachments } from '@shared/schema';
+import { departments, admins, messages, attachments, assignments, assignmentAttachments, announcements, announcementAttachments } from '@shared/schema';
 import { eq, or, and, desc, asc } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
@@ -169,6 +203,94 @@ export class DbStorage implements IStorage {
   async deleteAttachmentsByMessageId(messageId: number): Promise<boolean> {
     const result = await db.delete(attachments).where(eq(attachments.messageId, messageId)).returning();
     return result.length > 0;
+  }
+
+  // Assignments
+  async getAssignments(): Promise<Assignment[]> {
+    return await db.select().from(assignments).orderBy(desc(assignments.createdAt));
+  }
+
+  async getAssignmentById(id: number): Promise<Assignment | undefined> {
+    const result = await db.select().from(assignments).where(eq(assignments.id, id));
+    return result[0];
+  }
+
+  async createAssignment(assignment: InsertAssignment): Promise<Assignment> {
+    const result = await db.insert(assignments).values(assignment).returning();
+    return result[0];
+  }
+
+  async updateAssignment(id: number, assignment: Partial<InsertAssignment>): Promise<Assignment | undefined> {
+    const result = await db.update(assignments).set(assignment).where(eq(assignments.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteAssignment(id: number): Promise<boolean> {
+    const result = await db.delete(assignments).where(eq(assignments.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async markAssignmentAsCompleted(id: number): Promise<Assignment | undefined> {
+    const result = await db.update(assignments)
+      .set({ isCompleted: true, completedAt: new Date() })
+      .where(eq(assignments.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Assignment Attachments
+  async createAssignmentAttachment(attachment: InsertAssignmentAttachment): Promise<AssignmentAttachment> {
+    const result = await db.insert(assignmentAttachments).values(attachment).returning();
+    return result[0];
+  }
+
+  async getAssignmentAttachments(assignmentId: number): Promise<AssignmentAttachment[]> {
+    return await db.select().from(assignmentAttachments).where(eq(assignmentAttachments.assignmentId, assignmentId));
+  }
+
+  async getAssignmentAttachmentById(id: number): Promise<AssignmentAttachment | undefined> {
+    const result = await db.select().from(assignmentAttachments).where(eq(assignmentAttachments.id, id));
+    return result[0];
+  }
+
+  // Announcements
+  async getAnnouncements(): Promise<Announcement[]> {
+    return await db.select().from(announcements).orderBy(desc(announcements.createdAt));
+  }
+
+  async getAnnouncementById(id: number): Promise<Announcement | undefined> {
+    const result = await db.select().from(announcements).where(eq(announcements.id, id));
+    return result[0];
+  }
+
+  async createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement> {
+    const result = await db.insert(announcements).values(announcement).returning();
+    return result[0];
+  }
+
+  async updateAnnouncement(id: number, announcement: Partial<InsertAnnouncement>): Promise<Announcement | undefined> {
+    const result = await db.update(announcements).set(announcement).where(eq(announcements.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteAnnouncement(id: number): Promise<boolean> {
+    const result = await db.delete(announcements).where(eq(announcements.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Announcement Attachments
+  async createAnnouncementAttachment(attachment: InsertAnnouncementAttachment): Promise<AnnouncementAttachment> {
+    const result = await db.insert(announcementAttachments).values(attachment).returning();
+    return result[0];
+  }
+
+  async getAnnouncementAttachments(announcementId: number): Promise<AnnouncementAttachment[]> {
+    return await db.select().from(announcementAttachments).where(eq(announcementAttachments.announcementId, announcementId));
+  }
+
+  async getAnnouncementAttachmentById(id: number): Promise<AnnouncementAttachment | undefined> {
+    const result = await db.select().from(announcementAttachments).where(eq(announcementAttachments.id, id));
+    return result[0];
   }
 }
 

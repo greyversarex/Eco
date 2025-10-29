@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
-import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema } from "@shared/schema";
+import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema, insertAssignmentSchema, insertAnnouncementSchema } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 
@@ -804,6 +804,210 @@ export function registerRoutes(app: Express) {
       res.send(attachment.fileData);
     } catch (error: any) {
       console.error('Error downloading attachment:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ==================== ASSIGNMENTS ROUTES ====================
+  
+  // Get all assignments
+  app.get("/api/assignments", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const assignments = await storage.getAssignments();
+      res.json(assignments);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get single assignment
+  app.get("/api/assignments/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const assignment = await storage.getAssignmentById(id);
+      if (!assignment) {
+        return res.status(404).json({ error: 'Assignment not found' });
+      }
+      res.json(assignment);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Create assignment (only for specific department)
+  app.post("/api/assignments", requireAuth, async (req: Request, res: Response) => {
+    try {
+      // Check if user is from the authorized department
+      if (req.session.departmentId) {
+        const dept = await storage.getDepartmentById(req.session.departmentId);
+        if (!dept || dept.name !== 'Раёсати кадрҳо, коргузорӣ ва назорат') {
+          return res.status(403).json({ error: 'Only Раёсати кадрҳо department can create assignments' });
+        }
+      } else if (!req.session.adminId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      // Validate request body
+      const validationResult = insertAssignmentSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ error: 'Invalid request data', details: validationResult.error.errors });
+      }
+
+      const assignment = await storage.createAssignment(validationResult.data);
+      res.json(assignment);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Mark assignment as completed
+  app.patch("/api/assignments/:id/complete", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const assignment = await storage.markAssignmentAsCompleted(id);
+      if (!assignment) {
+        return res.status(404).json({ error: 'Assignment not found' });
+      }
+      res.json(assignment);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Delete assignment
+  app.delete("/api/assignments/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteAssignment(id);
+      if (!deleted) {
+        return res.status(404).json({ error: 'Assignment not found' });
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get assignment attachments
+  app.get("/api/assignments/:id/attachments", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const assignmentId = parseInt(req.params.id);
+      const attachments = await storage.getAssignmentAttachments(assignmentId);
+      res.json(attachments);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Download assignment attachment
+  app.get("/api/assignment-attachments/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const attachment = await storage.getAssignmentAttachmentById(id);
+      if (!attachment) {
+        return res.status(404).json({ error: 'Attachment not found' });
+      }
+
+      res.setHeader('Content-Type', attachment.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(attachment.file_name)}"`);
+      res.setHeader('Content-Length', attachment.fileSize.toString());
+      res.send(attachment.fileData);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ==================== ANNOUNCEMENTS ROUTES ====================
+  
+  // Get all announcements
+  app.get("/api/announcements", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const announcements = await storage.getAnnouncements();
+      res.json(announcements);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get single announcement
+  app.get("/api/announcements/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const announcement = await storage.getAnnouncementById(id);
+      if (!announcement) {
+        return res.status(404).json({ error: 'Announcement not found' });
+      }
+      res.json(announcement);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Create announcement (only for specific department)
+  app.post("/api/announcements", requireAuth, async (req: Request, res: Response) => {
+    try {
+      // Check if user is from the authorized department
+      if (req.session.departmentId) {
+        const dept = await storage.getDepartmentById(req.session.departmentId);
+        if (!dept || dept.name !== 'Раёсати кадрҳо, коргузорӣ ва назорат') {
+          return res.status(403).json({ error: 'Only Раёсати кадрҳо department can create announcements' });
+        }
+      } else if (!req.session.adminId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      // Validate request body
+      const validationResult = insertAnnouncementSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ error: 'Invalid request data', details: validationResult.error.errors });
+      }
+
+      const announcement = await storage.createAnnouncement(validationResult.data);
+      res.json(announcement);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Delete announcement
+  app.delete("/api/announcements/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteAnnouncement(id);
+      if (!deleted) {
+        return res.status(404).json({ error: 'Announcement not found' });
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get announcement attachments
+  app.get("/api/announcements/:id/attachments", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const announcementId = parseInt(req.params.id);
+      const attachments = await storage.getAnnouncementAttachments(announcementId);
+      res.json(attachments);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Download announcement attachment
+  app.get("/api/announcement-attachments/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const attachment = await storage.getAnnouncementAttachmentById(id);
+      if (!attachment) {
+        return res.status(404).json({ error: 'Attachment not found' });
+      }
+
+      res.setHeader('Content-Type', attachment.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(attachment.file_name)}"`);
+      res.setHeader('Content-Length', attachment.fileSize.toString());
+      res.send(attachment.fileData);
+    } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
   });

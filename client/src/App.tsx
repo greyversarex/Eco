@@ -21,6 +21,8 @@ const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const AdminDepartments = lazy(() => import("@/pages/AdminDepartments"));
 const AdminDepartmentMessages = lazy(() => import("@/pages/AdminDepartmentMessages"));
 const MonitoringDashboard = lazy(() => import("@/pages/MonitoringDashboard"));
+const AssignmentsPage = lazy(() => import("@/pages/AssignmentsPage"));
+const AnnouncementsPage = lazy(() => import("@/pages/AnnouncementsPage"));
 
 // Loading fallback component
 function PageLoader() {
@@ -88,6 +90,16 @@ function Router() {
         <Route path="/department/compose">
           <DepartmentRoute>
             <ComposeMessage />
+          </DepartmentRoute>
+        </Route>
+        <Route path="/department/assignments">
+          <DepartmentRoute>
+            <AssignmentsPage />
+          </DepartmentRoute>
+        </Route>
+        <Route path="/department/announcements">
+          <DepartmentRoute>
+            <AnnouncementsPage />
           </DepartmentRoute>
         </Route>
         <Route component={NotFound} />

@@ -156,6 +156,7 @@ export default function DepartmentMain() {
                   size="default"
                   className="shrink-0"
                   data-testid="button-requests"
+                  onClick={() => setLocation('/department/assignments')}
                 >
                   {lang === 'tg' ? 'Супоришҳо' : 'Запросы'}
                 </Button>
@@ -164,6 +165,7 @@ export default function DepartmentMain() {
                   size="default"
                   className="shrink-0"
                   data-testid="button-announcements"
+                  onClick={() => setLocation('/department/announcements')}
                 >
                   {lang === 'tg' ? 'Эълонҳо' : 'Объявления'}
                 </Button>
