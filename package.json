@@ -10,6 +10,7 @@
     "check": "tsc",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx server/migrate.ts",
+    "db:push": "drizzle-kit push",
     "db:seed": "tsx server/seed.ts"
   },
   "dependencies": {
