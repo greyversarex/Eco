@@ -32,7 +32,7 @@ export default function DepartmentMessages() {
 
   const handleMessageClick = (messageId: number) => {
     console.log('Opening message:', messageId);
-    setLocation(`/department/message/${messageId}`);
+    setLocation(`/department/message/${messageId}?from=/department/messages/${departmentId}`);
   };
 
   return (

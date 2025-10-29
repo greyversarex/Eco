@@ -127,7 +127,8 @@ export default function Inbox() {
   };
 
   const handleMessageClick = (messageId: string) => {
-    setLocation(`/department/message/${messageId}`);
+    const fromPath = isOutbox ? '/department/outbox' : '/department/inbox';
+    setLocation(`/department/message/${messageId}?from=${fromPath}`);
   };
 
   return (

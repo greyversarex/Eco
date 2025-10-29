@@ -37,12 +37,16 @@ const formatDateTajik = (date: Date, lang: Language) => {
 
 export default function MessageView() {
   const { id } = useParams();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [lang, setLang] = useState<Language>('tg');
   const t = useTranslation(lang);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  
+  // Get 'from' query parameter to know where to go back
+  const searchParams = new URLSearchParams(location.split('?')[1] || '');
+  const fromPage = searchParams.get('from');
 
   const { data: message, isLoading } = useQuery<Message>({
     queryKey: ['/api/messages', id],
@@ -115,9 +119,11 @@ export default function MessageView() {
   // Determine if current message is sent or received
   const isSentMessage = message && user?.userType === 'department' && message.senderId === user.department.id;
   
-  // Determine back location based on user type
+  // Determine back location - prioritize 'from' parameter, then fall back to inbox/outbox
   let backLocation = '/department/inbox';
-  if (user?.userType === 'admin') {
+  if (fromPage) {
+    backLocation = fromPage;
+  } else if (user?.userType === 'admin') {
     backLocation = '/admin/departments';
   } else if (isSentMessage) {
     backLocation = '/department/outbox';
