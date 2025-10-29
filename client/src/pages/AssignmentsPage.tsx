@@ -109,7 +109,7 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 pt-[0px] pb-[0px] mt-[9px] mb-[9px]">
       <div className="flex gap-4 flex-wrap items-center">
         <div className="flex items-center gap-2">
           <div className="text-sm text-muted-foreground font-bold">Мӯҳлати иҷро:</div>
