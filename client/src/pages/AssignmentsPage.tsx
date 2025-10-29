@@ -121,7 +121,7 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
           <div className="text-sm text-muted-foreground font-bold">Боқӣ монд:</div>
           <div className="bg-gray-100 px-4 py-2 rounded-lg border border-gray-200 flex items-baseline gap-1 pl-[16px] pr-[16px] pt-[5px] pb-[5px]">
             <div className="text-2xl font-bold text-gray-800">{isCompleted ? '-' : (isOverdue ? '0' : daysLeft)}</div>
-            <div className="text-sm text-muted-foreground">рӯз</div>
+            <div className="text-sm text-muted-foreground font-bold">рӯз</div>
           </div>
         </div>
         {isCompleted && (
