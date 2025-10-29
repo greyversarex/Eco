@@ -112,7 +112,7 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
     <div className="space-y-3">
       <div className="flex gap-4 flex-wrap items-center">
         <div className="flex items-center gap-2">
-          <div className="text-sm text-muted-foreground">Мӯҳлати иҷро:</div>
+          <div className="text-sm text-muted-foreground font-bold">Мӯҳлати иҷро:</div>
           <div className="bg-gray-100 px-4 py-2 rounded-lg border border-gray-200">
             <div className="text-base font-semibold text-gray-800">{formatDate(deadline)}</div>
           </div>
