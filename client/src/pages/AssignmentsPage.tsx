@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft, Plus, LogOut, Download, Paperclip, X } from 'lucide-react';
+import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2 } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -156,8 +156,17 @@ export default function AssignmentsPage() {
   });
 
   const createAssignmentMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return await apiRequest('POST', '/api/assignments', data);
+    mutationFn: async (formData: FormData) => {
+      const res = await fetch('/api/assignments', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to create assignment');
+      }
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
@@ -186,12 +195,53 @@ export default function AssignmentsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
         title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
         description: lang === 'tg' ? 'Супориш иҷро шуд' : 'Поручение выполнено',
       });
     },
   });
+
+  const deleteAssignmentMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return await apiRequest('DELETE', `/api/assignments/${id}`, undefined);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
+      toast({
+        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+        description: lang === 'tg' ? 'Супориш нест карда шуд' : 'Поручение удалено',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      if (selectedFiles.length + filesArray.length > 5) {
+        toast({
+          title: lang === 'tg' ? 'Хато' : 'Ошибка',
+          description: lang === 'tg' ? 'Шумо танҳо то 5 файл метавонед илова кунед' : 'Вы можете добавить только до 5 файлов',
+          variant: 'destructive',
+        });
+        return;
+      }
+      setSelectedFiles([...selectedFiles, ...filesArray]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = () => {
     if (!topic) {
@@ -219,14 +269,20 @@ export default function AssignmentsPage() {
       return;
     }
 
-    createAssignmentMutation.mutate({
-      topic,
-      executors: selectedExecutors,
-      deadline: new Date(deadline),
+    const formData = new FormData();
+    formData.append('topic', topic);
+    formData.append('executors', JSON.stringify(selectedExecutors));
+    formData.append('deadline', deadline);
+    
+    selectedFiles.forEach((file) => {
+      formData.append('files', file);
     });
+
+    createAssignmentMutation.mutate(formData);
   };
 
   const canCreate = user?.userType === 'department' && user.department?.name === 'Раёсати кадрҳо, коргузорӣ ва назорат';
+  const canDelete = user?.userType === 'department' && user.department?.name === 'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера';
 
   return (
     <div
@@ -344,6 +400,51 @@ export default function AssignmentsPage() {
                     />
                   </div>
 
+                  <div className="space-y-2">
+                    <Label>{lang === 'tg' ? 'Файлҳо' : 'Файлы'}</Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="default"
+                        onClick={() => document.getElementById('assignment-file-input')?.click()}
+                        className="gap-2"
+                        data-testid="button-select-files"
+                      >
+                        <Paperclip className="h-4 w-4" />
+                        {lang === 'tg' ? 'Интихоби файл' : 'Выбрать файл'}
+                      </Button>
+                      <span className="text-sm text-muted-foreground">
+                        {selectedFiles.length > 0 && `${selectedFiles.length} ${lang === 'tg' ? 'файл' : 'файлов'}`}
+                      </span>
+                    </div>
+                    <input
+                      id="assignment-file-input"
+                      type="file"
+                      multiple
+                      accept="*/*"
+                      className="hidden"
+                      onChange={handleFileSelect}
+                    />
+                    {selectedFiles.length > 0 && (
+                      <div className="space-y-2 mt-2">
+                        {selectedFiles.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                            <span className="text-sm truncate flex-1">{file.name}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeFile(index)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex justify-end gap-2 pt-4">
                     <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                       {lang === 'tg' ? 'Бекор кардан' : 'Отмена'}
@@ -378,10 +479,26 @@ export default function AssignmentsPage() {
             {assignments.map((assignment) => (
               <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
                 <CardHeader className="pb-3">
-                  <h3 className="text-lg font-semibold">{assignment.topic}</h3>
-                  <div className="text-sm text-muted-foreground">
-                    <span className="font-medium">{lang === 'tg' ? 'Иҷрокунандагон:' : 'Исполнители:'}</span>{' '}
-                    {assignment.executors.join(', ')}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold">{assignment.topic}</h3>
+                      <div className="text-sm text-muted-foreground">
+                        <span className="font-medium">{lang === 'tg' ? 'Иҷрокунандагон:' : 'Исполнители:'}</span>{' '}
+                        {assignment.executors.join(', ')}
+                      </div>
+                    </div>
+                    {canDelete && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteAssignmentMutation.mutate(assignment.id)}
+                        disabled={deleteAssignmentMutation.isPending}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        data-testid={`button-delete-assignment-${assignment.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">

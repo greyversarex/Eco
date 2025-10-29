@@ -28,6 +28,10 @@ export default function DepartmentMain() {
     queryKey: ['/api/messages/unread/by-department'],
   });
 
+  const { data: counters } = useQuery<{ unreadAnnouncements: number; uncompletedAssignments: number }>({
+    queryKey: ['/api/counters'],
+  });
+
   // Filter departments by search query
   const filteredDepartments = departments.filter((dept) =>
     dept.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -154,20 +158,30 @@ export default function DepartmentMain() {
                 <Button
                   variant="default"
                   size="default"
-                  className="shrink-0"
+                  className="shrink-0 relative"
                   data-testid="button-requests"
                   onClick={() => setLocation('/department/assignments')}
                 >
                   {lang === 'tg' ? 'Супоришҳо' : 'Запросы'}
+                  {counters && counters.uncompletedAssignments > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                      {counters.uncompletedAssignments}
+                    </span>
+                  )}
                 </Button>
                 <Button
                   variant="default"
                   size="default"
-                  className="shrink-0"
+                  className="shrink-0 relative"
                   data-testid="button-announcements"
                   onClick={() => setLocation('/department/announcements')}
                 >
                   {lang === 'tg' ? 'Эълонҳо' : 'Объявления'}
+                  {counters && counters.unreadAnnouncements > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                      {counters.unreadAnnouncements}
+                    </span>
+                  )}
                 </Button>
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

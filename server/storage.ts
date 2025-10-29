@@ -59,11 +59,16 @@ export interface IStorage {
   createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
   updateAnnouncement(id: number, announcement: Partial<InsertAnnouncement>): Promise<Announcement | undefined>;
   deleteAnnouncement(id: number): Promise<boolean>;
+  markAnnouncementAsRead(id: number, departmentId: number): Promise<Announcement | undefined>;
+  getUnreadAnnouncementsCount(departmentId: number): Promise<number>;
   
   // Announcement Attachments
   createAnnouncementAttachment(attachment: InsertAnnouncementAttachment): Promise<AnnouncementAttachment>;
   getAnnouncementAttachments(announcementId: number): Promise<AnnouncementAttachment[]>;
   getAnnouncementAttachmentById(id: number): Promise<AnnouncementAttachment | undefined>;
+  
+  // Assignment counts
+  getUncompletedAssignmentsCount(): Promise<number>;
 }
 
 // Database storage implementation
@@ -238,6 +243,11 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
+  async getUncompletedAssignmentsCount(): Promise<number> {
+    const allAssignments = await db.select().from(assignments);
+    return allAssignments.filter(a => !a.isCompleted).length;
+  }
+
   // Assignment Attachments
   async createAssignmentAttachment(attachment: InsertAssignmentAttachment): Promise<AssignmentAttachment> {
     const result = await db.insert(assignmentAttachments).values(attachment).returning();
@@ -276,6 +286,27 @@ export class DbStorage implements IStorage {
   async deleteAnnouncement(id: number): Promise<boolean> {
     const result = await db.delete(announcements).where(eq(announcements.id, id)).returning();
     return result.length > 0;
+  }
+
+  async markAnnouncementAsRead(id: number, departmentId: number): Promise<Announcement | undefined> {
+    const announcement = await this.getAnnouncementById(id);
+    if (!announcement) return undefined;
+    
+    // Add departmentId to readBy array if not already present
+    if (!announcement.readBy.includes(departmentId)) {
+      const updatedReadBy = [...announcement.readBy, departmentId];
+      const result = await db.update(announcements)
+        .set({ readBy: updatedReadBy })
+        .where(eq(announcements.id, id))
+        .returning();
+      return result[0];
+    }
+    return announcement;
+  }
+
+  async getUnreadAnnouncementsCount(departmentId: number): Promise<number> {
+    const allAnnouncements = await db.select().from(announcements);
+    return allAnnouncements.filter(a => !a.readBy.includes(departmentId)).length;
   }
 
   // Announcement Attachments

@@ -835,7 +835,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Create assignment (only for specific department)
-  app.post("/api/assignments", requireAuth, async (req: Request, res: Response) => {
+  app.post("/api/assignments", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
     try {
       // Check if user is from the authorized department
       if (req.session.departmentId) {
@@ -847,13 +847,49 @@ export function registerRoutes(app: Express) {
         return res.status(403).json({ error: 'Access denied' });
       }
 
-      // Validate request body
-      const validationResult = insertAssignmentSchema.safeParse(req.body);
+      // Parse executors from JSON field
+      const executorsRaw = JSON.parse(req.body.executors || '[]');
+      if (!Array.isArray(executorsRaw)) {
+        return res.status(400).json({ error: 'Executors must be an array' });
+      }
+
+      // Prepare assignment data
+      const assignmentData = {
+        topic: req.body.topic,
+        executors: executorsRaw,
+        deadline: new Date(req.body.deadline),
+      };
+
+      // Validate assignment data
+      const validationResult = insertAssignmentSchema.safeParse(assignmentData);
       if (!validationResult.success) {
         return res.status(400).json({ error: 'Invalid request data', details: validationResult.error.errors });
       }
 
+      // Validate files
+      const files = req.files as Express.Multer.File[] || [];
+      for (const file of files) {
+        if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+          return res.status(400).json({ 
+            error: `File type not allowed: ${file.originalname}. Please upload documents, images, or archives only.` 
+          });
+        }
+      }
+
+      // Create assignment
       const assignment = await storage.createAssignment(validationResult.data);
+
+      // Attach files
+      for (const file of files) {
+        await storage.createAssignmentAttachment({
+          assignmentId: assignment.id,
+          fileData: file.buffer,
+          file_name: file.originalname,
+          fileSize: file.size,
+          mimeType: file.mimetype,
+        });
+      }
+
       res.json(assignment);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -877,6 +913,16 @@ export function registerRoutes(app: Express) {
   // Delete assignment
   app.delete("/api/assignments/:id", requireAuth, async (req: Request, res: Response) => {
     try {
+      // Check if user is from the authorized department for deletion
+      if (req.session.departmentId) {
+        const dept = await storage.getDepartmentById(req.session.departmentId);
+        if (!dept || dept.name !== 'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера') {
+          return res.status(403).json({ error: 'Only Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера department can delete assignments' });
+        }
+      } else if (!req.session.adminId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
       const id = parseInt(req.params.id);
       const deleted = await storage.deleteAssignment(id);
       if (!deleted) {
@@ -972,6 +1018,16 @@ export function registerRoutes(app: Express) {
   // Delete announcement
   app.delete("/api/announcements/:id", requireAuth, async (req: Request, res: Response) => {
     try {
+      // Check if user is from the authorized department for deletion
+      if (req.session.departmentId) {
+        const dept = await storage.getDepartmentById(req.session.departmentId);
+        if (!dept || dept.name !== 'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера') {
+          return res.status(403).json({ error: 'Only Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера department can delete announcements' });
+        }
+      } else if (!req.session.adminId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
       const id = parseInt(req.params.id);
       const deleted = await storage.deleteAnnouncement(id);
       if (!deleted) {
@@ -1007,6 +1063,47 @@ export function registerRoutes(app: Express) {
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(attachment.file_name)}"`);
       res.setHeader('Content-Length', attachment.fileSize.toString());
       res.send(attachment.fileData);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Mark announcement as read
+  app.post("/api/announcements/:id/mark-read", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const departmentId = req.session.departmentId;
+      
+      if (!departmentId) {
+        return res.status(403).json({ error: 'Only departments can mark announcements as read' });
+      }
+
+      const announcement = await storage.markAnnouncementAsRead(id, departmentId);
+      if (!announcement) {
+        return res.status(404).json({ error: 'Announcement not found' });
+      }
+      res.json(announcement);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get counters for department
+  app.get("/api/counters", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const departmentId = req.session.departmentId;
+      
+      if (!departmentId) {
+        return res.status(403).json({ error: 'Only departments can access counters' });
+      }
+
+      const unreadAnnouncements = await storage.getUnreadAnnouncementsCount(departmentId);
+      const uncompletedAssignments = await storage.getUncompletedAssignmentsCount();
+      
+      res.json({
+        unreadAnnouncements,
+        uncompletedAssignments
+      });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

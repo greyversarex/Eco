@@ -1,0 +1,1 @@
+ALTER TABLE "announcements" ADD COLUMN "read_by" integer[] DEFAULT ARRAY[]::integer[] NOT NULL;

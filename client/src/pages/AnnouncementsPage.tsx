@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { ArrowLeft, Plus, LogOut } from 'lucide-react';
+import { ArrowLeft, Plus, LogOut, Trash2 } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -31,6 +31,52 @@ export default function AnnouncementsPage() {
 
   const { data: announcements = [], isLoading } = useQuery<Announcement[]>({
     queryKey: ['/api/announcements'],
+  });
+
+  // Mark announcements as read when page loads
+  useEffect(() => {
+    if (announcements.length > 0 && user?.department?.id) {
+      const unreadAnnouncements = announcements.filter(
+        (announcement) => !announcement.readBy.includes(user.department.id)
+      );
+
+      if (unreadAnnouncements.length > 0) {
+        const markReadPromises = unreadAnnouncements.map((announcement) =>
+          fetch(`/api/announcements/${announcement.id}/mark-read`, {
+            method: 'POST',
+            credentials: 'include',
+          }).catch((error) => {
+            console.error(`Failed to mark announcement ${announcement.id} as read:`, error);
+          })
+        );
+
+        Promise.all(markReadPromises).then(() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
+        });
+      }
+    }
+  }, [announcements.map(a => a.id).join(','), user?.department?.id]);
+
+  const deleteAnnouncementMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return await apiRequest('DELETE', `/api/announcements/${id}`, undefined);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
+      toast({
+        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+        description: lang === 'tg' ? 'Эълон нест карда шуд' : 'Объявление удалено',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
   });
 
   const createAnnouncementMutation = useMutation({
@@ -78,6 +124,7 @@ export default function AnnouncementsPage() {
   };
 
   const canCreate = user?.userType === 'department' && user.department?.name === 'Раёсати кадрҳо, коргузорӣ ва назорат';
+  const canDelete = user?.userType === 'department' && user.department?.name === 'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера';
 
   const formatDateTajik = (date: Date) => {
     const monthsTajik = [
@@ -210,9 +257,23 @@ export default function AnnouncementsPage() {
               <Card key={announcement.id} className="bg-white" data-testid={`announcement-${announcement.id}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
-                    <h3 className="text-xl font-semibold">{announcement.title}</h3>
-                    <div className="text-sm text-muted-foreground whitespace-nowrap">
-                      {formatDateTajik(new Date(announcement.createdAt))}
+                    <h3 className="text-xl font-semibold flex-1">{announcement.title}</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm text-muted-foreground whitespace-nowrap">
+                        {formatDateTajik(new Date(announcement.createdAt))}
+                      </div>
+                      {canDelete && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteAnnouncementMutation.mutate(announcement.id)}
+                          disabled={deleteAnnouncementMutation.isPending}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          data-testid={`button-delete-${announcement.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
