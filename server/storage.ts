@@ -214,6 +214,28 @@ export class DbStorage implements IStorage {
   async getAssignments(): Promise<Assignment[]> {
     const allAssignments = await db.select().from(assignments).orderBy(desc(assignments.createdAt));
     
+    // Helper to decode filename
+    const decodeFilename = (filename: string): string => {
+      try {
+        if (filename.includes('%')) {
+          return decodeURIComponent(filename);
+        }
+        const hasMojibake = /[Ð-Ñ]/.test(filename);
+        if (!hasMojibake) {
+          return filename;
+        }
+        const buffer = Buffer.from(filename, 'latin1');
+        const decoded = buffer.toString('utf8');
+        const stillHasMojibake = /Ð|Ñ/.test(decoded);
+        if (!stillHasMojibake || decoded.length < filename.length) {
+          return decoded;
+        }
+        return filename;
+      } catch (e) {
+        return filename;
+      }
+    };
+    
     // Fetch attachments metadata for each assignment
     const assignmentsWithAttachments = await Promise.all(
       allAssignments.map(async (assignment) => {
@@ -228,9 +250,15 @@ export class DbStorage implements IStorage {
           .from(assignmentAttachments)
           .where(eq(assignmentAttachments.assignmentId, assignment.id));
         
+        // Decode filenames before returning
+        const decodedAttachments = attachments.map(att => ({
+          ...att,
+          file_name: decodeFilename(att.file_name),
+        }));
+        
         return {
           ...assignment,
-          attachments,
+          attachments: decodedAttachments,
         };
       })
     );
@@ -290,6 +318,28 @@ export class DbStorage implements IStorage {
   async getAnnouncements(): Promise<Announcement[]> {
     const allAnnouncements = await db.select().from(announcements).orderBy(desc(announcements.createdAt));
     
+    // Helper to decode filename
+    const decodeFilename = (filename: string): string => {
+      try {
+        if (filename.includes('%')) {
+          return decodeURIComponent(filename);
+        }
+        const hasMojibake = /[Ð-Ñ]/.test(filename);
+        if (!hasMojibake) {
+          return filename;
+        }
+        const buffer = Buffer.from(filename, 'latin1');
+        const decoded = buffer.toString('utf8');
+        const stillHasMojibake = /Ð|Ñ/.test(decoded);
+        if (!stillHasMojibake || decoded.length < filename.length) {
+          return decoded;
+        }
+        return filename;
+      } catch (e) {
+        return filename;
+      }
+    };
+    
     // Fetch attachments metadata for each announcement
     const announcementsWithAttachments = await Promise.all(
       allAnnouncements.map(async (announcement) => {
@@ -304,9 +354,15 @@ export class DbStorage implements IStorage {
           .from(announcementAttachments)
           .where(eq(announcementAttachments.announcementId, announcement.id));
         
+        // Decode filenames before returning
+        const decodedAttachments = attachments.map(att => ({
+          ...att,
+          file_name: decodeFilename(att.file_name),
+        }));
+        
         return {
           ...announcement,
-          attachments,
+          attachments: decodedAttachments,
         };
       })
     );

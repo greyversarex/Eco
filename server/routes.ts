@@ -884,7 +884,7 @@ export function registerRoutes(app: Express) {
         await storage.createAssignmentAttachment({
           assignmentId: assignment.id,
           fileData: file.buffer,
-          file_name: file.originalname,
+          file_name: decodeFilename(file.originalname),
           fileSize: file.size,
           mimeType: file.mimetype,
         });
