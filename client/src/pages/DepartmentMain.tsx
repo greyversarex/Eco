@@ -148,18 +148,36 @@ export default function DepartmentMain() {
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Поисковик */}
-            <div className="max-w-xl mx-auto">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder={lang === 'tg' ? 'Ҷустуҷӯ' : 'Поиск'}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-10 border-muted-foreground/20 focus:border-primary"
-                  data-testid="input-search"
-                />
+            {/* Кнопки и поисковик */}
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="default"
+                  size="default"
+                  className="shrink-0"
+                  data-testid="button-requests"
+                >
+                  {lang === 'tg' ? 'Супоришҳо' : 'Запросы'}
+                </Button>
+                <Button
+                  variant="default"
+                  size="default"
+                  className="shrink-0"
+                  data-testid="button-announcements"
+                >
+                  {lang === 'tg' ? 'Эълонҳо' : 'Объявления'}
+                </Button>
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder={lang === 'tg' ? 'Ҷустуҷӯ' : 'Поиск'}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 h-10 border-muted-foreground/20 focus:border-primary"
+                    data-testid="input-search"
+                  />
+                </div>
               </div>
             </div>
             {departmentsByBlock.upper.length > 0 && (
