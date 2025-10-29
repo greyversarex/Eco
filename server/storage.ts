@@ -212,7 +212,30 @@ export class DbStorage implements IStorage {
 
   // Assignments
   async getAssignments(): Promise<Assignment[]> {
-    return await db.select().from(assignments).orderBy(desc(assignments.createdAt));
+    const allAssignments = await db.select().from(assignments).orderBy(desc(assignments.createdAt));
+    
+    // Fetch attachments metadata for each assignment
+    const assignmentsWithAttachments = await Promise.all(
+      allAssignments.map(async (assignment) => {
+        const attachments = await db
+          .select({
+            id: assignmentAttachments.id,
+            file_name: assignmentAttachments.file_name,
+            fileSize: assignmentAttachments.fileSize,
+            mimeType: assignmentAttachments.mimeType,
+            createdAt: assignmentAttachments.createdAt,
+          })
+          .from(assignmentAttachments)
+          .where(eq(assignmentAttachments.assignmentId, assignment.id));
+        
+        return {
+          ...assignment,
+          attachments,
+        };
+      })
+    );
+    
+    return assignmentsWithAttachments;
   }
 
   async getAssignmentById(id: number): Promise<Assignment | undefined> {
@@ -265,7 +288,30 @@ export class DbStorage implements IStorage {
 
   // Announcements
   async getAnnouncements(): Promise<Announcement[]> {
-    return await db.select().from(announcements).orderBy(desc(announcements.createdAt));
+    const allAnnouncements = await db.select().from(announcements).orderBy(desc(announcements.createdAt));
+    
+    // Fetch attachments metadata for each announcement
+    const announcementsWithAttachments = await Promise.all(
+      allAnnouncements.map(async (announcement) => {
+        const attachments = await db
+          .select({
+            id: announcementAttachments.id,
+            file_name: announcementAttachments.file_name,
+            fileSize: announcementAttachments.fileSize,
+            mimeType: announcementAttachments.mimeType,
+            createdAt: announcementAttachments.createdAt,
+          })
+          .from(announcementAttachments)
+          .where(eq(announcementAttachments.announcementId, announcement.id));
+        
+        return {
+          ...announcement,
+          attachments,
+        };
+      })
+    );
+    
+    return announcementsWithAttachments;
   }
 
   async getAnnouncementById(id: number): Promise<Announcement | undefined> {
