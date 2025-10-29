@@ -124,7 +124,15 @@ export const insertAssignmentSchema = createInsertSchema(assignments).omit({
   deadline: z.coerce.date(),
 });
 export type InsertAssignment = z.infer<typeof insertAssignmentSchema>;
-export type Assignment = typeof assignments.$inferSelect;
+export type Assignment = typeof assignments.$inferSelect & {
+  attachments?: Array<{
+    id: number;
+    file_name: string;
+    fileSize: number;
+    mimeType: string;
+    createdAt: Date;
+  }>;
+};
 
 // Assignment attachments
 export const assignmentAttachments = pgTable("assignment_attachments", {
@@ -164,7 +172,15 @@ export const insertAnnouncementSchema = createInsertSchema(announcements).omit({
   createdAt: true,
 });
 export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
-export type Announcement = typeof announcements.$inferSelect;
+export type Announcement = typeof announcements.$inferSelect & {
+  attachments?: Array<{
+    id: number;
+    file_name: string;
+    fileSize: number;
+    mimeType: string;
+    createdAt: Date;
+  }>;
+};
 
 // Announcement attachments
 export const announcementAttachments = pgTable("announcement_attachments", {
