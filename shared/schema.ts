@@ -40,6 +40,13 @@ export const admins = pgTable("admins", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Sessions table (managed by express-session with connect-pg-simple)
+export const sessions = pgTable("sessions", {
+  sid: text("sid").primaryKey(),
+  sess: text("sess").notNull(), // JSON session data
+  expire: timestamp("expire").notNull(),
+});
+
 export const insertAdminSchema = createInsertSchema(admins).omit({
   id: true,
   createdAt: true,
