@@ -132,29 +132,56 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
         )}
       </div>
       <div>
-        <div className="text-xs mb-1 font-medium text-muted-foreground">Индикатори иҷроиш:</div>
-        <div className="flex gap-[2px] h-8 items-center">
-          {Array.from({ length: totalDays }).map((_, index) => {
-            // Determine segment color based on whether it's a past or future day
-            let segmentColor = '';
-            
+        {(() => {
+          // Calculate progress percentage (0-100)
+          const progressPercent = isCompleted ? 100 : Math.min(100, (daysPassed / totalDays) * 100);
+          
+          // Determine gradient and colors based on progress
+          const getProgressGradient = () => {
             if (isCompleted) {
-              segmentColor = 'bg-green-500'; // All green if completed
-            } else if (index < daysPassed) {
-              segmentColor = 'bg-red-500'; // Red for past days
-            } else {
-              segmentColor = 'bg-green-500'; // Green for future days
+              return 'linear-gradient(90deg, #22c55e 0%, #22c55e 100%)';
+            }
+            if (isOverdue) {
+              return 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)';
             }
             
-            return (
-              <div
-                key={index}
-                className={`flex-1 h-full rounded-sm ${segmentColor} transition-all duration-300`}
-                data-testid={`progress-segment-${index}`}
-              />
-            );
-          })}
-        </div>
+            // Dynamic gradient: green → yellow → orange → red based on time elapsed
+            if (progressPercent <= 50) {
+              // First half: green to yellow
+              return `linear-gradient(90deg, #22c55e 0%, #86efac ${progressPercent}%, #f3f4f6 ${progressPercent}%, #f3f4f6 100%)`;
+            } else if (progressPercent <= 75) {
+              // 50-75%: yellow to orange
+              return `linear-gradient(90deg, #eab308 0%, #f59e0b ${progressPercent}%, #f3f4f6 ${progressPercent}%, #f3f4f6 100%)`;
+            } else {
+              // 75-100%: orange to red
+              return `linear-gradient(90deg, #f97316 0%, #ef4444 ${progressPercent}%, #f3f4f6 ${progressPercent}%, #f3f4f6 100%)`;
+            }
+          };
+
+          return (
+            <>
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs font-medium text-muted-foreground">Прогресс выполнения</div>
+                <div className="text-xs font-semibold text-gray-700">
+                  {Math.round(progressPercent)}%
+                </div>
+              </div>
+              <div className="relative h-3 rounded-full overflow-hidden bg-gray-100 border border-gray-200 shadow-inner">
+                <div
+                  className="absolute inset-0 transition-all duration-700 ease-out rounded-full"
+                  style={{
+                    background: getProgressGradient(),
+                  }}
+                  data-testid="progress-bar"
+                />
+              </div>
+              <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                <span>{daysPassed} рӯз гузашт</span>
+                <span>{daysLeft} рӯз боқӣ</span>
+              </div>
+            </>
+          );
+        })()}
       </div>
     </div>
   );
