@@ -1,4 +1,4 @@
-import { Mail, Phone, Globe } from 'lucide-react';
+import { Phone } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -10,33 +10,26 @@ export function Footer() {
       }}
     >
       <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 md:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-sm text-white">
-          <a 
-            href="https://www.tajnature.tj" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 hover:bg-white/20 transition-colors px-3 py-1 rounded"
-            data-testid="link-website"
-          >
-            <Globe className="h-4 w-4" />
-            <span>www.tajnature.tj</span>
-          </a>
-          <a 
-            href="mailto:info@tajnature.tj"
-            className="flex items-center gap-2 hover:bg-white/20 transition-colors px-3 py-1 rounded"
-            data-testid="link-email"
-          >
-            <Mail className="h-4 w-4" />
-            <span>info@tajnature.tj</span>
-          </a>
-          <a 
-            href="tel:+992905123456"
-            className="flex items-center gap-2 hover:bg-white/20 transition-colors px-3 py-1 rounded"
-            data-testid="link-phone"
-          >
-            <Phone className="h-4 w-4" />
-            <span>(+992) 905 12 34 56</span>
-          </a>
+        <div className="flex flex-col items-center justify-center gap-2 text-sm text-white">
+          <div className="font-semibold text-base">Раёсати рақамикунонӣ ва инноватсия</div>
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            <a 
+              href="tel:+992372233505"
+              className="flex items-center gap-2 hover:bg-white/20 transition-colors px-3 py-1 rounded"
+              data-testid="link-phone-1"
+            >
+              <Phone className="h-4 w-4" />
+              <span>(+992) (37) 223 35 05</span>
+            </a>
+            <a 
+              href="tel:+992372233510"
+              className="flex items-center gap-2 hover:bg-white/20 transition-colors px-3 py-1 rounded"
+              data-testid="link-phone-2"
+            >
+              <Phone className="h-4 w-4" />
+              <span>(+992) (37) 223 35 10</span>
+            </a>
+          </div>
         </div>
       </div>
     </footer>

@@ -21,9 +21,10 @@ PostgreSQL with connection pooling is the chosen database. Key tables include `D
 Files are stored directly within the PostgreSQL database using a `bytea` column, supporting up to 5 attachments per message/assignment/announcement, with a maximum of 100 MB per file. Client-side uploads use multipart/form-data, and secure downloads require backend authentication. This method ensures autonomous deployment, transaction integrity, simplified backup/restore, and mobile application compatibility.
 
 ### Feature Specifications
-- **Assignments and Announcements:** Comprehensive system for managing tasks and platform-wide notifications with deadline tracking, progress indicators, multi-executor assignment, topic selection, and completion status. Features file attachments, read tracking for announcements, and badge counters for uncompleted assignments and unread announcements.
+- **Assignments and Announcements:** Comprehensive system for managing tasks and platform-wide notifications with deadline tracking, segmented daily progress indicators, multi-executor assignment, topic selection, and completion status. Features file attachments, read tracking for announcements, and badge counters for uncompleted assignments and unread announcements. Progress bars display segmented daily view with red for past days and green for future days. Only "Раёсати кадрҳо, коргузорӣ ва назорат" can create assignments/announcements. Two departments can delete: "Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера" and "Раёсати кадрҳо, коргузорӣ ва назорат".
 - **Broadcast Messaging:** Optimized endpoint for sending messages to multiple departments, reducing HTTP requests and improving performance significantly. Supports files attached during composition.
 - **Performance Optimization:** Achieved 85% data transfer reduction for slow networks through WebP image compression, gzip middleware, HTTP Cache-Control headers, and frontend code splitting (React.lazy).
+- **Footer Information:** Footer displays "Раёсати рақамикунонӣ ва инноватсия" contact information with two phone numbers: (+992) (37) 223 35 05 and (+992) (37) 223 35 10.
 
 ## External Dependencies
 

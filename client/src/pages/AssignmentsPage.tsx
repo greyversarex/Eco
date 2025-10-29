@@ -109,17 +109,30 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
   };
 
   return (
-    <div className="flex items-center gap-4 flex-wrap">
-      <div className="text-sm">
-        <span className="font-semibold">Мӯҳлати иҷро:</span>
-        <span className="ml-2">{formatDate(deadline)}</span>
+    <div className="space-y-3">
+      <div className="flex gap-4 flex-wrap items-center">
+        <div className="flex items-center gap-2">
+          <div className="text-sm text-muted-foreground">Мӯҳлати иҷро:</div>
+          <div className="bg-gray-100 px-4 py-2 rounded-lg border border-gray-200">
+            <div className="text-base font-semibold text-gray-800">{formatDate(deadline)}</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="text-sm text-muted-foreground">Боқӣ монд:</div>
+          <div className="bg-gray-100 px-4 py-2 rounded-lg border border-gray-200 flex items-baseline gap-1">
+            <div className="text-2xl font-bold text-gray-800">{isCompleted ? '-' : (isOverdue ? '0' : daysLeft)}</div>
+            <div className="text-sm text-muted-foreground">рӯз</div>
+          </div>
+        </div>
+        {isCompleted && (
+          <div className="text-green-600 font-semibold">Иҷрошуда!</div>
+        )}
+        {isOverdue && !isCompleted && (
+          <div className="text-red-600 font-semibold">Иҷронашуда!</div>
+        )}
       </div>
-      <div className="text-sm">
-        <span className="font-semibold">Боқӣ монд:</span>
-        <span className="ml-2">{isCompleted ? '-' : (isOverdue ? '0' : daysLeft)} рӯз</span>
-      </div>
-      <div className="flex-1 min-w-[200px]">
-        <div className="text-xs mb-1 font-medium">Индикатори иҷроиш:</div>
+      <div>
+        <div className="text-xs mb-1 font-medium text-muted-foreground">Индикатори иҷроиш:</div>
         <div className="flex gap-[2px] h-8 items-center">
           {Array.from({ length: totalDays }).map((_, index) => {
             // Determine segment color based on whether it's a past or future day
@@ -143,12 +156,6 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
           })}
         </div>
       </div>
-      {isCompleted && (
-        <div className="text-green-600 font-semibold">Иҷрошуда!</div>
-      )}
-      {isOverdue && !isCompleted && (
-        <div className="text-red-600 font-semibold">Иҷронашуда!</div>
-      )}
     </div>
   );
 }
