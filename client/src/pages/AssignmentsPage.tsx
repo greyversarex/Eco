@@ -74,26 +74,28 @@ const EXECUTORS_LIST = [
   'Ҳуҷумбороа Фазлиддин. С',
 ];
 
-// Progress indicator component
-function AssignmentProgress({ deadline, isCompleted }: { deadline: Date; isCompleted: boolean }) {
+// Progress indicator component with segmented daily view
+function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: Date; deadline: Date; isCompleted: boolean }) {
   const now = new Date();
-  const totalDays = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  const daysLeft = Math.max(0, totalDays);
-  const isOverdue = now > deadline && !isCompleted;
-
-  // Calculate progress percentage (inverted - closer to deadline = more red)
-  const progress = isCompleted ? 100 : Math.min(100, Math.max(0, (1 - daysLeft / 30) * 100));
-
-  const getBackgroundGradient = () => {
-    if (isCompleted) {
-      return 'linear-gradient(90deg, #22c55e 0%, #22c55e 100%)';
-    }
-    if (isOverdue) {
-      return 'linear-gradient(90deg, #ef4444 0%, #ef4444 100%)';
-    }
-    // Red to yellow to green gradient
-    return `linear-gradient(90deg, #ef4444 0%, #f59e0b ${progress / 2}%, #fbbf24 ${progress}%, #22c55e 100%)`;
-  };
+  
+  // Normalize dates to start of day for accurate day counting
+  const startDate = new Date(createdAt);
+  startDate.setHours(0, 0, 0, 0);
+  
+  const endDate = new Date(deadline);
+  endDate.setHours(0, 0, 0, 0);
+  
+  const currentDate = new Date(now);
+  currentDate.setHours(0, 0, 0, 0);
+  
+  // Calculate total days between creation and deadline
+  const totalDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+  
+  // Calculate days passed and days left
+  const daysPassed = Math.max(0, Math.ceil((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+  const daysLeft = Math.max(0, Math.ceil((endDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)));
+  
+  const isOverdue = currentDate > endDate && !isCompleted;
 
   const formatDate = (date: Date) => {
     const monthsTajik = [
@@ -118,14 +120,27 @@ function AssignmentProgress({ deadline, isCompleted }: { deadline: Date; isCompl
       </div>
       <div className="flex-1 min-w-[200px]">
         <div className="text-xs mb-1 font-medium">Индикатори иҷроиш:</div>
-        <div className="relative h-8 rounded-full overflow-hidden border border-gray-300">
-          <div
-            className="absolute inset-0 transition-all duration-500"
-            style={{
-              background: getBackgroundGradient(),
-              width: `${isCompleted ? 100 : progress}%`,
-            }}
-          />
+        <div className="flex gap-[2px] h-8 items-center">
+          {Array.from({ length: totalDays }).map((_, index) => {
+            // Determine segment color based on whether it's a past or future day
+            let segmentColor = '';
+            
+            if (isCompleted) {
+              segmentColor = 'bg-green-500'; // All green if completed
+            } else if (index < daysPassed) {
+              segmentColor = 'bg-red-500'; // Red for past days
+            } else {
+              segmentColor = 'bg-green-500'; // Green for future days
+            }
+            
+            return (
+              <div
+                key={index}
+                className={`flex-1 h-full rounded-sm ${segmentColor} transition-all duration-300`}
+                data-testid={`progress-segment-${index}`}
+              />
+            );
+          })}
         </div>
       </div>
       {isCompleted && (
@@ -505,7 +520,7 @@ export default function AssignmentsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <AssignmentProgress deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
                   
                   {assignment.attachments && assignment.attachments.length > 0 && (
                     <div className="pt-3 border-t">
