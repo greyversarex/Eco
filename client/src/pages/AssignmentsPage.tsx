@@ -135,28 +135,6 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
         {(() => {
           // Calculate progress percentage (0-100)
           const progressPercent = isCompleted ? 100 : Math.min(100, (daysPassed / totalDays) * 100);
-          
-          // Determine gradient and colors based on progress
-          const getProgressGradient = () => {
-            if (isCompleted) {
-              return 'linear-gradient(90deg, #22c55e 0%, #22c55e 100%)';
-            }
-            if (isOverdue) {
-              return 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)';
-            }
-            
-            // Dynamic gradient: green → yellow → orange → red based on time elapsed
-            if (progressPercent <= 50) {
-              // First half: green to yellow
-              return `linear-gradient(90deg, #22c55e 0%, #86efac ${progressPercent}%, #f3f4f6 ${progressPercent}%, #f3f4f6 100%)`;
-            } else if (progressPercent <= 75) {
-              // 50-75%: yellow to orange
-              return `linear-gradient(90deg, #eab308 0%, #f59e0b ${progressPercent}%, #f3f4f6 ${progressPercent}%, #f3f4f6 100%)`;
-            } else {
-              // 75-100%: orange to red
-              return `linear-gradient(90deg, #f97316 0%, #ef4444 ${progressPercent}%, #f3f4f6 ${progressPercent}%, #f3f4f6 100%)`;
-            }
-          };
 
           return (
             <>
@@ -166,15 +144,31 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
                   {Math.round(progressPercent)}%
                 </div>
               </div>
-              <div className="relative h-6 rounded-lg overflow-hidden bg-gray-200 border-2 border-gray-300 shadow-md">
-                <div
-                  className="absolute inset-0 transition-all duration-700 ease-out"
+              
+              {/* Progress bar with arrow indicator */}
+              <div className="relative pt-4">
+                {/* Arrow indicator - positioned above the bar */}
+                <div 
+                  className="absolute top-0 transition-all duration-700 ease-out"
                   style={{
-                    background: getProgressGradient(),
+                    left: `calc(${progressPercent}% - 8px)`,
+                    zIndex: 10,
                   }}
-                  data-testid="progress-bar"
-                />
+                >
+                  <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-gray-700 drop-shadow-md" />
+                </div>
+                
+                {/* Three-color progress bar */}
+                <div className="h-6 rounded-lg overflow-hidden border-2 border-gray-300 shadow-md flex">
+                  {/* Green section - 33.33% */}
+                  <div className="flex-1 bg-green-500" style={{ flexBasis: '33.33%' }} />
+                  {/* Yellow section - 33.33% */}
+                  <div className="flex-1 bg-yellow-400" style={{ flexBasis: '33.33%' }} />
+                  {/* Red section - 33.33% */}
+                  <div className="flex-1 bg-red-500" style={{ flexBasis: '33.33%' }} />
+                </div>
               </div>
+              
               <div className="flex justify-between mt-2 text-sm font-medium text-gray-600">
                 <span>{daysPassed} рӯз гузашт</span>
                 <span>{daysLeft} рӯз боқӣ</span>
