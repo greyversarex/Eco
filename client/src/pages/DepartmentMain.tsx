@@ -169,7 +169,7 @@ export default function DepartmentMain() {
               </Button>
               <Button
                 size="lg"
-                className="shrink-0 relative bg-[#4a9d4a] hover:bg-[#3d8a3d] text-white font-medium px-8 h-11 rounded-md shadow-sm"
+                className="shrink-0 relative bg-[#4a9d4a] hover:bg-[#3d8a3d] text-white font-medium px-8 h-11 rounded-md shadow-sm pl-[36px] pr-[36px]"
                 data-testid="button-announcements"
                 onClick={() => setLocation('/department/announcements')}
               >
