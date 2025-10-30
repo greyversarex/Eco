@@ -545,18 +545,20 @@ export default function AssignmentsPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold">{assignment.topic}</h3>
-                      {assignment.content && (
-                        <div className="mt-2 text-sm text-gray-700 bg-gray-50 p-3 rounded-md border border-gray-200">
-                          <div className="font-medium text-gray-900 mb-1">
-                            {lang === 'tg' ? 'Мазмуни супоришҳои додашуда:' : 'Содержание поручения:'}
-                          </div>
-                          <div className="whitespace-pre-wrap">{assignment.content}</div>
-                        </div>
-                      )}
                       <div className="text-sm text-muted-foreground mt-2">
                         <span className="font-medium">{lang === 'tg' ? 'Иҷрокунандагон:' : 'Исполнители:'}</span>{' '}
                         {assignment.executors.join(', ')}
                       </div>
+                      {assignment.content && (
+                        <div className="mt-3">
+                          <div className="text-sm font-medium text-gray-900 mb-1">
+                            {lang === 'tg' ? 'Мазмуни супоришҳои додашуда:' : 'Содержание поручения:'}
+                          </div>
+                          <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md border border-gray-200 whitespace-pre-wrap">
+                            {assignment.content}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     {canDelete && (
                       <Button
