@@ -45,7 +45,7 @@ export default function MessageView() {
   const { toast } = useToast();
   
   // Get 'from' query parameter to know where to go back
-  const searchParams = new URLSearchParams(location.split('?')[1] || '');
+  const searchParams = new URLSearchParams(window.location.search);
   const fromPage = searchParams.get('from');
 
   const { data: message, isLoading } = useQuery<Message>({
