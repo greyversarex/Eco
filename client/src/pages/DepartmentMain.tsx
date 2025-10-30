@@ -153,48 +153,51 @@ export default function DepartmentMain() {
         ) : (
           <div className="space-y-8">
             {/* Кнопки и поисковик */}
-            <div className="max-w-4xl mx-auto">
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="default"
-                  size="default"
-                  className="shrink-0 relative"
-                  data-testid="button-requests"
-                  onClick={() => setLocation('/department/assignments')}
-                >
-                  {lang === 'tg' ? 'Супоришҳо' : 'Запросы'}
-                  {counters && counters.uncompletedAssignments > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
-                      {counters.uncompletedAssignments}
-                    </span>
-                  )}
-                </Button>
-                <Button
-                  variant="default"
-                  size="default"
-                  className="shrink-0 relative"
-                  data-testid="button-announcements"
-                  onClick={() => setLocation('/department/announcements')}
-                >
-                  {lang === 'tg' ? 'Эълонҳо' : 'Объявления'}
-                  {counters && counters.unreadAnnouncements > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
-                      {counters.unreadAnnouncements}
-                    </span>
-                  )}
-                </Button>
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder={lang === 'tg' ? 'Ҷустуҷӯ' : 'Поиск'}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 h-10 border-muted-foreground/20 focus:border-primary"
-                    data-testid="input-search"
-                  />
-                </div>
+            <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
+              <Button
+                size="lg"
+                className="shrink-0 relative bg-[#4a9d4a] hover:bg-[#3d8a3d] text-white font-medium px-8 h-11 rounded-md shadow-sm"
+                data-testid="button-requests"
+                onClick={() => setLocation('/department/assignments')}
+              >
+                {lang === 'tg' ? 'Супоришҳо' : 'Поручения'}
+                {counters && counters.uncompletedAssignments > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                    {counters.uncompletedAssignments}
+                  </span>
+                )}
+              </Button>
+              <Button
+                size="lg"
+                className="shrink-0 relative bg-[#4a9d4a] hover:bg-[#3d8a3d] text-white font-medium px-8 h-11 rounded-md shadow-sm"
+                data-testid="button-announcements"
+                onClick={() => setLocation('/department/announcements')}
+              >
+                {lang === 'tg' ? 'Эълонҳо' : 'Объявления'}
+                {counters && counters.unreadAnnouncements > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                    {counters.unreadAnnouncements}
+                  </span>
+                )}
+              </Button>
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder={lang === 'tg' ? 'Ҷустуҷӯ' : 'Поиск'}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-11 border border-gray-300 focus:border-primary bg-white rounded-md"
+                  data-testid="input-search"
+                />
               </div>
+            </div>
+
+            {/* Заголовок "Кумитаи хифзи мухити зист" */}
+            <div className="pt-4">
+              <h2 className="text-2xl font-bold text-gray-800">
+                {lang === 'tg' ? 'Кумитаи ҳифзи муҳити зист' : 'Комитет охраны окружающей среды'}
+              </h2>
             </div>
             {departmentsByBlock.upper.length > 0 && (
               <div className="space-y-4">
