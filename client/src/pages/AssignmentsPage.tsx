@@ -437,7 +437,7 @@ export default function AssignmentsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{lang === 'tg' ? 'Мӯҳлати иҷро' : 'Срок выполнения'}</Label>
+                    <Label>{lang === 'tg' ? 'Мӯҳлати иҷро то:' : 'Срок выполнения'}</Label>
                     <DatePicker
                       value={deadline}
                       onChange={setDeadline}
