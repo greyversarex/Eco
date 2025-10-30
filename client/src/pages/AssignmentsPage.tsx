@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2 } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
@@ -190,6 +191,7 @@ export default function AssignmentsPage() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [topic, setTopic] = useState('');
+  const [content, setContent] = useState('');
   const [selectedExecutors, setSelectedExecutors] = useState<string[]>([]);
   const [deadline, setDeadline] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -219,6 +221,7 @@ export default function AssignmentsPage() {
       });
       setIsDialogOpen(false);
       setTopic('');
+      setContent('');
       setSelectedExecutors([]);
       setDeadline('');
       setSelectedFiles([]);
@@ -314,6 +317,9 @@ export default function AssignmentsPage() {
 
     const formData = new FormData();
     formData.append('topic', topic);
+    if (content) {
+      formData.append('content', content);
+    }
     formData.append('executors', JSON.stringify(selectedExecutors));
     formData.append('deadline', deadline);
     
@@ -406,6 +412,17 @@ export default function AssignmentsPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>{lang === 'tg' ? 'Мазмуни супоришҳои додашуда' : 'Содержание поручения'}</Label>
+                    <Textarea
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      placeholder={lang === 'tg' ? 'Шарҳи иловагӣ...' : 'Дополнительные комментарии...'}
+                      className="min-h-[100px]"
+                      data-testid="textarea-content"
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -528,7 +545,15 @@ export default function AssignmentsPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold">{assignment.topic}</h3>
-                      <div className="text-sm text-muted-foreground">
+                      {assignment.content && (
+                        <div className="mt-2 text-sm text-gray-700 bg-gray-50 p-3 rounded-md border border-gray-200">
+                          <div className="font-medium text-gray-900 mb-1">
+                            {lang === 'tg' ? 'Мазмуни супоришҳои додашуда:' : 'Содержание поручения:'}
+                          </div>
+                          <div className="whitespace-pre-wrap">{assignment.content}</div>
+                        </div>
+                      )}
+                      <div className="text-sm text-muted-foreground mt-2">
                         <span className="font-medium">{lang === 'tg' ? 'Иҷрокунандагон:' : 'Исполнители:'}</span>{' '}
                         {assignment.executors.join(', ')}
                       </div>

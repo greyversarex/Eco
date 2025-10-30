@@ -856,6 +856,7 @@ export function registerRoutes(app: Express) {
       // Prepare assignment data
       const assignmentData = {
         topic: req.body.topic,
+        content: req.body.content || null,
         executors: executorsRaw,
         deadline: new Date(req.body.deadline),
       };

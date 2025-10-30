@@ -108,6 +108,7 @@ export type Attachment = typeof attachments.$inferSelect;
 export const assignments = pgTable("assignments", {
   id: serial("id").primaryKey(),
   topic: text("topic").notNull(), // Мавзӯъ: "Нақшаи корӣ", "Протоколи назоратӣ", etc.
+  content: text("content"), // Мазмуни супоришҳои додашуда (комментарии)
   executors: text("executors").array().notNull(), // Исполнители (массив имён)
   deadline: timestamp("deadline").notNull(), // Мӯҳлати иҷро
   isCompleted: boolean("is_completed").default(false).notNull(),
