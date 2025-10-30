@@ -193,12 +193,6 @@ export default function DepartmentMain() {
               </div>
             </div>
 
-            {/* Заголовок "Кумитаи хифзи мухити зист" */}
-            <div className="pt-4">
-              <h2 className="text-2xl font-bold text-gray-800">
-                {lang === 'tg' ? 'Кумитаи ҳифзи муҳити зист' : 'Комитет охраны окружающей среды'}
-              </h2>
-            </div>
             {departmentsByBlock.upper.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold text-foreground px-2">{t.upperBlock}</h2>
