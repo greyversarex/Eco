@@ -139,11 +139,8 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
 
           return (
             <>
-              <div className="flex items-center justify-between mb-2">
+              <div className="mb-2">
                 <div className="text-sm font-semibold text-gray-700">Индикатори иҷроиш</div>
-                <div className="text-sm font-bold text-gray-800">
-                  {Math.round(progressPercent)}%
-                </div>
               </div>
               
               {/* Beautiful gradient progress bar without borders */}
