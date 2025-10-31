@@ -146,47 +146,65 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
                 </div>
               </div>
               
-              {/* Dynamic progress bar without arrow - all 3 colors visible from start */}
+              {/* Beautiful gradient progress bar without borders */}
               <div className="relative">
                 {(() => {
                   // Calculate dynamic color percentages based on progress
-                  // All 3 colors are visible from the start
                   let greenPercent, yellowPercent, redPercent;
                   
                   if (progressPercent <= 50) {
                     // First half (0-50%): green decreases, yellow and red increase
-                    greenPercent = 33.33 - (progressPercent / 50 * 33.33); // 33.33% -> 0%
-                    yellowPercent = 33.33 + (progressPercent / 50 * 16.67); // 33.33% -> 50%
-                    redPercent = 33.33 + (progressPercent / 50 * 16.67); // 33.33% -> 50%
+                    greenPercent = 33.33 - (progressPercent / 50 * 33.33);
+                    yellowPercent = 33.33 + (progressPercent / 50 * 16.67);
+                    redPercent = 33.33 + (progressPercent / 50 * 16.67);
                   } else {
                     // Second half (50-100%): green = 0, yellow decreases, red increases
                     greenPercent = 0;
                     const secondHalfProgress = progressPercent - 50;
-                    yellowPercent = 50 - (secondHalfProgress / 50 * 50); // 50% -> 0%
-                    redPercent = 50 + (secondHalfProgress / 50 * 50); // 50% -> 100%
+                    yellowPercent = 50 - (secondHalfProgress / 50 * 50);
+                    redPercent = 50 + (secondHalfProgress / 50 * 50);
+                  }
+
+                  // Create gradient with smooth transitions
+                  const gradientStops = [];
+                  let currentPos = 0;
+                  
+                  if (greenPercent > 0) {
+                    gradientStops.push(`#22c55e ${currentPos}%`);
+                    currentPos += greenPercent;
+                    gradientStops.push(`#22c55e ${currentPos}%`);
+                  }
+                  
+                  if (yellowPercent > 0) {
+                    if (greenPercent > 0) {
+                      // Add gradient transition from green to yellow
+                      gradientStops.push(`#facc15 ${currentPos + 2}%`);
+                    } else {
+                      gradientStops.push(`#facc15 ${currentPos}%`);
+                    }
+                    currentPos += yellowPercent;
+                    gradientStops.push(`#facc15 ${currentPos}%`);
+                  }
+                  
+                  if (redPercent > 0) {
+                    if (yellowPercent > 0) {
+                      // Add gradient transition from yellow to red
+                      gradientStops.push(`#ef4444 ${currentPos + 2}%`);
+                    } else {
+                      gradientStops.push(`#ef4444 ${currentPos}%`);
+                    }
+                    currentPos += redPercent;
+                    gradientStops.push(`#ef4444 ${currentPos}%`);
                   }
 
                   return (
-                    <div className="h-6 rounded-lg overflow-hidden border-2 border-gray-300 shadow-md flex transition-all duration-700 ease-out">
-                      {greenPercent > 0 && (
-                        <div 
-                          className="bg-green-500 transition-all duration-700 ease-out" 
-                          style={{ width: `${greenPercent}%` }} 
-                        />
-                      )}
-                      {yellowPercent > 0 && (
-                        <div 
-                          className="bg-yellow-400 transition-all duration-700 ease-out" 
-                          style={{ width: `${yellowPercent}%` }} 
-                        />
-                      )}
-                      {redPercent > 0 && (
-                        <div 
-                          className="bg-red-500 transition-all duration-700 ease-out" 
-                          style={{ width: `${redPercent}%` }} 
-                        />
-                      )}
-                    </div>
+                    <div 
+                      className="h-6 rounded-lg shadow-lg transition-all duration-700 ease-out"
+                      style={{
+                        background: `linear-gradient(to right, ${gradientStops.join(', ')})`,
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
+                      }}
+                    />
                   );
                 })()}
               </div>
