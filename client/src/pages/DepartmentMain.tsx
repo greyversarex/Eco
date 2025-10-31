@@ -156,7 +156,7 @@ export default function DepartmentMain() {
             <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
               <Button
                 size="lg"
-                className="shrink-0 relative bg-[#4a9d4a] hover:bg-[#3d8a3d] text-white font-medium px-8 h-11 rounded-md shadow-sm"
+                className="shrink-0 relative bg-[#4a9d4a] hover:bg-[#3d8a3d] text-white font-medium pl-[36px] pr-[36px] h-11 rounded-md shadow-sm"
                 data-testid="button-requests"
                 onClick={() => setLocation('/department/assignments')}
               >

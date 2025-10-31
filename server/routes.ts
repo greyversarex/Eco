@@ -472,15 +472,19 @@ export function registerRoutes(app: Express) {
           const message = await storage.createMessage(fullMessageData);
           createdMessages.push(message.id);
 
-          // Attach files to this message
-          for (const file of files) {
-            await storage.createAttachment({
-              messageId: message.id,
-              fileData: file.buffer,
-              file_name: file.originalname,
-              fileSize: file.size,
-              mimeType: file.mimetype,
-            });
+          // Attach files to this message in parallel
+          if (files.length > 0) {
+            await Promise.all(
+              files.map(file =>
+                storage.createAttachment({
+                  messageId: message.id,
+                  fileData: file.buffer,
+                  file_name: file.originalname,
+                  fileSize: file.size,
+                  mimeType: file.mimetype,
+                })
+              )
+            );
           }
         } catch (error) {
           console.error(`Failed to create message for recipient ${recipientId}:`, error);
@@ -880,15 +884,19 @@ export function registerRoutes(app: Express) {
       // Create assignment
       const assignment = await storage.createAssignment(validationResult.data);
 
-      // Attach files
-      for (const file of files) {
-        await storage.createAssignmentAttachment({
-          assignmentId: assignment.id,
-          fileData: file.buffer,
-          file_name: decodeFilename(file.originalname),
-          fileSize: file.size,
-          mimeType: file.mimetype,
-        });
+      // Attach files in parallel for better performance
+      if (files.length > 0) {
+        await Promise.all(
+          files.map(file => 
+            storage.createAssignmentAttachment({
+              assignmentId: assignment.id,
+              fileData: file.buffer,
+              file_name: decodeFilename(file.originalname),
+              fileSize: file.size,
+              mimeType: file.mimetype,
+            })
+          )
+        );
       }
 
       res.json(assignment);
