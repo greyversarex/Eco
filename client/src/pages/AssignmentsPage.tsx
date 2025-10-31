@@ -146,6 +146,33 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
               {/* Beautiful gradient progress bar without borders */}
               <div className="relative">
                 {(() => {
+                  // Special cases: completed or overdue
+                  if (isCompleted) {
+                    // When completed - fully green
+                    return (
+                      <div 
+                        className="h-6 rounded-lg shadow-lg transition-all duration-700 ease-out"
+                        style={{
+                          background: '#22c55e',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
+                        }}
+                      />
+                    );
+                  }
+                  
+                  if (isOverdue) {
+                    // When overdue - fully red
+                    return (
+                      <div 
+                        className="h-6 rounded-lg shadow-lg transition-all duration-700 ease-out"
+                        style={{
+                          background: '#ef4444',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
+                        }}
+                      />
+                    );
+                  }
+                  
                   // Calculate dynamic color percentages based on progress
                   let greenPercent, yellowPercent, redPercent;
                   
