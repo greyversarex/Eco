@@ -146,27 +146,24 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
                 </div>
               </div>
               
-              {/* Dynamic progress bar without arrow */}
+              {/* Dynamic progress bar without arrow - all 3 colors visible from start */}
               <div className="relative">
                 {(() => {
                   // Calculate dynamic color percentages based on progress
+                  // All 3 colors are visible from the start
                   let greenPercent, yellowPercent, redPercent;
                   
-                  if (progressPercent <= 33.33) {
-                    // First third: green decreases, yellow increases
-                    greenPercent = 100 - (progressPercent / 33.33 * 100);
-                    yellowPercent = progressPercent / 33.33 * 100;
-                    redPercent = 0;
-                  } else if (progressPercent <= 66.66) {
-                    // Second third: yellow decreases, red increases
-                    greenPercent = 0;
-                    yellowPercent = 100 - ((progressPercent - 33.33) / 33.33 * 100);
-                    redPercent = (progressPercent - 33.33) / 33.33 * 100;
+                  if (progressPercent <= 50) {
+                    // First half (0-50%): green decreases, yellow and red increase
+                    greenPercent = 33.33 - (progressPercent / 50 * 33.33); // 33.33% -> 0%
+                    yellowPercent = 33.33 + (progressPercent / 50 * 16.67); // 33.33% -> 50%
+                    redPercent = 33.33 + (progressPercent / 50 * 16.67); // 33.33% -> 50%
                   } else {
-                    // Final third: only red
+                    // Second half (50-100%): green = 0, yellow decreases, red increases
                     greenPercent = 0;
-                    yellowPercent = 0;
-                    redPercent = 100;
+                    const secondHalfProgress = progressPercent - 50;
+                    yellowPercent = 50 - (secondHalfProgress / 50 * 50); // 50% -> 0%
+                    redPercent = 50 + (secondHalfProgress / 50 * 50); // 50% -> 100%
                   }
 
                   return (
