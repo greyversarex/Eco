@@ -146,28 +146,52 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
                 </div>
               </div>
               
-              {/* Progress bar with arrow indicator */}
-              <div className="relative pt-4">
-                {/* Arrow indicator - positioned above the bar */}
-                <div 
-                  className="absolute top-0 transition-all duration-700 ease-out"
-                  style={{
-                    left: `calc(${progressPercent}% - 8px)`,
-                    zIndex: 10,
-                  }}
-                >
-                  <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-gray-700 drop-shadow-md" />
-                </div>
-                
-                {/* Three-color progress bar */}
-                <div className="h-6 rounded-lg overflow-hidden border-2 border-gray-300 shadow-md flex">
-                  {/* Green section - 33.33% */}
-                  <div className="flex-1 bg-green-500" style={{ flexBasis: '33.33%' }} />
-                  {/* Yellow section - 33.33% */}
-                  <div className="flex-1 bg-yellow-400" style={{ flexBasis: '33.33%' }} />
-                  {/* Red section - 33.33% */}
-                  <div className="flex-1 bg-red-500" style={{ flexBasis: '33.33%' }} />
-                </div>
+              {/* Dynamic progress bar without arrow */}
+              <div className="relative">
+                {(() => {
+                  // Calculate dynamic color percentages based on progress
+                  let greenPercent, yellowPercent, redPercent;
+                  
+                  if (progressPercent <= 33.33) {
+                    // First third: green decreases, yellow increases
+                    greenPercent = 100 - (progressPercent / 33.33 * 100);
+                    yellowPercent = progressPercent / 33.33 * 100;
+                    redPercent = 0;
+                  } else if (progressPercent <= 66.66) {
+                    // Second third: yellow decreases, red increases
+                    greenPercent = 0;
+                    yellowPercent = 100 - ((progressPercent - 33.33) / 33.33 * 100);
+                    redPercent = (progressPercent - 33.33) / 33.33 * 100;
+                  } else {
+                    // Final third: only red
+                    greenPercent = 0;
+                    yellowPercent = 0;
+                    redPercent = 100;
+                  }
+
+                  return (
+                    <div className="h-6 rounded-lg overflow-hidden border-2 border-gray-300 shadow-md flex transition-all duration-700 ease-out">
+                      {greenPercent > 0 && (
+                        <div 
+                          className="bg-green-500 transition-all duration-700 ease-out" 
+                          style={{ width: `${greenPercent}%` }} 
+                        />
+                      )}
+                      {yellowPercent > 0 && (
+                        <div 
+                          className="bg-yellow-400 transition-all duration-700 ease-out" 
+                          style={{ width: `${yellowPercent}%` }} 
+                        />
+                      )}
+                      {redPercent > 0 && (
+                        <div 
+                          className="bg-red-500 transition-all duration-700 ease-out" 
+                          style={{ width: `${redPercent}%` }} 
+                        />
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
               
               <div className="flex justify-between mt-2 text-sm font-medium text-gray-600">
