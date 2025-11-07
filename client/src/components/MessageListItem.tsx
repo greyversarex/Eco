@@ -87,7 +87,7 @@ export default function MessageListItem({
       {/* Sender, Date and Icons */}
       <div className="flex items-center gap-3 ml-4 shrink-0">
         <span className="hidden sm:inline text-sm text-muted-foreground w-32 text-right">{sender}</span>
-        <span className="text-xs sm:text-sm text-muted-foreground w-24 text-right">{date}</span>
+        <span className="text-xs sm:text-sm text-muted-foreground w-24 text-right ml-[-4px] mr-[-4px] mt-[0px] mb-[0px] pt-[0px] pb-[0px] pl-[-10px] pr-[-10px]">{date}</span>
         <div className="flex items-center gap-2 w-20 justify-end">
           {isSentMessage && isRead && (
             <Badge variant="outline" className="gap-1 bg-primary/10 text-primary border-primary/20 hidden sm:flex" data-testid={`badge-read-${id}`}>
