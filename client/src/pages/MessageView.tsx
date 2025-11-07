@@ -248,7 +248,7 @@ export default function MessageView() {
         </div>
       </header>
 
-      <main className="flex-1 mx-auto max-w-6xl px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
+      <main className="flex-1 mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
@@ -292,7 +292,7 @@ export default function MessageView() {
               <CardHeader className="pb-6 space-y-6 border-b">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-4">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground" data-testid="text-subject">{message.subject}</h2>
+                    <h2 className="text-xl font-semibold text-foreground" data-testid="text-subject">{message.subject}</h2>
                   </div>
                   {user?.userType === 'admin' && (
                     <div className="flex gap-2 shrink-0">

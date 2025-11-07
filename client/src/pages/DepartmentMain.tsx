@@ -77,10 +77,10 @@ export default function DepartmentMain() {
             >
               <img src={logoImage} alt="Логотип" className="h-8 w-8 sm:h-10 sm:w-10 object-contain shrink-0 drop-shadow-md" />
               <div className="min-w-0 text-left">
-                <h1 className="text-sm sm:text-base md:text-lg font-semibold text-white drop-shadow-md truncate">Портали электронӣ</h1>
-                <p className="text-xs text-white/90 drop-shadow-sm truncate">
+                <h1 className="text-sm sm:text-base md:text-lg font-semibold text-white drop-shadow-md truncate">
                   {user?.userType === 'department' ? user.department?.name : ''}
-                </p>
+                </h1>
+                <p className="text-xs text-white/90 drop-shadow-sm truncate">Портали электронӣ</p>
               </div>
             </button>
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4">

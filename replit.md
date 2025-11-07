@@ -19,6 +19,10 @@ Preferred communication style: Simple, everyday language.
 - **Executor Field Label Simplified:** Changed "Иҷрокунанда (ихтиёрӣ)" to "Иҷрокунанда" for cleaner UI and consistency across Tajik and Russian interfaces.
 - **Message List Layout Redesign:** Completely redesigned message list item layout with document number first, followed by vertical separator, then subject with content preview below. Added column headers ("Рақами ҳуҷҷат", "Мавзӯъ ва мундариҷа", "Фиристанда", "Сана") above the message list for improved data scanning and organization.
 - **Message View Button Reorganization:** Moved "Ҷавоб додан" (Reply) button to the end of message content. "Бекор кардан" (Delete) button now only visible to admin users; regular department users see only the Reply button for cleaner interface and reduced accidental deletions.
+- **Message List Alignment Refinements:** Applied center alignment to document numbers, fixed widths for sender/date columns (w-32, w-24) to ensure proper alignment with column headers, maintaining responsive behavior on mobile devices.
+- **Typography Optimization:** Reduced message subject font size from text-2xl/3xl to text-xl for consistency with other headings like "Замимашудаҳо", improving visual hierarchy and readability.
+- **Message View Width Expansion:** Increased message detail card container from max-w-6xl to max-w-7xl for better content readability and less cramped appearance.
+- **Department Main Header Correction:** Swapped header text order so department name appears on top and "Портали электронӣ" appears below for correct organizational hierarchy.
 
 ## System Architecture
 
