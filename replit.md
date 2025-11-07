@@ -14,6 +14,8 @@ Preferred communication style: Simple, everyday language.
 - **Enhanced Visual Feedback:** Message list items now feature stronger hover effects (shadow-lg, border highlight, background opacity, subtle scale transform) matching the department card aesthetic for consistency. Added rounded corners and spacing between message items.
 - **Simplified Message View:** Removed field labels (sender, date, executor) from received message display. Content now flows in order: Subject header → Message content → Date value → Executor value, creating a cleaner reading experience.
 - **Monitoring Page Removed:** Removed the public monitoring dashboard page and all associated routing/navigation as it is no longer needed.
+- **Database Migration System:** Implemented safe production migration system using safe-migrate.ts. The system uses `npm run db:migrate` to safely apply schema changes without data loss, checking for existing columns before adding new ones.
+- **Department List Status:** Current seed.ts contains 49 departments from user file (8 upper, 12 middle, 16 lower, 13 district). User file shows only 49 departments instead of required 50 (8/11/18/13). Awaiting user confirmation for missing department.
 
 ## System Architecture
 

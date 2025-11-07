@@ -9,7 +9,7 @@
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx server/migrate.ts",
+    "db:migrate": "tsx server/safe-migrate.ts",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx server/seed.ts"
   },
