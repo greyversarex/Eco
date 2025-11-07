@@ -6,6 +6,14 @@
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (November 2025)
+- **Terminology Update:** Replaced all instances of "Нест кардан" (Delete) with "Бекор кардан" (Cancel) throughout the application for better linguistic accuracy and user experience.
+- **Document Number Field:** Added optional `documentNumber` (Рақами ҳуҷҷат) field to both Messages and Assignments schemas. This field is displayed in message composition and assignment creation forms, allowing users to track official document numbers. Backend routes updated to persist this data.
+- **Message Composition UI Improvements:** Reorganized form layout with full-width subject field, date and document number fields positioned below in a 2-column grid. Recipient selection now sorted by departmental hierarchy (Upper→Middle→Lower→District) and displayed in a responsive 2-row grid layout.
+- **Content Field Validation:** Removed required validation from the content/message body field in ComposeMessage, allowing users to send messages with subject and attachments only.
+- **Enhanced Visual Feedback:** Message list items now feature stronger hover effects (shadow-lg, border highlight, background opacity, subtle scale transform) matching the department card aesthetic for consistency. Added rounded corners and spacing between message items.
+- **Simplified Message View:** Removed field labels (sender, date, executor) from received message display. Content now flows in order: Subject header → Message content → Date value → Executor value, creating a cleaner reading experience.
+
 ## System Architecture
 
 ### Frontend Architecture
