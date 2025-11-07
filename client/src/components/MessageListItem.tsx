@@ -65,17 +65,14 @@ export default function MessageListItem({
           />
         </div>
       )}
-      
       {/* Document Number */}
       <div className="w-20 sm:w-32 shrink-0 text-center">
         <p className={`text-xs sm:text-sm truncate ${!isRead && !isSentMessage ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
           {documentNumber || '—'}
         </p>
       </div>
-
       {/* Vertical separator */}
       <div className="hidden sm:block h-12 w-px bg-border mx-2 sm:mx-4 shrink-0" />
-
       {/* Subject and Content */}
       <div className="flex-1 min-w-0 space-y-1 mx-2">
         <h3 className={`text-xs sm:text-sm truncate ${!isRead && !isSentMessage ? 'font-semibold text-foreground' : 'font-normal text-foreground'}`}>
@@ -87,10 +84,9 @@ export default function MessageListItem({
           </p>
         )}
       </div>
-
       {/* Sender, Date and Icons */}
       <div className="flex items-center gap-1 sm:gap-3 ml-2 sm:ml-4 shrink-0">
-        <span className="hidden sm:inline text-sm text-muted-foreground w-32 text-left">{sender}</span>
+        <span className="hidden sm:inline text-sm text-muted-foreground w-32 text-left ml-[-55px] mr-[-55px]">{sender}</span>
         <span className="text-xs sm:text-sm text-muted-foreground w-16 sm:w-24 text-left">{date}</span>
         <div className="flex items-center gap-2 w-16 sm:w-20">
           {isSentMessage && isRead && (
