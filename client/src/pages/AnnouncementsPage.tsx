@@ -67,7 +67,7 @@ export default function AnnouncementsPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
         title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Эълон нест карда шуд' : 'Объявление удалено',
+        description: lang === 'tg' ? 'Эълон бекор карда шуд' : 'Объявление удалено',
       });
     },
     onError: (error: any) => {

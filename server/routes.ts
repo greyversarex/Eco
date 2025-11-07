@@ -436,6 +436,7 @@ export function registerRoutes(app: Express) {
         senderId: parseInt(req.body.senderId),
         executor: req.body.executor || null,
         documentDate: new Date(req.body.documentDate),
+        documentNumber: req.body.documentNumber || null,
         replyToId: null,
       };
 
@@ -861,6 +862,7 @@ export function registerRoutes(app: Express) {
       const assignmentData = {
         topic: req.body.topic,
         content: req.body.content || null,
+        documentNumber: req.body.documentNumber || null,
         executors: executorsRaw,
         deadline: new Date(req.body.deadline),
       };

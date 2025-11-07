@@ -136,7 +136,7 @@ export default function MessageView() {
     onSuccess: () => {
       toast({
         title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Ҳуҷҷат нест карда шуд' : 'Документ удален',
+        description: lang === 'tg' ? 'Ҳуҷҷат бекор карда шуд' : 'Документ удален',
       });
       // Invalidate queries and go back to appropriate list
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
@@ -159,7 +159,7 @@ export default function MessageView() {
     // Confirm deletion
     const confirmed = window.confirm(
       lang === 'tg' 
-        ? 'Шумо мутмаин ҳастед, ки мехоҳед ин ҳуҷҷатро нест кунед?' 
+        ? 'Шумо мутмаин ҳастед, ки мехоҳед ин ҳуҷҷатро бекор кунед?' 
         : 'Вы уверены, что хотите удалить этот документ?'
     );
     
@@ -291,21 +291,8 @@ export default function MessageView() {
             <Card className="border-border/40 bg-white dark:bg-slate-900">
               <CardHeader className="pb-6 space-y-6 border-b">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 space-y-3">
+                  <div className="flex-1 space-y-4">
                     <h2 className="text-2xl sm:text-3xl font-bold text-foreground" data-testid="text-subject">{message.subject}</h2>
-                    <div className="space-y-2 text-base text-muted-foreground">
-                      <p data-testid="text-sender">
-                        <span className="font-semibold text-foreground">{t.sender}:</span> {getSenderName(message.senderId)}
-                      </p>
-                      <p data-testid="text-date">
-                        <span className="font-semibold text-foreground">{t.date}:</span> {formatDateTajik(new Date(message.documentDate), lang)}
-                      </p>
-                      {message.executor && (
-                        <p data-testid="text-executor">
-                          <span className="font-semibold text-foreground">{t.executor}:</span> {message.executor}
-                        </p>
-                      )}
-                    </div>
                   </div>
                   {user?.userType === 'department' && (
                     <div className="flex gap-2 shrink-0">
@@ -323,18 +310,29 @@ export default function MessageView() {
                       >
                         <Trash2 className="h-4 w-4" />
                         {deleteMessageMutation.isPending 
-                          ? (lang === 'tg' ? 'Нест шуда истодааст...' : 'Удаление...') 
-                          : (lang === 'tg' ? 'Нест кардан' : 'Удалить')}
+                          ? (lang === 'tg' ? 'Бекор шуда истодааст...' : 'Удаление...') 
+                          : (lang === 'tg' ? 'Бекор кардан' : 'Удалить')}
                       </Button>
                     </div>
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="pt-8 space-y-8">
+              <CardContent className="pt-8 space-y-6">
                 <div className="prose prose-lg max-w-none" data-testid="text-content">
                   <div className="whitespace-pre-line text-lg leading-relaxed text-foreground">
                     {message.content}
                   </div>
+                </div>
+
+                <div className="space-y-3 text-base text-muted-foreground border-t pt-6">
+                  <p data-testid="text-date" className="text-foreground">
+                    {formatDateTajik(new Date(message.documentDate), lang)}
+                  </p>
+                  {message.executor && (
+                    <p data-testid="text-executor" className="text-foreground">
+                      {message.executor}
+                    </p>
+                  )}
                 </div>
 
                 {attachments.length > 0 && (

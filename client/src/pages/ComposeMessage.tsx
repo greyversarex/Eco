@@ -24,6 +24,7 @@ export default function ComposeMessage() {
   const [lang, setLang] = useState<Language>('tg');
   const [subject, setSubject] = useState('');
   const [date, setDate] = useState('');
+  const [documentNumber, setDocumentNumber] = useState('');
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
   const [executor, setExecutor] = useState('');
   const [content, setContent] = useState('');
@@ -144,15 +145,6 @@ export default function ComposeMessage() {
       return;
     }
 
-    if (!content.trim()) {
-      toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Мазмунро ворид кунед' : 'Введите содержание',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     // Validate that at least one recipient is selected
     if (selectedRecipients.length === 0) {
       toast({
@@ -171,6 +163,7 @@ export default function ComposeMessage() {
         formData.append('recipientIds', JSON.stringify(selectedRecipients));
         formData.append('subject', subject);
         formData.append('content', content);
+        formData.append('documentNumber', documentNumber || '');
         formData.append('senderId', user.department.id.toString());
         formData.append('executor', executor || '');
         formData.append('documentDate', new Date(date).toISOString());
@@ -203,6 +196,7 @@ export default function ComposeMessage() {
         const messageData = {
           subject,
           content,
+          documentNumber: documentNumber || null,
           senderId: user.department.id,
           recipientId: selectedRecipients[0],
           executor: executor || null,
@@ -258,6 +252,7 @@ export default function ComposeMessage() {
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
       setSubject('');
       setContent('');
+      setDocumentNumber('');
       setSelectedRecipients([]);
       setExecutor('');
       setDate('');
@@ -378,20 +373,20 @@ export default function ComposeMessage() {
           </CardHeader>
           <CardContent className="px-4 sm:px-6">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="subject">
-                    {t.subject} <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="subject"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder={t.enterSubject}
-                    data-testid="input-subject"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="subject">
+                  {t.subject} <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="subject"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder={t.enterSubject}
+                  data-testid="input-subject"
+                />
+              </div>
 
+              <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="date">
                     {t.date} <span className="text-destructive">*</span>
@@ -420,6 +415,19 @@ export default function ComposeMessage() {
                       {lang === 'tg' ? 'Имрӯз' : 'Сегодня'}
                     </Button>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="documentNumber">
+                    {lang === 'tg' ? 'Рақами ҳуҷҷат' : 'Номер документа'}
+                  </Label>
+                  <Input
+                    id="documentNumber"
+                    value={documentNumber}
+                    onChange={(e) => setDocumentNumber(e.target.value)}
+                    placeholder={lang === 'tg' ? 'Рақами ҳуҷҷат' : 'Номер документа'}
+                    data-testid="input-document-number"
+                  />
                 </div>
               </div>
 
@@ -457,29 +465,38 @@ export default function ComposeMessage() {
                     {lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}
                   </p>
                 ) : (
-                  <div className="border rounded-md p-4 space-y-3 max-h-64 overflow-y-auto">
-                    {departments.filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined)).map((dept) => (
-                      <div key={dept.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`recipient-${dept.id}`}
-                          checked={selectedRecipients.includes(dept.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedRecipients([...selectedRecipients, dept.id]);
-                            } else {
-                              setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
-                            }
-                          }}
-                          data-testid={`checkbox-recipient-${dept.id}`}
-                        />
-                        <label
-                          htmlFor={`recipient-${dept.id}`}
-                          className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                        >
-                          {dept.name}
-                        </label>
-                      </div>
-                    ))}
+                  <div className="border rounded-md p-4 max-h-96 overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {departments
+                        .filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined))
+                        .sort((a, b) => {
+                          const blockOrder = { upper: 0, middle: 1, lower: 2, district: 3 };
+                          return blockOrder[a.block as keyof typeof blockOrder] - blockOrder[b.block as keyof typeof blockOrder];
+                        })
+                        .map((dept) => (
+                          <div key={dept.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`recipient-${dept.id}`}
+                              checked={selectedRecipients.includes(dept.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedRecipients([...selectedRecipients, dept.id]);
+                                } else {
+                                  setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
+                                }
+                              }}
+                              data-testid={`checkbox-recipient-${dept.id}`}
+                            />
+                            <label
+                              htmlFor={`recipient-${dept.id}`}
+                              className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            >
+                              {dept.name}
+                            </label>
+                          </div>
+                        ))
+                      }
+                    </div>
                   </div>
                 )}
                 {selectedRecipients.length > 0 && (
@@ -504,7 +521,7 @@ export default function ComposeMessage() {
 
               <div className="space-y-2">
                 <Label htmlFor="content">
-                  {t.content} <span className="text-destructive">*</span>
+                  {t.content}
                 </Label>
                 <Textarea
                   id="content"

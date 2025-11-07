@@ -44,14 +44,14 @@ export const translations = {
     download: 'Боргирӣ кардан',
     reply: 'Ҷавоб додан',
     send: 'Фиристодан',
-    cancel: 'Нест кардан',
+    cancel: 'Бекор кардан',
     selectRecipient: 'Интихоб кунед',
     enterSubject: 'Мавзӯъро ворид кунед',
     enterContent: 'Мундариҷаро ворид кунед',
     read: 'Хондашуда',
     delivered: 'Расонидашуда',
-    deleteMessage: 'Нест кардан',
-    deleteConfirm: 'Шумо мутмаин ҳастед, ки мехоҳед ин ҳуҷҷатро нест кунед?',
+    deleteMessage: 'Бекор кардан',
+    deleteConfirm: 'Шумо мутмаин ҳастед, ки мехоҳед ин ҳуҷҷатро бекор кунед?',
     
     // Admin Panel
     adminPanel: 'Панели маъмурӣ',
@@ -64,7 +64,7 @@ export const translations = {
     actions: 'Амалҳо',
     addDepartment: 'Илова кардани шуъба',
     edit: 'Таҳрир',
-    delete: 'Нест кардан',
+    delete: 'Бекор кардан',
     generate: 'Эҷод кардан',
     totalMessages: 'Ҳамагӣ ҳуҷҷатҳо',
     

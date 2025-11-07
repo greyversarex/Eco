@@ -59,6 +59,7 @@ export const messages: any = pgTable("messages", {
   id: serial("id").primaryKey(),
   subject: text("subject").notNull(),
   content: text("content").notNull(),
+  documentNumber: text("document_number"),
   senderId: integer("sender_id").notNull().references(() => departments.id),
   recipientId: integer("recipient_id").notNull().references(() => departments.id),
   executor: text("executor"),
@@ -109,6 +110,7 @@ export const assignments = pgTable("assignments", {
   id: serial("id").primaryKey(),
   topic: text("topic").notNull(), // Мавзӯъ: "Нақшаи корӣ", "Протоколи назоратӣ", etc.
   content: text("content"), // Мазмуни супоришҳои додашуда (комментарии)
+  documentNumber: text("document_number"),
   executors: text("executors").array().notNull(), // Исполнители (массив имён)
   deadline: timestamp("deadline").notNull(), // Мӯҳлати иҷро
   isCompleted: boolean("is_completed").default(false).notNull(),

@@ -43,8 +43,8 @@ export default function MessageListItem({
 
   return (
     <div
-      className={`flex items-center justify-between border-b border-border px-6 py-4 transition-all duration-200 ${
-        !selectable && !isSelected ? 'cursor-pointer hover:border-primary hover:shadow-md hover:bg-primary/5' : ''
+      className={`flex items-center justify-between border border-border px-6 py-4 transition-all duration-200 rounded-lg mb-2 ${
+        !selectable && !isSelected ? 'cursor-pointer hover:border-primary hover:shadow-lg hover:bg-primary/10 hover:scale-[1.02]' : ''
       } ${
         selectable && !isSelected ? 'cursor-default' : ''
       } ${

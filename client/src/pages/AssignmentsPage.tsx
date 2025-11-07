@@ -255,6 +255,7 @@ export default function AssignmentsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [topic, setTopic] = useState('');
   const [content, setContent] = useState('');
+  const [documentNumber, setDocumentNumber] = useState('');
   const [selectedExecutors, setSelectedExecutors] = useState<string[]>([]);
   const [deadline, setDeadline] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -285,6 +286,7 @@ export default function AssignmentsPage() {
       setIsDialogOpen(false);
       setTopic('');
       setContent('');
+      setDocumentNumber('');
       setSelectedExecutors([]);
       setDeadline('');
       setSelectedFiles([]);
@@ -321,7 +323,7 @@ export default function AssignmentsPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
         title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Супориш нест карда шуд' : 'Поручение удалено',
+        description: lang === 'tg' ? 'Супориш бекор карда шуд' : 'Поручение удалено',
       });
     },
     onError: (error: any) => {
@@ -382,6 +384,9 @@ export default function AssignmentsPage() {
     formData.append('topic', topic);
     if (content) {
       formData.append('content', content);
+    }
+    if (documentNumber) {
+      formData.append('documentNumber', documentNumber);
     }
     formData.append('executors', JSON.stringify(selectedExecutors));
     formData.append('deadline', deadline);
@@ -485,6 +490,19 @@ export default function AssignmentsPage() {
                       placeholder={lang === 'tg' ? 'Шарҳи иловагӣ...' : 'Дополнительные комментарии...'}
                       className="min-h-[100px]"
                       data-testid="textarea-content"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="assignment-document-number">
+                      {lang === 'tg' ? 'Рақами ҳуҷҷат' : 'Номер документа'}
+                    </Label>
+                    <Input
+                      id="assignment-document-number"
+                      value={documentNumber}
+                      onChange={(e) => setDocumentNumber(e.target.value)}
+                      placeholder={lang === 'tg' ? 'Рақами ҳуҷҷат' : 'Номер документа'}
+                      data-testid="input-assignment-document-number"
                     />
                   </div>
 

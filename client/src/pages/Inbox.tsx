@@ -76,13 +76,13 @@ export default function Inbox() {
       setIsDeleteMode(false);
       toast({
         title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Паёмҳо нест карда шуданд' : 'Сообщения удалены',
+        description: lang === 'tg' ? 'Паёмҳо бекор карда шуданд' : 'Сообщения удалены',
       });
     },
     onError: () => {
       toast({
         title: lang === 'tg' ? 'Хатогӣ' : 'Ошибка',
-        description: lang === 'tg' ? 'Хатогӣ ҳангоми нест кардан' : 'Ошибка при удалении',
+        description: lang === 'tg' ? 'Хатогӣ ҳангоми бекор кардан' : 'Ошибка при удалении',
         variant: 'destructive',
       });
     },
@@ -110,7 +110,7 @@ export default function Inbox() {
     if (selectedIds.size === 0) return;
     
     const confirmMessage = lang === 'tg' 
-      ? `Шумо мутмаин ҳастед, ки мехоҳед ${selectedIds.size} паёмро нест кунед?`
+      ? `Шумо мутмаин ҳастед, ки мехоҳед ${selectedIds.size} паёмро бекор кунед?`
       : `Вы уверены, что хотите удалить ${selectedIds.size} сообщений?`;
     
     if (confirm(confirmMessage)) {
@@ -185,7 +185,7 @@ export default function Inbox() {
                 >
                   <Trash2 className="h-4 w-4" />
                   <span className="hidden sm:inline">
-                    {lang === 'tg' ? 'Нест кардан' : 'Удалить'}
+                    {lang === 'tg' ? 'Бекор кардан' : 'Удалить'}
                   </span>
                 </Button>
               ) : (
@@ -200,7 +200,7 @@ export default function Inbox() {
                   >
                     <Trash2 className="h-4 w-4" />
                     <span className="hidden sm:inline">
-                      {lang === 'tg' ? 'Нест кардан' : 'Удалить'} {selectedIds.size > 0 && `(${selectedIds.size})`}
+                      {lang === 'tg' ? 'Бекор кардан' : 'Удалить'} {selectedIds.size > 0 && `(${selectedIds.size})`}
                     </span>
                     <span className="sm:hidden">{selectedIds.size > 0 && `(${selectedIds.size})`}</span>
                   </Button>

@@ -113,7 +113,7 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['/api/departments'] });
       toast({
         title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Шуъба нест карда шуд' : 'Отдел удален',
+        description: lang === 'tg' ? 'Шуъба бекор карда шуд' : 'Отдел удален',
       });
     },
     onError: (error: any) => {
