@@ -15,7 +15,7 @@ Preferred communication style: Simple, everyday language.
 - **Simplified Message View:** Removed field labels (sender, date, executor) from received message display. Content now flows in order: Subject header → Message content → Date value → Executor value, creating a cleaner reading experience.
 - **Monitoring Page Removed:** Removed the public monitoring dashboard page and all associated routing/navigation as it is no longer needed.
 - **Database Migration System:** Implemented safe production migration system using safe-migrate.ts. The system uses `npm run db:migrate` to safely apply schema changes without data loss, checking for existing columns before adding new ones.
-- **Department List Status:** Current seed.ts contains 49 departments from user file (8 upper, 12 middle, 16 lower, 13 district). User file shows only 49 departments instead of required 50 (8/11/18/13). Awaiting user confirmation for missing department.
+- **Department List Finalized:** seed.ts contains official 49 departments confirmed by user (8 upper, 12 middle, 16 lower, 13 district). All department codes match production requirements. Safe migration system ready for deployment.
 
 ## System Architecture
 
@@ -26,7 +26,7 @@ The frontend uses React with TypeScript, Vite, Wouter for routing, TanStack Quer
 The backend is built with Node.js, Express.js, and TypeScript, following a RESTful API design. It uses session-based authentication with express-session and a PostgreSQL store, and Bcrypt for password hashing. The API provides endpoints for authentication, department management, CRUD operations for messages (including inbox/outbox filtering, and broadcast messaging), announcements, assignments, and file attachments. It supports two user types: Department (via access code) and Admin (via username/password), implementing role-based access control with a 30-day session expiration. A storage abstraction interface (IStorage) with a Drizzle ORM implementation (DbStorage) ensures type-safe PostgreSQL operations. Zod is used for schema validation.
 
 ### Data Storage
-PostgreSQL with connection pooling is the chosen database. Key tables include `Departments`, `Admins`, `Messages`, `Attachments`, `Sessions`, `Assignments`, and `Announcements`. Departments are organized into four hierarchical blocks: Upper (10), Middle (11), Lower (16), and District (13), totaling 50 departments. Drizzle Kit manages schema migrations, with the schema defined in `/shared/schema.ts`.
+PostgreSQL with connection pooling is the chosen database. Key tables include `Departments`, `Admins`, `Messages`, `Attachments`, `Sessions`, `Assignments`, and `Announcements`. Departments are organized into four hierarchical blocks: Upper (8), Middle (12), Lower (16), and District (13), totaling 49 departments. Safe migration system (safe-migrate.ts) manages schema updates without data loss, with the schema defined in `/shared/schema.ts`.
 
 ### File Storage
 Files are stored directly within the PostgreSQL database using a `bytea` column, supporting up to 5 attachments per message/assignment/announcement, with a maximum of 100 MB per file. Client-side uploads use multipart/form-data, and secure downloads require backend authentication. This method ensures autonomous deployment, transaction integrity, simplified backup/restore, and mobile application compatibility.
