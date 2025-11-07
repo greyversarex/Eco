@@ -294,12 +294,8 @@ export default function MessageView() {
                   <div className="flex-1 space-y-4">
                     <h2 className="text-2xl sm:text-3xl font-bold text-foreground" data-testid="text-subject">{message.subject}</h2>
                   </div>
-                  {user?.userType === 'department' && (
+                  {user?.userType === 'admin' && (
                     <div className="flex gap-2 shrink-0">
-                      <Button onClick={handleReply} data-testid="button-reply" className="gap-2" size="lg">
-                        <Reply className="h-4 w-4" />
-                        {t.reply}
-                      </Button>
                       <Button 
                         onClick={handleDelete} 
                         data-testid="button-delete" 
@@ -365,6 +361,15 @@ export default function MessageView() {
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {user?.userType === 'department' && (
+                  <div className="pt-4 border-t">
+                    <Button onClick={handleReply} data-testid="button-reply" className="gap-2" size="lg">
+                      <Reply className="h-4 w-4" />
+                      {t.reply}
+                    </Button>
                   </div>
                 )}
               </CardContent>

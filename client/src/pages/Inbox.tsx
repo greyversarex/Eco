@@ -63,6 +63,8 @@ export default function Inbox() {
       isRead: msg.isRead,
       hasAttachment: !!msg.attachmentUrl,
       isSentMessage: isOutbox,
+      documentNumber: msg.documentNumber || '',
+      content: msg.content || '',
     }));
   }, [filteredMessages, isOutbox, departments]);
 
@@ -263,6 +265,24 @@ export default function Inbox() {
                   </Button>
                 </div>
               )}
+              
+              {/* Column Headers */}
+              <div className="hidden sm:flex items-center border-b border-border px-6 py-3 bg-muted/30 font-semibold text-sm text-muted-foreground">
+                {isDeleteMode && <div className="w-9 mr-3" />}
+                <div className="w-32 shrink-0">
+                  {lang === 'tg' ? 'Рақами ҳуҷҷат' : 'Номер документа'}
+                </div>
+                <div className="w-px mx-4 shrink-0" />
+                <div className="flex-1">
+                  {lang === 'tg' ? 'Мавзӯъ ва мундариҷа' : 'Тема и содержание'}
+                </div>
+                <div className="flex items-center gap-3 ml-4 shrink-0">
+                  <span className="w-32 text-right">{lang === 'tg' ? 'Фиристанда' : 'Отправитель'}</span>
+                  <span className="w-24 text-right">{lang === 'tg' ? 'Сана' : 'Дата'}</span>
+                  <span className="w-20"></span>
+                </div>
+              </div>
+
               {formattedMessages.map((message) => (
                 <MessageListItem
                   key={message.id}

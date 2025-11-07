@@ -14,6 +14,8 @@ interface MessageListItemProps {
   selectable?: boolean;
   isSelected?: boolean;
   onToggleSelect?: () => void;
+  documentNumber?: string;
+  content?: string;
 }
 
 export default function MessageListItem({
@@ -28,6 +30,8 @@ export default function MessageListItem({
   selectable = false,
   isSelected = false,
   onToggleSelect,
+  documentNumber,
+  content,
 }: MessageListItemProps) {
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -43,7 +47,7 @@ export default function MessageListItem({
 
   return (
     <div
-      className={`flex items-center justify-between border border-border px-6 py-4 transition-all duration-200 rounded-lg mb-2 ${
+      className={`flex items-center border border-border px-6 py-4 transition-all duration-200 rounded-lg mb-2 ${
         !selectable && !isSelected ? 'cursor-pointer hover:border-primary hover:shadow-lg hover:bg-primary/10 hover:scale-[1.02]' : ''
       } ${
         selectable && !isSelected ? 'cursor-default' : ''
@@ -61,23 +65,42 @@ export default function MessageListItem({
           />
         </div>
       )}
-      <div className="flex-1 min-w-0">
-        <h3 className={`text-sm mb-1 ${!isRead && !isSentMessage ? 'font-semibold text-foreground' : 'font-normal text-foreground'}`}>
+      
+      {/* Document Number */}
+      <div className="w-20 sm:w-32 shrink-0">
+        <p className={`text-xs sm:text-sm truncate ${!isRead && !isSentMessage ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+          {documentNumber || '—'}
+        </p>
+      </div>
+
+      {/* Vertical separator */}
+      <div className="hidden sm:block h-12 w-px bg-border mx-2 sm:mx-4 shrink-0" />
+
+      {/* Subject and Content */}
+      <div className="flex-1 min-w-0 space-y-1 mx-2">
+        <h3 className={`text-xs sm:text-sm truncate ${!isRead && !isSentMessage ? 'font-semibold text-foreground' : 'font-normal text-foreground'}`}>
           {subject}
         </h3>
-        <p className="text-sm text-muted-foreground">{sender}</p>
+        {content && (
+          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
+            {content}
+          </p>
+        )}
       </div>
-      <div className="flex items-center gap-4 ml-4">
+
+      {/* Sender, Date and Icons */}
+      <div className="flex items-center gap-1 sm:gap-3 ml-2 sm:ml-4 shrink-0 flex-wrap sm:flex-nowrap">
+        <span className="hidden sm:inline text-sm text-muted-foreground whitespace-nowrap">{sender}</span>
+        <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">{date}</span>
         {isSentMessage && isRead && (
-          <Badge variant="outline" className="gap-1 bg-primary/10 text-primary border-primary/20" data-testid={`badge-read-${id}`}>
+          <Badge variant="outline" className="gap-1 bg-primary/10 text-primary border-primary/20 hidden sm:flex" data-testid={`badge-read-${id}`}>
             <CheckCheck className="h-3 w-3" />
             <span className="text-xs">Прочитано</span>
           </Badge>
         )}
         {hasAttachment && (
-          <Paperclip className="h-4 w-4 text-muted-foreground" data-testid={`icon-attachment-${id}`} />
+          <Paperclip className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" data-testid={`icon-attachment-${id}`} />
         )}
-        <span className="text-sm text-muted-foreground whitespace-nowrap">{date}</span>
       </div>
     </div>
   );

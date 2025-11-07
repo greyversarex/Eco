@@ -16,6 +16,9 @@ Preferred communication style: Simple, everyday language.
 - **Monitoring Page Removed:** Removed the public monitoring dashboard page and all associated routing/navigation as it is no longer needed.
 - **Database Migration System:** Implemented safe production migration system using safe-migrate.ts. The system uses `npm run db:migrate` to safely apply schema changes without data loss, checking for existing columns before adding new ones.
 - **Department List Finalized:** seed.ts contains official 49 departments confirmed by user (8 upper, 12 middle, 16 lower, 13 district). All department codes match production requirements. Safe migration system ready for deployment.
+- **Executor Field Label Simplified:** Changed "Иҷрокунанда (ихтиёрӣ)" to "Иҷрокунанда" for cleaner UI and consistency across Tajik and Russian interfaces.
+- **Message List Layout Redesign:** Completely redesigned message list item layout with document number first, followed by vertical separator, then subject with content preview below. Added column headers ("Рақами ҳуҷҷат", "Мавзӯъ ва мундариҷа", "Фиристанда", "Сана") above the message list for improved data scanning and organization.
+- **Message View Button Reorganization:** Moved "Ҷавоб додан" (Reply) button to the end of message content. "Бекор кардан" (Delete) button now only visible to admin users; regular department users see only the Reply button for cleaner interface and reduced accidental deletions.
 
 ## System Architecture
 
