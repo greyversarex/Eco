@@ -20,7 +20,6 @@ const ComposeMessage = lazy(() => import("@/pages/ComposeMessage"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const AdminDepartments = lazy(() => import("@/pages/AdminDepartments"));
 const AdminDepartmentMessages = lazy(() => import("@/pages/AdminDepartmentMessages"));
-const MonitoringDashboard = lazy(() => import("@/pages/MonitoringDashboard"));
 const AssignmentsPage = lazy(() => import("@/pages/AssignmentsPage"));
 const AnnouncementsPage = lazy(() => import("@/pages/AnnouncementsPage"));
 
@@ -41,7 +40,6 @@ function Router() {
     <Suspense fallback={<PageLoader />}>
       <Switch>
         <Route path="/" component={DepartmentLogin} />
-        <Route path="/monitoring" component={MonitoringDashboard} />
         <Route path="/admin" component={AdminLogin} />
         <Route path="/admin-login" component={AdminLogin} />
         <Route path="/admin/dashboard">

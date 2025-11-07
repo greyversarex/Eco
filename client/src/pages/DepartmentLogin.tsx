@@ -67,18 +67,6 @@ export default function DepartmentLogin() {
         }}
       />
       
-      <div className="absolute top-8 left-4 z-20">
-        <Button 
-          variant="outline"
-          size="sm"
-          onClick={() => setLocation('/monitoring')}
-          className="bg-white/90 hover:bg-white border-2 border-primary text-primary hover:text-primary font-semibold shadow-lg"
-          data-testid="button-monitoring"
-        >
-          {t.monitoring}
-        </Button>
-      </div>
-      
       <div className="w-full max-w-md relative z-10 flex flex-col items-center -mt-16 md:ml-12">
         <div className="text-center space-y-2 mb-6">
           <div className="flex justify-center mb-4">
