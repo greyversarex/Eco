@@ -114,25 +114,24 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
   const progressPercent = isCompleted ? 100 : Math.min(100, (daysPassed / totalDays) * 100);
 
   return (
-    <div className="space-y-3 pt-[0px] pb-[0px] mt-[9px] mb-[9px]">
-      {/* Labels row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="space-y-2 pt-[0px] pb-[0px] mt-[9px] mb-[9px]">
+      <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
         <div>
-          <div className="text-sm text-muted-foreground font-bold mb-2">Мӯҳлати иҷро:</div>
+          <div className="text-sm text-muted-foreground font-bold mb-1.5">Мӯҳлати иҷро:</div>
           <div className="px-3 py-1.5 rounded-md border border-green-200 bg-green-50/50 shadow-sm inline-block">
             <div className="text-sm font-semibold text-foreground">{formatDate(deadline)}</div>
           </div>
         </div>
         
         <div>
-          <div className="text-sm text-muted-foreground font-bold mb-2">Боқӣ монд:</div>
+          <div className="text-sm text-muted-foreground font-bold mb-1.5">Боқӣ монд:</div>
           <div className="px-3 py-1.5 rounded-md border border-green-200 bg-green-50/50 shadow-sm inline-block">
             <div className="text-sm font-semibold text-foreground">{isCompleted ? '-' : (isOverdue ? '0' : daysLeft)} рӯз</div>
           </div>
         </div>
         
-        <div>
-          <div className="text-sm text-muted-foreground font-bold mb-2">Индикатори иҷроиш</div>
+        <div className="flex-1 min-w-[200px]">
+          <div className="text-sm text-muted-foreground font-bold mb-1.5">Индикатори иҷроиш</div>
           {(() => {
             // Special cases: completed or overdue
             if (isCompleted) {
