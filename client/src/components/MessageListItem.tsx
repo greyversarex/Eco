@@ -124,7 +124,7 @@ export default function MessageListItem({
         </div>
         
         {/* Date */}
-        <div className="text-right pr-2">
+        <div className="text-right">
           <span className="text-sm text-muted-foreground">{date}</span>
         </div>
         
