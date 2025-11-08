@@ -17,15 +17,6 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import type { Department, Person } from '@shared/schema';
 import { Footer } from '@/components/Footer';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  SelectGroup,
-  SelectLabel,
-} from '@/components/ui/select';
 
 export default function ComposeMessage() {
   
@@ -34,7 +25,7 @@ export default function ComposeMessage() {
   const [date, setDate] = useState('');
   const [documentNumber, setDocumentNumber] = useState('');
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
-  const [executor, setExecutor] = useState('');
+  const [selectedExecutors, setSelectedExecutors] = useState<string[]>([]);
   const [content, setContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
@@ -48,6 +39,15 @@ export default function ComposeMessage() {
   const { data: allPeople = [] } = useQuery<Person[]>({
     queryKey: ['/api/people'],
   });
+
+  // Автоматически отмечать исполнителей при выборе департаментов
+  useEffect(() => {
+    const executorsInSelectedDepts = allPeople
+      .filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId))
+      .map(p => p.name);
+    
+    setSelectedExecutors(executorsInSelectedDepts);
+  }, [selectedRecipients, allPeople]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
@@ -172,7 +172,7 @@ export default function ComposeMessage() {
         formData.append('content', content);
         formData.append('documentNumber', documentNumber || '');
         formData.append('senderId', user.department.id.toString());
-        formData.append('executor', executor || '');
+        formData.append('executor', selectedExecutors.join(', ') || '');
         formData.append('documentDate', new Date(date).toISOString());
         
         // Attach all files
@@ -204,7 +204,7 @@ export default function ComposeMessage() {
           documentNumber: documentNumber || null,
           senderId: user.department.id,
           recipientId: selectedRecipients[0],
-          executor: executor || null,
+          executor: selectedExecutors.join(', ') || null,
           documentDate: new Date(date).toISOString(),
           replyToId: null,
         };
@@ -257,7 +257,7 @@ export default function ComposeMessage() {
       setContent('');
       setDocumentNumber('');
       setSelectedRecipients([]);
-      setExecutor('');
+      setSelectedExecutors([]);
       setDate('');
       setSelectedFiles([]);
       setLocation('/department/outbox');
@@ -391,6 +391,19 @@ export default function ComposeMessage() {
 
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
+                  <Label htmlFor="documentNumber">
+                    Рақами ҳуҷҷат
+                  </Label>
+                  <Input
+                    id="documentNumber"
+                    value={documentNumber}
+                    onChange={(e) => setDocumentNumber(e.target.value)}
+                    placeholder="Рақами ҳуҷҷат"
+                    data-testid="input-document-number"
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="date">
                     {t.date} <span className="text-destructive">*</span>
                   </Label>
@@ -418,19 +431,6 @@ export default function ComposeMessage() {
                       Имрӯз
                     </Button>
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="documentNumber">
-                    Рақами ҳуҷҷат
-                  </Label>
-                  <Input
-                    id="documentNumber"
-                    value={documentNumber}
-                    onChange={(e) => setDocumentNumber(e.target.value)}
-                    placeholder="Рақами ҳуҷҷат"
-                    data-testid="input-document-number"
-                  />
                 </div>
               </div>
 
@@ -507,20 +507,14 @@ export default function ComposeMessage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="executor">{t.executorOptional}</Label>
+                <Label>Иҷрокунандагон</Label>
                 {selectedRecipients.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
                     Аввал гирандаро интихоб кунед
                   </p>
                 ) : (
-                  <Select
-                    value={executor}
-                    onValueChange={setExecutor}
-                  >
-                    <SelectTrigger data-testid="select-executor">
-                      <SelectValue placeholder="Интихоби иҷрокунанда" />
-                    </SelectTrigger>
-                    <SelectContent>
+                  <>
+                    <div className="border rounded-md p-4 max-h-64 overflow-y-auto">
                       {selectedRecipients.map(recipientId => {
                         const dept = departments.find(d => d.id === recipientId);
                         const peopleInDept = allPeople.filter(p => p.departmentId === recipientId);
@@ -528,23 +522,46 @@ export default function ComposeMessage() {
                         if (peopleInDept.length === 0) return null;
                         
                         return (
-                          <SelectGroup key={recipientId}>
-                            <SelectLabel>{dept?.name || 'Номаълум'}</SelectLabel>
-                            {peopleInDept.map(person => (
-                              <SelectItem key={person.id} value={person.name}>
-                                {person.name}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
+                          <div key={recipientId} className="mb-4 last:mb-0">
+                            <div className="text-sm font-semibold mb-2 text-gray-700">
+                              {dept?.name || 'Номаълум'}
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 pl-2">
+                              {peopleInDept.map(person => (
+                                <div key={person.id} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`executor-${person.id}`}
+                                    checked={selectedExecutors.includes(person.name)}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        setSelectedExecutors([...selectedExecutors, person.name]);
+                                      } else {
+                                        setSelectedExecutors(selectedExecutors.filter(e => e !== person.name));
+                                      }
+                                    }}
+                                    data-testid={`checkbox-executor-${person.id}`}
+                                  />
+                                  <label htmlFor={`executor-${person.id}`} className="text-sm cursor-pointer">
+                                    {person.name}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         );
                       })}
                       {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId)).length === 0 && (
-                        <SelectItem value="none" disabled>
+                        <p className="text-sm text-muted-foreground text-center py-4">
                           Иҷрокунандае дар ин шуъбаҳо нест
-                        </SelectItem>
+                        </p>
                       )}
-                    </SelectContent>
-                  </Select>
+                    </div>
+                    {selectedExecutors.length > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        Интихоб шуд: {selectedExecutors.length}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
 
