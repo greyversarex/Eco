@@ -164,6 +164,9 @@ export function registerRoutes(app: Express) {
               name: department.name,
               block: department.block,
               code: department.accessCode,
+              canMonitor: department.canMonitor,
+              canCreateAssignmentFromMessage: department.canCreateAssignmentFromMessage,
+              canCreateAssignment: department.canCreateAssignment,
             }
           });
         });
@@ -250,6 +253,9 @@ export function registerRoutes(app: Express) {
               name: department.name,
               block: department.block,
               code: department.accessCode,
+              canMonitor: department.canMonitor,
+              canCreateAssignmentFromMessage: department.canCreateAssignmentFromMessage,
+              canCreateAssignment: department.canCreateAssignment,
             }
           });
         }

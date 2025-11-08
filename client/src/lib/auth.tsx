@@ -8,6 +8,9 @@ interface Department {
   name: string;
   block: string;
   code: string;
+  canMonitor: boolean;
+  canCreateAssignmentFromMessage: boolean;
+  canCreateAssignment: boolean;
 }
 
 interface AuthContextType {

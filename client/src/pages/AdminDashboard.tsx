@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { t } from '@/lib/i18n';
 import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -43,9 +44,15 @@ export default function AdminDashboard() {
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [newDeptName, setNewDeptName] = useState('');
   const [newDeptBlock, setNewDeptBlock] = useState('');
+  const [newCanMonitor, setNewCanMonitor] = useState(false);
+  const [newCanCreateAssignmentFromMessage, setNewCanCreateAssignmentFromMessage] = useState(false);
+  const [newCanCreateAssignment, setNewCanCreateAssignment] = useState(false);
   const [editDeptName, setEditDeptName] = useState('');
   const [editDeptBlock, setEditDeptBlock] = useState('');
   const [editDeptCode, setEditDeptCode] = useState('');
+  const [editCanMonitor, setEditCanMonitor] = useState(false);
+  const [editCanCreateAssignmentFromMessage, setEditCanCreateAssignmentFromMessage] = useState(false);
+  const [editCanCreateAssignment, setEditCanCreateAssignment] = useState(false);
   const { logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -60,7 +67,7 @@ export default function AdminDashboard() {
   );
 
   const createMutation = useMutation({
-    mutationFn: async (data: { name: string; block: string }) => {
+    mutationFn: async (data: { name: string; block: string; canMonitor: boolean; canCreateAssignmentFromMessage: boolean; canCreateAssignment: boolean }) => {
       const code = Math.random().toString(36).substring(2, 10).toUpperCase();
       return await apiRequest('POST', '/api/departments', { ...data, accessCode: code });
     },
@@ -68,6 +75,9 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['/api/departments'] });
       setNewDeptName('');
       setNewDeptBlock('');
+      setNewCanMonitor(false);
+      setNewCanCreateAssignmentFromMessage(false);
+      setNewCanCreateAssignment(false);
       setIsAddDialogOpen(false);
       toast({
         title: 'Муваффақият',
@@ -125,7 +135,13 @@ export default function AdminDashboard() {
 
   const handleAddDepartment = () => {
     if (newDeptName && newDeptBlock) {
-      createMutation.mutate({ name: newDeptName, block: newDeptBlock });
+      createMutation.mutate({ 
+        name: newDeptName, 
+        block: newDeptBlock,
+        canMonitor: newCanMonitor,
+        canCreateAssignmentFromMessage: newCanCreateAssignmentFromMessage,
+        canCreateAssignment: newCanCreateAssignment,
+      });
     }
   };
 
@@ -145,6 +161,9 @@ export default function AdminDashboard() {
     setEditDeptName(dept.name);
     setEditDeptBlock(dept.block);
     setEditDeptCode(dept.accessCode);
+    setEditCanMonitor(dept.canMonitor);
+    setEditCanCreateAssignmentFromMessage(dept.canCreateAssignmentFromMessage);
+    setEditCanCreateAssignment(dept.canCreateAssignment);
     setIsEditDialogOpen(true);
   };
 
@@ -155,7 +174,10 @@ export default function AdminDashboard() {
         data: { 
           name: editDeptName, 
           block: editDeptBlock, 
-          accessCode: editDeptCode 
+          accessCode: editDeptCode,
+          canMonitor: editCanMonitor,
+          canCreateAssignmentFromMessage: editCanCreateAssignmentFromMessage,
+          canCreateAssignment: editCanCreateAssignment,
         } 
       });
       setIsEditDialogOpen(false);
@@ -163,6 +185,9 @@ export default function AdminDashboard() {
       setEditDeptName('');
       setEditDeptBlock('');
       setEditDeptCode('');
+      setEditCanMonitor(false);
+      setEditCanCreateAssignmentFromMessage(false);
+      setEditCanCreateAssignment(false);
     }
   };
 
@@ -327,6 +352,44 @@ export default function AdminDashboard() {
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  <div className="space-y-3 border-t pt-3">
+                    <Label className="text-base font-semibold">Салоҳиятҳо</Label>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="new-can-monitor"
+                        checked={newCanMonitor}
+                        onCheckedChange={(checked) => setNewCanMonitor(checked as boolean)}
+                        data-testid="checkbox-new-can-monitor"
+                      />
+                      <label htmlFor="new-can-monitor" className="text-sm cursor-pointer">
+                        Назорат (кнопка мониторинг)
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="new-can-create-assignment-from-message"
+                        checked={newCanCreateAssignmentFromMessage}
+                        onCheckedChange={(checked) => setNewCanCreateAssignmentFromMessage(checked as boolean)}
+                        data-testid="checkbox-new-can-create-assignment-from-message"
+                      />
+                      <label htmlFor="new-can-create-assignment-from-message" className="text-sm cursor-pointer">
+                        Вазифагузорӣ (эҷоди супориш аз паём)
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="new-can-create-assignment"
+                        checked={newCanCreateAssignment}
+                        onCheckedChange={(checked) => setNewCanCreateAssignment(checked as boolean)}
+                        data-testid="checkbox-new-can-create-assignment"
+                      />
+                      <label htmlFor="new-can-create-assignment" className="text-sm cursor-pointer">
+                        Супоришҳо (эҷоди супориш дар саҳифаи супоришҳо)
+                      </label>
+                    </div>
+                  </div>
+
                   <Button 
                     onClick={handleAddDepartment} 
                     className="w-full" 
@@ -383,6 +446,44 @@ export default function AdminDashboard() {
                       className="font-mono"
                     />
                   </div>
+                  
+                  <div className="space-y-3 border-t pt-3">
+                    <Label className="text-base font-semibold">Салоҳиятҳо</Label>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="edit-can-monitor"
+                        checked={editCanMonitor}
+                        onCheckedChange={(checked) => setEditCanMonitor(checked as boolean)}
+                        data-testid="checkbox-edit-can-monitor"
+                      />
+                      <label htmlFor="edit-can-monitor" className="text-sm cursor-pointer">
+                        Назорат (кнопка мониторинг)
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="edit-can-create-assignment-from-message"
+                        checked={editCanCreateAssignmentFromMessage}
+                        onCheckedChange={(checked) => setEditCanCreateAssignmentFromMessage(checked as boolean)}
+                        data-testid="checkbox-edit-can-create-assignment-from-message"
+                      />
+                      <label htmlFor="edit-can-create-assignment-from-message" className="text-sm cursor-pointer">
+                        Вазифагузорӣ (эҷоди супориш аз паём)
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="edit-can-create-assignment"
+                        checked={editCanCreateAssignment}
+                        onCheckedChange={(checked) => setEditCanCreateAssignment(checked as boolean)}
+                        data-testid="checkbox-edit-can-create-assignment"
+                      />
+                      <label htmlFor="edit-can-create-assignment" className="text-sm cursor-pointer">
+                        Супоришҳо (эҷоди супориш дар саҳифаи супоришҳо)
+                      </label>
+                    </div>
+                  </div>
+
                   <Button 
                     onClick={handleSaveEdit} 
                     className="w-full" 
