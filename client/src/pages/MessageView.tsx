@@ -531,12 +531,10 @@ export default function MessageView() {
                     <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Сана:' : 'Дата:'}</span>
                     <span className="ml-2 text-foreground">{formatDateTajik(new Date(message.documentDate), lang)}</span>
                   </div>
-                  {message.executor && (
-                    <div data-testid="text-executor">
-                      <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Иҷрокунанда:' : 'Исполнитель:'}</span>
-                      <span className="ml-2 text-foreground">{message.executor}</span>
-                    </div>
-                  )}
+                  <div data-testid="text-sender">
+                    <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Фиристанда:' : 'Отправитель:'}</span>
+                    <span className="ml-2 text-foreground">{getSenderName(message.senderId)}</span>
+                  </div>
                 </div>
 
                 {attachments.length > 0 && (
