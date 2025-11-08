@@ -448,7 +448,7 @@ export default function MessageView() {
         </div>
       </header>
 
-      <main className="flex-1 mx-auto max-w-[95%] px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
+      <main className="flex-1 w-full px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
@@ -463,9 +463,9 @@ export default function MessageView() {
             </p>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="w-full space-y-4">
             {originalMessage && (
-              <Card className="bg-white dark:bg-slate-900" data-testid="original-message">
+              <Card className="w-full bg-white dark:bg-slate-900" data-testid="original-message">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Reply className="h-4 w-4" />
@@ -488,7 +488,7 @@ export default function MessageView() {
               </Card>
             )}
 
-            <Card className="border-border/40 bg-white dark:bg-slate-900">
+            <Card className="w-full border-border/40 bg-white dark:bg-slate-900">
               <CardHeader className="pb-6 space-y-6 border-b">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-4">
