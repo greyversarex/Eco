@@ -284,7 +284,7 @@ export default function Inbox() {
                 <div className="text-right ml-[29px] mr-[29px]">
                   {lang === 'tg' ? 'Фиристанда' : 'Отправитель'}
                 </div>
-                <div className="text-right">
+                <div className="text-right ml-[34px] mr-[34px]">
                   {lang === 'tg' ? 'Сана' : 'Дата'}
                 </div>
                 <div />
