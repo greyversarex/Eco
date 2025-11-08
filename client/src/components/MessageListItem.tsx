@@ -119,7 +119,7 @@ export default function MessageListItem({
         </div>
         
         {/* Sender */}
-        <div className="text-right">
+        <div className="px-4">
           <span className="text-sm text-muted-foreground">{sender}</span>
         </div>
         

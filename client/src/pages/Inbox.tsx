@@ -281,7 +281,7 @@ export default function Inbox() {
                 <div className="px-4">
                   {lang === 'tg' ? 'Мавзӯъ ва мундариҷа' : 'Тема и содержание'}
                 </div>
-                <div className="text-right ml-[26px] mr-[26px]">
+                <div className="px-4">
                   {lang === 'tg' ? 'Фиристанда' : 'Отправитель'}
                 </div>
                 <div className="text-right ml-[34px] mr-[34px]">
