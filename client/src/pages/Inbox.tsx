@@ -283,7 +283,7 @@ export default function Inbox() {
                 </div>
                 
                 {/* Sender Header */}
-                <div className="ml-[-2px] mr-[-2px]">
+                <div className="ml-[-4px] mr-[-4px]">
                   Фиристанда
                 </div>
                 
