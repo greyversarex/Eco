@@ -7,6 +7,7 @@
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (November 2025)
+- **Department-Specific Assignments (Backend):** Transformed assignments from global to department-targeted by adding `recipientIds` field to schema. Backend now filters assignments—departments see only their targeted assignments while admins see all. Created safe migration for `recipient_ids` column. Backward compatible: legacy assignments without recipients remain visible to all departments. **Frontend UI update pending:** assignment creation form needs department selection, Рохбарият-specific controls pending.
 - **Terminology Update:** Replaced all instances of "Нест кардан" (Delete) with "Бекор кардан" (Cancel) throughout the application for better linguistic accuracy and user experience.
 - **Document Number Field:** Added optional `documentNumber` (Рақами ҳуҷҷат) field to both Messages and Assignments schemas. This field is displayed in message composition and assignment creation forms, allowing users to track official document numbers. Backend routes updated to persist this data.
 - **Message Composition UI Improvements:** Reorganized form layout with full-width subject field, date and document number fields positioned below in a 2-column grid. Recipient selection now sorted by departmental hierarchy (Upper→Middle→Lower→District) and displayed in a responsive 2-row grid layout.
