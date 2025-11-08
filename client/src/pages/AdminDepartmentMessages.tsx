@@ -129,6 +129,7 @@ export default function AdminDepartmentMessages() {
                         isRead={message.isRead}
                         hasAttachment={!!message.attachmentUrl}
                         onClick={() => handleMessageClick(message.id)}
+                        documentNumber={message.documentNumber}
                       />
                     );
                   })
@@ -157,6 +158,7 @@ export default function AdminDepartmentMessages() {
                         isRead={true}
                         hasAttachment={!!message.attachmentUrl}
                         onClick={() => handleMessageClick(message.id)}
+                        documentNumber={message.documentNumber}
                       />
                     );
                   })

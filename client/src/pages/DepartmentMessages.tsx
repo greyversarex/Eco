@@ -152,6 +152,7 @@ export default function DepartmentMessages() {
                         isRead={message.isRead}
                         hasAttachment={!!message.attachmentUrl}
                         onClick={() => handleMessageClick(message.id)}
+                        documentNumber={message.documentNumber}
                       />
                     );
                   })
@@ -181,6 +182,7 @@ export default function DepartmentMessages() {
                         hasAttachment={!!message.attachmentUrl}
                         onClick={() => handleMessageClick(message.id)}
                         isSentMessage={true}
+                        documentNumber={message.documentNumber}
                       />
                     );
                   })
