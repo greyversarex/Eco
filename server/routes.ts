@@ -859,16 +859,11 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Create assignment (only for specific department)
+  // Create assignment (available for all departments and admins)
   app.post("/api/assignments", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
     try {
-      // Check if user is from the authorized department
-      if (req.session.departmentId) {
-        const dept = await storage.getDepartmentById(req.session.departmentId);
-        if (!dept || dept.name !== 'Раёсати кадрҳо, коргузорӣ ва назорат') {
-          return res.status(403).json({ error: 'Only Раёсати кадрҳо department can create assignments' });
-        }
-      } else if (!req.session.adminId) {
+      // All departments and admins can create assignments
+      if (!req.session.departmentId && !req.session.adminId) {
         return res.status(403).json({ error: 'Access denied' });
       }
 
@@ -1031,16 +1026,11 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Create announcement (only for specific department)
+  // Create announcement (available for all departments and admins)
   app.post("/api/announcements", requireAuth, async (req: Request, res: Response) => {
     try {
-      // Check if user is from the authorized department
-      if (req.session.departmentId) {
-        const dept = await storage.getDepartmentById(req.session.departmentId);
-        if (!dept || dept.name !== 'Раёсати кадрҳо, коргузорӣ ва назорат') {
-          return res.status(403).json({ error: 'Only Раёсати кадрҳо department can create announcements' });
-        }
-      } else if (!req.session.adminId) {
+      // All departments and admins can create announcements
+      if (!req.session.departmentId && !req.session.adminId) {
         return res.status(403).json({ error: 'Access denied' });
       }
 
@@ -1057,20 +1047,11 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Delete announcement
+  // Delete announcement (available for all departments and admins)
   app.delete("/api/announcements/:id", requireAuth, async (req: Request, res: Response) => {
     try {
-      // Check if user is from authorized departments for deletion
-      if (req.session.departmentId) {
-        const dept = await storage.getDepartmentById(req.session.departmentId);
-        const allowedDepts = [
-          'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера',
-          'Раёсати кадрҳо, коргузорӣ ва назорат'
-        ];
-        if (!dept || !allowedDepts.includes(dept.name)) {
-          return res.status(403).json({ error: 'Access denied' });
-        }
-      } else if (!req.session.adminId) {
+      // All departments and admins can delete announcements
+      if (!req.session.departmentId && !req.session.adminId) {
         return res.status(403).json({ error: 'Access denied' });
       }
 

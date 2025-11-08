@@ -192,7 +192,7 @@ export default function DepartmentMain() {
                   data-testid="input-search"
                 />
               </div>
-              {user?.userType === 'department' && user.department?.canMonitor && (
+              {user?.userType === 'department' && (
                 <Button
                   size="lg"
                   className="shrink-0 bg-[#4a9d4a] hover:bg-[#3d8a3d] text-white font-medium px-8 h-11 rounded-md shadow-sm pl-[36px] pr-[36px] gap-2"
