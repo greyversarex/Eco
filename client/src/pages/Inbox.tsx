@@ -233,7 +233,6 @@ export default function Inbox() {
           </div>
         </div>
       </header>
-
       <main className="mx-auto max-w-6xl relative z-10">
         <div className="border-x border-border bg-background/95 backdrop-blur-sm min-h-screen">
           {loadingMessages || loadingDepartments ? (
@@ -282,7 +281,7 @@ export default function Inbox() {
                 <div className="px-4">
                   {lang === 'tg' ? 'Мавзӯъ ва мундариҷа' : 'Тема и содержание'}
                 </div>
-                <div className="text-right">
+                <div className="text-right ml-[29px] mr-[29px]">
                   {lang === 'tg' ? 'Фиристанда' : 'Отправитель'}
                 </div>
                 <div className="text-right">
