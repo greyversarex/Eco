@@ -16,7 +16,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import type { Assignment } from '@shared/schema';
+import type { Assignment, Person, Department } from '@shared/schema';
 import { Footer } from '@/components/Footer';
 import { DatePicker } from '@/components/ui/date-picker';
 
@@ -27,54 +27,6 @@ const ASSIGNMENT_TOPICS = [
   'Протоколҳои ҷаласаҳои ҳайати мушовара',
 ];
 
-const EXECUTORS_LIST = [
-  'Шукурзода И',
-  'Раҳмонзода Л.Ш',
-  'Назирзода Абдуқодир. С',
-  'Қурбонзода Абдуллоҳ. Ҳ',
-  'Холзода Суҳроб. Хол',
-  'Сабзали Шаҳтут. Н',
-  'Собтрзода Қурбоналӣ. М',
-  'Нурализода Фируз. М',
-  'Сафарализода Бахтиёр. С',
-  'Ибодуллои Маҳмадулло',
-  'Салимзода Умаралӣ. С',
-  'Қаландарзода Абдуқаюм. Ҷ',
-  'Давлатзода Сарвар',
-  'Зарифзода Фарҳод. Т',
-  'Идизод Неъматулло. Р',
-  'Қурбонзода Фируз. А',
-  'Маҳмудов Насим. З',
-  'Раҳмоналӣ Маҳмадалӣ',
-  'Давлатзода Афзал. А',
-  'Бобохонзода Адолатхон. О',
-  'Шамсиддинзода Хуршед.Ш',
-  'Дустзода Ҳасан. Т',
-  'Шерматов Хисравшоҳ. Р',
-  'Сафаров Фирузю П',
-  'Улуғов Умидҷон. А',
-  'Тиллои Гулрухсор. А',
-  'Аҳрорзода Ҳамароҳ. Ҳ',
-  'Судурзода Саидисмон. С',
-  'Ятимов Олимҷон. Р',
-  'Ҷунайдзода Муҳибулло.Ҳ',
-  'Панҷиев Аъзам. А',
-  'Яқубов Ҷамолиддин. Н',
-  'Каримов Алихон. А',
-  'Алмосов Сафаралӣ. А',
-  'Ашуриён Хуршед. Қ',
-  'Юсуфзода Абдуҷалил.Ҳ',
-  'Маҳмадализода Шарофиддин. А',
-  'Камолзода Дилшод. Н',
-  'Каримзода Акмал. Т',
-  'Нуров Муродулло.Т',
-  'Расуло Ҷамшед. Д',
-  'Буев Абдулазиз. А',
-  'Камолов Эраҷ. Т',
-  'Раҷабов Сайҷафар. Д',
-  'Саъдуллоев Бекназар. С',
-  'Ҳуҷумбороа Фазлиддин. С',
-];
 
 // Progress indicator component with segmented daily view
 function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: Date; deadline: Date; isCompleted: boolean }) {
@@ -247,8 +199,12 @@ export default function AssignmentsPage() {
     queryKey: ['/api/assignments'],
   });
 
-  const { data: departments = [], isLoading: loadingDepartments } = useQuery<any[]>({
+  const { data: departments = [], isLoading: loadingDepartments } = useQuery<Department[]>({
     queryKey: ['/api/departments/list'],
+  });
+
+  const { data: allPeople = [] } = useQuery<Person[]>({
+    queryKey: ['/api/people'],
   });
 
   const createAssignmentMutation = useMutation({
@@ -503,29 +459,60 @@ export default function AssignmentsPage() {
 
                   <div className="space-y-2">
                     <Label>Иҷрокунандагон</Label>
-                    <div className="border rounded-md p-4 max-h-60 overflow-y-auto grid grid-cols-2 gap-2">
-                      {EXECUTORS_LIST.map((executor) => (
-                        <div key={executor} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={executor}
-                            checked={selectedExecutors.includes(executor)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedExecutors([...selectedExecutors, executor]);
-                              } else {
-                                setSelectedExecutors(selectedExecutors.filter(e => e !== executor));
-                              }
-                            }}
-                            data-testid={`checkbox-executor-${executor}`}
-                          />
-                          <label htmlFor={executor} className="text-sm cursor-pointer">{executor}</label>
-                        </div>
-                      ))}
-                    </div>
-                    {selectedExecutors.length > 0 && (
+                    {selectedRecipients.length === 0 ? (
                       <p className="text-sm text-muted-foreground">
-                        Интихоб шуд: {selectedExecutors.length}
+                        Аввал гирандаро интихоб кунед
                       </p>
+                    ) : (
+                      <>
+                        <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
+                          {selectedRecipients.map(recipientId => {
+                            const dept = departments.find(d => d.id === recipientId);
+                            const peopleInDept = allPeople.filter(p => p.departmentId === recipientId);
+                            
+                            if (peopleInDept.length === 0) return null;
+                            
+                            return (
+                              <div key={recipientId} className="mb-4 last:mb-0">
+                                <div className="text-sm font-semibold mb-2 text-gray-700">
+                                  {dept?.name || 'Номаълум'}
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 pl-2">
+                                  {peopleInDept.map(person => (
+                                    <div key={person.id} className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`executor-${person.id}`}
+                                        checked={selectedExecutors.includes(person.name)}
+                                        onCheckedChange={(checked) => {
+                                          if (checked) {
+                                            setSelectedExecutors([...selectedExecutors, person.name]);
+                                          } else {
+                                            setSelectedExecutors(selectedExecutors.filter(e => e !== person.name));
+                                          }
+                                        }}
+                                        data-testid={`checkbox-executor-${person.id}`}
+                                      />
+                                      <label htmlFor={`executor-${person.id}`} className="text-sm cursor-pointer">
+                                        {person.name}
+                                      </label>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {allPeople.filter(p => selectedRecipients.includes(p.departmentId)).length === 0 && (
+                            <p className="text-sm text-muted-foreground text-center py-4">
+                              Иҷрокунандае дар ин шуъбаҳо нест
+                            </p>
+                          )}
+                        </div>
+                        {selectedExecutors.length > 0 && (
+                          <p className="text-sm text-muted-foreground">
+                            Интихоб шуд: {selectedExecutors.length}
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
 
