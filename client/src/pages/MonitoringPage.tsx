@@ -55,7 +55,7 @@ export default function MonitoringPage() {
   };
 
   const handleDepartmentClick = (departmentId: number) => {
-    setLocation(`/department/messages/${departmentId}`);
+    setLocation(`/department/messages/${departmentId}?from=monitoring`);
   };
 
   // Verify user is from Rohbariyat department

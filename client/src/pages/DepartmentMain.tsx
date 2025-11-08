@@ -180,17 +180,6 @@ export default function DepartmentMain() {
                   </span>
                 )}
               </Button>
-              {user?.department?.code === 'ROHBAR001' && (
-                <Button
-                  size="lg"
-                  className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 h-11 rounded-md shadow-sm pl-[36px] pr-[36px] gap-2"
-                  data-testid="button-monitoring"
-                  onClick={() => setLocation('/department/monitoring')}
-                >
-                  <Eye className="h-4 w-4" />
-                  {lang === 'tg' ? 'Назорат' : 'Мониторинг'}
-                </Button>
-              )}
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -202,6 +191,17 @@ export default function DepartmentMain() {
                   data-testid="input-search"
                 />
               </div>
+              {user?.userType === 'department' && user.department?.code === 'ROHBAR001' && (
+                <Button
+                  size="lg"
+                  className="shrink-0 bg-[#4a9d4a] hover:bg-[#3d8a3d] text-white font-medium px-8 h-11 rounded-md shadow-sm pl-[36px] pr-[36px] gap-2"
+                  data-testid="button-monitoring"
+                  onClick={() => setLocation('/department/monitoring')}
+                >
+                  <Eye className="h-4 w-4" />
+                  {lang === 'tg' ? 'Назорат' : 'Мониторинг'}
+                </Button>
+              )}
             </div>
 
             {departmentsByBlock.upper.length > 0 && (

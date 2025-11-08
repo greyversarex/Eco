@@ -18,6 +18,11 @@ export default function DepartmentMessages() {
   const t = useTranslation(lang);
 
   const departmentId = params?.id ? parseInt(params.id) : null;
+  
+  // Check if coming from monitoring page
+  const urlParams = new URLSearchParams(window.location.search);
+  const fromMonitoring = urlParams.get('from') === 'monitoring';
+  const backUrl = fromMonitoring ? '/department/monitoring' : '/department/main';
 
   const { data: departments = [] } = useQuery<Omit<Department, 'accessCode'>[]>({
     queryKey: ['/api/departments/list'],
@@ -60,14 +65,14 @@ export default function DepartmentMessages() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setLocation('/department/main')}
+                onClick={() => setLocation(backUrl)}
                 data-testid="button-back"
                 className="shrink-0 text-white hover:bg-white/20"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <button 
-                onClick={() => setLocation('/department/main')}
+                onClick={() => setLocation(backUrl)}
                 className="flex items-start gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity pt-1"
                 data-testid="button-home"
               >
