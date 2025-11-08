@@ -448,7 +448,7 @@ export default function MessageView() {
         </div>
       </header>
 
-      <main className="flex-1 mx-auto max-w-[1600px] px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
+      <main className="flex-1 mx-auto max-w-[95%] px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
@@ -521,15 +521,17 @@ export default function MessageView() {
                 </div>
 
                 <div className="space-y-3 text-base border-t pt-6">
-                  {message.documentNumber && (
-                    <div data-testid="text-document-number">
-                      <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Рақами ҳуҷҷат:' : 'Номер документа:'}</span>
-                      <span className="ml-2 text-foreground">{message.documentNumber}</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {message.documentNumber && (
+                      <div data-testid="text-document-number">
+                        <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Рақами ҳуҷҷат:' : 'Номер документа:'}</span>
+                        <span className="ml-2 text-foreground">{message.documentNumber}</span>
+                      </div>
+                    )}
+                    <div data-testid="text-date">
+                      <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Сана:' : 'Дата:'}</span>
+                      <span className="ml-2 text-foreground">{formatDateTajik(new Date(message.documentDate), lang)}</span>
                     </div>
-                  )}
-                  <div data-testid="text-date">
-                    <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Сана:' : 'Дата:'}</span>
-                    <span className="ml-2 text-foreground">{formatDateTajik(new Date(message.documentDate), lang)}</span>
                   </div>
                   {message.executor && (
                     <div data-testid="text-executor">
