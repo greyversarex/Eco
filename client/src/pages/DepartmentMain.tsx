@@ -122,7 +122,6 @@ export default function DepartmentMain() {
                   inbox: t.inbox,
                   outbox: t.outbox,
                   newMessage: t.newMessage,
-                  departments: t.departments,
                   menu: t.menu,
                 }}
               />

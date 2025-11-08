@@ -7,7 +7,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Menu, Inbox, Send, PenSquare, Home, LogOut } from 'lucide-react';
+import { Menu, Inbox, Send, PenSquare, LogOut } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/lib/auth';
 
@@ -16,7 +16,6 @@ interface MobileNavProps {
     inbox: string;
     outbox: string;
     newMessage: string;
-    departments: string;
     menu: string;
   };
 }
@@ -62,16 +61,6 @@ export default function MobileNav({ translations }: MobileNavProps) {
         <div className="flex flex-col gap-2.5 mt-5 flex-1">
           <Button
             className="justify-start gap-2.5 h-12 text-sm font-medium bg-primary hover:bg-primary/90 shadow-md"
-            onClick={() => navigateTo('/department/main')}
-            data-testid="mobile-nav-departments"
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
-              <Home className="h-4 w-4 text-white" />
-            </div>
-            <span>{translations.departments}</span>
-          </Button>
-          <Button
-            className="justify-start gap-2.5 h-12 text-sm font-medium bg-primary hover:bg-primary/90 shadow-md"
             onClick={() => navigateTo('/department/inbox')}
             data-testid="mobile-nav-inbox"
           >
@@ -101,7 +90,7 @@ export default function MobileNav({ translations }: MobileNavProps) {
             <span>{translations.newMessage}</span>
           </Button>
         </div>
-        <div className="border-t pt-4 space-y-3 bg-white/80 backdrop-blur-sm">
+        <div className="pt-4 space-y-3 bg-white/80 backdrop-blur-sm">
           <Button
             variant="outline"
             className="w-full justify-start gap-2.5 h-11 text-sm font-medium border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
