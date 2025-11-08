@@ -521,6 +521,11 @@ export default function MessageView() {
                 </div>
 
                 <div className="space-y-3 text-base text-muted-foreground border-t pt-6">
+                  {message.documentNumber && (
+                    <p data-testid="text-document-number" className="text-foreground">
+                      {message.documentNumber}
+                    </p>
+                  )}
                   <p data-testid="text-date" className="text-foreground">
                     {formatDateTajik(new Date(message.documentDate), lang)}
                   </p>
