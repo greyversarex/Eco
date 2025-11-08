@@ -15,8 +15,17 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import type { Department } from '@shared/schema';
+import type { Department, Person } from '@shared/schema';
 import { Footer } from '@/components/Footer';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectGroup,
+  SelectLabel,
+} from '@/components/ui/select';
 
 export default function ComposeMessage() {
   
@@ -34,6 +43,10 @@ export default function ComposeMessage() {
 
   const { data: departments = [], isLoading: loadingDepartments } = useQuery<Omit<Department, 'accessCode'>[]>({
     queryKey: ['/api/departments/list'],
+  });
+
+  const { data: allPeople = [] } = useQuery<Person[]>({
+    queryKey: ['/api/people'],
   });
 
   const sendMessageMutation = useMutation({
@@ -498,13 +511,44 @@ export default function ComposeMessage() {
 
               <div className="space-y-2">
                 <Label htmlFor="executor">{t.executorOptional}</Label>
-                <Input
-                  id="executor"
-                  value={executor}
-                  onChange={(e) => setExecutor(e.target.value)}
-                  placeholder="Исм ва насаби иҷрокунанда"
-                  data-testid="input-executor"
-                />
+                {selectedRecipients.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Аввал гирандаро интихоб кунед
+                  </p>
+                ) : (
+                  <Select
+                    value={executor}
+                    onValueChange={setExecutor}
+                  >
+                    <SelectTrigger data-testid="select-executor">
+                      <SelectValue placeholder="Интихоби иҷрокунанда" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedRecipients.map(recipientId => {
+                        const dept = departments.find(d => d.id === recipientId);
+                        const peopleInDept = allPeople.filter(p => p.departmentId === recipientId);
+                        
+                        if (peopleInDept.length === 0) return null;
+                        
+                        return (
+                          <SelectGroup key={recipientId}>
+                            <SelectLabel>{dept?.name || 'Номаълум'}</SelectLabel>
+                            {peopleInDept.map(person => (
+                              <SelectItem key={person.id} value={person.name}>
+                                {person.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        );
+                      })}
+                      {allPeople.filter(p => selectedRecipients.includes(p.departmentId)).length === 0 && (
+                        <SelectItem value="none" disabled>
+                          Иҷрокунандае дар ин шуъбаҳо нест
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               <div className="space-y-2">
