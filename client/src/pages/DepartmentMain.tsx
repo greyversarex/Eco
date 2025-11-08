@@ -132,13 +132,15 @@ export default function DepartmentMain() {
               />
               <div className="hidden sm:flex items-center gap-2">
                 <Button
-                  size="sm"
+                  size="default"
                   onClick={logout}
                   data-testid="button-logout"
-                  className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
+                  className="gap-2.5 bg-red-500 hover:bg-red-600 text-white font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
                 >
-                  <LogOut className="h-4 w-4" />
-                  <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white/20">
+                    <LogOut className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="font-semibold">{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
                 </Button>
               </div>
             </div>
