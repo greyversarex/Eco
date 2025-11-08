@@ -118,7 +118,7 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
       <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
         <div>
           <div className="text-sm text-muted-foreground font-bold mb-1.5">Мӯҳлати иҷро:</div>
-          <div className="px-4 py-2 rounded-lg bg-gradient-to-br from-green-500 to-green-600 shadow-md hover:shadow-lg transition-all duration-200 inline-flex items-center gap-2.5">
+          <div className="px-4 py-2 rounded-lg bg-gradient-to-br from-green-500 to-green-600 shadow-md hover:shadow-lg transition-all duration-200 inline-flex items-center gap-2.5 mt-[0px] mb-[0px] ml-[0px] mr-[0px] pl-[16px] pr-[16px] pt-[7px] pb-[7px]">
             <CalendarDays className="w-4 h-4 text-white" />
             <div className="text-sm font-semibold text-white">{formatDate(deadline)}</div>
           </div>
@@ -215,12 +215,10 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
           })()}
         </div>
       </div>
-      
       <div className="flex justify-between text-sm font-medium text-gray-600">
         <span>{daysPassed} рӯз гузашт</span>
         <span>{daysLeft} рӯз боқӣ</span>
       </div>
-      
       {isCompleted && (
         <div className="text-green-600 font-semibold">Иҷрошуда!</div>
       )}
