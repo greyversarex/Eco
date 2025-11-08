@@ -538,7 +538,7 @@ export default function ComposeMessage() {
                           </SelectGroup>
                         );
                       })}
-                      {allPeople.filter(p => selectedRecipients.includes(p.departmentId)).length === 0 && (
+                      {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId)).length === 0 && (
                         <SelectItem value="none" disabled>
                           Иҷрокунандае дар ин шуъбаҳо нест
                         </SelectItem>

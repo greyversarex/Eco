@@ -501,7 +501,7 @@ export default function AssignmentsPage() {
                               </div>
                             );
                           })}
-                          {allPeople.filter(p => selectedRecipients.includes(p.departmentId)).length === 0 && (
+                          {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId)).length === 0 && (
                             <p className="text-sm text-muted-foreground text-center py-4">
                               Иҷрокунандае дар ин шуъбаҳо нест
                             </p>
