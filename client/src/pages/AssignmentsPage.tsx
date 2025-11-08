@@ -110,137 +110,122 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
     return `${day} ${month} ${year}`;
   };
 
+  // Calculate progress percentage (0-100)
+  const progressPercent = isCompleted ? 100 : Math.min(100, (daysPassed / totalDays) * 100);
+
   return (
     <div className="space-y-3 pt-[0px] pb-[0px] mt-[9px] mb-[9px]">
-      <div className="flex gap-4 flex-wrap items-center">
-        <div className="flex items-center gap-2">
-          <div className="text-sm text-muted-foreground font-bold">Мӯҳлати иҷро:</div>
-          <div className="px-3 py-1.5 rounded-md border border-green-200 bg-green-50/50 shadow-sm">
+      {/* Labels row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <div className="text-sm text-muted-foreground font-bold mb-2">Мӯҳлати иҷро:</div>
+          <div className="px-3 py-1.5 rounded-md border border-green-200 bg-green-50/50 shadow-sm inline-block">
             <div className="text-sm font-semibold text-foreground">{formatDate(deadline)}</div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="text-sm text-muted-foreground font-bold">Боқӣ монд:</div>
-          <div className="px-3 py-1.5 rounded-md border border-green-200 bg-green-50/50 shadow-sm">
+        
+        <div>
+          <div className="text-sm text-muted-foreground font-bold mb-2">Боқӣ монд:</div>
+          <div className="px-3 py-1.5 rounded-md border border-green-200 bg-green-50/50 shadow-sm inline-block">
             <div className="text-sm font-semibold text-foreground">{isCompleted ? '-' : (isOverdue ? '0' : daysLeft)} рӯз</div>
           </div>
         </div>
-        {isCompleted && (
-          <div className="text-green-600 font-semibold">Иҷрошуда!</div>
-        )}
-        {isOverdue && !isCompleted && (
-          <div className="text-red-600 font-semibold">Иҷронашуда!</div>
-        )}
+        
+        <div>
+          <div className="text-sm text-muted-foreground font-bold mb-2">Индикатори иҷроиш</div>
+          {(() => {
+            // Special cases: completed or overdue
+            if (isCompleted) {
+              return (
+                <div 
+                  className="h-6 rounded-lg shadow-lg transition-all duration-700 ease-out"
+                  style={{
+                    background: '#22c55e',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
+                  }}
+                />
+              );
+            }
+            
+            if (isOverdue) {
+              return (
+                <div 
+                  className="h-6 rounded-lg shadow-lg transition-all duration-700 ease-out"
+                  style={{
+                    background: '#ef4444',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
+                  }}
+                />
+              );
+            }
+            
+            // Calculate dynamic color percentages
+            let greenPercent, yellowPercent, redPercent;
+            
+            if (progressPercent <= 50) {
+              greenPercent = 33.33 - (progressPercent / 50 * 33.33);
+              yellowPercent = 33.33 + (progressPercent / 50 * 16.67);
+              redPercent = 33.33 + (progressPercent / 50 * 16.67);
+            } else {
+              greenPercent = 0;
+              const secondHalfProgress = progressPercent - 50;
+              yellowPercent = 50 - (secondHalfProgress / 50 * 50);
+              redPercent = 50 + (secondHalfProgress / 50 * 50);
+            }
+
+            const gradientStops = [];
+            let currentPos = 0;
+            
+            if (greenPercent > 0) {
+              gradientStops.push(`#22c55e ${currentPos}%`);
+              currentPos += greenPercent;
+              gradientStops.push(`#22c55e ${currentPos}%`);
+            }
+            
+            if (yellowPercent > 0) {
+              if (greenPercent > 0) {
+                gradientStops.push(`#facc15 ${currentPos + 2}%`);
+              } else {
+                gradientStops.push(`#facc15 ${currentPos}%`);
+              }
+              currentPos += yellowPercent;
+              gradientStops.push(`#facc15 ${currentPos}%`);
+            }
+            
+            if (redPercent > 0) {
+              if (yellowPercent > 0) {
+                gradientStops.push(`#ef4444 ${currentPos + 2}%`);
+              } else {
+                gradientStops.push(`#ef4444 ${currentPos}%`);
+              }
+              currentPos += redPercent;
+              gradientStops.push(`#ef4444 ${currentPos}%`);
+            }
+
+            return (
+              <div 
+                className="h-6 rounded-lg shadow-lg transition-all duration-700 ease-out"
+                style={{
+                  background: `linear-gradient(to right, ${gradientStops.join(', ')})`,
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
+                }}
+              />
+            );
+          })()}
+        </div>
       </div>
-      <div>
-        {(() => {
-          // Calculate progress percentage (0-100)
-          const progressPercent = isCompleted ? 100 : Math.min(100, (daysPassed / totalDays) * 100);
-
-          return (
-            <>
-              <div className="mb-2">
-                <div className="text-sm font-semibold text-gray-700">Индикатори иҷроиш</div>
-              </div>
-              
-              {/* Beautiful gradient progress bar without borders */}
-              <div className="relative">
-                {(() => {
-                  // Special cases: completed or overdue
-                  if (isCompleted) {
-                    // When completed - fully green
-                    return (
-                      <div 
-                        className="h-6 rounded-lg shadow-lg transition-all duration-700 ease-out"
-                        style={{
-                          background: '#22c55e',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
-                        }}
-                      />
-                    );
-                  }
-                  
-                  if (isOverdue) {
-                    // When overdue - fully red
-                    return (
-                      <div 
-                        className="h-6 rounded-lg shadow-lg transition-all duration-700 ease-out"
-                        style={{
-                          background: '#ef4444',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
-                        }}
-                      />
-                    );
-                  }
-                  
-                  // Calculate dynamic color percentages based on progress
-                  let greenPercent, yellowPercent, redPercent;
-                  
-                  if (progressPercent <= 50) {
-                    // First half (0-50%): green decreases, yellow and red increase
-                    greenPercent = 33.33 - (progressPercent / 50 * 33.33);
-                    yellowPercent = 33.33 + (progressPercent / 50 * 16.67);
-                    redPercent = 33.33 + (progressPercent / 50 * 16.67);
-                  } else {
-                    // Second half (50-100%): green = 0, yellow decreases, red increases
-                    greenPercent = 0;
-                    const secondHalfProgress = progressPercent - 50;
-                    yellowPercent = 50 - (secondHalfProgress / 50 * 50);
-                    redPercent = 50 + (secondHalfProgress / 50 * 50);
-                  }
-
-                  // Create gradient with smooth transitions
-                  const gradientStops = [];
-                  let currentPos = 0;
-                  
-                  if (greenPercent > 0) {
-                    gradientStops.push(`#22c55e ${currentPos}%`);
-                    currentPos += greenPercent;
-                    gradientStops.push(`#22c55e ${currentPos}%`);
-                  }
-                  
-                  if (yellowPercent > 0) {
-                    if (greenPercent > 0) {
-                      // Add gradient transition from green to yellow
-                      gradientStops.push(`#facc15 ${currentPos + 2}%`);
-                    } else {
-                      gradientStops.push(`#facc15 ${currentPos}%`);
-                    }
-                    currentPos += yellowPercent;
-                    gradientStops.push(`#facc15 ${currentPos}%`);
-                  }
-                  
-                  if (redPercent > 0) {
-                    if (yellowPercent > 0) {
-                      // Add gradient transition from yellow to red
-                      gradientStops.push(`#ef4444 ${currentPos + 2}%`);
-                    } else {
-                      gradientStops.push(`#ef4444 ${currentPos}%`);
-                    }
-                    currentPos += redPercent;
-                    gradientStops.push(`#ef4444 ${currentPos}%`);
-                  }
-
-                  return (
-                    <div 
-                      className="h-6 rounded-lg shadow-lg transition-all duration-700 ease-out"
-                      style={{
-                        background: `linear-gradient(to right, ${gradientStops.join(', ')})`,
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
-                      }}
-                    />
-                  );
-                })()}
-              </div>
-              
-              <div className="flex justify-between mt-2 text-sm font-medium text-gray-600">
-                <span>{daysPassed} рӯз гузашт</span>
-                <span>{daysLeft} рӯз боқӣ</span>
-              </div>
-            </>
-          );
-        })()}
+      
+      <div className="flex justify-between text-sm font-medium text-gray-600">
+        <span>{daysPassed} рӯз гузашт</span>
+        <span>{daysLeft} рӯз боқӣ</span>
       </div>
+      
+      {isCompleted && (
+        <div className="text-green-600 font-semibold">Иҷрошуда!</div>
+      )}
+      {isOverdue && !isCompleted && (
+        <div className="text-red-600 font-semibold">Иҷронашуда!</div>
+      )}
     </div>
   );
 }
