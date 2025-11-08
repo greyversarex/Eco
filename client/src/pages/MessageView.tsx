@@ -439,7 +439,6 @@ export default function MessageView() {
           </div>
         </div>
       </header>
-
       <main className="flex-1 w-full px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
@@ -515,12 +514,12 @@ export default function MessageView() {
                 <div className="space-y-3 text-base border-t pt-6 px-6">
                   {message.documentNumber && (
                     <div data-testid="text-document-number">
-                      <span className="text-muted-foreground font-medium">Рақами ҳуҷҷат:</span>
+                      <span className="font-medium text-[#050505]">Рақами ҳуҷҷат:</span>
                       <span className="ml-2 text-foreground">{message.documentNumber}</span>
                     </div>
                   )}
                   <div data-testid="text-date">
-                    <span className="text-muted-foreground font-medium">Сана:</span>
+                    <span className="font-medium text-[#000000]">Сана:</span>
                     <span className="ml-2 text-foreground">{formatDateTajik(new Date(message.documentDate))}</span>
                   </div>
                   <div data-testid="text-sender" className="space-y-1">
