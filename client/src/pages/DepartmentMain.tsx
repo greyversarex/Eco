@@ -100,10 +100,10 @@ export default function DepartmentMain() {
                   size="default"
                   onClick={() => setLocation('/department/outbox')}
                   data-testid="button-outbox"
-                  className="gap-2.5 bg-white text-blue-700 hover:bg-white/90 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-blue-100"
+                  className="gap-2.5 bg-white text-green-700 hover:bg-white/90 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-green-100"
                 >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-100">
-                    <Send className="h-4 w-4 text-blue-700" />
+                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-green-100">
+                    <Send className="h-4 w-4 text-green-700" />
                   </div>
                   <span className="font-semibold">{t.outbox}</span>
                 </Button>
