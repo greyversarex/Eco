@@ -412,9 +412,9 @@ export default function AssignmentsPage() {
     createAssignmentMutation.mutate(formData);
   };
 
-  // All departments can create and delete assignments
-  const canCreate = user?.userType === 'department';
-  const canDelete = user?.userType === 'department';
+  // Check permissions from database
+  const canCreate = user?.userType === 'department' && user.department?.canCreateAssignment;
+  const canDelete = user?.userType === 'department' && user.department?.canCreateAssignment;
 
   return (
     <div

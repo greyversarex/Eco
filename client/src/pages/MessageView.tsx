@@ -568,13 +568,14 @@ export default function MessageView() {
                       <Reply className="h-4 w-4" />
                       {t.reply}
                     </Button>
-                    <Dialog open={isAssignmentDialogOpen} onOpenChange={setIsAssignmentDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button onClick={openAssignmentDialog} data-testid="button-create-assignment" className="gap-2 bg-green-600 hover:bg-green-700 text-white" size="lg">
-                          <FileText className="h-4 w-4" />
-                          Вазифагузорӣ
-                        </Button>
-                      </DialogTrigger>
+                    {user.department?.canCreateAssignmentFromMessage && (
+                      <Dialog open={isAssignmentDialogOpen} onOpenChange={setIsAssignmentDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button onClick={openAssignmentDialog} data-testid="button-create-assignment" className="gap-2 bg-green-600 hover:bg-green-700 text-white" size="lg">
+                            <FileText className="h-4 w-4" />
+                            Вазифагузорӣ
+                          </Button>
+                        </DialogTrigger>
                         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>Эҷоди супориш</DialogTitle>
@@ -775,6 +776,7 @@ export default function MessageView() {
                           </div>
                         </DialogContent>
                       </Dialog>
+                    )}
                   </div>
                 )}
               </CardContent>

@@ -859,11 +859,16 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Create assignment (available for all departments and admins)
+  // Create assignment (departments with canCreateAssignment permission or admins)
   app.post("/api/assignments", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
     try {
-      // All departments and admins can create assignments
-      if (!req.session.departmentId && !req.session.adminId) {
+      // Check permissions
+      if (req.session.departmentId) {
+        const dept = await storage.getDepartmentById(req.session.departmentId);
+        if (!dept || !dept.canCreateAssignment) {
+          return res.status(403).json({ error: 'No permission to create assignments' });
+        }
+      } else if (!req.session.adminId) {
         return res.status(403).json({ error: 'Access denied' });
       }
 
@@ -1026,11 +1031,16 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Create announcement (available for all departments and admins)
+  // Create announcement (departments with canCreateAssignment permission or admins)
   app.post("/api/announcements", requireAuth, async (req: Request, res: Response) => {
     try {
-      // All departments and admins can create announcements
-      if (!req.session.departmentId && !req.session.adminId) {
+      // Check permissions (use same permission as assignments)
+      if (req.session.departmentId) {
+        const dept = await storage.getDepartmentById(req.session.departmentId);
+        if (!dept || !dept.canCreateAssignment) {
+          return res.status(403).json({ error: 'No permission to create announcements' });
+        }
+      } else if (!req.session.adminId) {
         return res.status(403).json({ error: 'Access denied' });
       }
 
@@ -1047,11 +1057,16 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Delete announcement (available for all departments and admins)
+  // Delete announcement (departments with canCreateAssignment permission or admins)
   app.delete("/api/announcements/:id", requireAuth, async (req: Request, res: Response) => {
     try {
-      // All departments and admins can delete announcements
-      if (!req.session.departmentId && !req.session.adminId) {
+      // Check permissions (use same permission as create)
+      if (req.session.departmentId) {
+        const dept = await storage.getDepartmentById(req.session.departmentId);
+        if (!dept || !dept.canCreateAssignment) {
+          return res.status(403).json({ error: 'No permission to delete announcements' });
+        }
+      } else if (!req.session.adminId) {
         return res.status(403).json({ error: 'Access denied' });
       }
 
