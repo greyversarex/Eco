@@ -39,67 +39,108 @@ export default function MessageListItem({
   };
 
   const handleItemClick = () => {
-    // In delete mode, only checkbox should work
     if (!selectable) {
       onClick();
     }
   };
 
   return (
-    <div
-      className={`flex items-center border border-border px-6 py-4 transition-all duration-200 rounded-lg mb-2 ${
-        !selectable && !isSelected ? 'cursor-pointer hover:border-primary hover:shadow-lg hover:bg-primary/10 hover:scale-[1.02]' : ''
-      } ${
-        selectable && !isSelected ? 'cursor-default' : ''
-      } ${
-        !isRead && !isSentMessage ? 'bg-primary/5' : 'bg-background'
-      } ${isSelected ? 'bg-primary/10' : ''}`}
-      onClick={handleItemClick}
-      data-testid={`message-item-${id}`}
-    >
-      {selectable && (
-        <div className="mr-3" onClick={handleCheckboxClick}>
-          <Checkbox 
-            checked={isSelected} 
-            data-testid={`checkbox-message-${id}`}
-          />
-        </div>
-      )}
-      {/* Document Number */}
-      <div className="w-20 sm:w-32 shrink-0 text-center">
-        <p className={`text-xs sm:text-sm truncate ${!isRead && !isSentMessage ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
-          {documentNumber || '—'}
-        </p>
-      </div>
-      {/* Vertical separator */}
-      <div className="hidden sm:block h-12 w-px bg-border mx-2 sm:mx-4 shrink-0" />
-      {/* Subject and Content */}
-      <div className="flex-1 min-w-0 space-y-1 mx-2">
-        <h3 className={`text-xs sm:text-sm truncate ${!isRead && !isSentMessage ? 'font-semibold text-foreground' : 'font-normal text-foreground'}`}>
-          {subject}
-        </h3>
-        {content && (
-          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
-            {content}
-          </p>
+    <>
+      {/* Mobile View */}
+      <div
+        className={`sm:hidden border border-border px-4 py-3 transition-all duration-200 rounded-lg mb-2 ${
+          !selectable && !isSelected ? 'cursor-pointer hover:border-primary hover:shadow-lg hover:bg-primary/10' : ''
+        } ${
+          !isRead && !isSentMessage ? 'bg-primary/5' : 'bg-background'
+        } ${isSelected ? 'bg-primary/10' : ''}`}
+        onClick={handleItemClick}
+        data-testid={`message-item-${id}`}
+      >
+        {selectable && (
+          <div className="mb-2" onClick={handleCheckboxClick}>
+            <Checkbox checked={isSelected} data-testid={`checkbox-message-${id}`} />
+          </div>
         )}
+        <div className="space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className={`text-sm flex-1 ${!isRead && !isSentMessage ? 'font-semibold' : 'font-normal'}`}>
+              {subject}
+            </h3>
+            {hasAttachment && <Paperclip className="h-4 w-4 text-muted-foreground shrink-0" />}
+          </div>
+          {content && (
+            <p className="text-xs text-muted-foreground line-clamp-2">{content}</p>
+          )}
+          <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+            <span>{documentNumber || '—'}</span>
+            <span>{date}</span>
+          </div>
+        </div>
       </div>
-      {/* Sender, Date and Icons */}
-      <div className="flex items-center gap-3 ml-4 shrink-0">
-        <span className="hidden sm:inline text-sm text-muted-foreground w-32 text-right">{sender}</span>
-        <span className="text-xs sm:text-sm text-muted-foreground w-24 text-right ml-[-4px] mr-[-4px] mt-[0px] mb-[0px] pt-[0px] pb-[0px] pl-[-10px] pr-[-10px]">{date}</span>
-        <div className="flex items-center gap-2 w-20 justify-end">
+
+      {/* Desktop View - Grid Layout */}
+      <div
+        className={`hidden sm:grid border border-border px-6 py-4 transition-all duration-200 rounded-lg mb-2 items-center gap-x-4 ${
+          !selectable && !isSelected ? 'cursor-pointer hover:border-primary hover:shadow-lg hover:bg-primary/10 hover:scale-[1.01]' : ''
+        } ${
+          !isRead && !isSentMessage ? 'bg-primary/5' : 'bg-background'
+        } ${isSelected ? 'bg-primary/10' : ''}`}
+        style={{
+          gridTemplateColumns: selectable 
+            ? 'auto 120px 1fr 150px 130px 80px'
+            : '120px 1fr 150px 130px 80px'
+        }}
+        onClick={handleItemClick}
+        data-testid={`message-item-${id}`}
+      >
+        {selectable && (
+          <div onClick={handleCheckboxClick}>
+            <Checkbox checked={isSelected} data-testid={`checkbox-message-${id}`} />
+          </div>
+        )}
+        
+        {/* Document Number */}
+        <div className="text-center">
+          <p className={`text-sm ${!isRead && !isSentMessage ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+            {documentNumber || '—'}
+          </p>
+        </div>
+        
+        {/* Subject and Content */}
+        <div className="min-w-0 space-y-1">
+          <h3 className={`text-sm truncate ${!isRead && !isSentMessage ? 'font-semibold text-foreground' : 'font-normal text-foreground'}`}>
+            {subject}
+          </h3>
+          {content && (
+            <p className="text-sm text-muted-foreground line-clamp-1">
+              {content}
+            </p>
+          )}
+        </div>
+        
+        {/* Sender */}
+        <div className="text-right">
+          <span className="text-sm text-muted-foreground">{sender}</span>
+        </div>
+        
+        {/* Date */}
+        <div className="text-right">
+          <span className="text-sm text-muted-foreground">{date}</span>
+        </div>
+        
+        {/* Icons */}
+        <div className="flex items-center gap-2 justify-end">
           {isSentMessage && isRead && (
-            <Badge variant="outline" className="gap-1 bg-primary/10 text-primary border-primary/20 hidden sm:flex" data-testid={`badge-read-${id}`}>
+            <Badge variant="outline" className="gap-1 bg-primary/10 text-primary border-primary/20" data-testid={`badge-read-${id}`}>
               <CheckCheck className="h-3 w-3" />
               <span className="text-xs">Прочитано</span>
             </Badge>
           )}
           {hasAttachment && (
-            <Paperclip className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" data-testid={`icon-attachment-${id}`} />
+            <Paperclip className="h-4 w-4 text-muted-foreground" data-testid={`icon-attachment-${id}`} />
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }

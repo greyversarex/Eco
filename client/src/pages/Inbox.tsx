@@ -267,20 +267,28 @@ export default function Inbox() {
               )}
               
               {/* Column Headers */}
-              <div className="hidden sm:flex items-center border-b border-border px-6 py-3 bg-muted/30 font-semibold text-sm text-muted-foreground">
-                {isDeleteMode && <div className="w-9 mr-3" />}
-                <div className="w-32 shrink-0">
+              <div 
+                className="hidden sm:grid border-b border-border px-6 py-3 bg-muted/30 font-semibold text-sm text-muted-foreground items-center"
+                style={{
+                  gridTemplateColumns: isDeleteMode 
+                    ? 'auto 120px 1fr 150px 130px 80px'
+                    : '120px 1fr 150px 130px 80px'
+                }}
+              >
+                {isDeleteMode && <div />}
+                <div className="text-center">
                   {lang === 'tg' ? 'Рақами ҳуҷҷат' : 'Номер документа'}
                 </div>
-                <div className="w-px mx-4 shrink-0" />
-                <div className="flex-1">
+                <div className="px-4">
                   {lang === 'tg' ? 'Мавзӯъ ва мундариҷа' : 'Тема и содержание'}
                 </div>
-                <div className="flex items-center gap-3 ml-4 shrink-0">
-                  <span className="w-32 text-right">{lang === 'tg' ? 'Фиристанда' : 'Отправитель'}</span>
-                  <span className="w-24 text-right">{lang === 'tg' ? 'Сана' : 'Дата'}</span>
-                  <span className="w-20"></span>
+                <div className="text-right">
+                  {lang === 'tg' ? 'Фиристанда' : 'Отправитель'}
                 </div>
+                <div className="text-right">
+                  {lang === 'tg' ? 'Сана' : 'Дата'}
+                </div>
+                <div />
               </div>
 
               {formattedMessages.map((message) => (
