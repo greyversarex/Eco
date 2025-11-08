@@ -523,7 +523,7 @@ export default function MessageView() {
                     <span className="ml-2 text-foreground">{formatDateTajik(new Date(message.documentDate))}</span>
                   </div>
                   <div data-testid="text-sender" className="space-y-1">
-                    <div className="text-muted-foreground font-medium">Фиристанда</div>
+                    <div className="font-medium text-[#000000]">Фиристанда</div>
                     <div className="text-foreground">{getSenderName(message.senderId)}</div>
                   </div>
                 </div>
