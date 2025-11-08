@@ -115,17 +115,17 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
 
   return (
     <div className="space-y-2 pt-[0px] pb-[0px] mt-[9px] mb-[9px]">
-      <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
-        <div>
-          <div className="text-sm text-muted-foreground font-bold mb-1.5">Мӯҳлати иҷро:</div>
-          <div className="px-3 py-1.5 rounded-md border border-green-200 bg-green-50/50 shadow-sm inline-block">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <div className="flex items-center gap-2">
+          <div className="text-sm text-muted-foreground font-bold">Мӯҳлати иҷро:</div>
+          <div className="px-3 py-1.5 rounded-md border border-green-200 bg-green-50/50 shadow-sm">
             <div className="text-sm font-semibold text-foreground">{formatDate(deadline)}</div>
           </div>
         </div>
         
-        <div>
-          <div className="text-sm text-muted-foreground font-bold mb-1.5">Боқӣ монд:</div>
-          <div className="px-3 py-1.5 rounded-md border border-green-200 bg-green-50/50 shadow-sm inline-block">
+        <div className="flex items-center gap-2">
+          <div className="text-sm text-muted-foreground font-bold">Боқӣ монд:</div>
+          <div className="px-3 py-1.5 rounded-md border border-green-200 bg-green-50/50 shadow-sm">
             <div className="text-sm font-semibold text-foreground">{isCompleted ? '-' : (isOverdue ? '0' : daysLeft)} рӯз</div>
           </div>
         </div>
