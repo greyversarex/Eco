@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -118,15 +118,17 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
       <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
         <div>
           <div className="text-sm text-muted-foreground font-bold mb-1.5">Мӯҳлати иҷро:</div>
-          <div className="px-3 py-1.5 rounded-md border border-green-200 bg-green-50/50 shadow-sm inline-block">
-            <div className="text-sm font-semibold text-foreground">{formatDate(deadline)}</div>
+          <div className="px-4 py-2 rounded-lg bg-gradient-to-br from-green-500 to-green-600 shadow-md hover:shadow-lg transition-all duration-200 inline-flex items-center gap-2.5">
+            <CalendarDays className="w-4 h-4 text-white" />
+            <div className="text-sm font-semibold text-white">{formatDate(deadline)}</div>
           </div>
         </div>
         
         <div>
           <div className="text-sm text-muted-foreground font-bold mb-1.5">Боқӣ монд:</div>
-          <div className="px-3 py-1.5 rounded-md border border-green-200 bg-green-50/50 shadow-sm inline-block">
-            <div className="text-sm font-semibold text-foreground">{isCompleted ? '-' : (isOverdue ? '0' : daysLeft)} рӯз</div>
+          <div className="px-4 py-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md hover:shadow-lg transition-all duration-200 inline-flex items-center gap-2.5">
+            <Clock className="w-4 h-4 text-white" />
+            <div className="text-sm font-semibold text-white">{isCompleted ? '-' : (isOverdue ? '0' : daysLeft)} рӯз</div>
           </div>
         </div>
         
