@@ -163,6 +163,7 @@ export function registerRoutes(app: Express) {
               id: department.id,
               name: department.name,
               block: department.block,
+              code: department.accessCode,
             }
           });
         });
@@ -248,6 +249,7 @@ export function registerRoutes(app: Express) {
               id: department.id,
               name: department.name,
               block: department.block,
+              code: department.accessCode,
             }
           });
         }

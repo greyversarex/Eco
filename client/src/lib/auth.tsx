@@ -7,6 +7,7 @@ interface Department {
   id: number;
   name: string;
   block: string;
+  code: string;
 }
 
 interface AuthContextType {
