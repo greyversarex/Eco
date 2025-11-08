@@ -190,7 +190,6 @@ export default function AssignmentsPage() {
   const [topic, setTopic] = useState('');
   const [content, setContent] = useState('');
   const [documentNumber, setDocumentNumber] = useState('');
-  const [selectedExecutors, setSelectedExecutors] = useState<string[]>([]);
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
   const [deadline, setDeadline] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -230,7 +229,6 @@ export default function AssignmentsPage() {
       setTopic('');
       setContent('');
       setDocumentNumber('');
-      setSelectedExecutors([]);
       setSelectedRecipients([]);
       setDeadline('');
       setSelectedFiles([]);
@@ -307,14 +305,6 @@ export default function AssignmentsPage() {
       });
       return;
     }
-    if (selectedExecutors.length === 0) {
-      toast({
-        title: 'Хато',
-        description: 'Иҷрокунандагонро интихоб кунед',
-        variant: 'destructive',
-      });
-      return;
-    }
     if (selectedRecipients.length === 0) {
       toast({
         title: 'Хато',
@@ -340,7 +330,6 @@ export default function AssignmentsPage() {
     if (documentNumber) {
       formData.append('documentNumber', documentNumber);
     }
-    formData.append('executors', JSON.stringify(selectedExecutors));
     formData.append('recipientIds', JSON.stringify(selectedRecipients));
     formData.append('deadline', deadline);
     
@@ -458,65 +447,6 @@ export default function AssignmentsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Иҷрокунандагон</Label>
-                    {selectedRecipients.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">
-                        Аввал гирандаро интихоб кунед
-                      </p>
-                    ) : (
-                      <>
-                        <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
-                          {selectedRecipients.map(recipientId => {
-                            const dept = departments.find(d => d.id === recipientId);
-                            const peopleInDept = allPeople.filter(p => p.departmentId === recipientId);
-                            
-                            if (peopleInDept.length === 0) return null;
-                            
-                            return (
-                              <div key={recipientId} className="mb-4 last:mb-0">
-                                <div className="text-sm font-semibold mb-2 text-gray-700">
-                                  {dept?.name || 'Номаълум'}
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 pl-2">
-                                  {peopleInDept.map(person => (
-                                    <div key={person.id} className="flex items-center space-x-2">
-                                      <Checkbox
-                                        id={`executor-${person.id}`}
-                                        checked={selectedExecutors.includes(person.name)}
-                                        onCheckedChange={(checked) => {
-                                          if (checked) {
-                                            setSelectedExecutors([...selectedExecutors, person.name]);
-                                          } else {
-                                            setSelectedExecutors(selectedExecutors.filter(e => e !== person.name));
-                                          }
-                                        }}
-                                        data-testid={`checkbox-executor-${person.id}`}
-                                      />
-                                      <label htmlFor={`executor-${person.id}`} className="text-sm cursor-pointer">
-                                        {person.name}
-                                      </label>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          })}
-                          {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId)).length === 0 && (
-                            <p className="text-sm text-muted-foreground text-center py-4">
-                              Иҷрокунандае дар ин шуъбаҳо нест
-                            </p>
-                          )}
-                        </div>
-                        {selectedExecutors.length > 0 && (
-                          <p className="text-sm text-muted-foreground">
-                            Интихоб шуд: {selectedExecutors.length}
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
                     <Label>Гирандагон</Label>
                     {loadingDepartments ? (
                       <div className="text-sm text-muted-foreground">Боргирӣ...</div>
@@ -524,7 +454,6 @@ export default function AssignmentsPage() {
                       <div>
                         <Button
                           type="button"
-                          variant="outline"
                           size="sm"
                           onClick={() => {
                             const allDeptIds = departments.map(dept => dept.id);
@@ -534,7 +463,7 @@ export default function AssignmentsPage() {
                               setSelectedRecipients(allDeptIds);
                             }
                           }}
-                          className="mb-2"
+                          className="mb-2 bg-green-600 hover:bg-green-700 text-white"
                           data-testid="button-select-all-recipients"
                         >
                           {selectedRecipients.length === departments.length
@@ -571,6 +500,44 @@ export default function AssignmentsPage() {
                       <p className="text-sm text-muted-foreground">
                         Интихоб шуд: {selectedRecipients.length}
                       </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Иҷрокунандагон</Label>
+                    {selectedRecipients.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        Аввал гирандаро интихоб кунед
+                      </p>
+                    ) : (
+                      <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
+                        {selectedRecipients.map(recipientId => {
+                          const dept = departments.find(d => d.id === recipientId);
+                          const peopleInDept = allPeople.filter(p => p.departmentId === recipientId);
+                          
+                          if (peopleInDept.length === 0) return null;
+                          
+                          return (
+                            <div key={recipientId} className="mb-4 last:mb-0">
+                              <div className="text-sm font-semibold mb-2 text-gray-700">
+                                {dept?.name || 'Номаълум'}
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 pl-2">
+                                {peopleInDept.map(person => (
+                                  <div key={person.id} className="text-sm">
+                                    • {person.name}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId)).length === 0 && (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            Иҷрокунандае дар ин шуъбаҳо нест
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
 
