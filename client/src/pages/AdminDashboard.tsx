@@ -27,7 +27,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { t } from '@/lib/i18n';
-import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search } from 'lucide-react';
+import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -244,6 +244,16 @@ export default function AdminDashboard() {
               >
                 <Mail className="h-4 w-4" />
                 <span className="hidden md:inline">Паёмҳо</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => window.location.href = '/admin/people'}
+                data-testid="button-people"
+                className="gap-2 hidden sm:flex text-white hover:bg-white/20"
+              >
+                <Users className="h-4 w-4" />
+                <span className="hidden md:inline">Иҷрокунандагон</span>
               </Button>
               <Button
                 variant="ghost"

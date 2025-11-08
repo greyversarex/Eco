@@ -20,6 +20,7 @@ const ComposeMessage = lazy(() => import("@/pages/ComposeMessage"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const AdminDepartments = lazy(() => import("@/pages/AdminDepartments"));
 const AdminDepartmentMessages = lazy(() => import("@/pages/AdminDepartmentMessages"));
+const AdminPeople = lazy(() => import("@/pages/AdminPeople"));
 const AssignmentsPage = lazy(() => import("@/pages/AssignmentsPage"));
 const AnnouncementsPage = lazy(() => import("@/pages/AnnouncementsPage"));
 const MonitoringPage = lazy(() => import("@/pages/MonitoringPage"));
@@ -59,6 +60,11 @@ function Router() {
         <Route path="/admin/department/:id">
           <AdminRoute>
             <AdminDepartmentMessages />
+          </AdminRoute>
+        </Route>
+        <Route path="/admin/people">
+          <AdminRoute>
+            <AdminPeople />
           </AdminRoute>
         </Route>
         <Route path="/department/main">
