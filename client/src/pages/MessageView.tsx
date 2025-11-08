@@ -510,7 +510,7 @@ export default function MessageView() {
                 </div>
               </CardHeader>
               <CardContent className="pt-8 space-y-6">
-                <div className="prose prose-lg max-w-none" data-testid="text-content">
+                <div data-testid="text-content">
                   <div className="whitespace-pre-line text-lg leading-relaxed text-foreground">
                     {message.content}
                   </div>
