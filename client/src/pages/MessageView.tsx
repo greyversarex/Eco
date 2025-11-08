@@ -124,12 +124,8 @@ export default function MessageView() {
     enabled: !!id,
   });
 
-  const { data: departments = [] } = useQuery<Department[]>({
-    queryKey: ['/api/departments'],
-  });
-
-  // Load department list for assignment recipients selection
-  const { data: departmentsList = [], isLoading: loadingDepartments } = useQuery<any[]>({
+  // Load department list for all purposes (sender name, recipients, etc.)
+  const { data: departments = [], isLoading: loadingDepartments } = useQuery<any[]>({
     queryKey: ['/api/departments/list'],
   });
 
@@ -662,7 +658,7 @@ export default function MessageView() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => {
-                                      const allDeptIds = departmentsList.map(dept => dept.id);
+                                      const allDeptIds = departments.map(dept => dept.id);
                                       if (selectedRecipients.length === allDeptIds.length) {
                                         setSelectedRecipients([]);
                                       } else {
@@ -672,13 +668,13 @@ export default function MessageView() {
                                     className="mb-2"
                                     data-testid="button-select-all-assignment-recipients"
                                   >
-                                    {selectedRecipients.length === departmentsList.length
+                                    {selectedRecipients.length === departments.length
                                       ? 'Бекор кардан'
                                       : 'Ҳамаро қайд кардан'}
                                   </Button>
                                   <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                      {departmentsList
+                                      {departments
                                         .sort((a: any, b: any) => {
                                           const blockOrder = { upper: 0, middle: 1, lower: 2, district: 3 };
                                           return blockOrder[a.block as keyof typeof blockOrder] - blockOrder[b.block as keyof typeof blockOrder];
