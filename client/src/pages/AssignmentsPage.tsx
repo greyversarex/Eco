@@ -139,7 +139,7 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
             if (isCompleted) {
               return (
                 <div 
-                  className="h-10 rounded-lg shadow-lg transition-all duration-700 ease-out"
+                  className="h-8 rounded-lg shadow-lg transition-all duration-700 ease-out"
                   style={{
                     background: '#22c55e',
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
@@ -151,7 +151,7 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
             if (isOverdue) {
               return (
                 <div 
-                  className="h-10 rounded-lg shadow-lg transition-all duration-700 ease-out"
+                  className="h-8 rounded-lg shadow-lg transition-all duration-700 ease-out"
                   style={{
                     background: '#ef4444',
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
@@ -205,7 +205,7 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
 
             return (
               <div 
-                className="h-10 rounded-lg shadow-lg transition-all duration-700 ease-out"
+                className="h-8 rounded-lg shadow-lg transition-all duration-700 ease-out"
                 style={{
                   background: `linear-gradient(to right, ${gradientStops.join(', ')})`,
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
