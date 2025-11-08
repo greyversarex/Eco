@@ -78,6 +78,57 @@ async function safeMigrate() {
       END $$;
     `);
 
+    // Добавляем can_monitor в departments (если еще нет)
+    console.log('Проверка поля can_monitor в таблице departments...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'departments' AND column_name = 'can_monitor'
+        ) THEN
+          ALTER TABLE departments ADD COLUMN can_monitor boolean NOT NULL DEFAULT false;
+          RAISE NOTICE 'Колонка can_monitor добавлена в departments';
+        ELSE
+          RAISE NOTICE 'Колонка can_monitor уже существует в departments';
+        END IF;
+      END $$;
+    `);
+
+    // Добавляем can_create_assignment_from_message в departments (если еще нет)
+    console.log('Проверка поля can_create_assignment_from_message в таблице departments...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'departments' AND column_name = 'can_create_assignment_from_message'
+        ) THEN
+          ALTER TABLE departments ADD COLUMN can_create_assignment_from_message boolean NOT NULL DEFAULT false;
+          RAISE NOTICE 'Колонка can_create_assignment_from_message добавлена в departments';
+        ELSE
+          RAISE NOTICE 'Колонка can_create_assignment_from_message уже существует в departments';
+        END IF;
+      END $$;
+    `);
+
+    // Добавляем can_create_assignment в departments (если еще нет)
+    console.log('Проверка поля can_create_assignment в таблице departments...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'departments' AND column_name = 'can_create_assignment'
+        ) THEN
+          ALTER TABLE departments ADD COLUMN can_create_assignment boolean NOT NULL DEFAULT false;
+          RAISE NOTICE 'Колонка can_create_assignment добавлена в departments';
+        ELSE
+          RAISE NOTICE 'Колонка can_create_assignment уже существует в departments';
+        END IF;
+      END $$;
+    `);
+
     // Создаем таблицу sessions (если еще нет)
     console.log('Проверка таблицы sessions...');
     await db.execute(sql`

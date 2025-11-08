@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
 import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2 } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
