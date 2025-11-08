@@ -509,14 +509,14 @@ export default function MessageView() {
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="pt-8 space-y-6">
-                <div data-testid="text-content">
+              <CardContent className="pt-8 space-y-6 px-0">
+                <div data-testid="text-content" className="px-6">
                   <div className="whitespace-pre-line text-lg leading-relaxed text-foreground">
                     {message.content}
                   </div>
                 </div>
 
-                <div className="space-y-3 text-base border-t pt-6">
+                <div className="space-y-3 text-base border-t pt-6 px-6">
                   {message.documentNumber && (
                     <div data-testid="text-document-number">
                       <span className="text-muted-foreground font-medium">Рақами ҳуҷҷат:</span>
@@ -534,7 +534,7 @@ export default function MessageView() {
                 </div>
 
                 {attachments.length > 0 && (
-                  <div className="space-y-4 pt-4 border-t">
+                  <div className="space-y-4 pt-4 border-t px-6">
                     <h3 className="text-xl font-semibold text-foreground">
                       Замимашудаҳо ({attachments.length})
                     </h3>
@@ -567,7 +567,7 @@ export default function MessageView() {
                 )}
 
                 {user?.userType === 'department' && (
-                  <div className="pt-4 border-t flex gap-3">
+                  <div className="pt-4 border-t flex gap-3 px-6">
                     <Button onClick={handleReply} data-testid="button-reply" className="gap-2" size="lg">
                       <Reply className="h-4 w-4" />
                       {t.reply}
