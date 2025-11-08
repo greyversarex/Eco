@@ -6,7 +6,8 @@ import type {
   Assignment, InsertAssignment,
   AssignmentAttachment, InsertAssignmentAttachment,
   Announcement, InsertAnnouncement,
-  AnnouncementAttachment, InsertAnnouncementAttachment
+  AnnouncementAttachment, InsertAnnouncementAttachment,
+  Person, InsertPerson
 } from "@shared/schema";
 
 export interface IStorage {
@@ -69,11 +70,19 @@ export interface IStorage {
   
   // Assignment counts
   getUncompletedAssignmentsCount(): Promise<number>;
+  
+  // People
+  getPeople(): Promise<Person[]>;
+  getPersonById(id: number): Promise<Person | undefined>;
+  getPeopleByDepartmentId(departmentId: number): Promise<Person[]>;
+  createPerson(person: InsertPerson): Promise<Person>;
+  updatePerson(id: number, person: Partial<InsertPerson>): Promise<Person | undefined>;
+  deletePerson(id: number): Promise<boolean>;
 }
 
 // Database storage implementation
 import { db } from './db';
-import { departments, admins, messages, attachments, assignments, assignmentAttachments, announcements, announcementAttachments } from '@shared/schema';
+import { departments, admins, messages, attachments, assignments, assignmentAttachments, announcements, announcementAttachments, people } from '@shared/schema';
 import { eq, or, and, desc, asc } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
@@ -424,6 +433,35 @@ export class DbStorage implements IStorage {
   async getAnnouncementAttachmentById(id: number): Promise<AnnouncementAttachment | undefined> {
     const result = await db.select().from(announcementAttachments).where(eq(announcementAttachments.id, id));
     return result[0];
+  }
+
+  // People
+  async getPeople(): Promise<Person[]> {
+    return await db.select().from(people).orderBy(asc(people.name));
+  }
+
+  async getPersonById(id: number): Promise<Person | undefined> {
+    const result = await db.select().from(people).where(eq(people.id, id));
+    return result[0];
+  }
+
+  async getPeopleByDepartmentId(departmentId: number): Promise<Person[]> {
+    return await db.select().from(people).where(eq(people.departmentId, departmentId)).orderBy(asc(people.name));
+  }
+
+  async createPerson(person: InsertPerson): Promise<Person> {
+    const result = await db.insert(people).values(person).returning();
+    return result[0];
+  }
+
+  async updatePerson(id: number, person: Partial<InsertPerson>): Promise<Person | undefined> {
+    const result = await db.update(people).set(person).where(eq(people.id, id)).returning();
+    return result[0];
+  }
+
+  async deletePerson(id: number): Promise<boolean> {
+    const result = await db.delete(people).where(eq(people.id, id)).returning();
+    return result.length > 0;
   }
 }
 

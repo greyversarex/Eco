@@ -212,5 +212,22 @@ export const insertAnnouncementAttachmentSchema = z.object({
 export type InsertAnnouncementAttachment = z.infer<typeof insertAnnouncementAttachmentSchema>;
 export type AnnouncementAttachment = typeof announcementAttachments.$inferSelect;
 
+// People table (Иҷрокунандагон / Исполнители)
+export const people = pgTable("people", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  departmentId: integer("department_id").notNull().references(() => departments.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  departmentIdx: index("people_department_id_idx").on(table.departmentId),
+}));
+
+export const insertPersonSchema = createInsertSchema(people).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertPerson = z.infer<typeof insertPersonSchema>;
+export type Person = typeof people.$inferSelect;
+
 // Note: Sessions table is managed by connect-pg-simple
 // It will be created automatically with the correct schema

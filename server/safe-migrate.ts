@@ -140,6 +140,25 @@ async function safeMigrate() {
     `);
     console.log('✓ Таблица sessions проверена');
 
+    // Создаем таблицу people (если еще нет)
+    console.log('Проверка таблицы people...');
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS people (
+        id SERIAL PRIMARY KEY,
+        name text NOT NULL,
+        department_id integer NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
+        created_at timestamp NOT NULL DEFAULT NOW()
+      );
+    `);
+    console.log('✓ Таблица people проверена');
+
+    // Создаем индекс для department_id в people (если еще нет)
+    console.log('Проверка индекса people_department_id_idx...');
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS people_department_id_idx ON people(department_id);
+    `);
+    console.log('✓ Индекс people_department_id_idx проверен');
+
     console.log('\n✅ Миграция завершена успешно!');
     console.log('Все данные сохранены, новые поля добавлены.');
   } catch (error: any) {

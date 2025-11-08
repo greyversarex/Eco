@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
-import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema, insertAssignmentSchema, insertAnnouncementSchema } from "@shared/schema";
+import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema, insertAssignmentSchema, insertAnnouncementSchema, insertPersonSchema } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 
@@ -340,6 +340,73 @@ export function registerRoutes(app: Express) {
       
       if (!success) {
         return res.status(404).json({ error: 'Department not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // People routes
+  app.get("/api/people", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const people = await storage.getPeople();
+      res.json(people);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/people/by-department/:departmentId", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const departmentId = parseInt(req.params.departmentId);
+      const people = await storage.getPeopleByDepartmentId(departmentId);
+      res.json(people);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/people", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const data = insertPersonSchema.parse(req.body);
+      const person = await storage.createPerson(data);
+      res.json(person);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/people/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const data = insertPersonSchema.partial().parse(req.body);
+      const person = await storage.updatePerson(id, data);
+      
+      if (!person) {
+        return res.status(404).json({ error: 'Person not found' });
+      }
+      
+      res.json(person);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/people/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deletePerson(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Person not found' });
       }
       
       res.json({ success: true });
