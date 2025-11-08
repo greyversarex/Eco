@@ -760,7 +760,7 @@ export default function AdminDashboard() {
                   {departmentsByBlock.upper.length > 0 && (
                     <div className="space-y-4">
                       <h2 className="text-xl font-semibold text-foreground px-2">{t.upperBlock}</h2>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {departmentsByBlock.upper.map((dept) => (
                           <SortableCard
                             key={dept.id}
@@ -790,7 +790,7 @@ export default function AdminDashboard() {
                   {departmentsByBlock.middle.length > 0 && (
                     <div className="space-y-4">
                       <h2 className="text-xl font-semibold text-foreground px-2">{t.middleBlock}</h2>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {departmentsByBlock.middle.map((dept) => (
                           <SortableCard
                             key={dept.id}
@@ -820,7 +820,7 @@ export default function AdminDashboard() {
                   {departmentsByBlock.lower.length > 0 && (
                     <div className="space-y-4">
                       <h2 className="text-xl font-semibold text-foreground px-2">{t.lowerBlock}</h2>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {departmentsByBlock.lower.map((dept) => (
                           <SortableCard
                             key={dept.id}
@@ -850,7 +850,7 @@ export default function AdminDashboard() {
                   {departmentsByBlock.district.length > 0 && (
                     <div className="space-y-4">
                       <h2 className="text-xl font-semibold text-foreground px-2">{t.districtBlock}</h2>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {departmentsByBlock.district.map((dept) => (
                           <SortableCard
                             key={dept.id}
