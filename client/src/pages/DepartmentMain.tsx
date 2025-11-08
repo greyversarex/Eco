@@ -84,35 +84,39 @@ export default function DepartmentMain() {
               </div>
             </button>
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4">
-              <nav className="hidden md:flex items-center gap-2">
+              <nav className="hidden md:flex items-center gap-2.5">
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  size="default"
                   onClick={() => setLocation('/department/inbox')}
                   data-testid="button-inbox"
-                  className="gap-2 text-white hover:bg-white/20"
+                  className="gap-2.5 bg-white text-green-700 hover:bg-white/90 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-green-100"
                 >
-                  <Inbox className="h-4 w-4" />
-                  {t.inbox}
+                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-green-100">
+                    <Inbox className="h-4 w-4 text-green-700" />
+                  </div>
+                  <span className="font-semibold">{t.inbox}</span>
                 </Button>
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  size="default"
                   onClick={() => setLocation('/department/outbox')}
                   data-testid="button-outbox"
-                  className="gap-2 text-white hover:bg-white/20"
+                  className="gap-2.5 bg-white text-blue-700 hover:bg-white/90 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-blue-100"
                 >
-                  <Send className="h-4 w-4" />
-                  {t.outbox}
+                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-100">
+                    <Send className="h-4 w-4 text-blue-700" />
+                  </div>
+                  <span className="font-semibold">{t.outbox}</span>
                 </Button>
                 <Button
-                  size="sm"
+                  size="default"
                   onClick={() => setLocation('/department/compose')}
                   data-testid="button-compose"
-                  className="gap-2 bg-white/20 text-white hover:bg-white/30 border border-white/30"
+                  className="gap-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
                 >
-                  <PenSquare className="h-4 w-4" />
-                  {t.newMessage}
+                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white/20">
+                    <PenSquare className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="font-semibold">{t.newMessage}</span>
                 </Button>
               </nav>
               <MobileNav 
