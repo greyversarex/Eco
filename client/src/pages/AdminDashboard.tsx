@@ -1,14 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -27,7 +19,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { t } from '@/lib/i18n';
-import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users } from 'lucide-react';
+import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -36,6 +28,167 @@ import type { Department } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { Footer } from '@/components/Footer';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Sortable Card Component
+interface SortableCardProps {
+  department: Department;
+  onEdit: (dept: Department) => void;
+  onCopyCode: (code: string) => void;
+  onGenerateCode: (id: number) => void;
+  onDelete: (id: number) => void;
+  getBlockLabel: (block: string) => string;
+}
+
+function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete, getBlockLabel }: SortableCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: department.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative group"
+    >
+      <div
+        className="rounded-lg border border-border bg-card p-6 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-primary/50"
+        onClick={() => onEdit(department)}
+        data-testid={`card-department-${department.id}`}
+      >
+        {/* Drag Handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute left-2 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical className="h-5 w-5 text-muted-foreground" />
+        </div>
+
+        {/* Department Info */}
+        <div className="pl-6">
+          <div className="flex items-start justify-between gap-4 mb-3">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-foreground text-lg mb-1 truncate">
+                {department.name}
+              </h3>
+              <div className="inline-block px-2 py-1 rounded text-xs font-medium bg-primary/10 text-primary">
+                {getBlockLabel(department.block)}
+              </div>
+            </div>
+          </div>
+
+          {/* Access Code */}
+          <div className="flex items-center gap-2 mb-4">
+            <code className="flex-1 rounded bg-muted px-3 py-2 text-sm font-mono">
+              {department.accessCode}
+            </code>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCopyCode(department.accessCode);
+              }}
+              data-testid={`button-copy-${department.id}`}
+              className="shrink-0"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Permission Badges */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {department.canMonitor && (
+              <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-md">
+                Назорат
+              </span>
+            )}
+            {department.canCreateAssignmentFromMessage && (
+              <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-md">
+                Вазифагузорӣ
+              </span>
+            )}
+            {department.canCreateAssignment && (
+              <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-md">
+                Супоришҳо
+              </span>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 pt-3 border-t border-border">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(department);
+              }}
+              data-testid={`button-edit-${department.id}`}
+              className="flex-1"
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Таҳрир
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onGenerateCode(department.id);
+              }}
+              data-testid={`button-generate-${department.id}`}
+              className="shrink-0"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(department.id);
+              }}
+              data-testid={`button-delete-${department.id}`}
+              className="shrink-0 text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,19 +215,26 @@ export default function AdminDashboard() {
   });
 
   // Filter and sort departments by search query
-  const departments = allDepartments
-    .filter((dept) =>
-      dept.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .sort((a, b) => {
-      // Sort by block first (upper → middle → lower → district)
-      const blockOrder = { upper: 0, middle: 1, lower: 2, district: 3 };
-      const blockDiff = blockOrder[a.block as keyof typeof blockOrder] - blockOrder[b.block as keyof typeof blockOrder];
-      if (blockDiff !== 0) return blockDiff;
-      
-      // Then sort by name within same block
-      return a.name.localeCompare(b.name, 'tg');
-    });
+  const departments = useMemo(() => {
+    return allDepartments
+      .filter((dept) =>
+        dept.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .sort((a, b) => {
+        // Sort by sortOrder first (custom drag-and-drop order)
+        if (a.sortOrder !== b.sortOrder) {
+          return a.sortOrder - b.sortOrder;
+        }
+        
+        // Fallback to block order if sortOrder is the same
+        const blockOrder = { upper: 0, middle: 1, lower: 2, district: 3 };
+        const blockDiff = blockOrder[a.block as keyof typeof blockOrder] - blockOrder[b.block as keyof typeof blockOrder];
+        if (blockDiff !== 0) return blockDiff;
+        
+        // Then sort by name within same block
+        return a.name.localeCompare(b.name, 'tg');
+      });
+  }, [allDepartments, searchQuery]);
 
   const createMutation = useMutation({
     mutationFn: async (data: { name: string; block: string; canMonitor: boolean; canCreateAssignmentFromMessage: boolean; canCreateAssignment: boolean }) => {
@@ -142,6 +302,61 @@ export default function AdminDashboard() {
       });
     },
   });
+
+  const reorderMutation = useMutation({
+    mutationFn: async (updates: Array<{ id: number; sortOrder: number }>) => {
+      return await apiRequest('POST', '/api/departments/reorder', updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/departments'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Хато',
+        description: 'Хатогӣ ҳангоми тағйири тартиб',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = departments.findIndex((d) => d.id === active.id);
+      const newIndex = departments.findIndex((d) => d.id === over.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reordered = arrayMove(departments, oldIndex, newIndex);
+        
+        // Update sortOrder based on new positions
+        const updates = reordered.map((dept, index) => ({
+          id: dept.id,
+          sortOrder: index,
+        }));
+
+        // Optimistically update UI
+        queryClient.setQueryData(['/api/departments'], (old: Department[] = []) => {
+          const newData = arrayMove(old, oldIndex, newIndex);
+          return newData.map((dept, index) => ({
+            ...dept,
+            sortOrder: index,
+          }));
+        });
+
+        // Save to backend
+        reorderMutation.mutate(updates);
+      }
+    }
+  };
 
   const handleAddDepartment = () => {
     if (newDeptName && newDeptBlock) {
@@ -530,77 +745,30 @@ export default function AdminDashboard() {
               <p className="text-muted-foreground">Ҳоло шуъбае нест</p>
             </div>
           ) : (
-            <div className="rounded-lg border border-border bg-card overflow-hidden">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[200px]">{t.departmentName}</TableHead>
-                      <TableHead className="min-w-[120px]">{t.block}</TableHead>
-                      <TableHead className="min-w-[160px]">{t.accessCode}</TableHead>
-                      <TableHead className="text-right min-w-[120px]">{t.actions}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {departments.map((dept) => (
-                      <TableRow key={dept.id}>
-                        <TableCell className="font-medium">{dept.name}</TableCell>
-                        <TableCell>{getBlockLabel(dept.block)}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <code className="rounded bg-muted px-2 py-1 text-sm font-mono whitespace-nowrap">
-                              {dept.accessCode}
-                            </code>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCopyCode(dept.accessCode)}
-                              data-testid={`button-copy-${dept.id}`}
-                              className="shrink-0"
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditDepartment(dept)}
-                              data-testid={`button-edit-${dept.id}`}
-                              className="shrink-0"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleGenerateCode(dept.id)}
-                              data-testid={`button-generate-${dept.id}`}
-                              disabled={updateMutation.isPending}
-                              className="shrink-0"
-                            >
-                              <RefreshCw className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteDepartment(dept.id)}
-                              data-testid={`button-delete-${dept.id}`}
-                              disabled={deleteMutation.isPending}
-                              className="shrink-0"
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={departments.map(d => d.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {departments.map((dept) => (
+                    <SortableCard
+                      key={dept.id}
+                      department={dept}
+                      onEdit={handleEditDepartment}
+                      onCopyCode={handleCopyCode}
+                      onGenerateCode={handleGenerateCode}
+                      onDelete={handleDeleteDepartment}
+                      getBlockLabel={getBlockLabel}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           )}
         </div>
       </div>
