@@ -61,10 +61,20 @@ export default function AdminDashboard() {
     queryKey: ['/api/departments'],
   });
 
-  // Filter departments by search query
-  const departments = allDepartments.filter((dept) =>
-    dept.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter and sort departments by search query
+  const departments = allDepartments
+    .filter((dept) =>
+      dept.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      // Sort by block first (upper → middle → lower → district)
+      const blockOrder = { upper: 0, middle: 1, lower: 2, district: 3 };
+      const blockDiff = blockOrder[a.block as keyof typeof blockOrder] - blockOrder[b.block as keyof typeof blockOrder];
+      if (blockDiff !== 0) return blockDiff;
+      
+      // Then sort by name within same block
+      return a.name.localeCompare(b.name, 'tg');
+    });
 
   const createMutation = useMutation({
     mutationFn: async (data: { name: string; block: string; canMonitor: boolean; canCreateAssignmentFromMessage: boolean; canCreateAssignment: boolean }) => {
