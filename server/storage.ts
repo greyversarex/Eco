@@ -18,6 +18,7 @@ export interface IStorage {
   createDepartment(department: InsertDepartment): Promise<Department>;
   updateDepartment(id: number, department: Partial<InsertDepartment>): Promise<Department | undefined>;
   deleteDepartment(id: number): Promise<boolean>;
+  reorderDepartments(updates: Array<{ id: number; sortOrder: number }>): Promise<void>;
   
   // Admins
   getAdminByUsername(username: string): Promise<Admin | undefined>;
@@ -88,7 +89,7 @@ import { eq, or, and, desc, asc } from 'drizzle-orm';
 export class DbStorage implements IStorage {
   // Departments
   async getDepartments(): Promise<Department[]> {
-    return await db.select().from(departments).orderBy(asc(departments.id));
+    return await db.select().from(departments).orderBy(asc(departments.sortOrder), asc(departments.id));
   }
 
   async getDepartmentById(id: number): Promise<Department | undefined> {
@@ -114,6 +115,15 @@ export class DbStorage implements IStorage {
   async deleteDepartment(id: number): Promise<boolean> {
     const result = await db.delete(departments).where(eq(departments.id, id)).returning();
     return result.length > 0;
+  }
+
+  async reorderDepartments(updates: Array<{ id: number; sortOrder: number }>): Promise<void> {
+    // Batch update sortOrder for all departments
+    for (const update of updates) {
+      await db.update(departments)
+        .set({ sortOrder: update.sortOrder })
+        .where(eq(departments.id, update.id));
+    }
   }
 
   // Admins

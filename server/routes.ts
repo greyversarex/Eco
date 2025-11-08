@@ -333,6 +333,26 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  app.post("/api/departments/reorder", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      // Expect array of { id: number, sortOrder: number }
+      const reorderSchema = z.array(z.object({
+        id: z.number(),
+        sortOrder: z.number(),
+      }));
+      
+      const updates = reorderSchema.parse(req.body);
+      await storage.reorderDepartments(updates);
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.delete("/api/departments/:id", requireAdmin, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);

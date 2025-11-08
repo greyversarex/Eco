@@ -22,6 +22,7 @@ export const departments = pgTable("departments", {
   name: text("name").notNull(),
   block: text("block").notNull(), // 'upper', 'middle', 'lower', 'district'
   accessCode: text("access_code").notNull().unique(),
+  sortOrder: integer("sort_order").default(0).notNull(), // Custom sort order for drag-and-drop
   canMonitor: boolean("can_monitor").default(false).notNull(), // Право на мониторинг (Назорат)
   canCreateAssignmentFromMessage: boolean("can_create_assignment_from_message").default(false).notNull(), // Право создавать вазифа из сообщений
   canCreateAssignment: boolean("can_create_assignment").default(false).notNull(), // Право создавать супориши

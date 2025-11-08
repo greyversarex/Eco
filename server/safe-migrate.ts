@@ -129,6 +129,23 @@ async function safeMigrate() {
       END $$;
     `);
 
+    // Добавляем sort_order в departments (если еще нет)
+    console.log('Проверка поля sort_order в таблице departments...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'departments' AND column_name = 'sort_order'
+        ) THEN
+          ALTER TABLE departments ADD COLUMN sort_order integer NOT NULL DEFAULT 0;
+          RAISE NOTICE 'Колонка sort_order добавлена в departments';
+        ELSE
+          RAISE NOTICE 'Колонка sort_order уже существует в departments';
+        END IF;
+      END $$;
+    `);
+
     // Создаем таблицу sessions (если еще нет)
     console.log('Проверка таблицы sessions...');
     await db.execute(sql`
