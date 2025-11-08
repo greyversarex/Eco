@@ -288,7 +288,7 @@ export default function Inbox() {
                 </div>
                 
                 {/* Date Header */}
-                <div className="text-right">
+                <div>
                   Сана
                 </div>
                 
