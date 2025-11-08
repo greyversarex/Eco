@@ -271,18 +271,28 @@ export default function Inbox() {
                 }}
               >
                 {isDeleteMode && <div />}
+                
+                {/* Document Number Header */}
                 <div className="text-center">
                   Рақами ҳуҷҷат
                 </div>
-                <div>
+                
+                {/* Subject Header */}
+                <div className="min-w-0">
                   Мавзӯъ ва мундариҷа
                 </div>
+                
+                {/* Sender Header */}
                 <div>
                   Фиристанда
                 </div>
+                
+                {/* Date Header */}
                 <div className="text-right">
                   Сана
                 </div>
+                
+                {/* Icons Header */}
                 <div />
               </div>
 
