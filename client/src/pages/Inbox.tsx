@@ -277,10 +277,10 @@ export default function Inbox() {
                 <div className="px-4">
                   Мавзӯъ ва мундариҷа
                 </div>
-                <div className="px-4">
+                <div>
                   Фиристанда
                 </div>
-                <div className="text-right ml-[34px] mr-[34px]">
+                <div className="text-right pr-2">
                   Сана
                 </div>
                 <div />

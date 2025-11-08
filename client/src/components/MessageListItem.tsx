@@ -119,12 +119,12 @@ export default function MessageListItem({
         </div>
         
         {/* Sender */}
-        <div className="px-4">
+        <div>
           <span className="text-sm text-muted-foreground">{sender}</span>
         </div>
         
         {/* Date */}
-        <div className="text-right">
+        <div className="text-right pr-2">
           <span className="text-sm text-muted-foreground">{date}</span>
         </div>
         
@@ -133,7 +133,7 @@ export default function MessageListItem({
           {isSentMessage && isRead && (
             <Badge variant="outline" className="gap-1 bg-primary/10 text-primary border-primary/20" data-testid={`badge-read-${id}`}>
               <CheckCheck className="h-3 w-3" />
-              <span className="text-xs">Прочитано</span>
+              <span className="text-xs">Хондашуд</span>
             </Badge>
           )}
           {hasAttachment && (
