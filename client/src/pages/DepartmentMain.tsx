@@ -35,12 +35,12 @@ export default function DepartmentMain() {
     dept.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Group departments by block
+  // Group departments by block and sort by sortOrder
   const departmentsByBlock = {
-    upper: filteredDepartments.filter((d) => d.block === 'upper'),
-    middle: filteredDepartments.filter((d) => d.block === 'middle'),
-    lower: filteredDepartments.filter((d) => d.block === 'lower'),
-    district: filteredDepartments.filter((d) => d.block === 'district'),
+    upper: filteredDepartments.filter((d) => d.block === 'upper').sort((a, b) => a.sortOrder - b.sortOrder),
+    middle: filteredDepartments.filter((d) => d.block === 'middle').sort((a, b) => a.sortOrder - b.sortOrder),
+    lower: filteredDepartments.filter((d) => d.block === 'lower').sort((a, b) => a.sortOrder - b.sortOrder),
+    district: filteredDepartments.filter((d) => d.block === 'district').sort((a, b) => a.sortOrder - b.sortOrder),
   };
 
   const handleDepartmentClick = (departmentId: number) => {

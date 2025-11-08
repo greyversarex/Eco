@@ -214,27 +214,29 @@ export default function AdminDashboard() {
     queryKey: ['/api/departments'],
   });
 
-  // Filter and sort departments by search query
-  const departments = useMemo(() => {
-    return allDepartments
-      .filter((dept) =>
-        dept.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      .sort((a, b) => {
-        // Sort by sortOrder first (custom drag-and-drop order)
-        if (a.sortOrder !== b.sortOrder) {
-          return a.sortOrder - b.sortOrder;
-        }
-        
-        // Fallback to block order if sortOrder is the same
-        const blockOrder = { upper: 0, middle: 1, lower: 2, district: 3 };
-        const blockDiff = blockOrder[a.block as keyof typeof blockOrder] - blockOrder[b.block as keyof typeof blockOrder];
-        if (blockDiff !== 0) return blockDiff;
-        
-        // Then sort by name within same block
-        return a.name.localeCompare(b.name, 'tg');
-      });
+  // Filter and group departments by search query and block
+  const departmentsByBlock = useMemo(() => {
+    const filtered = allDepartments.filter((dept) =>
+      dept.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
+    return {
+      upper: filtered.filter((d) => d.block === 'upper').sort((a, b) => a.sortOrder - b.sortOrder),
+      middle: filtered.filter((d) => d.block === 'middle').sort((a, b) => a.sortOrder - b.sortOrder),
+      lower: filtered.filter((d) => d.block === 'lower').sort((a, b) => a.sortOrder - b.sortOrder),
+      district: filtered.filter((d) => d.block === 'district').sort((a, b) => a.sortOrder - b.sortOrder),
+    };
   }, [allDepartments, searchQuery]);
+
+  // Flatten for drag-and-drop
+  const departments = useMemo(() => {
+    return [
+      ...departmentsByBlock.upper,
+      ...departmentsByBlock.middle,
+      ...departmentsByBlock.lower,
+      ...departmentsByBlock.district,
+    ];
+  }, [departmentsByBlock]);
 
   const createMutation = useMutation({
     mutationFn: async (data: { name: string; block: string; canMonitor: boolean; canCreateAssignmentFromMessage: boolean; canCreateAssignment: boolean }) => {
@@ -754,18 +756,115 @@ export default function AdminDashboard() {
                 items={departments.map(d => d.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {departments.map((dept) => (
-                    <SortableCard
-                      key={dept.id}
-                      department={dept}
-                      onEdit={handleEditDepartment}
-                      onCopyCode={handleCopyCode}
-                      onGenerateCode={handleGenerateCode}
-                      onDelete={handleDeleteDepartment}
-                      getBlockLabel={getBlockLabel}
-                    />
-                  ))}
+                <div className="space-y-8">
+                  {departmentsByBlock.upper.length > 0 && (
+                    <div className="space-y-4">
+                      <h2 className="text-xl font-semibold text-foreground px-2">{t.upperBlock}</h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {departmentsByBlock.upper.map((dept) => (
+                          <SortableCard
+                            key={dept.id}
+                            department={dept}
+                            onEdit={handleEditDepartment}
+                            onCopyCode={handleCopyCode}
+                            onGenerateCode={handleGenerateCode}
+                            onDelete={handleDeleteDepartment}
+                            getBlockLabel={getBlockLabel}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {departmentsByBlock.upper.length > 0 && departmentsByBlock.middle.length > 0 && (
+                    <div className="relative py-4">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t-4 border-primary/20"></div>
+                      </div>
+                      <div className="relative flex justify-center">
+                        <div className="h-3 w-3 rounded-full bg-primary"></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {departmentsByBlock.middle.length > 0 && (
+                    <div className="space-y-4">
+                      <h2 className="text-xl font-semibold text-foreground px-2">{t.middleBlock}</h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {departmentsByBlock.middle.map((dept) => (
+                          <SortableCard
+                            key={dept.id}
+                            department={dept}
+                            onEdit={handleEditDepartment}
+                            onCopyCode={handleCopyCode}
+                            onGenerateCode={handleGenerateCode}
+                            onDelete={handleDeleteDepartment}
+                            getBlockLabel={getBlockLabel}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {departmentsByBlock.middle.length > 0 && departmentsByBlock.lower.length > 0 && (
+                    <div className="relative py-4">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t-4 border-primary/20"></div>
+                      </div>
+                      <div className="relative flex justify-center">
+                        <div className="h-3 w-3 rounded-full bg-primary"></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {departmentsByBlock.lower.length > 0 && (
+                    <div className="space-y-4">
+                      <h2 className="text-xl font-semibold text-foreground px-2">{t.lowerBlock}</h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {departmentsByBlock.lower.map((dept) => (
+                          <SortableCard
+                            key={dept.id}
+                            department={dept}
+                            onEdit={handleEditDepartment}
+                            onCopyCode={handleCopyCode}
+                            onGenerateCode={handleGenerateCode}
+                            onDelete={handleDeleteDepartment}
+                            getBlockLabel={getBlockLabel}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {departmentsByBlock.lower.length > 0 && departmentsByBlock.district.length > 0 && (
+                    <div className="relative py-4">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t-4 border-primary/20"></div>
+                      </div>
+                      <div className="relative flex justify-center">
+                        <div className="h-3 w-3 rounded-full bg-primary"></div>
+                      </div>
+                    </div>
+                  )}
+
+                  {departmentsByBlock.district.length > 0 && (
+                    <div className="space-y-4">
+                      <h2 className="text-xl font-semibold text-foreground px-2">{t.districtBlock}</h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {departmentsByBlock.district.map((dept) => (
+                          <SortableCard
+                            key={dept.id}
+                            department={dept}
+                            onEdit={handleEditDepartment}
+                            onCopyCode={handleCopyCode}
+                            onGenerateCode={handleGenerateCode}
+                            onDelete={handleDeleteDepartment}
+                            getBlockLabel={getBlockLabel}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </SortableContext>
             </DndContext>

@@ -544,10 +544,7 @@ export default function AssignmentsPage() {
                         <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {departments
-                              .sort((a: any, b: any) => {
-                                const blockOrder = { upper: 0, middle: 1, lower: 2, district: 3 };
-                                return blockOrder[a.block as keyof typeof blockOrder] - blockOrder[b.block as keyof typeof blockOrder];
-                              })
+                              .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
                               .map((dept: any) => (
                                 <div key={dept.id} className="flex items-center space-x-2">
                                   <Checkbox

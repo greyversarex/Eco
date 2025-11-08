@@ -472,10 +472,7 @@ export default function ComposeMessage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {departments
                         .filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined))
-                        .sort((a, b) => {
-                          const blockOrder = { upper: 0, middle: 1, lower: 2, district: 3 };
-                          return blockOrder[a.block as keyof typeof blockOrder] - blockOrder[b.block as keyof typeof blockOrder];
-                        })
+                        .sort((a, b) => a.sortOrder - b.sortOrder)
                         .map((dept) => (
                           <div key={dept.id} className="flex items-center space-x-2">
                             <Checkbox
