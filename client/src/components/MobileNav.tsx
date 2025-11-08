@@ -58,39 +58,39 @@ export default function MobileNav({ translations }: MobileNavProps) {
         <SheetHeader className="border-b pb-4 bg-white/80 backdrop-blur-sm">
           <SheetTitle className="text-lg">{translations.menu}</SheetTitle>
         </SheetHeader>
-        <div className="flex flex-col gap-2.5 mt-5 flex-1">
-          <Button
-            className="justify-start gap-2.5 h-12 text-sm font-medium bg-primary hover:bg-primary/90 shadow-md"
-            onClick={() => navigateTo('/department/inbox')}
-            data-testid="mobile-nav-inbox"
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
-              <Inbox className="h-4 w-4 text-white" />
-            </div>
-            <span>{translations.inbox}</span>
-          </Button>
-          <Button
-            className="justify-start gap-2.5 h-12 text-sm font-medium bg-primary hover:bg-primary/90 shadow-md"
-            onClick={() => navigateTo('/department/outbox')}
-            data-testid="mobile-nav-outbox"
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
-              <Send className="h-4 w-4 text-white" />
-            </div>
-            <span>{translations.outbox}</span>
-          </Button>
-          <Button
-            className="justify-start gap-2.5 h-12 text-sm font-medium bg-primary hover:bg-primary/90 shadow-md"
-            onClick={() => navigateTo('/department/compose')}
-            data-testid="mobile-nav-compose"
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
-              <PenSquare className="h-4 w-4 text-white" />
-            </div>
-            <span>{translations.newMessage}</span>
-          </Button>
-        </div>
-        <div className="pt-4 space-y-3 bg-white/80 backdrop-blur-sm">
+        <div className="flex flex-col gap-2.5 mt-5 flex-1 justify-between">
+          <div className="flex flex-col gap-2.5">
+            <Button
+              className="justify-start gap-2.5 h-12 text-sm font-medium bg-primary hover:bg-primary/90 shadow-md"
+              onClick={() => navigateTo('/department/inbox')}
+              data-testid="mobile-nav-inbox"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
+                <Inbox className="h-4 w-4 text-white" />
+              </div>
+              <span>{translations.inbox}</span>
+            </Button>
+            <Button
+              className="justify-start gap-2.5 h-12 text-sm font-medium bg-primary hover:bg-primary/90 shadow-md"
+              onClick={() => navigateTo('/department/outbox')}
+              data-testid="mobile-nav-outbox"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
+                <Send className="h-4 w-4 text-white" />
+              </div>
+              <span>{translations.outbox}</span>
+            </Button>
+            <Button
+              className="justify-start gap-2.5 h-12 text-sm font-medium bg-primary hover:bg-primary/90 shadow-md"
+              onClick={() => navigateTo('/department/compose')}
+              data-testid="mobile-nav-compose"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
+                <PenSquare className="h-4 w-4 text-white" />
+              </div>
+              <span>{translations.newMessage}</span>
+            </Button>
+          </div>
           <Button
             variant="outline"
             className="w-full justify-start gap-2.5 h-11 text-sm font-medium border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
