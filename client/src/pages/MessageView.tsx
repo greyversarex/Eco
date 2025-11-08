@@ -521,17 +521,15 @@ export default function MessageView() {
                 </div>
 
                 <div className="space-y-3 text-base border-t pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {message.documentNumber && (
-                      <div data-testid="text-document-number">
-                        <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Рақами ҳуҷҷат:' : 'Номер документа:'}</span>
-                        <span className="ml-2 text-foreground">{message.documentNumber}</span>
-                      </div>
-                    )}
-                    <div data-testid="text-date">
-                      <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Сана:' : 'Дата:'}</span>
-                      <span className="ml-2 text-foreground">{formatDateTajik(new Date(message.documentDate), lang)}</span>
+                  {message.documentNumber && (
+                    <div data-testid="text-document-number">
+                      <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Рақами ҳуҷҷат:' : 'Номер документа:'}</span>
+                      <span className="ml-2 text-foreground">{message.documentNumber}</span>
                     </div>
+                  )}
+                  <div data-testid="text-date">
+                    <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Сана:' : 'Дата:'}</span>
+                    <span className="ml-2 text-foreground">{formatDateTajik(new Date(message.documentDate), lang)}</span>
                   </div>
                   {message.executor && (
                     <div data-testid="text-executor">
