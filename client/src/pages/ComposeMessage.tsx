@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
-import { useTranslation, type Language } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { ArrowLeft, Paperclip, X, LogOut } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
@@ -21,7 +21,6 @@ import { Footer } from '@/components/Footer';
 export default function ComposeMessage() {
   
   const [, setLocation] = useLocation();
-  const [lang, setLang] = useState<Language>('tg');
   const [subject, setSubject] = useState('');
   const [date, setDate] = useState('');
   const [documentNumber, setDocumentNumber] = useState('');
@@ -30,7 +29,6 @@ export default function ComposeMessage() {
   const [content, setContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
-  const t = useTranslation(lang);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -78,14 +76,10 @@ export default function ComposeMessage() {
           // Redirect to message view where user can upload files via ObjectUploader
           queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
           toast({
-            title: lang === 'tg' ? 'Огоҳӣ' : 'Предупреждение',
+            title: 'Огоҳӣ',
             description: failedFiles.length > 0 
-              ? (lang === 'tg' 
-                  ? `Паём фиристода шуд, вале файлҳо бор нашуданд: ${failedFiles.join(', ')}. Шумо метавонед онҳоро дар саҳифаи паём илова кунед.` 
-                  : `Сообщение отправлено, но файлы не загружены: ${failedFiles.join(', ')}. Вы можете добавить их на странице сообщения.`)
-              : (lang === 'tg' 
-                  ? 'Паём фиристода шуд, вале файлҳо бор нашуданд. Шумо метавонед онҳоро дар саҳифаи паём илова кунед.' 
-                  : 'Сообщение отправлено, но файлы не загружены. Вы можете добавить их на странице сообщения.'),
+              ? `Паём фиристода шуд, вале файлҳо бор нашуданд: ${failedFiles.join(', ')}. Шумо метавонед онҳоро дар саҳифаи паём илова кунед.` 
+              : 'Паём фиристода шуд, вале файлҳо бор нашуданд. Шумо метавонед онҳоро дар саҳифаи паём илова кунед.',
             variant: 'destructive',
           });
           // Redirect to message view where files can be uploaded
@@ -98,17 +92,17 @@ export default function ComposeMessage() {
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
       setSelectedFiles([]); // Clear files only on success
       toast({
-        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
+        title: 'Муваффақият',
         description: selectedFiles.length > 0 
-          ? (lang === 'tg' ? 'Паём ва файлҳо фиристода шуданд' : 'Сообщение и файлы отправлены')
-          : (lang === 'tg' ? 'Паём фиристода шуд' : 'Сообщение отправлено'),
+          ? 'Паём ва файлҳо фиристода шуданд'
+          : 'Паём фиристода шуд',
       });
       setLocation('/department/outbox');
     },
     onError: (error: any) => {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: error.message || (lang === 'tg' ? 'Хатогӣ ҳангоми фиристодани паём' : 'Ошибка при отправке сообщения'),
+        title: 'Хато',
+        description: error.message || 'Хатогӣ ҳангоми фиристодани паём',
         variant: 'destructive',
       });
     },
@@ -119,8 +113,8 @@ export default function ComposeMessage() {
     
     if (!user || user.userType !== 'department') {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Шумо ворид нашудаед' : 'Вы не авторизованы',
+        title: 'Хато',
+        description: 'Шумо ворид нашудаед',
         variant: 'destructive',
       });
       return;
@@ -129,8 +123,8 @@ export default function ComposeMessage() {
     // Validate required fields
     if (!subject.trim()) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Мавзуъро ворид кунед' : 'Введите тему',
+        title: 'Хато',
+        description: 'Мавзуъро ворид кунед',
         variant: 'destructive',
       });
       return;
@@ -138,8 +132,8 @@ export default function ComposeMessage() {
 
     if (!date) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Санаро интихоб кунед' : 'Выберите дату',
+        title: 'Хато',
+        description: 'Санаро интихоб кунед',
         variant: 'destructive',
       });
       return;
@@ -148,8 +142,8 @@ export default function ComposeMessage() {
     // Validate that at least one recipient is selected
     if (selectedRecipients.length === 0) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Ҳадди ақал як гиранда интихоб кунед' : 'Выберите хотя бы одного получателя',
+        title: 'Хато',
+        description: 'Ҳадди ақал як гиранда интихоб кунед',
         variant: 'destructive',
       });
       return;
@@ -186,10 +180,8 @@ export default function ComposeMessage() {
         const result = await response.json();
         
         toast({
-          title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-          description: lang === 'tg' 
-            ? `${result.messagesCreated} паём${selectedFiles.length > 0 ? ' ва файлҳо' : ''} фиристода ${selectedFiles.length > 0 ? 'шуданд' : 'шуд'}` 
-            : `${result.messagesCreated} сообщений${selectedFiles.length > 0 ? ' и файлы' : ''} отправлено`,
+          title: 'Муваффақият',
+          description: `${result.messagesCreated} паём${selectedFiles.length > 0 ? ' ва файлҳо' : ''} фиристода ${selectedFiles.length > 0 ? 'шуданд' : 'шуд'}`,
         });
       } else {
         // Single recipient - use original endpoint
@@ -228,22 +220,20 @@ export default function ComposeMessage() {
           
           if (!uploadSuccess) {
             toast({
-              title: lang === 'tg' ? 'Огоҳӣ' : 'Предупреждение',
-              description: lang === 'tg' 
-                ? `Паём фиристода шуд, вале баъзе файлҳо бор нашуданд` 
-                : `Сообщение отправлено, но некоторые файлы не загружены`,
+              title: 'Огоҳӣ',
+              description: 'Паём фиристода шуд, вале баъзе файлҳо бор нашуданд',
               variant: 'destructive',
             });
           } else {
             toast({
-              title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-              description: lang === 'tg' ? 'Паём ва файлҳо фиристода шуданд' : 'Сообщение и файлы отправлены',
+              title: 'Муваффақият',
+              description: 'Паём ва файлҳо фиристода шуданд',
             });
           }
         } else {
           toast({
-            title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-            description: lang === 'tg' ? 'Паём фиристода шуд' : 'Сообщение отправлено',
+            title: 'Муваффақият',
+            description: 'Паём фиристода шуд',
           });
         }
       }
@@ -260,8 +250,8 @@ export default function ComposeMessage() {
       setLocation('/department/outbox');
     } catch (error: any) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: error.message || (lang === 'tg' ? 'Хатогӣ ҳангоми фиристодани паёмҳо' : 'Ошибка при отправке сообщений'),
+        title: 'Хато',
+        description: error.message || 'Хатогӣ ҳангоми фиристодани паёмҳо',
         variant: 'destructive',
       });
     } finally {
@@ -280,8 +270,8 @@ export default function ComposeMessage() {
     for (const file of fileArray) {
       if (file.size > maxSize) {
         toast({
-          title: lang === 'tg' ? 'Хато' : 'Ошибка',
-          description: lang === 'tg' ? `Файл ${file.name} аз 100МБ калонтар аст` : `Файл ${file.name} превышает 100МБ`,
+          title: 'Хато',
+          description: `Файл ${file.name} аз 100МБ калонтар аст`,
           variant: 'destructive',
         });
         return;
@@ -292,8 +282,8 @@ export default function ComposeMessage() {
     const newFiles = [...selectedFiles, ...fileArray];
     if (newFiles.length > 5) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Шумо наметавонед зиёда аз 5 файл илова кунед' : 'Вы не можете добавить более 5 файлов',
+        title: 'Хато',
+        description: 'Шумо наметавонед зиёда аз 5 файл илова кунед',
         variant: 'destructive',
       });
       return;
@@ -359,7 +349,7 @@ export default function ComposeMessage() {
                 className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
               >
                 <LogOut className="h-4 w-4" />
-                <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+                <span>Баромад</span>
               </Button>
             </div>
           </div>
@@ -396,7 +386,7 @@ export default function ComposeMessage() {
                       id="date"
                       value={date}
                       onChange={(value) => setDate(value)}
-                      placeholder={lang === 'tg' ? 'Санаро интихоб кунед' : 'Выберите дату'}
+                      placeholder="Санаро интихоб кунед"
                       className="flex-1"
                     />
                     <Button
@@ -412,20 +402,20 @@ export default function ComposeMessage() {
                       className="shrink-0"
                       data-testid="button-today"
                     >
-                      {lang === 'tg' ? 'Имрӯз' : 'Сегодня'}
+                      Имрӯз
                     </Button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="documentNumber">
-                    {lang === 'tg' ? 'Рақами ҳуҷҷат' : 'Номер документа'}
+                    Рақами ҳуҷҷат
                   </Label>
                   <Input
                     id="documentNumber"
                     value={documentNumber}
                     onChange={(e) => setDocumentNumber(e.target.value)}
-                    placeholder={lang === 'tg' ? 'Рақами ҳуҷҷат' : 'Номер документа'}
+                    placeholder="Рақами ҳуҷҷат"
                     data-testid="input-document-number"
                   />
                 </div>
@@ -455,14 +445,14 @@ export default function ComposeMessage() {
                       data-testid="button-select-all-recipients"
                     >
                       {selectedRecipients.length === departments.filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined)).length
-                        ? (lang === 'tg' ? 'Бекор кардан' : 'Отменить все')
-                        : (lang === 'tg' ? 'Ҳамаро қайд кардан' : 'Выбрать все')}
+                        ? 'Бекор кардан'
+                        : 'Ҳамаро қайд кардан'}
                     </Button>
                   )}
                 </div>
                 {loadingDepartments ? (
                   <p className="text-sm text-muted-foreground">
-                    {lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}
+                    Боргирӣ...
                   </p>
                 ) : (
                   <div className="border rounded-md p-4 max-h-96 overflow-y-auto">
@@ -501,9 +491,7 @@ export default function ComposeMessage() {
                 )}
                 {selectedRecipients.length > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    {lang === 'tg' 
-                      ? `Интихоб шуд: ${selectedRecipients.length}` 
-                      : `Выбрано: ${selectedRecipients.length}`}
+                    Интихоб шуд: {selectedRecipients.length}
                   </p>
                 )}
               </div>
@@ -514,7 +502,7 @@ export default function ComposeMessage() {
                   id="executor"
                   value={executor}
                   onChange={(e) => setExecutor(e.target.value)}
-                  placeholder={lang === 'tg' ? 'Исм ва насаби иҷрокунанда' : 'ФИО исполнителя'}
+                  placeholder="Исм ва насаби иҷрокунанда"
                   data-testid="input-executor"
                 />
               </div>
@@ -534,7 +522,7 @@ export default function ComposeMessage() {
               </div>
 
               <div className="space-y-2">
-                <Label>{lang === 'tg' ? 'Илова кардани файл' : 'Прикрепить файлы'}</Label>
+                <Label>Илова кардани файл</Label>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <input
@@ -555,11 +543,11 @@ export default function ComposeMessage() {
                       className="gap-2"
                     >
                       <Paperclip className="h-4 w-4" />
-                      {lang === 'tg' ? 'Интихоб кардани файлҳо' : 'Выбрать файлы'}
+                      Интихоб кардани файлҳо
                     </Button>
                     {selectedFiles.length > 0 && (
                       <span className="text-sm text-muted-foreground">
-                        {lang === 'tg' ? 'Файлҳои интихобшуда' : 'Выбрано файлов'}: {selectedFiles.length}/5
+                        Файлҳои интихобшуда: {selectedFiles.length}/5
                       </span>
                     )}
                   </div>
@@ -601,9 +589,9 @@ export default function ComposeMessage() {
                   className="w-full sm:w-auto"
                 >
                   {isUploadingFiles 
-                    ? (lang === 'tg' ? 'Файлҳо бор мешаванд...' : 'Загрузка файлов...') 
+                    ? 'Файлҳо бор мешаванд...' 
                     : sendMessageMutation.isPending 
-                      ? (lang === 'tg' ? 'Фиристода мешавад...' : 'Отправка...') 
+                      ? 'Фиристода мешавад...'
                       : t.send}
                 </Button>
                 <Button

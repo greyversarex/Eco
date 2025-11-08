@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { useTranslation, type Language } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2 } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
@@ -247,8 +247,6 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
 
 export default function AssignmentsPage() {
   const [, setLocation] = useLocation();
-  const [lang, setLang] = useState<Language>('tg');
-  const t = useTranslation(lang);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -285,8 +283,8 @@ export default function AssignmentsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
       toast({
-        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Супориш эҷод шуд' : 'Поручение создано',
+        title: 'Муваффақият',
+        description: 'Супориш эҷод шуд',
       });
       setIsDialogOpen(false);
       setTopic('');
@@ -299,7 +297,7 @@ export default function AssignmentsPage() {
     },
     onError: (error: any) => {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        title: 'Хато',
         description: error.message,
         variant: 'destructive',
       });
@@ -314,8 +312,8 @@ export default function AssignmentsPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
-        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Супориш иҷро шуд' : 'Поручение выполнено',
+        title: 'Муваффақият',
+        description: 'Супориш иҷро шуд',
       });
     },
   });
@@ -328,13 +326,13 @@ export default function AssignmentsPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
-        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Супориш бекор карда шуд' : 'Поручение удалено',
+        title: 'Муваффақият',
+        description: 'Супориш бекор карда шуд',
       });
     },
     onError: (error: any) => {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        title: 'Хато',
         description: error.message,
         variant: 'destructive',
       });
@@ -346,8 +344,8 @@ export default function AssignmentsPage() {
       const filesArray = Array.from(e.target.files);
       if (selectedFiles.length + filesArray.length > 5) {
         toast({
-          title: lang === 'tg' ? 'Хато' : 'Ошибка',
-          description: lang === 'tg' ? 'Шумо танҳо то 5 файл метавонед илова кунед' : 'Вы можете добавить только до 5 файлов',
+          title: 'Хато',
+          description: 'Шумо танҳо то 5 файл метавонед илова кунед',
           variant: 'destructive',
         });
         return;
@@ -363,32 +361,32 @@ export default function AssignmentsPage() {
   const handleSubmit = () => {
     if (!topic) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Мавзӯъро интихоб кунед' : 'Выберите тему',
+        title: 'Хато',
+        description: 'Мавзӯъро интихоб кунед',
         variant: 'destructive',
       });
       return;
     }
     if (selectedExecutors.length === 0) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Иҷрокунандагонро интихоб кунед' : 'Выберите исполнителей',
+        title: 'Хато',
+        description: 'Иҷрокунандагонро интихоб кунед',
         variant: 'destructive',
       });
       return;
     }
     if (selectedRecipients.length === 0) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Ҳадди ақал як гиранда интихоб кунед' : 'Выберите хотя бы одного получателя',
+        title: 'Хато',
+        description: 'Ҳадди ақал як гиранда интихоб кунед',
         variant: 'destructive',
       });
       return;
     }
     if (!deadline) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Мӯҳлати иҷроро муайян кунед' : 'Укажите срок выполнения',
+        title: 'Хато',
+        description: 'Мӯҳлати иҷроро муайян кунед',
         variant: 'destructive',
       });
       return;
@@ -446,7 +444,7 @@ export default function AssignmentsPage() {
                 <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain drop-shadow-md" />
                 <div>
                   <h1 className="text-lg font-semibold text-white drop-shadow-md">
-                    {lang === 'tg' ? 'Супоришҳо' : 'Поручения'}
+                    Супоришҳо
                   </h1>
                   <p className="text-xs text-white/90 drop-shadow-sm">Портали электронӣ</p>
                 </div>
@@ -461,7 +459,7 @@ export default function AssignmentsPage() {
               data-testid="button-logout"
             >
               <LogOut className="h-4 w-4" />
-              <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+              <span>Баромад</span>
             </Button>
           </div>
         </div>
@@ -469,25 +467,25 @@ export default function AssignmentsPage() {
 
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 py-8 sm:px-6 lg:px-8 relative z-10">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">{lang === 'tg' ? 'Рӯйхати супоришҳо' : 'Список поручений'}</h2>
+          <h2 className="text-2xl font-bold">Рӯйхати супоришҳо</h2>
           {canCreate && (
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2" data-testid="button-create-assignment">
                   <Plus className="h-4 w-4" />
-                  {lang === 'tg' ? 'Супориш' : 'Поручение'}
+                  Супориш
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>{lang === 'tg' ? 'Эҷоди супориш' : 'Создание поручения'}</DialogTitle>
+                  <DialogTitle>Эҷоди супориш</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label>{lang === 'tg' ? 'Мавзӯъро интихоб кунед' : 'Выберите тему'}</Label>
+                    <Label>Мавзӯъро интихоб кунед</Label>
                     <Select value={topic} onValueChange={setTopic}>
                       <SelectTrigger data-testid="select-topic">
-                        <SelectValue placeholder={lang === 'tg' ? 'Интихоб кунед' : 'Выберите'} />
+                        <SelectValue placeholder="Интихоб кунед" />
                       </SelectTrigger>
                       <SelectContent>
                         {ASSIGNMENT_TOPICS.map((t) => (
@@ -498,11 +496,11 @@ export default function AssignmentsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{lang === 'tg' ? 'Мазмуни супоришҳои додашуда' : 'Содержание поручения'}</Label>
+                    <Label>Мазмуни супоришҳои додашуда</Label>
                     <Textarea
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
-                      placeholder={lang === 'tg' ? 'Шарҳи иловагӣ...' : 'Дополнительные комментарии...'}
+                      placeholder="Шарҳи иловагӣ..."
                       className="min-h-[100px]"
                       data-testid="textarea-content"
                     />
@@ -510,19 +508,19 @@ export default function AssignmentsPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="assignment-document-number">
-                      {lang === 'tg' ? 'Рақами ҳуҷҷат' : 'Номер документа'}
+                      Рақами ҳуҷҷат
                     </Label>
                     <Input
                       id="assignment-document-number"
                       value={documentNumber}
                       onChange={(e) => setDocumentNumber(e.target.value)}
-                      placeholder={lang === 'tg' ? 'Рақами ҳуҷҷат' : 'Номер документа'}
+                      placeholder="Рақами ҳуҷҷат"
                       data-testid="input-assignment-document-number"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{lang === 'tg' ? 'Иҷрокунандагон' : 'Исполнители'}</Label>
+                    <Label>Иҷрокунандагон</Label>
                     <div className="border rounded-md p-4 max-h-60 overflow-y-auto space-y-2">
                       {EXECUTORS_LIST.map((executor) => (
                         <div key={executor} className="flex items-center space-x-2">
@@ -544,15 +542,15 @@ export default function AssignmentsPage() {
                     </div>
                     {selectedExecutors.length > 0 && (
                       <p className="text-sm text-muted-foreground">
-                        {lang === 'tg' ? 'Интихоб шуд:' : 'Выбрано:'} {selectedExecutors.length}
+                        Интихоб шуд: {selectedExecutors.length}
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{lang === 'tg' ? 'Гирандагон' : 'Получатели'}</Label>
+                    <Label>Гирандагон</Label>
                     {loadingDepartments ? (
-                      <div className="text-sm text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</div>
+                      <div className="text-sm text-muted-foreground">Боргирӣ...</div>
                     ) : (
                       <div>
                         <Button
@@ -571,8 +569,8 @@ export default function AssignmentsPage() {
                           data-testid="button-select-all-recipients"
                         >
                           {selectedRecipients.length === departments.length
-                            ? (lang === 'tg' ? 'Бекор кардан' : 'Отменить все')
-                            : (lang === 'tg' ? 'Ҳамаро қайд кардан' : 'Выбрать все')}
+                            ? 'Бекор кардан'
+                            : 'Ҳамаро қайд кардан'}
                         </Button>
                         <div className="border rounded-md p-4 max-h-60 overflow-y-auto space-y-2">
                           {departments.map((dept: any) => (
@@ -597,25 +595,23 @@ export default function AssignmentsPage() {
                     )}
                     {selectedRecipients.length > 0 && (
                       <p className="text-sm text-muted-foreground">
-                        {lang === 'tg' 
-                          ? `Интихоб шуд: ${selectedRecipients.length}` 
-                          : `Выбрано: ${selectedRecipients.length}`}
+                        Интихоб шуд: {selectedRecipients.length}
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{lang === 'tg' ? 'Мӯҳлати иҷро то:' : 'Срок выполнения'}</Label>
+                    <Label>Мӯҳлати иҷро то:</Label>
                     <DatePicker
                       value={deadline}
                       onChange={setDeadline}
-                      placeholder={lang === 'tg' ? 'Санаро интихоб кунед' : 'Выберите дату'}
+                      placeholder="Санаро интихоб кунед"
                       data-testid="datepicker-deadline"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{lang === 'tg' ? 'Файлҳо' : 'Файлы'}</Label>
+                    <Label>Файлҳо</Label>
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
@@ -625,10 +621,10 @@ export default function AssignmentsPage() {
                         data-testid="button-select-files"
                       >
                         <Paperclip className="h-4 w-4" />
-                        {lang === 'tg' ? 'Интихоби файл' : 'Выбрать файл'}
+                        Интихоби файл
                       </Button>
                       <span className="text-sm text-muted-foreground">
-                        {selectedFiles.length > 0 && `${selectedFiles.length} ${lang === 'tg' ? 'файл' : 'файлов'}`}
+                        {selectedFiles.length > 0 && `${selectedFiles.length} файл`}
                       </span>
                     </div>
                     <input
@@ -661,12 +657,12 @@ export default function AssignmentsPage() {
 
                   <div className="flex justify-end gap-2 pt-4">
                     <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      {lang === 'tg' ? 'Бекор кардан' : 'Отмена'}
+                      Бекор кардан
                     </Button>
                     <Button onClick={handleSubmit} disabled={createAssignmentMutation.isPending}>
                       {createAssignmentMutation.isPending
-                        ? (lang === 'tg' ? 'Эҷод шуда истодааст...' : 'Создание...')
-                        : (lang === 'tg' ? 'Эҷод кардан' : 'Создать')}
+                        ? 'Эҷод шуда истодааст...'
+                        : 'Эҷод кардан'}
                     </Button>
                   </div>
                 </div>
@@ -679,13 +675,13 @@ export default function AssignmentsPage() {
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</p>
+              <p className="text-muted-foreground">Боргирӣ...</p>
             </div>
           </div>
         ) : assignments.length === 0 ? (
           <Card className="p-12 text-center bg-white">
             <p className="text-muted-foreground">
-              {lang === 'tg' ? 'Ҳанӯз супоришҳо нестанд' : 'Поручений пока нет'}
+              Ҳанӯз супоришҳо нестанд
             </p>
           </Card>
         ) : (
@@ -697,13 +693,13 @@ export default function AssignmentsPage() {
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold">{assignment.topic}</h3>
                       <div className="text-sm text-muted-foreground mt-2">
-                        <span className="font-medium">{lang === 'tg' ? 'Иҷрокунандагон:' : 'Исполнители:'}</span>{' '}
+                        <span className="font-medium">Иҷрокунандагон:</span>{' '}
                         {assignment.executors.join(', ')}
                       </div>
                       {assignment.content && (
                         <div className="mt-3">
                           <div className="text-sm font-medium text-gray-900 mb-1">
-                            {lang === 'tg' ? 'Мазмуни супоришҳои додашуда:' : 'Содержание поручения:'}
+                            Мазмуни супоришҳои додашуда:
                           </div>
                           <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md border border-gray-200 whitespace-pre-wrap">
                             {assignment.content}
@@ -733,7 +729,7 @@ export default function AssignmentsPage() {
                       <div className="flex items-center gap-2 mb-2">
                         <Paperclip className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">
-                          {lang === 'tg' ? 'Файлҳои замимашуда' : 'Прикрепленные файлы'}
+                          Файлҳои замимашуда
                           {' '}({assignment.attachments.length})
                         </span>
                       </div>
@@ -766,7 +762,7 @@ export default function AssignmentsPage() {
                       className="mt-2"
                       data-testid={`button-complete-${assignment.id}`}
                     >
-                      {lang === 'tg' ? 'Иҷро шуд' : 'Выполнено'}
+                      Иҷро шуд
                     </Button>
                   )}
                 </CardContent>

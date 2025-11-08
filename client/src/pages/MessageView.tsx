@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { useTranslation, type Language } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -85,14 +85,14 @@ const EXECUTORS_LIST = [
   'Ҳуҷумбороа Фазлиддин. С',
 ];
 
-const formatDateTajik = (date: Date, lang: Language) => {
+const formatDateTajik = (date: Date) => {
   const monthsTajik = [
     'январ', 'феврал', 'март', 'апрел', 'май', 'июн',
     'июл', 'август', 'сентябр', 'октябр', 'ноябр', 'декабр'
   ];
   
   const day = date.getDate();
-  const month = lang === 'tg' ? monthsTajik[date.getMonth()] : monthsTajik[date.getMonth()];
+  const month = monthsTajik[date.getMonth()];
   const year = date.getFullYear();
   
   return `${day} ${month} ${year}`;
@@ -101,8 +101,6 @@ const formatDateTajik = (date: Date, lang: Language) => {
 export default function MessageView() {
   const { id } = useParams();
   const [location, setLocation] = useLocation();
-  const [lang, setLang] = useState<Language>('tg');
-  const t = useTranslation(lang);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -160,8 +158,8 @@ export default function MessageView() {
     onError: (error: any) => {
       console.error('Failed to mark message as read:', error);
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Хатогӣ ҳангоми навсозии ҳолат' : 'Ошибка при обновлении статуса',
+        title: 'Хато',
+        description: 'Хатогӣ ҳангоми навсозии ҳолат',
         variant: 'destructive',
       });
     },
@@ -213,8 +211,8 @@ export default function MessageView() {
     },
     onSuccess: () => {
       toast({
-        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Ҳуҷҷат бекор карда шуд' : 'Документ удален',
+        title: 'Муваффақият',
+        description: 'Ҳуҷҷат бекор карда шуд',
       });
       // Invalidate queries and go back to appropriate list
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
@@ -224,8 +222,8 @@ export default function MessageView() {
     },
     onError: (error: any) => {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: error.message || (lang === 'tg' ? 'Хатогӣ ҳангоми несткунии ҳуҷҷат' : 'Ошибка при удалении документа'),
+        title: 'Хато',
+        description: error.message || 'Хатогӣ ҳангоми несткунии ҳуҷҷат',
         variant: 'destructive',
       });
     },
@@ -247,8 +245,8 @@ export default function MessageView() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
       toast({
-        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Супориш эҷод шуд' : 'Поручение создано',
+        title: 'Муваффақият',
+        description: 'Супориш эҷод шуд',
       });
       setIsAssignmentDialogOpen(false);
       // Clear form
@@ -262,7 +260,7 @@ export default function MessageView() {
     },
     onError: (error: any) => {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        title: 'Хато',
         description: error.message,
         variant: 'destructive',
       });
@@ -274,9 +272,7 @@ export default function MessageView() {
     
     // Confirm deletion
     const confirmed = window.confirm(
-      lang === 'tg' 
-        ? 'Шумо мутмаин ҳастед, ки мехоҳед ин ҳуҷҷатро бекор кунед?' 
-        : 'Вы уверены, что хотите удалить этот документ?'
+      'Шумо мутмаин ҳастед, ки мехоҳед ин ҳуҷҷатро бекор кунед?'
     );
     
     if (confirmed) {
@@ -296,8 +292,8 @@ export default function MessageView() {
     } catch (error: any) {
       console.error('Download error:', error);
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Хатогӣ ҳангоми боргирӣ' : 'Ошибка при загрузке файла',
+        title: 'Хато',
+        description: 'Хатогӣ ҳангоми боргирӣ',
         variant: 'destructive',
       });
     }
@@ -320,8 +316,8 @@ export default function MessageView() {
       const filesArray = Array.from(e.target.files);
       if (assignmentFiles.length + filesArray.length > 5) {
         toast({
-          title: lang === 'tg' ? 'Хато' : 'Ошибка',
-          description: lang === 'tg' ? 'Шумо танҳо то 5 файл метавонед илова кунед' : 'Вы можете добавить только до 5 файлов',
+          title: 'Хато',
+          description: 'Шумо танҳо то 5 файл метавонед илова кунед',
           variant: 'destructive',
         });
         return;
@@ -337,32 +333,32 @@ export default function MessageView() {
   const handleSubmitAssignment = () => {
     if (!assignmentTopic) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Мавзӯъро интихоб кунед' : 'Выберите тему',
+        title: 'Хато',
+        description: 'Мавзӯъро интихоб кунед',
         variant: 'destructive',
       });
       return;
     }
     if (selectedExecutors.length === 0) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Иҷрокунандагонро интихоб кунед' : 'Выберите исполнителей',
+        title: 'Хато',
+        description: 'Иҷрокунандагонро интихоб кунед',
         variant: 'destructive',
       });
       return;
     }
     if (selectedRecipients.length === 0) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Ҳадди ақал як гиранда интихоб кунед' : 'Выберите хотя бы одного получателя',
+        title: 'Хато',
+        description: 'Ҳадди ақал як гиранда интихоб кунед',
         variant: 'destructive',
       });
       return;
     }
     if (!assignmentDeadline) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Мӯҳлати иҷроро муайян кунед' : 'Укажите срок выполнения',
+        title: 'Хато',
+        description: 'Мӯҳлати иҷроро муайян кунед',
         variant: 'destructive',
       });
       return;
@@ -441,7 +437,7 @@ export default function MessageView() {
                 className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
               >
                 <LogOut className="h-4 w-4" />
-                <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+                <span>Баромад</span>
               </Button>
             </div>
           </div>
@@ -453,13 +449,13 @@ export default function MessageView() {
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</p>
+              <p className="text-muted-foreground">Боргирӣ...</p>
             </div>
           </div>
         ) : !message ? (
           <Card className="p-12 text-center">
             <p className="text-muted-foreground">
-              {lang === 'tg' ? 'Паём ёфт нашуд' : 'Сообщение не найдено'}
+              Паём ёфт нашуд
             </p>
           </Card>
         ) : (
@@ -469,7 +465,7 @@ export default function MessageView() {
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Reply className="h-4 w-4" />
-                    <span>{lang === 'tg' ? 'Ҷавоб ба паём' : 'Ответ на сообщение'}</span>
+                    <span>Ҷавоб ба паём</span>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -478,7 +474,7 @@ export default function MessageView() {
                     <div className="text-sm text-muted-foreground mt-1">
                       <span className="font-medium">{t.sender}:</span> {getSenderName(originalMessage.senderId)}
                       {' • '}
-                      <span>{formatDateTajik(new Date(originalMessage.documentDate), lang)}</span>
+                      <span>{formatDateTajik(new Date(originalMessage.documentDate))}</span>
                     </div>
                   </div>
                   <div className="text-sm text-muted-foreground line-clamp-3" data-testid="original-content">
@@ -506,8 +502,8 @@ export default function MessageView() {
                       >
                         <Trash2 className="h-4 w-4" />
                         {deleteMessageMutation.isPending 
-                          ? (lang === 'tg' ? 'Бекор шуда истодааст...' : 'Удаление...') 
-                          : (lang === 'tg' ? 'Бекор кардан' : 'Удалить')}
+                          ? 'Бекор шуда истодааст...'
+                          : 'Бекор кардан'}
                       </Button>
                     </div>
                   )}
@@ -523,16 +519,16 @@ export default function MessageView() {
                 <div className="space-y-3 text-base border-t pt-6">
                   {message.documentNumber && (
                     <div data-testid="text-document-number">
-                      <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Рақами ҳуҷҷат:' : 'Номер документа:'}</span>
+                      <span className="text-muted-foreground font-medium">Рақами ҳуҷҷат:</span>
                       <span className="ml-2 text-foreground">{message.documentNumber}</span>
                     </div>
                   )}
                   <div data-testid="text-date">
-                    <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Сана:' : 'Дата:'}</span>
-                    <span className="ml-2 text-foreground">{formatDateTajik(new Date(message.documentDate), lang)}</span>
+                    <span className="text-muted-foreground font-medium">Сана:</span>
+                    <span className="ml-2 text-foreground">{formatDateTajik(new Date(message.documentDate))}</span>
                   </div>
                   <div data-testid="text-sender">
-                    <span className="text-muted-foreground font-medium">{lang === 'tg' ? 'Фиристанда:' : 'Отправитель:'}</span>
+                    <span className="text-muted-foreground font-medium">Фиристанда:</span>
                     <span className="ml-2 text-foreground">{getSenderName(message.senderId)}</span>
                   </div>
                 </div>
@@ -540,7 +536,7 @@ export default function MessageView() {
                 {attachments.length > 0 && (
                   <div className="space-y-4 pt-4 border-t">
                     <h3 className="text-xl font-semibold text-foreground">
-                      {lang === 'tg' ? 'Замимашудаҳо' : 'Вложения'} ({attachments.length})
+                      Замимашудаҳо ({attachments.length})
                     </h3>
                     <div className="space-y-3">
                       {attachments.map((attachment, index) => (
@@ -581,19 +577,19 @@ export default function MessageView() {
                         <DialogTrigger asChild>
                           <Button onClick={openAssignmentDialog} data-testid="button-create-assignment" className="gap-2 bg-green-600 hover:bg-green-700 text-white" size="lg">
                             <FileText className="h-4 w-4" />
-                            {lang === 'tg' ? 'Вазифагузорӣ' : 'Поручение'}
+                            Вазифагузорӣ
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle>{lang === 'tg' ? 'Эҷоди супориш' : 'Создание поручения'}</DialogTitle>
+                            <DialogTitle>Эҷоди супориш</DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4 pt-4">
                             <div className="space-y-2">
-                              <Label>{lang === 'tg' ? 'Мавзӯъро интихоб кунед' : 'Выберите тему'}</Label>
+                              <Label>Мавзӯъро интихоб кунед</Label>
                               <Select value={assignmentTopic} onValueChange={setAssignmentTopic}>
                                 <SelectTrigger data-testid="select-assignment-topic">
-                                  <SelectValue placeholder={lang === 'tg' ? 'Интихоб кунед' : 'Выберите'} />
+                                  <SelectValue placeholder="Интихоб кунед" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {ASSIGNMENT_TOPICS.map((t) => (
@@ -604,11 +600,11 @@ export default function MessageView() {
                             </div>
 
                             <div className="space-y-2">
-                              <Label>{lang === 'tg' ? 'Мазмуни супоришҳои додашуда' : 'Содержание поручения'}</Label>
+                              <Label>Мазмуни супоришҳои додашуда</Label>
                               <Textarea
                                 value={assignmentContent}
                                 onChange={(e) => setAssignmentContent(e.target.value)}
-                                placeholder={lang === 'tg' ? 'Шарҳи иловагӣ...' : 'Дополнительные комментарии...'}
+                                placeholder="Шарҳи иловагӣ..."
                                 className="min-h-[120px]"
                                 data-testid="textarea-assignment-content"
                               />
@@ -616,19 +612,19 @@ export default function MessageView() {
 
                             <div className="space-y-2">
                               <Label htmlFor="assignment-doc-number">
-                                {lang === 'tg' ? 'Рақами ҳуҷҷат' : 'Номер документа'}
+                                Рақами ҳуҷҷат
                               </Label>
                               <Input
                                 id="assignment-doc-number"
                                 value={assignmentDocNumber}
                                 onChange={(e) => setAssignmentDocNumber(e.target.value)}
-                                placeholder={lang === 'tg' ? 'Рақами ҳуҷҷат' : 'Номер документа'}
+                                placeholder="Рақами ҳуҷҷат"
                                 data-testid="input-assignment-doc-number"
                               />
                             </div>
 
                             <div className="space-y-2">
-                              <Label>{lang === 'tg' ? 'Иҷрокунандагон' : 'Исполнители'}</Label>
+                              <Label>Иҷрокунандагон</Label>
                               <div className="border rounded-md p-4 max-h-60 overflow-y-auto space-y-2">
                                 {EXECUTORS_LIST.map((executor) => (
                                   <div key={executor} className="flex items-center space-x-2">
@@ -650,15 +646,15 @@ export default function MessageView() {
                               </div>
                               {selectedExecutors.length > 0 && (
                                 <p className="text-sm text-muted-foreground">
-                                  {lang === 'tg' ? 'Интихоб шуд:' : 'Выбрано:'} {selectedExecutors.length}
+                                  Интихоб шуд: {selectedExecutors.length}
                                 </p>
                               )}
                             </div>
 
                             <div className="space-y-2">
-                              <Label>{lang === 'tg' ? 'Гирандагон' : 'Получатели'}</Label>
+                              <Label>Гирандагон</Label>
                               {loadingDepartments ? (
-                                <div className="text-sm text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</div>
+                                <div className="text-sm text-muted-foreground">Боргирӣ...</div>
                               ) : (
                                 <div>
                                   <Button
@@ -677,8 +673,8 @@ export default function MessageView() {
                                     data-testid="button-select-all-assignment-recipients"
                                   >
                                     {selectedRecipients.length === departmentsList.length
-                                      ? (lang === 'tg' ? 'Бекор кардан' : 'Отменить все')
-                                      : (lang === 'tg' ? 'Ҳамаро қайд кардан' : 'Выбрать все')}
+                                      ? 'Бекор кардан'
+                                      : 'Ҳамаро қайд кардан'}
                                   </Button>
                                   <div className="border rounded-md p-4 max-h-60 overflow-y-auto space-y-2">
                                     {departmentsList.map((dept: any) => (
@@ -703,25 +699,23 @@ export default function MessageView() {
                               )}
                               {selectedRecipients.length > 0 && (
                                 <p className="text-sm text-muted-foreground">
-                                  {lang === 'tg' 
-                                    ? `Интихоб шуд: ${selectedRecipients.length}` 
-                                    : `Выбрано: ${selectedRecipients.length}`}
+                                  Интихоб шуд: {selectedRecipients.length}
                                 </p>
                               )}
                             </div>
 
                             <div className="space-y-2">
-                              <Label>{lang === 'tg' ? 'Мӯҳлати иҷро то:' : 'Срок выполнения'}</Label>
+                              <Label>Мӯҳлати иҷро то:</Label>
                               <DatePicker
                                 value={assignmentDeadline}
                                 onChange={setAssignmentDeadline}
-                                placeholder={lang === 'tg' ? 'Санаро интихоб кунед' : 'Выберите дату'}
+                                placeholder="Санаро интихоб кунед"
                                 data-testid="datepicker-assignment-deadline"
                               />
                             </div>
 
                             <div className="space-y-2">
-                              <Label>{lang === 'tg' ? 'Файлҳо' : 'Файлы'}</Label>
+                              <Label>Файлҳо</Label>
                               <div className="flex items-center gap-2">
                                 <Button
                                   type="button"
@@ -731,10 +725,10 @@ export default function MessageView() {
                                   data-testid="button-select-assignment-files"
                                 >
                                   <Paperclip className="h-4 w-4" />
-                                  {lang === 'tg' ? 'Интихоби файл' : 'Выбрать файл'}
+                                  Интихоби файл
                                 </Button>
                                 <span className="text-sm text-muted-foreground">
-                                  {assignmentFiles.length > 0 && `${assignmentFiles.length} ${lang === 'tg' ? 'файл' : 'файлов'}`}
+                                  {assignmentFiles.length > 0 && `${assignmentFiles.length} файл`}
                                 </span>
                               </div>
                               <input
@@ -767,12 +761,12 @@ export default function MessageView() {
 
                             <div className="flex justify-end gap-2 pt-4">
                               <Button variant="outline" onClick={() => setIsAssignmentDialogOpen(false)}>
-                                {lang === 'tg' ? 'Бекор кардан' : 'Отмена'}
+                                Бекор кардан
                               </Button>
                               <Button onClick={handleSubmitAssignment} disabled={createAssignmentMutation.isPending}>
                                 {createAssignmentMutation.isPending
-                                  ? (lang === 'tg' ? 'Эҷод шуда истодааст...' : 'Создание...')
-                                  : (lang === 'tg' ? 'Эҷод кардан' : 'Создать')}
+                                  ? 'Эҷод шуда истодааст...'
+                                  : 'Эҷод кардан'}
                               </Button>
                             </div>
                           </div>

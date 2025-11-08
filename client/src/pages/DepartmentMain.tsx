@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import MobileNav from '@/components/MobileNav';
 import DepartmentCard from '@/components/DepartmentCard';
-import { useTranslation, type Language } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { Inbox, Send, PenSquare, LogOut, Search, Eye } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
@@ -15,9 +15,7 @@ import { Footer } from '@/components/Footer';
 
 export default function DepartmentMain() {
   const [, setLocation] = useLocation();
-  const [lang, setLang] = useState<Language>('tg');
   const [searchQuery, setSearchQuery] = useState('');
-  const t = useTranslation(lang);
   const { user, logout } = useAuth();
 
   const { data: departments = [], isLoading } = useQuery<Omit<Department, 'accessCode'>[]>({
@@ -120,8 +118,6 @@ export default function DepartmentMain() {
                 </Button>
               </nav>
               <MobileNav 
-                lang={lang}
-                onLanguageChange={setLang}
                 translations={{
                   inbox: t.inbox,
                   outbox: t.outbox,
@@ -140,7 +136,7 @@ export default function DepartmentMain() {
                   <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white/20">
                     <LogOut className="h-4 w-4 text-white" />
                   </div>
-                  <span className="font-semibold">{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+                  <span className="font-semibold">Баромад</span>
                 </Button>
               </div>
             </div>
@@ -153,7 +149,7 @@ export default function DepartmentMain() {
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</p>
+              <p className="text-muted-foreground">Боргирӣ...</p>
             </div>
           </div>
         ) : (
@@ -166,7 +162,7 @@ export default function DepartmentMain() {
                 data-testid="button-requests"
                 onClick={() => setLocation('/department/assignments')}
               >
-                {lang === 'tg' ? 'Супоришҳо' : 'Поручения'}
+                Супоришҳо
                 {counters && counters.uncompletedAssignments > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
                     {counters.uncompletedAssignments}
@@ -179,7 +175,7 @@ export default function DepartmentMain() {
                 data-testid="button-announcements"
                 onClick={() => setLocation('/department/announcements')}
               >
-                {lang === 'tg' ? 'Эълонҳо' : 'Объявления'}
+                Эълонҳо
                 {counters && counters.unreadAnnouncements > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
                     {counters.unreadAnnouncements}
@@ -190,7 +186,7 @@ export default function DepartmentMain() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder={lang === 'tg' ? 'Ҷустуҷӯ' : 'Поиск'}
+                  placeholder="Ҷустуҷӯ"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 h-11 border border-gray-300 focus:border-primary bg-white rounded-md"
@@ -205,7 +201,7 @@ export default function DepartmentMain() {
                   onClick={() => setLocation('/department/monitoring')}
                 >
                   <Eye className="h-4 w-4" />
-                  {lang === 'tg' ? 'Назорат' : 'Мониторинг'}
+                  Назорат
                 </Button>
               )}
             </div>
@@ -310,7 +306,7 @@ export default function DepartmentMain() {
             {departments.length === 0 && (
               <div className="text-center p-12">
                 <p className="text-muted-foreground">
-                  {lang === 'tg' ? 'Ҳоло шуъбае нест' : 'Пока нет отделов'}
+                  Ҳоло шуъбае нест
                 </p>
               </div>
             )}

@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useTranslation, type Language } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { ArrowLeft, Plus, LogOut, Trash2, Paperclip, Download } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
@@ -20,8 +20,6 @@ import { format } from 'date-fns';
 
 export default function AnnouncementsPage() {
   const [, setLocation] = useLocation();
-  const [lang, setLang] = useState<Language>('tg');
-  const t = useTranslation(lang);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -66,13 +64,13 @@ export default function AnnouncementsPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
       queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
-        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Эълон бекор карда шуд' : 'Объявление удалено',
+        title: 'Муваффақият',
+        description: 'Эълон бекор карда шуд',
       });
     },
     onError: (error: any) => {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        title: 'Хато',
         description: error.message,
         variant: 'destructive',
       });
@@ -86,8 +84,8 @@ export default function AnnouncementsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
       toast({
-        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Эълон эҷод шуд' : 'Объявление создано',
+        title: 'Муваффақият',
+        description: 'Эълон эҷод шуд',
       });
       setIsDialogOpen(false);
       setTitle('');
@@ -95,7 +93,7 @@ export default function AnnouncementsPage() {
     },
     onError: (error: any) => {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        title: 'Хато',
         description: error.message,
         variant: 'destructive',
       });
@@ -105,16 +103,16 @@ export default function AnnouncementsPage() {
   const handleSubmit = () => {
     if (!title.trim()) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Сарлавҳаро ворид кунед' : 'Введите заголовок',
+        title: 'Хато',
+        description: 'Сарлавҳаро ворид кунед',
         variant: 'destructive',
       });
       return;
     }
     if (!content.trim()) {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: lang === 'tg' ? 'Мазмунро ворид кунед' : 'Введите содержание',
+        title: 'Хато',
+        description: 'Мазмунро ворид кунед',
         variant: 'destructive',
       });
       return;
@@ -167,7 +165,7 @@ export default function AnnouncementsPage() {
                 <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain drop-shadow-md" />
                 <div>
                   <h1 className="text-lg font-semibold text-white drop-shadow-md">
-                    {lang === 'tg' ? 'Эълонҳо' : 'Объявления'}
+                    Эълонҳо
                   </h1>
                   <p className="text-xs text-white/90 drop-shadow-sm">Портали электронӣ</p>
                 </div>
@@ -182,7 +180,7 @@ export default function AnnouncementsPage() {
               data-testid="button-logout"
             >
               <LogOut className="h-4 w-4" />
-              <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+              <span>Баромад</span>
             </Button>
           </div>
         </div>
@@ -190,36 +188,36 @@ export default function AnnouncementsPage() {
 
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 py-8 sm:px-6 lg:px-8 relative z-10">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">{lang === 'tg' ? 'Рӯйхати эълонҳо' : 'Список объявлений'}</h2>
+          <h2 className="text-2xl font-bold">Рӯйхати эълонҳо</h2>
           {canCreate && (
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2" data-testid="button-create-announcement">
                   <Plus className="h-4 w-4" />
-                  {lang === 'tg' ? 'Эълон' : 'Объявление'}
+                  Эълон
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>{lang === 'tg' ? 'Эҷоди эълон' : 'Создание объявления'}</DialogTitle>
+                  <DialogTitle>Эҷоди эълон</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label>{lang === 'tg' ? 'Сарлавҳа' : 'Заголовок'}</Label>
+                    <Label>Сарлавҳа</Label>
                     <Input
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      placeholder={lang === 'tg' ? 'Сарлавҳаро ворид кунед' : 'Введите заголовок'}
+                      placeholder="Сарлавҳаро ворид кунед"
                       data-testid="input-title"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>{lang === 'tg' ? 'Мазмун' : 'Содержание'}</Label>
+                    <Label>Мазмун</Label>
                     <Textarea
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
-                      placeholder={lang === 'tg' ? 'Мазмунро ворид кунед' : 'Введите содержание'}
+                      placeholder="Мазмунро ворид кунед"
                       rows={6}
                       data-testid="textarea-content"
                     />
@@ -227,12 +225,12 @@ export default function AnnouncementsPage() {
 
                   <div className="flex justify-end gap-2 pt-4">
                     <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      {lang === 'tg' ? 'Бекор кардан' : 'Отмена'}
+                      Бекор кардан
                     </Button>
                     <Button onClick={handleSubmit} disabled={createAnnouncementMutation.isPending}>
                       {createAnnouncementMutation.isPending
-                        ? (lang === 'tg' ? 'Эҷод шуда истодааст...' : 'Создание...')
-                        : (lang === 'tg' ? 'Эҷод кардан' : 'Создать')}
+                        ? 'Эҷод шуда истодааст...'
+                        : 'Эҷод кардан'}
                     </Button>
                   </div>
                 </div>
@@ -245,13 +243,13 @@ export default function AnnouncementsPage() {
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</p>
+              <p className="text-muted-foreground">Боргирӣ...</p>
             </div>
           </div>
         ) : announcements.length === 0 ? (
           <Card className="p-12 text-center bg-white">
             <p className="text-muted-foreground">
-              {lang === 'tg' ? 'Ҳанӯз эълонҳо нестанд' : 'Объявлений пока нет'}
+              Ҳанӯз эълонҳо нестанд
             </p>
           </Card>
         ) : (
@@ -288,7 +286,7 @@ export default function AnnouncementsPage() {
                       <div className="flex items-center gap-2 mb-2">
                         <Paperclip className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">
-                          {lang === 'tg' ? 'Файлҳои замимашуда' : 'Прикрепленные файлы'}
+                          Файлҳои замимашуда
                           {' '}({announcement.attachments.length})
                         </span>
                       </div>

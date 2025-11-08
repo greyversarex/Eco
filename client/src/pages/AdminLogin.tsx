@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useTranslation, type Language } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -14,12 +14,10 @@ import logoImage from '@assets/logo-optimized.webp';
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
-  const [lang, setLang] = useState<Language>('tg');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const queryClient = useQueryClient();
-  const t = useTranslation(lang);
   const { toast } = useToast();
 
   const loginMutation = useMutation({
@@ -38,8 +36,8 @@ export default function AdminLogin() {
     onError: (error) => {
       const err = error as Error;
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: err.message || (lang === 'tg' ? 'Логин ё парол нодуруст аст' : 'Неверный логин или пароль'),
+        title: 'Хато',
+        description: err.message || 'Логин ё парол нодуруст аст',
         variant: 'destructive',
       });
     },
@@ -116,7 +114,7 @@ export default function AdminLogin() {
                 disabled={loginMutation.isPending || isSuccess}
                 data-testid="button-submit"
               >
-                {(loginMutation.isPending || isSuccess) ? (lang === 'tg' ? 'Лутфан интизор шавед...' : 'Пожалуйста, подождите...') : t.submit}
+                {(loginMutation.isPending || isSuccess) ? 'Лутфан интизор шавед...' : t.submit}
               </Button>
             </form>
           </CardContent>

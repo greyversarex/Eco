@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import MessageListItem from '@/components/MessageListItem';
-import { useTranslation, type Language } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { ArrowLeft, Trash2, LogOut } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
@@ -16,10 +16,8 @@ import { Footer } from '@/components/Footer';
 
 export default function Inbox() {
   const [location, setLocation] = useLocation();
-  const [lang, setLang] = useState<Language>('tg');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleteMode, setIsDeleteMode] = useState(false);
-  const t = useTranslation(lang);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -77,14 +75,14 @@ export default function Inbox() {
       setSelectedIds(new Set());
       setIsDeleteMode(false);
       toast({
-        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Паёмҳо бекор карда шуданд' : 'Сообщения удалены',
+        title: 'Муваффақият',
+        description: 'Паёмҳо бекор карда шуданд',
       });
     },
     onError: () => {
       toast({
-        title: lang === 'tg' ? 'Хатогӣ' : 'Ошибка',
-        description: lang === 'tg' ? 'Хатогӣ ҳангоми бекор кардан' : 'Ошибка при удалении',
+        title: 'Хатогӣ',
+        description: 'Хатогӣ ҳангоми бекор кардан',
         variant: 'destructive',
       });
     },
@@ -111,9 +109,7 @@ export default function Inbox() {
   const handleBulkDelete = () => {
     if (selectedIds.size === 0) return;
     
-    const confirmMessage = lang === 'tg' 
-      ? `Шумо мутмаин ҳастед, ки мехоҳед ${selectedIds.size} паёмро бекор кунед?`
-      : `Вы уверены, что хотите удалить ${selectedIds.size} сообщений?`;
+    const confirmMessage = `Шумо мутмаин ҳастед, ки мехоҳед ${selectedIds.size} паёмро бекор кунед?`;
     
     if (confirm(confirmMessage)) {
       const messageIds = Array.from(selectedIds).map(id => parseInt(id, 10));
@@ -187,7 +183,7 @@ export default function Inbox() {
                 >
                   <Trash2 className="h-4 w-4" />
                   <span className="hidden sm:inline">
-                    {lang === 'tg' ? 'Бекор кардан' : 'Удалить'}
+                    Бекор кардан
                   </span>
                 </Button>
               ) : (
@@ -202,7 +198,7 @@ export default function Inbox() {
                   >
                     <Trash2 className="h-4 w-4" />
                     <span className="hidden sm:inline">
-                      {lang === 'tg' ? 'Бекор кардан' : 'Удалить'} {selectedIds.size > 0 && `(${selectedIds.size})`}
+                      Бекор кардан {selectedIds.size > 0 && `(${selectedIds.size})`}
                     </span>
                     <span className="sm:hidden">{selectedIds.size > 0 && `(${selectedIds.size})`}</span>
                   </Button>
@@ -213,7 +209,7 @@ export default function Inbox() {
                     data-testid="button-cancel-delete"
                     className="gap-1 text-white hover:bg-white/20"
                   >
-                    {lang === 'tg' ? 'Бекор кардан' : 'Отмена'}
+                    Бекор кардан
                   </Button>
                 </>
               )}
@@ -227,7 +223,7 @@ export default function Inbox() {
                 className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
               >
                 <LogOut className="h-4 w-4" />
-                <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+                <span>Баромад</span>
               </Button>
             </div>
           </div>
@@ -239,13 +235,13 @@ export default function Inbox() {
             <div className="flex items-center justify-center p-12">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-                <p className="text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</p>
+                <p className="text-muted-foreground">Боргирӣ...</p>
               </div>
             </div>
           ) : formattedMessages.length === 0 ? (
             <div className="flex items-center justify-center p-12">
               <p className="text-muted-foreground">
-                {lang === 'tg' ? 'Паёме нест' : 'Нет сообщений'}
+                Паёме нест
               </p>
             </div>
           ) : (
@@ -259,8 +255,8 @@ export default function Inbox() {
                     className="gap-2 bg-green-600 text-white hover:bg-green-700 border-0 font-medium shadow-sm"
                   >
                     {selectedIds.size === formattedMessages.length
-                      ? (lang === 'tg' ? 'Бекор кардани интихоб' : 'Снять выделение')
-                      : (lang === 'tg' ? 'Ҳамаро қайд кардан' : 'Выбрать все')}
+                      ? 'Бекор кардани интихоб'
+                      : 'Ҳамаро қайд кардан'}
                   </Button>
                 </div>
               )}
@@ -276,16 +272,16 @@ export default function Inbox() {
               >
                 {isDeleteMode && <div />}
                 <div className="text-center">
-                  {lang === 'tg' ? 'Рақами ҳуҷҷат' : 'Номер документа'}
+                  Рақами ҳуҷҷат
                 </div>
                 <div className="px-4">
-                  {lang === 'tg' ? 'Мавзӯъ ва мундариҷа' : 'Тема и содержание'}
+                  Мавзӯъ ва мундариҷа
                 </div>
                 <div className="px-4">
-                  {lang === 'tg' ? 'Фиристанда' : 'Отправитель'}
+                  Фиристанда
                 </div>
                 <div className="text-right ml-[34px] mr-[34px]">
-                  {lang === 'tg' ? 'Сана' : 'Дата'}
+                  Сана
                 </div>
                 <div />
               </div>

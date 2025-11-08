@@ -3,7 +3,7 @@ import { useLocation, useRoute } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MessageListItem from '@/components/MessageListItem';
-import { useTranslation, type Language } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { ArrowLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { Message, Department } from '@shared/schema';
@@ -13,8 +13,6 @@ import logoImage from '@assets/logo-optimized.webp';
 export default function AdminDepartmentMessages() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute('/admin/department/:id');
-  const [lang, setLang] = useState<Language>('tg');
-  const t = useTranslation(lang);
 
   const departmentId = params?.id ? parseInt(params.id) : null;
 
@@ -67,7 +65,7 @@ export default function AdminDepartmentMessages() {
                 <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0" />
                 <div className="min-w-0 text-left">
                   <h1 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">
-                    {department?.name || (lang === 'tg' ? 'Шуъба' : 'Отдел')}
+                    {department?.name || 'Шуъба'}
                   </h1>
                   <p className="text-xs text-muted-foreground hidden sm:block">Портали электронӣ - {t.adminPanel}</p>
                 </div>
@@ -82,7 +80,7 @@ export default function AdminDepartmentMessages() {
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</p>
+              <p className="text-muted-foreground">Боргирӣ...</p>
             </div>
           </div>
         ) : (
@@ -90,7 +88,7 @@ export default function AdminDepartmentMessages() {
             <div className="bg-background/95 backdrop-blur-sm border-x border-t border-border rounded-t-lg">
               <TabsList className="w-full grid grid-cols-2 h-12">
                 <TabsTrigger value="received" data-testid="tab-received">
-                  {lang === 'tg' ? 'Гирифташуда' : 'Полученные'}
+                  Гирифташуда
                   {receivedMessages.length > 0 && (
                     <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-xs text-primary">
                       {receivedMessages.length}
@@ -98,7 +96,7 @@ export default function AdminDepartmentMessages() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="sent" data-testid="tab-sent">
-                  {lang === 'tg' ? 'Фиристодашуда' : 'Отправленные'}
+                  Фиристодашуда
                   {sentMessages.length > 0 && (
                     <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-xs text-primary">
                       {sentMessages.length}
@@ -113,7 +111,7 @@ export default function AdminDepartmentMessages() {
                 {receivedMessages.length === 0 ? (
                   <div className="flex items-center justify-center p-12 text-center">
                     <p className="text-muted-foreground">
-                      {lang === 'tg' ? 'Паёмҳо нестанд' : 'Нет сообщений'}
+                      Паёмҳо нестанд
                     </p>
                   </div>
                 ) : (
@@ -142,7 +140,7 @@ export default function AdminDepartmentMessages() {
                 {sentMessages.length === 0 ? (
                   <div className="flex items-center justify-center p-12 text-center">
                     <p className="text-muted-foreground">
-                      {lang === 'tg' ? 'Паёмҳо нестанд' : 'Нет сообщений'}
+                      Паёмҳо нестанд
                     </p>
                   </div>
                 ) : (

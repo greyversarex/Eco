@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import DepartmentCard from '@/components/DepartmentCard';
-import { useTranslation, type Language } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { LogOut, Settings, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
@@ -14,9 +14,7 @@ import { Footer } from '@/components/Footer';
 
 export default function AdminDepartments() {
   const [, setLocation] = useLocation();
-  const [lang, setLang] = useState<Language>('tg');
   const [searchQuery, setSearchQuery] = useState('');
-  const t = useTranslation(lang);
   const { logout } = useAuth();
 
   const { data: departments = [], isLoading: deptLoading } = useQuery<Department[]>({
@@ -90,7 +88,7 @@ export default function AdminDepartments() {
                 className="gap-2 hidden sm:flex text-white hover:bg-white/20"
               >
                 <Settings className="h-4 w-4" />
-                <span className="hidden md:inline">{lang === 'tg' ? 'Идора' : 'Управление'}</span>
+                <span className="hidden md:inline">Идора</span>
               </Button>
               <Button
                 variant="ghost"
@@ -120,7 +118,7 @@ export default function AdminDepartments() {
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</p>
+              <p className="text-muted-foreground">Боргирӣ...</p>
             </div>
           </div>
         ) : (
@@ -131,7 +129,7 @@ export default function AdminDepartments() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder={lang === 'tg' ? 'Ҷустуҷӯ' : 'Поиск'}
+                  placeholder="Ҷустуҷӯ"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 h-10 border-muted-foreground/20 focus:border-primary"
@@ -239,7 +237,7 @@ export default function AdminDepartments() {
             {departments.length === 0 && (
               <div className="text-center p-12">
                 <p className="text-muted-foreground">
-                  {lang === 'tg' ? 'Ҳоло шуъбае нест' : 'Пока нет отделов'}
+                  Ҳоло шуъбае нест
                 </p>
               </div>
             )}

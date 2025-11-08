@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useTranslation, type Language } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -14,11 +14,9 @@ import logoImage from '@assets/logo-optimized.webp';
 
 export default function DepartmentLogin() {
   const [, setLocation] = useLocation();
-  const [lang, setLang] = useState<Language>('tg');
   const [code, setCode] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const queryClient = useQueryClient();
-  const t = useTranslation(lang);
   const { toast } = useToast();
 
   const loginMutation = useMutation({
@@ -36,8 +34,8 @@ export default function DepartmentLogin() {
     },
     onError: (error: any) => {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
-        description: error.message || (lang === 'tg' ? 'Рамзи дастрасӣ нодуруст аст' : 'Неверный код доступа'),
+        title: 'Хато',
+        description: error.message || 'Рамзи дастрасӣ нодуруст аст',
         variant: 'destructive',
       });
     },
@@ -101,7 +99,7 @@ export default function DepartmentLogin() {
                 disabled={loginMutation.isPending}
                 data-testid="button-submit"
               >
-                {(loginMutation.isPending || isSuccess) ? (lang === 'tg' ? 'Лутфан интизор шавед...' : 'Пожалуйста, подождите...') : t.submit}
+                {(loginMutation.isPending || isSuccess) ? 'Лутфан интизор шавед...' : t.submit}
               </Button>
             </form>
           </CardContent>

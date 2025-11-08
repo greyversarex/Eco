@@ -10,12 +10,8 @@ import {
 import { Menu, Inbox, Send, PenSquare, Home, LogOut } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/lib/auth';
-import type { Language } from '@/lib/i18n';
-import LanguageSwitcher from './LanguageSwitcher';
 
 interface MobileNavProps {
-  lang: Language;
-  onLanguageChange: (lang: Language) => void;
   translations: {
     inbox: string;
     outbox: string;
@@ -25,7 +21,7 @@ interface MobileNavProps {
   };
 }
 
-export default function MobileNav({ lang, onLanguageChange, translations }: MobileNavProps) {
+export default function MobileNav({ translations }: MobileNavProps) {
   const [, setLocation] = useLocation();
   const [open, setOpen] = useState(false);
   const { logout } = useAuth();
@@ -106,27 +102,6 @@ export default function MobileNav({ lang, onLanguageChange, translations }: Mobi
           </Button>
         </div>
         <div className="border-t pt-4 space-y-3 bg-white/80 backdrop-blur-sm">
-          <div className="px-2 space-y-2">
-            <span className="text-xs text-muted-foreground block">{lang === 'tg' ? 'Забон' : 'Язык'}</span>
-            <div className="flex gap-2">
-              <Button
-                variant={lang === 'tg' ? 'default' : 'outline'}
-                size="sm"
-                className="flex-1 h-9 text-sm font-medium"
-                onClick={() => onLanguageChange('tg')}
-              >
-                ТҶ
-              </Button>
-              <Button
-                variant={lang === 'ru' ? 'default' : 'outline'}
-                size="sm"
-                className="flex-1 h-9 text-sm font-medium"
-                onClick={() => onLanguageChange('ru')}
-              >
-                RU
-              </Button>
-            </div>
-          </div>
           <Button
             variant="outline"
             className="w-full justify-start gap-2.5 h-11 text-sm font-medium border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
@@ -134,7 +109,7 @@ export default function MobileNav({ lang, onLanguageChange, translations }: Mobi
             data-testid="mobile-nav-logout"
           >
             <LogOut className="h-4 w-4" />
-            <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+            <span>Баромад</span>
           </Button>
         </div>
       </SheetContent>

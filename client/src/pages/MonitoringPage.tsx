@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import DepartmentCard from '@/components/DepartmentCard';
-import { useTranslation, type Language } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { LogOut, ArrowLeft, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
@@ -14,9 +14,7 @@ import { Footer } from '@/components/Footer';
 
 export default function MonitoringPage() {
   const [, setLocation] = useLocation();
-  const [lang, setLang] = useState<Language>('tg');
   const [searchQuery, setSearchQuery] = useState('');
-  const t = useTranslation(lang);
   const { user, logout } = useAuth();
 
   // Only allow Rohbariyat department to access monitoring
@@ -64,15 +62,13 @@ export default function MonitoringPage() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">
-            {lang === 'tg' ? 'Дастрасӣ рад шуд' : 'Доступ запрещен'}
+            Дастрасӣ рад шуд
           </h1>
           <p className="text-muted-foreground mb-4">
-            {lang === 'tg' 
-              ? 'Ин саҳифа танҳо барои Раёсати кадрҳо, коргузорӣ ва назорат дастрас аст' 
-              : 'Эта страница доступна только для Управления кадров, делопроизводства и контроля'}
+            Ин саҳифа танҳо барои Раёсати кадрҳо, коргузорӣ ва назорат дастрас аст
           </p>
           <Button onClick={() => setLocation('/department/main')}>
-            {lang === 'tg' ? 'Бозгашт' : 'Вернуться'}
+            Бозгашт
           </Button>
         </div>
       </div>
@@ -114,7 +110,7 @@ export default function MonitoringPage() {
                 <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
                 <div className="min-w-0 text-left">
                   <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">
-                    {lang === 'tg' ? 'Назорат' : 'Мониторинг'}
+                    Назорат
                   </h1>
                   <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">Портали электронӣ</p>
                 </div>
@@ -129,7 +125,7 @@ export default function MonitoringPage() {
                 className="flex items-center gap-2 text-white hover:bg-white/20"
               >
                 <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+                <span className="hidden sm:inline">Баромад</span>
               </Button>
             </div>
           </div>
@@ -141,7 +137,7 @@ export default function MonitoringPage() {
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</p>
+              <p className="text-muted-foreground">Боргирӣ...</p>
             </div>
           </div>
         ) : (
@@ -152,7 +148,7 @@ export default function MonitoringPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder={lang === 'tg' ? 'Ҷустуҷӯ' : 'Поиск'}
+                  placeholder="Ҷустуҷӯ"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 h-10 border-muted-foreground/20 focus:border-primary"
@@ -261,7 +257,7 @@ export default function MonitoringPage() {
             {departments.length === 0 && (
               <div className="text-center p-12">
                 <p className="text-muted-foreground">
-                  {lang === 'tg' ? 'Ҳоло шуъбае нест' : 'Пока нет отделов'}
+                  Ҳоло шуъбае нест
                 </p>
               </div>
             )}

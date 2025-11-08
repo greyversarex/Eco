@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { useTranslation, type Language } from '@/lib/i18n';
+import { t } from '@/lib/i18n';
 import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -37,7 +37,6 @@ import logoImage from '@assets/logo-optimized.webp';
 import { Footer } from '@/components/Footer';
 
 export default function AdminDashboard() {
-  const [lang, setLang] = useState<Language>('tg');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -47,7 +46,6 @@ export default function AdminDashboard() {
   const [editDeptName, setEditDeptName] = useState('');
   const [editDeptBlock, setEditDeptBlock] = useState('');
   const [editDeptCode, setEditDeptCode] = useState('');
-  const t = useTranslation(lang);
   const { logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -72,13 +70,13 @@ export default function AdminDashboard() {
       setNewDeptBlock('');
       setIsAddDialogOpen(false);
       toast({
-        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: `${lang === 'tg' ? 'Шуъба илова шуд. Рамз' : 'Отдел добавлен. Код'}: ${newDept.accessCode}`,
+        title: 'Муваффақият',
+        description: `Шуъба илова шуд. Рамз: ${newDept.accessCode}`,
       });
     },
     onError: (error: any) => {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        title: 'Хато',
         description: error.message,
         variant: 'destructive',
       });
@@ -92,13 +90,13 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/departments'] });
       toast({
-        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Шуъба навсозӣ шуд' : 'Отдел обновлен',
+        title: 'Муваффақият',
+        description: 'Шуъба навсозӣ шуд',
       });
     },
     onError: (error: any) => {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        title: 'Хато',
         description: error.message,
         variant: 'destructive',
       });
@@ -112,13 +110,13 @@ export default function AdminDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/departments'] });
       toast({
-        title: lang === 'tg' ? 'Муваффақият' : 'Успешно',
-        description: lang === 'tg' ? 'Шуъба бекор карда шуд' : 'Отдел удален',
+        title: 'Муваффақият',
+        description: 'Шуъба бекор карда шуд',
       });
     },
     onError: (error: any) => {
       toast({
-        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        title: 'Хато',
         description: error.message,
         variant: 'destructive',
       });
@@ -132,7 +130,7 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteDepartment = (id: number) => {
-    if (confirm(lang === 'tg' ? 'Шумо мутмаин ҳастед?' : 'Вы уверены?')) {
+    if (confirm('Шумо мутмаин ҳастед?')) {
       deleteMutation.mutate(id);
     }
   };
@@ -171,8 +169,8 @@ export default function AdminDashboard() {
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     toast({
-      title: lang === 'tg' ? 'Нусхабардорӣ шуд' : 'Скопировано',
-      description: lang === 'tg' ? 'Рамз нусхабардорӣ шуд' : 'Код скопирован',
+      title: 'Нусхабардорӣ шуд',
+      description: 'Рамз нусхабардорӣ шуд',
     });
   };
 
@@ -220,7 +218,7 @@ export default function AdminDashboard() {
                 className="gap-2 hidden sm:flex text-white hover:bg-white/20"
               >
                 <Mail className="h-4 w-4" />
-                <span className="hidden md:inline">{lang === 'tg' ? 'Паёмҳо' : 'Сообщения'}</span>
+                <span className="hidden md:inline">Паёмҳо</span>
               </Button>
               <Button
                 variant="ghost"
@@ -238,7 +236,7 @@ export default function AdminDashboard() {
                 className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
               >
                 <LogOut className="h-4 w-4" />
-                <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+                <span>Баромад</span>
               </Button>
             </div>
           </div>
@@ -279,7 +277,7 @@ export default function AdminDashboard() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder={lang === 'tg' ? 'Ҷустуҷӯ' : 'Поиск'}
+                placeholder="Ҷустуҷӯ"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 h-10 border-muted-foreground/20 focus:border-primary"
@@ -301,7 +299,7 @@ export default function AdminDashboard() {
                 <DialogHeader>
                   <DialogTitle>{t.addDepartment}</DialogTitle>
                   <DialogDescription>
-                    {lang === 'tg' ? 'Шуъбаи навро илова кунед' : 'Добавить новый отдел'}
+                    Шуъбаи навро илова кунед
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
@@ -312,14 +310,14 @@ export default function AdminDashboard() {
                       value={newDeptName}
                       onChange={(e) => setNewDeptName(e.target.value)}
                       data-testid="input-dept-name"
-                      placeholder={lang === 'tg' ? 'Номи шуъбаро ворид кунед' : 'Введите название отдела'}
+                      placeholder="Номи шуъбаро ворид кунед"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="dept-block">{t.block}</Label>
                     <Select value={newDeptBlock} onValueChange={setNewDeptBlock}>
                       <SelectTrigger id="dept-block" data-testid="select-dept-block">
-                        <SelectValue placeholder={lang === 'tg' ? 'Блокро интихоб кунед' : 'Выберите блок'} />
+                        <SelectValue placeholder="Блокро интихоб кунед" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="upper">{t.upperBlock}</SelectItem>
@@ -335,7 +333,7 @@ export default function AdminDashboard() {
                     data-testid="button-save-department"
                     disabled={createMutation.isPending || !newDeptName || !newDeptBlock}
                   >
-                    {createMutation.isPending ? (lang === 'tg' ? 'Лутфан интизор шавед...' : 'Пожалуйста, подождите...') : t.addDepartment}
+                    {createMutation.isPending ? 'Лутфан интизор шавед...' : t.addDepartment}
                   </Button>
                 </div>
               </DialogContent>
@@ -344,9 +342,9 @@ export default function AdminDashboard() {
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>{lang === 'tg' ? 'Таҳрир кардани шуъба' : 'Редактировать отдел'}</DialogTitle>
+                  <DialogTitle>Таҳрир кардани шуъба</DialogTitle>
                   <DialogDescription>
-                    {lang === 'tg' ? 'Маълумоти шуъбаро тағйир диҳед' : 'Изменить информацию об отделе'}
+                    Маълумоти шуъбаро тағйир диҳед
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
@@ -357,14 +355,14 @@ export default function AdminDashboard() {
                       value={editDeptName}
                       onChange={(e) => setEditDeptName(e.target.value)}
                       data-testid="input-edit-dept-name"
-                      placeholder={lang === 'tg' ? 'Номи шуъбаро ворид кунед' : 'Введите название отдела'}
+                      placeholder="Номи шуъбаро ворид кунед"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-dept-block">{t.block}</Label>
                     <Select value={editDeptBlock} onValueChange={setEditDeptBlock}>
                       <SelectTrigger id="edit-dept-block" data-testid="select-edit-dept-block">
-                        <SelectValue placeholder={lang === 'tg' ? 'Блокро интихоб кунед' : 'Выберите блок'} />
+                        <SelectValue placeholder="Блокро интихоб кунед" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="upper">{t.upperBlock}</SelectItem>
@@ -381,7 +379,7 @@ export default function AdminDashboard() {
                       value={editDeptCode}
                       onChange={(e) => setEditDeptCode(e.target.value.toUpperCase())}
                       data-testid="input-edit-dept-code"
-                      placeholder={lang === 'tg' ? 'Рамзи воридшавиро ворид кунед' : 'Введите код доступа'}
+                      placeholder="Рамзи воридшавиро ворид кунед"
                       className="font-mono"
                     />
                   </div>
@@ -391,7 +389,7 @@ export default function AdminDashboard() {
                     data-testid="button-save-edit-department"
                     disabled={updateMutation.isPending || !editDeptName || !editDeptBlock || !editDeptCode}
                   >
-                    {updateMutation.isPending ? (lang === 'tg' ? 'Лутфан интизор шавед...' : 'Пожалуйста, подождите...') : (lang === 'tg' ? 'Захира кардан' : 'Сохранить')}
+                    {updateMutation.isPending ? 'Лутфан интизор шавед...' : 'Захира кардан'}
                   </Button>
                 </div>
               </DialogContent>
@@ -402,13 +400,13 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-center p-12">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-                <p className="text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</p>
+                <p className="text-muted-foreground">Боргирӣ...</p>
               </div>
             </div>
           ) : departments.length === 0 ? (
             <div className="rounded-lg border border-border bg-card p-12 text-center">
               <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">{lang === 'tg' ? 'Ҳоло шуъбае нест' : 'Пока нет отделов'}</p>
+              <p className="text-muted-foreground">Ҳоло шуъбае нест</p>
             </div>
           ) : (
             <div className="rounded-lg border border-border bg-card overflow-hidden">
