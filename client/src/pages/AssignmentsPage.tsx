@@ -257,11 +257,16 @@ export default function AssignmentsPage() {
   const [content, setContent] = useState('');
   const [documentNumber, setDocumentNumber] = useState('');
   const [selectedExecutors, setSelectedExecutors] = useState<string[]>([]);
+  const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
   const [deadline, setDeadline] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const { data: assignments = [], isLoading } = useQuery<Assignment[]>({
     queryKey: ['/api/assignments'],
+  });
+
+  const { data: departments = [], isLoading: loadingDepartments } = useQuery<any[]>({
+    queryKey: ['/api/departments/list'],
   });
 
   const createAssignmentMutation = useMutation({
@@ -288,6 +293,7 @@ export default function AssignmentsPage() {
       setContent('');
       setDocumentNumber('');
       setSelectedExecutors([]);
+      setSelectedRecipients([]);
       setDeadline('');
       setSelectedFiles([]);
     },
@@ -371,6 +377,14 @@ export default function AssignmentsPage() {
       });
       return;
     }
+    if (selectedRecipients.length === 0) {
+      toast({
+        title: lang === 'tg' ? 'Хато' : 'Ошибка',
+        description: lang === 'tg' ? 'Ҳадди ақал як гиранда интихоб кунед' : 'Выберите хотя бы одного получателя',
+        variant: 'destructive',
+      });
+      return;
+    }
     if (!deadline) {
       toast({
         title: lang === 'tg' ? 'Хато' : 'Ошибка',
@@ -389,6 +403,7 @@ export default function AssignmentsPage() {
       formData.append('documentNumber', documentNumber);
     }
     formData.append('executors', JSON.stringify(selectedExecutors));
+    formData.append('recipientIds', JSON.stringify(selectedRecipients));
     formData.append('deadline', deadline);
     
     selectedFiles.forEach((file) => {
@@ -530,6 +545,61 @@ export default function AssignmentsPage() {
                     {selectedExecutors.length > 0 && (
                       <p className="text-sm text-muted-foreground">
                         {lang === 'tg' ? 'Интихоб шуд:' : 'Выбрано:'} {selectedExecutors.length}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>{lang === 'tg' ? 'Гирандагон' : 'Получатели'}</Label>
+                    {loadingDepartments ? (
+                      <div className="text-sm text-muted-foreground">{lang === 'tg' ? 'Боргирӣ...' : 'Загрузка...'}</div>
+                    ) : (
+                      <div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const allDeptIds = departments.map(dept => dept.id);
+                            if (selectedRecipients.length === allDeptIds.length) {
+                              setSelectedRecipients([]);
+                            } else {
+                              setSelectedRecipients(allDeptIds);
+                            }
+                          }}
+                          className="mb-2"
+                          data-testid="button-select-all-recipients"
+                        >
+                          {selectedRecipients.length === departments.length
+                            ? (lang === 'tg' ? 'Бекор кардан' : 'Отменить все')
+                            : (lang === 'tg' ? 'Ҳамаро қайд кардан' : 'Выбрать все')}
+                        </Button>
+                        <div className="border rounded-md p-4 max-h-60 overflow-y-auto space-y-2">
+                          {departments.map((dept: any) => (
+                            <div key={dept.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`recipient-${dept.id}`}
+                                checked={selectedRecipients.includes(dept.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedRecipients([...selectedRecipients, dept.id]);
+                                  } else {
+                                    setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
+                                  }
+                                }}
+                                data-testid={`checkbox-recipient-${dept.id}`}
+                              />
+                              <label htmlFor={`recipient-${dept.id}`} className="text-sm cursor-pointer">{dept.name}</label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {selectedRecipients.length > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        {lang === 'tg' 
+                          ? `Интихоб шуд: ${selectedRecipients.length}` 
+                          : `Выбрано: ${selectedRecipients.length}`}
                       </p>
                     )}
                   </div>

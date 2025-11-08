@@ -2,35 +2,37 @@ import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import MobileNav from '@/components/MobileNav';
 import DepartmentCard from '@/components/DepartmentCard';
 import { useTranslation, type Language } from '@/lib/i18n';
-import { Inbox, Send, PenSquare, LogOut, Search, Eye } from 'lucide-react';
+import { LogOut, ArrowLeft, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
-import type { Department } from '@shared/schema';
+import type { Department, Message } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { Footer } from '@/components/Footer';
 
-export default function DepartmentMain() {
+export default function MonitoringPage() {
   const [, setLocation] = useLocation();
   const [lang, setLang] = useState<Language>('tg');
   const [searchQuery, setSearchQuery] = useState('');
   const t = useTranslation(lang);
   const { user, logout } = useAuth();
 
-  const { data: departments = [], isLoading } = useQuery<Omit<Department, 'accessCode'>[]>({
+  // Only allow Rohbariyat department to access monitoring
+  const isAuthorized = user?.userType === 'department' && user.department?.code === 'ROHBAR001';
+
+  const { data: departments = [], isLoading: deptLoading } = useQuery<Omit<Department, 'accessCode'>[]>({
     queryKey: ['/api/departments/list'],
+    enabled: isAuthorized,
   });
 
-  const { data: unreadCounts = {} } = useQuery<Record<number, number>>({
-    queryKey: ['/api/messages/unread/by-department'],
+  const { data: allMessages = [], isLoading: msgLoading } = useQuery<Message[]>({
+    queryKey: ['/api/messages'],
+    enabled: isAuthorized,
   });
 
-  const { data: counters } = useQuery<{ unreadAnnouncements: number; uncompletedAssignments: number }>({
-    queryKey: ['/api/counters'],
-  });
+  const isLoading = deptLoading || msgLoading;
 
   // Filter departments by search query
   const filteredDepartments = departments.filter((dept) =>
@@ -45,9 +47,37 @@ export default function DepartmentMain() {
     district: filteredDepartments.filter((d) => d.block === 'district'),
   };
 
+  // Calculate message counts for each department (both sent and received)
+  const getMessageCountForDepartment = (deptId: number) => {
+    return allMessages.filter(
+      (msg) => msg.senderId === deptId || msg.recipientId === deptId
+    ).length;
+  };
+
   const handleDepartmentClick = (departmentId: number) => {
     setLocation(`/department/messages/${departmentId}`);
   };
+
+  // Verify user is from Rohbariyat department
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">
+            {lang === 'tg' ? 'Дастрасӣ рад шуд' : 'Доступ запрещен'}
+          </h1>
+          <p className="text-muted-foreground mb-4">
+            {lang === 'tg' 
+              ? 'Ин саҳифа танҳо барои Раёсати кадрҳо, коргузорӣ ва назорат дастрас аст' 
+              : 'Эта страница доступна только для Управления кадров, делопроизводства и контроля'}
+          </p>
+          <Button onClick={() => setLocation('/department/main')}>
+            {lang === 'tg' ? 'Бозгашт' : 'Вернуться'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -70,73 +100,37 @@ export default function DepartmentMain() {
       >
         <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
-            <button 
-              onClick={() => setLocation('/department/main')}
-              className="flex items-start gap-2 min-w-0 hover:opacity-80 transition-opacity flex-1 md:flex-initial pt-2"
-              data-testid="button-home"
-            >
-              <img src={logoImage} alt="Логотип" className="h-8 w-8 sm:h-10 sm:w-10 object-contain shrink-0 drop-shadow-md" />
-              <div className="min-w-0 text-left">
-                <h1 className="text-sm sm:text-base md:text-lg font-semibold text-white drop-shadow-md truncate">
-                  {user?.userType === 'department' ? user.department?.name : ''}
-                </h1>
-                <p className="text-xs text-white/90 drop-shadow-sm truncate">Портали электронӣ</p>
+            <div className="flex items-center gap-3 min-w-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLocation('/department/main')}
+                className="text-white hover:bg-white/20 shrink-0"
+                data-testid="button-back"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex items-start gap-2 sm:gap-3">
+                <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
+                <div className="min-w-0 text-left">
+                  <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">
+                    {lang === 'tg' ? 'Назорат' : 'Мониторинг'}
+                  </h1>
+                  <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">Портали электронӣ</p>
+                </div>
               </div>
-            </button>
-            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4">
-              <nav className="hidden md:flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setLocation('/department/inbox')}
-                  data-testid="button-inbox"
-                  className="gap-2 text-white hover:bg-white/20"
-                >
-                  <Inbox className="h-4 w-4" />
-                  {t.inbox}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setLocation('/department/outbox')}
-                  data-testid="button-outbox"
-                  className="gap-2 text-white hover:bg-white/20"
-                >
-                  <Send className="h-4 w-4" />
-                  {t.outbox}
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => setLocation('/department/compose')}
-                  data-testid="button-compose"
-                  className="gap-2 bg-white/20 text-white hover:bg-white/30 border border-white/30"
-                >
-                  <PenSquare className="h-4 w-4" />
-                  {t.newMessage}
-                </Button>
-              </nav>
-              <MobileNav 
-                lang={lang}
-                onLanguageChange={setLang}
-                translations={{
-                  inbox: t.inbox,
-                  outbox: t.outbox,
-                  newMessage: t.newMessage,
-                  departments: t.departments,
-                  menu: t.menu,
-                }}
-              />
-              <div className="hidden sm:flex items-center gap-2">
-                <Button
-                  size="sm"
-                  onClick={logout}
-                  data-testid="button-logout"
-                  className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
-                </Button>
-              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={logout}
+                data-testid="button-logout"
+                className="flex items-center gap-2 text-white hover:bg-white/20"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">{lang === 'tg' ? 'Баромад' : 'Выход'}</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -152,53 +146,16 @@ export default function DepartmentMain() {
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Кнопки и поисковик */}
-            <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
-              <Button
-                size="lg"
-                className="shrink-0 relative bg-[#4a9d4a] hover:bg-[#3d8a3d] text-white font-medium pl-[36px] pr-[36px] h-11 rounded-md shadow-sm"
-                data-testid="button-requests"
-                onClick={() => setLocation('/department/assignments')}
-              >
-                {lang === 'tg' ? 'Супоришҳо' : 'Поручения'}
-                {counters && counters.uncompletedAssignments > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
-                    {counters.uncompletedAssignments}
-                  </span>
-                )}
-              </Button>
-              <Button
-                size="lg"
-                className="shrink-0 relative bg-[#4a9d4a] hover:bg-[#3d8a3d] text-white font-medium px-8 h-11 rounded-md shadow-sm pl-[36px] pr-[36px]"
-                data-testid="button-announcements"
-                onClick={() => setLocation('/department/announcements')}
-              >
-                {lang === 'tg' ? 'Эълонҳо' : 'Объявления'}
-                {counters && counters.unreadAnnouncements > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
-                    {counters.unreadAnnouncements}
-                  </span>
-                )}
-              </Button>
-              {user?.department?.code === 'ROHBAR001' && (
-                <Button
-                  size="lg"
-                  className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 h-11 rounded-md shadow-sm pl-[36px] pr-[36px] gap-2"
-                  data-testid="button-monitoring"
-                  onClick={() => setLocation('/department/monitoring')}
-                >
-                  <Eye className="h-4 w-4" />
-                  {lang === 'tg' ? 'Назорат' : 'Мониторинг'}
-                </Button>
-              )}
-              <div className="relative flex-1 min-w-[200px]">
+            {/* Поисковик */}
+            <div className="max-w-xl mx-auto">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder={lang === 'tg' ? 'Ҷустуҷӯ' : 'Поиск'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-11 border border-gray-300 focus:border-primary bg-white rounded-md"
+                  className="pl-10 h-10 border-muted-foreground/20 focus:border-primary"
                   data-testid="input-search"
                 />
               </div>
@@ -212,7 +169,7 @@ export default function DepartmentMain() {
                     <DepartmentCard
                       key={dept.id}
                       name={dept.name}
-                      unreadCount={unreadCounts[dept.id] || 0}
+                      unreadCount={getMessageCountForDepartment(dept.id)}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
                   ))}
@@ -239,7 +196,7 @@ export default function DepartmentMain() {
                     <DepartmentCard
                       key={dept.id}
                       name={dept.name}
-                      unreadCount={unreadCounts[dept.id] || 0}
+                      unreadCount={getMessageCountForDepartment(dept.id)}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
                   ))}
@@ -266,7 +223,7 @@ export default function DepartmentMain() {
                     <DepartmentCard
                       key={dept.id}
                       name={dept.name}
-                      unreadCount={unreadCounts[dept.id] || 0}
+                      unreadCount={getMessageCountForDepartment(dept.id)}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
                   ))}
@@ -293,7 +250,7 @@ export default function DepartmentMain() {
                     <DepartmentCard
                       key={dept.id}
                       name={dept.name}
-                      unreadCount={unreadCounts[dept.id] || 0}
+                      unreadCount={getMessageCountForDepartment(dept.id)}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
                   ))}
