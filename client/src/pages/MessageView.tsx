@@ -676,24 +676,32 @@ export default function MessageView() {
                                       ? 'Бекор кардан'
                                       : 'Ҳамаро қайд кардан'}
                                   </Button>
-                                  <div className="border rounded-md p-4 max-h-60 overflow-y-auto space-y-2">
-                                    {departmentsList.map((dept: any) => (
-                                      <div key={dept.id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                          id={`assignment-recipient-${dept.id}`}
-                                          checked={selectedRecipients.includes(dept.id)}
-                                          onCheckedChange={(checked) => {
-                                            if (checked) {
-                                              setSelectedRecipients([...selectedRecipients, dept.id]);
-                                            } else {
-                                              setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
-                                            }
-                                          }}
-                                          data-testid={`checkbox-assignment-recipient-${dept.id}`}
-                                        />
-                                        <label htmlFor={`assignment-recipient-${dept.id}`} className="text-sm cursor-pointer">{dept.name}</label>
-                                      </div>
-                                    ))}
+                                  <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                      {departmentsList
+                                        .sort((a: any, b: any) => {
+                                          const blockOrder = { upper: 0, middle: 1, lower: 2, district: 3 };
+                                          return blockOrder[a.block as keyof typeof blockOrder] - blockOrder[b.block as keyof typeof blockOrder];
+                                        })
+                                        .map((dept: any) => (
+                                          <div key={dept.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                              id={`assignment-recipient-${dept.id}`}
+                                              checked={selectedRecipients.includes(dept.id)}
+                                              onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                  setSelectedRecipients([...selectedRecipients, dept.id]);
+                                                } else {
+                                                  setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
+                                                }
+                                              }}
+                                              data-testid={`checkbox-assignment-recipient-${dept.id}`}
+                                            />
+                                            <label htmlFor={`assignment-recipient-${dept.id}`} className="text-sm cursor-pointer">{dept.name}</label>
+                                          </div>
+                                        ))
+                                      }
+                                    </div>
                                   </div>
                                 </div>
                               )}
