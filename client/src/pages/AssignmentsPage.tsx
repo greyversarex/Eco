@@ -115,15 +115,15 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
       <div className="flex gap-4 flex-wrap items-center">
         <div className="flex items-center gap-2">
           <div className="text-sm text-muted-foreground font-bold">Мӯҳлати иҷро:</div>
-          <div className="bg-gray-100 px-4 py-2 rounded-lg border border-gray-200">
-            <div className="text-base font-semibold text-gray-800">{formatDate(deadline)}</div>
+          <div className="px-3 py-1.5 rounded-md border border-primary/30 bg-white shadow-sm">
+            <div className="text-sm font-semibold text-foreground">{formatDate(deadline)}</div>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <div className="text-sm text-muted-foreground font-bold">Боқӣ монд:</div>
-          <div className="bg-gray-100 px-4 py-2 rounded-lg border border-gray-200 flex items-baseline gap-1 pl-[16px] pr-[16px] pt-[5px] pb-[5px]">
-            <div className="text-2xl font-bold text-gray-800">{isCompleted ? '-' : (isOverdue ? '0' : daysLeft)}</div>
-            <div className="text-sm text-muted-foreground font-bold">рӯз</div>
+          <div className="px-3 py-1.5 rounded-md border border-primary/30 bg-white shadow-sm min-w-[80px] text-center">
+            <span className="text-lg font-bold text-foreground">{isCompleted ? '-' : (isOverdue ? '0' : daysLeft)}</span>
+            <span className="text-sm text-muted-foreground font-medium ml-1">рӯз</span>
           </div>
         </div>
         {isCompleted && (
@@ -708,7 +708,7 @@ export default function AssignmentsPage() {
                           <div className="text-sm font-medium text-gray-900 mb-1">
                             Мазмуни супоришҳои додашуда:
                           </div>
-                          <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md border border-gray-200 whitespace-pre-wrap">
+                          <div className="text-sm text-foreground bg-white p-3 rounded-md border border-primary/20 whitespace-pre-wrap">
                             {assignment.content}
                           </div>
                         </div>
