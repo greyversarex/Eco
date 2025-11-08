@@ -412,7 +412,7 @@ export default function AssignmentsPage() {
     createAssignmentMutation.mutate(formData);
   };
 
-  const canCreate = user?.userType === 'department' && user.department?.name === 'Раёсати кадрҳо, коргузорӣ ва назорат';
+  const canCreate = user?.userType === 'department' && user.department?.canCreateAssignment;
   const canDelete = user?.userType === 'department' && (
     user.department?.name === 'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера' ||
     user.department?.name === 'Раёсати кадрҳо, коргузорӣ ва назорат'

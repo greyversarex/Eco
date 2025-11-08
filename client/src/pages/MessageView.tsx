@@ -572,7 +572,7 @@ export default function MessageView() {
                       <Reply className="h-4 w-4" />
                       {t.reply}
                     </Button>
-                    {user.department?.code === 'ROHBAR001' && (
+                    {user.department?.canCreateAssignmentFromMessage && (
                       <Dialog open={isAssignmentDialogOpen} onOpenChange={setIsAssignmentDialogOpen}>
                         <DialogTrigger asChild>
                           <Button onClick={openAssignmentDialog} data-testid="button-create-assignment" className="gap-2 bg-green-600 hover:bg-green-700 text-white" size="lg">
