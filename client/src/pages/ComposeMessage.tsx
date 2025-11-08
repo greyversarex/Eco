@@ -25,7 +25,6 @@ export default function ComposeMessage() {
   const [date, setDate] = useState('');
   const [documentNumber, setDocumentNumber] = useState('');
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
-  const [selectedExecutors, setSelectedExecutors] = useState<string[]>([]);
   const [content, setContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
@@ -39,15 +38,6 @@ export default function ComposeMessage() {
   const { data: allPeople = [] } = useQuery<Person[]>({
     queryKey: ['/api/people'],
   });
-
-  // Автоматически отмечать исполнителей при выборе департаментов
-  useEffect(() => {
-    const executorsInSelectedDepts = allPeople
-      .filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId))
-      .map(p => p.name);
-    
-    setSelectedExecutors(executorsInSelectedDepts);
-  }, [selectedRecipients, allPeople]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
@@ -172,7 +162,6 @@ export default function ComposeMessage() {
         formData.append('content', content);
         formData.append('documentNumber', documentNumber || '');
         formData.append('senderId', user.department.id.toString());
-        formData.append('executor', selectedExecutors.join(', ') || '');
         formData.append('documentDate', new Date(date).toISOString());
         
         // Attach all files
@@ -204,7 +193,6 @@ export default function ComposeMessage() {
           documentNumber: documentNumber || null,
           senderId: user.department.id,
           recipientId: selectedRecipients[0],
-          executor: selectedExecutors.join(', ') || null,
           documentDate: new Date(date).toISOString(),
           replyToId: null,
         };
@@ -257,7 +245,6 @@ export default function ComposeMessage() {
       setContent('');
       setDocumentNumber('');
       setSelectedRecipients([]);
-      setSelectedExecutors([]);
       setDate('');
       setSelectedFiles([]);
       setLocation('/department/outbox');
@@ -513,55 +500,34 @@ export default function ComposeMessage() {
                     Аввал гирандаро интихоб кунед
                   </p>
                 ) : (
-                  <>
-                    <div className="border rounded-md p-4 max-h-64 overflow-y-auto">
-                      {selectedRecipients.map(recipientId => {
-                        const dept = departments.find(d => d.id === recipientId);
-                        const peopleInDept = allPeople.filter(p => p.departmentId === recipientId);
-                        
-                        if (peopleInDept.length === 0) return null;
-                        
-                        return (
-                          <div key={recipientId} className="mb-4 last:mb-0">
-                            <div className="text-sm font-semibold mb-2 text-gray-700">
-                              {dept?.name || 'Номаълум'}
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 pl-2">
-                              {peopleInDept.map(person => (
-                                <div key={person.id} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`executor-${person.id}`}
-                                    checked={selectedExecutors.includes(person.name)}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        setSelectedExecutors([...selectedExecutors, person.name]);
-                                      } else {
-                                        setSelectedExecutors(selectedExecutors.filter(e => e !== person.name));
-                                      }
-                                    }}
-                                    data-testid={`checkbox-executor-${person.id}`}
-                                  />
-                                  <label htmlFor={`executor-${person.id}`} className="text-sm cursor-pointer">
-                                    {person.name}
-                                  </label>
-                                </div>
-                              ))}
-                            </div>
+                  <div className="border rounded-md p-4 max-h-64 overflow-y-auto">
+                    {selectedRecipients.map(recipientId => {
+                      const dept = departments.find(d => d.id === recipientId);
+                      const peopleInDept = allPeople.filter(p => p.departmentId === recipientId);
+                      
+                      if (peopleInDept.length === 0) return null;
+                      
+                      return (
+                        <div key={recipientId} className="mb-4 last:mb-0">
+                          <div className="text-sm font-semibold mb-2 text-gray-700">
+                            {dept?.name || 'Номаълум'}
                           </div>
-                        );
-                      })}
-                      {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId)).length === 0 && (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          Иҷрокунандае дар ин шуъбаҳо нест
-                        </p>
-                      )}
-                    </div>
-                    {selectedExecutors.length > 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        Интихоб шуд: {selectedExecutors.length}
+                          <div className="grid grid-cols-2 gap-2 pl-2">
+                            {peopleInDept.map(person => (
+                              <div key={person.id} className="text-sm">
+                                • {person.name}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId)).length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Иҷрокунандае дар ин шуъбаҳо нест
                       </p>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
 
