@@ -61,6 +61,23 @@ async function safeMigrate() {
       END $$;
     `);
 
+    // Добавляем recipient_ids в assignments (если еще нет)
+    console.log('Проверка поля recipient_ids в таблице assignments...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'assignments' AND column_name = 'recipient_ids'
+        ) THEN
+          ALTER TABLE assignments ADD COLUMN recipient_ids integer[] NOT NULL DEFAULT ARRAY[]::integer[];
+          RAISE NOTICE 'Колонка recipient_ids добавлена в assignments';
+        ELSE
+          RAISE NOTICE 'Колонка recipient_ids уже существует в assignments';
+        END IF;
+      END $$;
+    `);
+
     // Создаем таблицу sessions (если еще нет)
     console.log('Проверка таблицы sessions...');
     await db.execute(sql`

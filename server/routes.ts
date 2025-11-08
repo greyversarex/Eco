@@ -815,11 +815,23 @@ export function registerRoutes(app: Express) {
 
   // ==================== ASSIGNMENTS ROUTES ====================
   
-  // Get all assignments
+  // Get all assignments (filtered by department if applicable)
   app.get("/api/assignments", requireAuth, async (req: Request, res: Response) => {
     try {
-      const assignments = await storage.getAssignments();
-      res.json(assignments);
+      const allAssignments = await storage.getAssignments();
+      
+      // Filter by recipientIds if user is a department
+      if (req.session.departmentId) {
+        const filteredAssignments = allAssignments.filter(assignment => 
+          assignment.recipientIds && assignment.recipientIds.length > 0
+            ? assignment.recipientIds.includes(req.session.departmentId as number)
+            : true // Show assignments without recipients to all (backward compatibility)
+        );
+        return res.json(filteredAssignments);
+      }
+      
+      // Admin sees all assignments
+      res.json(allAssignments);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
@@ -858,12 +870,19 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ error: 'Executors must be an array' });
       }
 
+      // Parse recipientIds from JSON field
+      const recipientIdsRaw = JSON.parse(req.body.recipientIds || '[]');
+      if (!Array.isArray(recipientIdsRaw)) {
+        return res.status(400).json({ error: 'RecipientIds must be an array' });
+      }
+
       // Prepare assignment data
       const assignmentData = {
         topic: req.body.topic,
         content: req.body.content || null,
         documentNumber: req.body.documentNumber || null,
         executors: executorsRaw,
+        recipientIds: recipientIdsRaw,
         deadline: new Date(req.body.deadline),
       };
 
