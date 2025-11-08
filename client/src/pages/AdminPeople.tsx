@@ -63,7 +63,7 @@ export default function AdminPeople() {
   );
 
   const createMutation = useMutation({
-    mutationFn: async (data: { name: string; departmentId: number }) => {
+    mutationFn: async (data: { name: string; departmentId: number | null }) => {
       return await apiRequest('POST', '/api/people', data);
     },
     onSuccess: () => {
@@ -86,7 +86,7 @@ export default function AdminPeople() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: { name: string; departmentId: number } }) => {
+    mutationFn: async ({ id, data }: { id: number; data: { name: string; departmentId: number | null } }) => {
       return await apiRequest('PATCH', `/api/people/${id}`, data);
     },
     onSuccess: () => {
@@ -128,10 +128,10 @@ export default function AdminPeople() {
   });
 
   const handleAdd = () => {
-    if (!newPersonName.trim() || !newPersonDepartmentId) {
+    if (!newPersonName.trim()) {
       toast({
         title: 'Хато',
-        description: 'Лутфан номи иҷрокунанда ва шуъбаро интихоб кунед',
+        description: 'Лутфан номи иҷрокунандаро ворид кунед',
         variant: 'destructive',
       });
       return;
@@ -147,10 +147,10 @@ export default function AdminPeople() {
   };
 
   const handleUpdate = () => {
-    if (!editingPerson || !editPersonName.trim() || !editPersonDepartmentId) {
+    if (!editingPerson || !editPersonName.trim()) {
       toast({
         title: 'Хато',
-        description: 'Лутфан номи иҷрокунанда ва шуъбаро интихоб кунед',
+        description: 'Лутфан номи иҷрокунандаро ворид кунед',
         variant: 'destructive',
       });
       return;
@@ -167,7 +167,8 @@ export default function AdminPeople() {
     }
   };
 
-  const getDepartmentName = (departmentId: number) => {
+  const getDepartmentName = (departmentId: number | null) => {
+    if (!departmentId) return 'Бе шуъба';
     const dept = departments.find((d) => d.id === departmentId);
     return dept ? dept.name : 'Номаълум';
   };
@@ -265,15 +266,16 @@ export default function AdminPeople() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="department">Шуъба</Label>
+                      <Label htmlFor="department">Шуъба (ихтиёрӣ)</Label>
                       <Select
-                        value={newPersonDepartmentId?.toString() || ''}
-                        onValueChange={(val) => setNewPersonDepartmentId(parseInt(val))}
+                        value={newPersonDepartmentId?.toString() || 'none'}
+                        onValueChange={(val) => setNewPersonDepartmentId(val === 'none' ? null : parseInt(val))}
                       >
                         <SelectTrigger data-testid="select-department">
                           <SelectValue placeholder="Интихоби шуъба" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="none">Бе шуъба</SelectItem>
                           {departments.map((dept) => (
                             <SelectItem key={dept.id} value={dept.id.toString()}>
                               {dept.name}
@@ -383,15 +385,16 @@ export default function AdminPeople() {
               />
             </div>
             <div>
-              <Label htmlFor="edit-department">Шуъба</Label>
+              <Label htmlFor="edit-department">Шуъба (ихтиёрӣ)</Label>
               <Select
-                value={editPersonDepartmentId?.toString() || ''}
-                onValueChange={(val) => setEditPersonDepartmentId(parseInt(val))}
+                value={editPersonDepartmentId?.toString() || 'none'}
+                onValueChange={(val) => setEditPersonDepartmentId(val === 'none' ? null : parseInt(val))}
               >
                 <SelectTrigger data-testid="select-edit-department">
                   <SelectValue placeholder="Интихоби шуъба" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none">Бе шуъба</SelectItem>
                   {departments.map((dept) => (
                     <SelectItem key={dept.id} value={dept.id.toString()}>
                       {dept.name}

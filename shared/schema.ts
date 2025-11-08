@@ -217,7 +217,7 @@ export type AnnouncementAttachment = typeof announcementAttachments.$inferSelect
 export const people = pgTable("people", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  departmentId: integer("department_id").notNull().references(() => departments.id, { onDelete: 'cascade' }),
+  departmentId: integer("department_id").references(() => departments.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   departmentIdx: index("people_department_id_idx").on(table.departmentId),
