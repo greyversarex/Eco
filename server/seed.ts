@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { db } from './db';
-import { departments, admins } from '../shared/schema';
+import { departments, admins, people } from '../shared/schema';
 import bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
 
@@ -93,6 +93,76 @@ async function seed() {
         console.log(`✓ Department created: ${dept.name} (code: ${dept.accessCode})`);
       } else {
         console.log(`✓ Department already exists: ${dept.name}`);
+      }
+    }
+
+    // Get all departments for people assignment
+    const allDepartments = await db.select().from(departments);
+    
+    // Sample people data for different departments
+    const peopleData = [
+      // Роҳбарият
+      { name: 'Раҳимов Фаррух Нозимович', departmentName: 'Роҳбарият' },
+      { name: 'Қосимова Зарина Муҳаммадиевна', departmentName: 'Роҳбарият' },
+      
+      // Раёсати кадрҳо
+      { name: 'Саидов Шоҳруҳ Баҳодурович', departmentName: 'Раёсати кадрҳо, коргузорӣ ва назорат' },
+      { name: 'Раҳмонова Малика Икромовна', departmentName: 'Раёсати кадрҳо, коргузорӣ ва назорат' },
+      { name: 'Назаров Достон Нозимович', departmentName: 'Раёсати кадрҳо, коргузорӣ ва назорат' },
+      
+      // Раёсати рақамикунонӣ
+      { name: 'Иброҳимов Алишер Азизович', departmentName: 'Раёсати рақамикунонӣ ва инноватсия' },
+      { name: 'Муродова Нилуфар Саидовна', departmentName: 'Раёсати рақамикунонӣ ва инноватсия' },
+      { name: 'Усмонов Бахтиёр Раҳматович', departmentName: 'Раёсати рақамикунонӣ ва инноватсия' },
+      
+      // Раёсати мониторинг
+      { name: 'Холиқов Ҷамшед Фарҳодович', departmentName: 'Раёсати мониторинг, сиёсати экологӣ, обуҳавошиносӣ ва кадастр' },
+      { name: 'Аминова Дилором Абдуллоевна', departmentName: 'Раёсати мониторинг, сиёсати экологӣ, обуҳавошиносӣ ва кадастр' },
+      
+      // Раёсати молия
+      { name: 'Каримов Зафар Муҳаммадович', departmentName: 'Раёсати банақшагирӣ, муҳосибот ва молия' },
+      { name: 'Ҷалилова Фарангез Азизовна', departmentName: 'Раёсати банақшагирӣ, муҳосибот ва молия' },
+      { name: 'Ҳасанов Умед Валиевич', departmentName: 'Раёсати банақшагирӣ, муҳосибот ва молия' },
+      
+      // Раёсати робитаҳои байналмилалӣ
+      { name: 'Шарифов Рустам Олимович', departmentName: 'Раёсати робитаҳои байналмилалӣ ва кор бо конвенсияҳои экологӣ' },
+      { name: 'Саломова Гулноза Муродовна', departmentName: 'Раёсати робитаҳои байналмилалӣ ва кор бо конвенсияҳои экологӣ' },
+      
+      // Раёсати назорати об
+      { name: 'Мирзоев Далер Шукурович', departmentName: 'Раёсати назорати давлатии истифода ва ҳифзи захираҳои об' },
+      { name: 'Юсуфова Парвина Ҳасановна', departmentName: 'Раёсати назорати давлатии истифода ва ҳифзи захираҳои об' },
+      { name: 'Бобоев Абдулло Икромович', departmentName: 'Раёсати назорати давлатии истифода ва ҳифзи захираҳои об' },
+      
+      // Сарраёсати ш. Душанбе
+      { name: 'Раҳмонов Санҷар Баҳромович', departmentName: 'Сарраёсати ш. Душанбе' },
+      { name: 'Одинаева Мунира Асадуллоевна', departmentName: 'Сарраёсати ш. Душанбе' },
+      { name: 'Қурбонов Фаррух Шоҳрухович', departmentName: 'Сарраёсати ш. Душанбе' },
+      
+      // Шуъбаи умумӣ
+      { name: 'Исмоилов Дилшод Раҳматович', departmentName: 'Шуъбаи умумӣ' },
+      { name: 'Азимова Лайло Баҳромовна', departmentName: 'Шуъбаи умумӣ' },
+      
+      // Раёсати экспертизаи давлатии экологӣ
+      { name: 'Назаров Фируз Абдуллоевич', departmentName: 'Раёсати экспертизаи давлатии экологӣ' },
+      { name: 'Акбарова Ҳилола Муродовна', departmentName: 'Раёсати экспертизаи давлатии экологӣ' },
+    ];
+
+    // Create people
+    console.log('\n');
+    for (const personData of peopleData) {
+      const dept = allDepartments.find(d => d.name === personData.departmentName);
+      if (dept) {
+        const existing = await db.select().from(people).where(eq(people.name, personData.name));
+        
+        if (existing.length === 0) {
+          await db.insert(people).values({
+            name: personData.name,
+            departmentId: dept.id,
+          });
+          console.log(`✓ Person created: ${personData.name} (${personData.departmentName})`);
+        } else {
+          console.log(`✓ Person already exists: ${personData.name}`);
+        }
       }
     }
 
