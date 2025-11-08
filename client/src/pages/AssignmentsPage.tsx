@@ -522,7 +522,7 @@ export default function AssignmentsPage() {
 
                   <div className="space-y-2">
                     <Label>Иҷрокунандагон</Label>
-                    <div className="border rounded-md p-4 max-h-60 overflow-y-auto space-y-2">
+                    <div className="border rounded-md p-4 max-h-60 overflow-y-auto grid grid-cols-2 gap-2">
                       {EXECUTORS_LIST.map((executor) => (
                         <div key={executor} className="flex items-center space-x-2">
                           <Checkbox
