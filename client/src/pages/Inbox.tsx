@@ -263,7 +263,7 @@ export default function Inbox() {
               
               {/* Column Headers */}
               <div 
-                className="hidden sm:grid border-b border-border px-6 py-3 bg-muted/30 font-semibold text-sm text-muted-foreground items-center"
+                className="hidden sm:grid border-b border-border px-6 py-3 bg-muted/30 font-semibold text-sm text-muted-foreground items-center gap-x-4"
                 style={{
                   gridTemplateColumns: isDeleteMode 
                     ? 'auto 120px 1fr 150px 130px 80px'
