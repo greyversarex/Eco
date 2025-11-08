@@ -107,7 +107,7 @@ export default function MessageListItem({
         </div>
         
         {/* Subject and Content */}
-        <div className="min-w-0 space-y-1">
+        <div className="min-w-0 space-y-1 pl-2">
           <h3 className={`text-sm truncate ${!isRead && !isSentMessage ? 'font-semibold text-foreground' : 'font-normal text-foreground'}`}>
             {subject}
           </h3>

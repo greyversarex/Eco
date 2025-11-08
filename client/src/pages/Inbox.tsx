@@ -278,12 +278,12 @@ export default function Inbox() {
                 </div>
                 
                 {/* Subject Header */}
-                <div className="min-w-0">
+                <div className="min-w-0 pl-2">
                   Мавзӯъ ва мундариҷа
                 </div>
                 
                 {/* Sender Header */}
-                <div className="ml-[-4px] mr-[-4px]">
+                <div>
                   Фиристанда
                 </div>
                 
