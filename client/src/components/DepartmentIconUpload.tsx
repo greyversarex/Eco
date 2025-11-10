@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, X, ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import ImageCropDialog from '@/components/ImageCropDialog';
 
 interface DepartmentIconUploadProps {
   departmentId: number | null;
@@ -13,6 +14,8 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [iconVersion, setIconVersion] = useState(0);
+  const [showCropDialog, setShowCropDialog] = useState(false);
+  const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -43,28 +46,22 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
       return;
     }
 
-    setSelectedFile(file);
-    
-    // Create preview
+    // Create preview URL for crop dialog
     const reader = new FileReader();
     reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
+      setOriginalImageUrl(reader.result as string);
+      setShowCropDialog(true); // Open crop dialog instead of auto-upload
     };
     reader.readAsDataURL(file);
-
-    // Auto-upload immediately if department exists
-    if (departmentId) {
-      await uploadFile(file);
-    }
   };
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = async (blob: Blob) => {
     if (!departmentId) return;
 
     setIsUploading(true);
     try {
       const formData = new FormData();
-      formData.append('icon', file);
+      formData.append('icon', blob, 'icon.png');
 
       const response = await fetch(`/api/departments/${departmentId}/icon`, {
         method: 'POST',
@@ -83,7 +80,8 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
 
       setSelectedFile(null);
       setPreviewUrl(null);
-      setIconVersion(v => v + 1); // Increment version to bust cache
+      setOriginalImageUrl(null);
+      setIconVersion(v => v + 1);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -100,23 +98,49 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
     }
   };
 
-  const handleUpload = async () => {
-    if (!selectedFile) return;
-    await uploadFile(selectedFile);
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    // Revoke previous object URL to prevent memory leak
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    
+    // Create preview from cropped blob
+    const newPreviewUrl = URL.createObjectURL(croppedBlob);
+    setPreviewUrl(newPreviewUrl);
+    
+    // Auto-upload cropped image
+    await uploadFile(croppedBlob);
   };
 
   const handleRemove = () => {
     setSelectedFile(null);
     setPreviewUrl(null);
+    setOriginalImageUrl(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
   return (
-    <div className="space-y-4">
-      {/* Current icon or preview */}
-      <div className="flex items-center gap-4">
+    <>
+      {showCropDialog && originalImageUrl && (
+        <ImageCropDialog
+          open={showCropDialog}
+          onClose={() => {
+            setShowCropDialog(false);
+            setOriginalImageUrl(null);
+            if (fileInputRef.current) {
+              fileInputRef.current.value = '';
+            }
+          }}
+          imageSrc={originalImageUrl}
+          onCropComplete={handleCropComplete}
+        />
+      )}
+      
+      <div className="space-y-4">
+        {/* Current icon or preview */}
+        <div className="flex items-center gap-4">
         <div className="w-24 h-24 border-2 border-dashed rounded-md flex items-center justify-center bg-muted">
           {previewUrl ? (
             <img src={previewUrl} alt="Preview" className="w-full h-full object-cover rounded-md" />
@@ -158,44 +182,14 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
               <Upload className="w-4 h-4 mr-2" />
               Интихоби файл
             </Button>
-            
-            {selectedFile && (
-              <>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={handleUpload}
-                  disabled={isUploading || !departmentId}
-                  data-testid="button-upload-icon"
-                >
-                  {isUploading ? 'Боргузорӣ...' : 'Боргузорӣ'}
-                </Button>
-                
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleRemove}
-                  disabled={isUploading}
-                  data-testid="button-cancel-icon-upload"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </>
-            )}
           </div>
-          
-          {selectedFile && (
-            <p className="text-sm text-muted-foreground">
-              {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
-            </p>
-          )}
           
           <p className="text-xs text-muted-foreground">
             PNG, JPEG, GIF ё WebP. Ҳадди аксар 1 MB.
           </p>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -44,7 +44,7 @@ export default function DepartmentCard({ departmentId, name, icon, unreadCount, 
   
   return (
     <Card
-      className="relative cursor-pointer p-6 transition-all duration-200 hover:border-primary hover:shadow-md hover:bg-primary/5"
+      className="relative cursor-pointer p-6 transition-all duration-200 hover:border-primary hover:shadow-md hover:bg-primary/5 bg-white"
       onClick={onClick}
       data-testid={`card-department-${name}`}
     >
