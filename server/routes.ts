@@ -1336,17 +1336,13 @@ export function registerRoutes(app: Express) {
       // Get all deleted assignments
       const deletedAssignments = await storage.listDeletedAssignments();
       
-      // Filter: show if department is creator OR recipient
+      // Filter: show if department is creator OR recipient (strict filtering for trash)
       if (req.session.departmentId) {
         const filteredAssignments = deletedAssignments.filter(assignment => 
           // Show if department is the creator (sender)
           assignment.senderId === req.session.departmentId ||
-          // OR if department is in recipients list
-          (assignment.recipientIds && assignment.recipientIds.includes(req.session.departmentId as number)) ||
-          // OR if no recipients specified (legacy backward compatibility)
-          (!assignment.recipientIds || assignment.recipientIds.length === 0) ||
-          // OR if senderId is NULL (legacy assignments before migration - show to departments with create permission)
-          (assignment.senderId === null && req.session.departmentId)
+          // OR if department is in recipients list (including legacy assignments with NULL sender but valid recipients)
+          (assignment.recipientIds && assignment.recipientIds.includes(req.session.departmentId as number))
         );
         return res.json(filteredAssignments);
       }
