@@ -46,6 +46,42 @@ async function safeMigrate() {
     `);
     console.log('✓ Таблица announcements проверена');
 
+    // Добавляем is_deleted в assignments (если таблица уже существовала)
+    console.log('Проверка поля is_deleted в таблице assignments...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'assignments' AND column_name = 'is_deleted'
+        ) THEN
+          ALTER TABLE assignments ADD COLUMN is_deleted boolean NOT NULL DEFAULT false;
+          RAISE NOTICE 'Колонка is_deleted добавлена в assignments';
+        ELSE
+          RAISE NOTICE 'Колонка is_deleted уже существует в assignments';
+        END IF;
+      END $$;
+    `);
+    console.log('✓ Поле is_deleted в assignments проверено');
+
+    // Добавляем deleted_at в assignments (если таблица уже существовала)
+    console.log('Проверка поля deleted_at в таблице assignments...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'assignments' AND column_name = 'deleted_at'
+        ) THEN
+          ALTER TABLE assignments ADD COLUMN deleted_at timestamp;
+          RAISE NOTICE 'Колонка deleted_at добавлена в assignments';
+        ELSE
+          RAISE NOTICE 'Колонка deleted_at уже существует в assignments';
+        END IF;
+      END $$;
+    `);
+    console.log('✓ Поле deleted_at в assignments проверено');
+
     // Создаем индекс для is_deleted в assignments
     console.log('Проверка индекса assignments_is_deleted_idx...');
     await db.execute(sql`

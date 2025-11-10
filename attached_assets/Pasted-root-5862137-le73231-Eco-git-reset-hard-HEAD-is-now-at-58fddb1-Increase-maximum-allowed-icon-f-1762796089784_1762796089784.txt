@@ -1,0 +1,69 @@
+root@5862137-le73231:~/Eco# git reset --hard
+HEAD is now at 58fddb1 Increase maximum allowed icon file size to 10MB
+root@5862137-le73231:~/Eco# git pull origin main
+remote: Enumerating objects: 14, done.
+remote: Counting objects: 100% (14/14), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 10 (delta 8), reused 10 (delta 8), pack-reused 0 (from 0)
+Unpacking objects: 100% (10/10), 70.82 KiB | 929.00 KiB/s, done.
+From https://github.com/greyversarex/Eco
+ * branch            main       -> FETCH_HEAD
+   58fddb1..7130ac3  main       -> origin/main
+Updating 58fddb1..7130ac3
+Fast-forward
+ attached_assets/image_1762795303417.png | Bin 0 -> 70394 bytes
+ server/safe-migrate.ts                  | 130 ++++++++++++++++++++++++++++++++
+ 2 files changed, 130 insertions(+)
+ create mode 100644 attached_assets/image_1762795303417.png
+root@5862137-le73231:~/Eco# npm install
+
+up to date, audited 524 packages in 3s
+
+77 packages are looking for funding
+  run `npm fund` for details
+
+8 vulnerabilities (3 low, 5 moderate)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+root@5862137-le73231:~/Eco# npm run db:migrate
+
+> rest-express@1.0.0 db:migrate
+> tsx server/safe-migrate.ts
+
+🔄 Запуск безопасной миграции...
+
+Проверка таблицы assignments...
+✓ Таблица assignments проверена
+Проверка таблицы announcements...
+✓ Таблица announcements проверена
+Проверка индекса assignments_is_deleted_idx...
+❌ Ошибка миграции: column "is_deleted" does not exist
+Миграция не выполнена: error: column "is_deleted" does not exist
+    at /root/Eco/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async safeMigrate (/root/Eco/server/safe-migrate.ts:51:5) {
+  length: 100,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'indexcmds.c',
+  line: '1840',
+  routine: 'ComputeIndexAttrs'
+}
+root@5862137-le73231:~/Eco#
