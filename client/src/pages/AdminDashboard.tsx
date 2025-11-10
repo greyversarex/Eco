@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import IconPicker from '@/components/IconPicker';
 import {
   Select,
   SelectContent,
@@ -202,6 +203,7 @@ export default function AdminDashboard() {
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [newDeptName, setNewDeptName] = useState('');
   const [newDeptBlock, setNewDeptBlock] = useState('');
+  const [newDeptIcon, setNewDeptIcon] = useState('building-2');
   const [newCanMonitor, setNewCanMonitor] = useState(false);
   const [newCanCreateAssignmentFromMessage, setNewCanCreateAssignmentFromMessage] = useState(false);
   const [newCanCreateAssignment, setNewCanCreateAssignment] = useState(false);
@@ -209,6 +211,7 @@ export default function AdminDashboard() {
   const [editDeptName, setEditDeptName] = useState('');
   const [editDeptBlock, setEditDeptBlock] = useState('');
   const [editDeptCode, setEditDeptCode] = useState('');
+  const [editDeptIcon, setEditDeptIcon] = useState('building-2');
   const [editCanMonitor, setEditCanMonitor] = useState(false);
   const [editCanCreateAssignmentFromMessage, setEditCanCreateAssignmentFromMessage] = useState(false);
   const [editCanCreateAssignment, setEditCanCreateAssignment] = useState(false);
@@ -372,6 +375,7 @@ export default function AdminDashboard() {
       createMutation.mutate({ 
         name: newDeptName, 
         block: newDeptBlock,
+        icon: newDeptIcon,
         canMonitor: newCanMonitor,
         canCreateAssignmentFromMessage: newCanCreateAssignmentFromMessage,
         canCreateAssignment: newCanCreateAssignment,
@@ -396,6 +400,7 @@ export default function AdminDashboard() {
     setEditDeptName(dept.name);
     setEditDeptBlock(dept.block);
     setEditDeptCode(dept.accessCode);
+    setEditDeptIcon(dept.icon || 'building-2');
     setEditCanMonitor(dept.canMonitor);
     setEditCanCreateAssignmentFromMessage(dept.canCreateAssignmentFromMessage);
     setEditCanCreateAssignment(dept.canCreateAssignment);
@@ -411,6 +416,7 @@ export default function AdminDashboard() {
           name: editDeptName, 
           block: editDeptBlock, 
           accessCode: editDeptCode,
+          icon: editDeptIcon,
           canMonitor: editCanMonitor,
           canCreateAssignmentFromMessage: editCanCreateAssignmentFromMessage,
           canCreateAssignment: editCanCreateAssignment,
@@ -601,6 +607,14 @@ export default function AdminDashboard() {
                     </Select>
                   </div>
                   
+                  <div className="space-y-2">
+                    <Label htmlFor="dept-icon">Иконка</Label>
+                    <IconPicker
+                      value={newDeptIcon}
+                      onChange={setNewDeptIcon}
+                    />
+                  </div>
+                  
                   <div className="space-y-3 border-t pt-3">
                     <Label className="text-base font-semibold">Салоҳиятҳо</Label>
                     <div className="flex items-center space-x-2">
@@ -703,6 +717,14 @@ export default function AdminDashboard() {
                       data-testid="input-edit-dept-code"
                       placeholder="Рамзи воридшавиро ворид кунед"
                       className="font-mono"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-dept-icon">Иконка</Label>
+                    <IconPicker
+                      value={editDeptIcon}
+                      onChange={setEditDeptIcon}
                     />
                   </div>
                   
