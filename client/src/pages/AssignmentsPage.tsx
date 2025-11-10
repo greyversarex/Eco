@@ -175,10 +175,6 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
           })()}
         </div>
       </div>
-      <div className="flex justify-between text-sm font-medium text-gray-600">
-        <span>{daysPassed} рӯз гузашт</span>
-        <span>{daysLeft} рӯз боқӣ</span>
-      </div>
       {isCompleted && (
         <div className="text-green-600 font-semibold">Иҷрошуда!</div>
       )}
@@ -692,6 +688,14 @@ export default function AssignmentsPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold">{assignment.topic}</h3>
+                      {assignment.recipientIds && assignment.recipientIds.length > 0 && (
+                        <div className="text-sm text-muted-foreground mt-2">
+                          <span className="font-medium">Қабулкунандагон:</span>{' '}
+                          {assignment.recipientIds
+                            .map(id => departments.find(d => d.id === id)?.name || `ID ${id}`)
+                            .join(', ')}
+                        </div>
+                      )}
                       <div className="text-sm text-muted-foreground mt-2">
                         <span className="font-medium">Иҷрокунандагон:</span>{' '}
                         {assignment.executors.join(', ')}
