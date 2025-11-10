@@ -142,6 +142,11 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
                 Супоришҳо
               </span>
             )}
+            {department.canCreateAnnouncement && (
+              <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md">
+                Эълонҳо
+              </span>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -200,12 +205,14 @@ export default function AdminDashboard() {
   const [newCanMonitor, setNewCanMonitor] = useState(false);
   const [newCanCreateAssignmentFromMessage, setNewCanCreateAssignmentFromMessage] = useState(false);
   const [newCanCreateAssignment, setNewCanCreateAssignment] = useState(false);
+  const [newCanCreateAnnouncement, setNewCanCreateAnnouncement] = useState(false);
   const [editDeptName, setEditDeptName] = useState('');
   const [editDeptBlock, setEditDeptBlock] = useState('');
   const [editDeptCode, setEditDeptCode] = useState('');
   const [editCanMonitor, setEditCanMonitor] = useState(false);
   const [editCanCreateAssignmentFromMessage, setEditCanCreateAssignmentFromMessage] = useState(false);
   const [editCanCreateAssignment, setEditCanCreateAssignment] = useState(false);
+  const [editCanCreateAnnouncement, setEditCanCreateAnnouncement] = useState(false);
   const { logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -368,6 +375,7 @@ export default function AdminDashboard() {
         canMonitor: newCanMonitor,
         canCreateAssignmentFromMessage: newCanCreateAssignmentFromMessage,
         canCreateAssignment: newCanCreateAssignment,
+        canCreateAnnouncement: newCanCreateAnnouncement,
       });
     }
   };
@@ -391,6 +399,7 @@ export default function AdminDashboard() {
     setEditCanMonitor(dept.canMonitor);
     setEditCanCreateAssignmentFromMessage(dept.canCreateAssignmentFromMessage);
     setEditCanCreateAssignment(dept.canCreateAssignment);
+    setEditCanCreateAnnouncement(dept.canCreateAnnouncement);
     setIsEditDialogOpen(true);
   };
 
@@ -405,6 +414,7 @@ export default function AdminDashboard() {
           canMonitor: editCanMonitor,
           canCreateAssignmentFromMessage: editCanCreateAssignmentFromMessage,
           canCreateAssignment: editCanCreateAssignment,
+          canCreateAnnouncement: editCanCreateAnnouncement,
         } 
       });
       setIsEditDialogOpen(false);
@@ -415,6 +425,7 @@ export default function AdminDashboard() {
       setEditCanMonitor(false);
       setEditCanCreateAssignmentFromMessage(false);
       setEditCanCreateAssignment(false);
+      setEditCanCreateAnnouncement(false);
     }
   };
 
@@ -625,6 +636,17 @@ export default function AdminDashboard() {
                         Супоришҳо (эҷоди супориш дар саҳифаи супоришҳо)
                       </label>
                     </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="new-can-create-announcement"
+                        checked={newCanCreateAnnouncement}
+                        onCheckedChange={(checked) => setNewCanCreateAnnouncement(checked as boolean)}
+                        data-testid="checkbox-new-can-create-announcement"
+                      />
+                      <label htmlFor="new-can-create-announcement" className="text-sm cursor-pointer">
+                        Эълонҳо (эҷоди эълон дар саҳифаи супоришҳо)
+                      </label>
+                    </div>
                   </div>
 
                   <Button 
@@ -717,6 +739,17 @@ export default function AdminDashboard() {
                       />
                       <label htmlFor="edit-can-create-assignment" className="text-sm cursor-pointer">
                         Супоришҳо (эҷоди супориш дар саҳифаи супоришҳо)
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="edit-can-create-announcement"
+                        checked={editCanCreateAnnouncement}
+                        onCheckedChange={(checked) => setEditCanCreateAnnouncement(checked as boolean)}
+                        data-testid="checkbox-edit-can-create-announcement"
+                      />
+                      <label htmlFor="edit-can-create-announcement" className="text-sm cursor-pointer">
+                        Эълонҳо (эҷоди эълон дар саҳифаи супоришҳо)
                       </label>
                     </div>
                   </div>

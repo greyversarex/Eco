@@ -26,6 +26,7 @@ export const departments = pgTable("departments", {
   canMonitor: boolean("can_monitor").default(false).notNull(), // Право на мониторинг (Назорат)
   canCreateAssignmentFromMessage: boolean("can_create_assignment_from_message").default(false).notNull(), // Право создавать вазифа из сообщений
   canCreateAssignment: boolean("can_create_assignment").default(false).notNull(), // Право создавать супориши
+  canCreateAnnouncement: boolean("can_create_announcement").default(false).notNull(), // Право создавать эълонҳо
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

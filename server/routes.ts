@@ -167,6 +167,7 @@ export function registerRoutes(app: Express) {
               canMonitor: department.canMonitor,
               canCreateAssignmentFromMessage: department.canCreateAssignmentFromMessage,
               canCreateAssignment: department.canCreateAssignment,
+              canCreateAnnouncement: department.canCreateAnnouncement,
             }
           });
         });
@@ -256,6 +257,7 @@ export function registerRoutes(app: Express) {
               canMonitor: department.canMonitor,
               canCreateAssignmentFromMessage: department.canCreateAssignmentFromMessage,
               canCreateAssignment: department.canCreateAssignment,
+              canCreateAnnouncement: department.canCreateAnnouncement,
             }
           });
         }
@@ -1253,13 +1255,13 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Create announcement (departments with canCreateAssignment permission or admins)
+  // Create announcement (departments with canCreateAnnouncement permission or admins)
   app.post("/api/announcements", requireAuth, async (req: Request, res: Response) => {
     try {
-      // Check permissions (use same permission as assignments)
+      // Check permissions
       if (req.session.departmentId) {
         const dept = await storage.getDepartmentById(req.session.departmentId);
-        if (!dept || !dept.canCreateAssignment) {
+        if (!dept || !dept.canCreateAnnouncement) {
           return res.status(403).json({ error: 'No permission to create announcements' });
         }
       } else if (!req.session.adminId) {
@@ -1279,13 +1281,13 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Delete announcement (departments with canCreateAssignment permission or admins)
+  // Delete announcement (departments with canCreateAnnouncement permission or admins)
   app.delete("/api/announcements/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       // Check permissions (use same permission as create)
       if (req.session.departmentId) {
         const dept = await storage.getDepartmentById(req.session.departmentId);
-        if (!dept || !dept.canCreateAssignment) {
+        if (!dept || !dept.canCreateAnnouncement) {
           return res.status(403).json({ error: 'No permission to delete announcements' });
         }
       } else if (!req.session.adminId) {

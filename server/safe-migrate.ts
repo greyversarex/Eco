@@ -146,6 +146,23 @@ async function safeMigrate() {
       END $$;
     `);
 
+    // Добавляем can_create_announcement в departments (если еще нет)
+    console.log('Проверка поля can_create_announcement в таблице departments...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'departments' AND column_name = 'can_create_announcement'
+        ) THEN
+          ALTER TABLE departments ADD COLUMN can_create_announcement boolean NOT NULL DEFAULT false;
+          RAISE NOTICE 'Колонка can_create_announcement добавлена в departments';
+        ELSE
+          RAISE NOTICE 'Колонка can_create_announcement уже существует в departments';
+        END IF;
+      END $$;
+    `);
+
     // Создаем таблицу sessions (если еще нет)
     console.log('Проверка таблицы sessions...');
     await db.execute(sql`
