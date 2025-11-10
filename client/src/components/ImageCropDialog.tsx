@@ -21,7 +21,7 @@ interface CropArea {
 
 export default function ImageCropDialog({ open, onClose, imageSrc, onCropComplete }: ImageCropDialogProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(0.3);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(null);
 
   const onCropChange = useCallback((location: { x: number; y: number }) => {
@@ -113,6 +113,8 @@ export default function ImageCropDialog({ open, onClose, imageSrc, onCropComplet
               onCropChange={onCropChange}
               onZoomChange={onZoomChange}
               onCropComplete={onCropCompleteCallback}
+              zoomWithScroll={true}
+              showGrid={true}
             />
           </div>
 
@@ -125,9 +127,9 @@ export default function ImageCropDialog({ open, onClose, imageSrc, onCropComplet
             </div>
             <Slider
               value={[zoom]}
-              min={0.5}
+              min={0.1}
               max={3}
-              step={0.1}
+              step={0.05}
               onValueChange={(values) => setZoom(values[0])}
               className="w-full"
               data-testid="slider-icon-zoom"
