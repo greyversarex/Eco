@@ -115,6 +115,7 @@ export default function ImageCropDialog({ open, onClose, imageSrc, onCropComplet
               onCropComplete={onCropCompleteCallback}
               zoomWithScroll={true}
               showGrid={true}
+              restrictPosition={false}
             />
           </div>
 
