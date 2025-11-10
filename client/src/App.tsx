@@ -24,6 +24,7 @@ const AdminPeople = lazy(() => import("@/pages/AdminPeople"));
 const AssignmentsPage = lazy(() => import("@/pages/AssignmentsPage"));
 const AnnouncementsPage = lazy(() => import("@/pages/AnnouncementsPage"));
 const MonitoringPage = lazy(() => import("@/pages/MonitoringPage"));
+const TrashPage = lazy(() => import("@/pages/TrashPage"));
 
 // Loading fallback component
 function PageLoader() {
@@ -110,6 +111,11 @@ function Router() {
         <Route path="/department/monitoring">
           <DepartmentRoute>
             <MonitoringPage />
+          </DepartmentRoute>
+        </Route>
+        <Route path="/department/trash">
+          <DepartmentRoute>
+            <TrashPage />
           </DepartmentRoute>
         </Route>
         <Route component={NotFound} />

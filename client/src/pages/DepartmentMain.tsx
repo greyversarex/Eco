@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import MobileNav from '@/components/MobileNav';
 import DepartmentCard from '@/components/DepartmentCard';
 import { t } from '@/lib/i18n';
-import { Inbox, Send, PenSquare, LogOut, Search, Eye } from 'lucide-react';
+import { Inbox, Send, PenSquare, LogOut, Search, Eye, Trash2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import type { Department } from '@shared/schema';
@@ -180,6 +180,15 @@ export default function DepartmentMain() {
                     {counters.unreadAnnouncements}
                   </span>
                 )}
+              </Button>
+              <Button
+                size="lg"
+                className="shrink-0 bg-destructive hover:bg-destructive/90 text-white font-medium px-8 h-11 rounded-md shadow-sm pl-[36px] pr-[36px] gap-2"
+                data-testid="button-trash"
+                onClick={() => setLocation('/department/trash')}
+              >
+                <Trash2 className="h-4 w-4" />
+                Корзина
               </Button>
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
