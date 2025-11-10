@@ -35,6 +35,8 @@ export interface IStorage {
   getUnreadCountByDepartment(departmentId: number): Promise<number>;
   getUnreadCountsForAllDepartments(currentDeptId: number): Promise<Record<number, number>>;
   getAllDepartmentsUnreadCounts(): Promise<Record<number, number>>;
+  listDeletedMessages(departmentId?: number): Promise<Message[]>;
+  restoreMessage(id: number): Promise<boolean>;
   
   // Attachments
   createAttachment(attachment: InsertAttachment): Promise<Attachment>;
@@ -49,6 +51,8 @@ export interface IStorage {
   updateAssignment(id: number, assignment: Partial<InsertAssignment>): Promise<Assignment | undefined>;
   deleteAssignment(id: number): Promise<boolean>;
   markAssignmentAsCompleted(id: number): Promise<Assignment | undefined>;
+  listDeletedAssignments(): Promise<Assignment[]>;
+  restoreAssignment(id: number): Promise<boolean>;
   
   // Assignment Attachments
   createAssignmentAttachment(attachment: InsertAssignmentAttachment): Promise<AssignmentAttachment>;
@@ -139,17 +143,17 @@ export class DbStorage implements IStorage {
 
   // Messages
   async getMessages(): Promise<Message[]> {
-    return await db.select().from(messages).orderBy(desc(messages.createdAt));
+    return await db.select().from(messages).where(eq(messages.isDeleted, false)).orderBy(desc(messages.createdAt));
   }
 
   async getMessageById(id: number): Promise<Message | undefined> {
-    const result = await db.select().from(messages).where(eq(messages.id, id));
+    const result = await db.select().from(messages).where(and(eq(messages.id, id), eq(messages.isDeleted, false)));
     return result[0];
   }
 
   async getMessagesByDepartment(departmentId: number): Promise<{ inbox: Message[]; outbox: Message[] }> {
-    const inbox = await db.select().from(messages).where(eq(messages.recipientId, departmentId)).orderBy(desc(messages.createdAt));
-    const outbox = await db.select().from(messages).where(eq(messages.senderId, departmentId)).orderBy(desc(messages.createdAt));
+    const inbox = await db.select().from(messages).where(and(eq(messages.recipientId, departmentId), eq(messages.isDeleted, false))).orderBy(desc(messages.createdAt));
+    const outbox = await db.select().from(messages).where(and(eq(messages.senderId, departmentId), eq(messages.isDeleted, false))).orderBy(desc(messages.createdAt));
     return { inbox, outbox };
   }
 
@@ -159,37 +163,57 @@ export class DbStorage implements IStorage {
   }
 
   async markMessageAsRead(id: number): Promise<Message | undefined> {
-    const result = await db.update(messages).set({ isRead: true }).where(eq(messages.id, id)).returning();
+    const result = await db.update(messages)
+      .set({ isRead: true })
+      .where(and(eq(messages.id, id), eq(messages.isDeleted, false)))
+      .returning();
     return result[0];
   }
 
   async deleteMessage(id: number): Promise<boolean> {
-    // First delete all attachments for this message
-    await this.deleteAttachmentsByMessageId(id);
-    // Then delete the message itself
-    const result = await db.delete(messages).where(eq(messages.id, id)).returning();
+    // Soft delete: mark as deleted
+    const result = await db.update(messages)
+      .set({ isDeleted: true, deletedAt: new Date() })
+      .where(eq(messages.id, id))
+      .returning();
     return result.length > 0;
   }
 
   async getUnreadCountByDepartment(departmentId: number): Promise<number> {
     const result = await db.select().from(messages)
-      .where(and(eq(messages.recipientId, departmentId), eq(messages.isRead, false)));
+      .where(and(
+        eq(messages.recipientId, departmentId),
+        eq(messages.isRead, false),
+        eq(messages.isDeleted, false)
+      ));
     return result.length;
   }
 
   async getMessagesByDepartmentPair(currentDeptId: number, otherDeptId: number): Promise<{ received: Message[]; sent: Message[] }> {
     const received = await db.select().from(messages)
-      .where(and(eq(messages.recipientId, currentDeptId), eq(messages.senderId, otherDeptId)))
+      .where(and(
+        eq(messages.recipientId, currentDeptId),
+        eq(messages.senderId, otherDeptId),
+        eq(messages.isDeleted, false)
+      ))
       .orderBy(desc(messages.createdAt));
     const sent = await db.select().from(messages)
-      .where(and(eq(messages.senderId, currentDeptId), eq(messages.recipientId, otherDeptId)))
+      .where(and(
+        eq(messages.senderId, currentDeptId),
+        eq(messages.recipientId, otherDeptId),
+        eq(messages.isDeleted, false)
+      ))
       .orderBy(desc(messages.createdAt));
     return { received, sent };
   }
 
   async getUnreadCountsForAllDepartments(currentDeptId: number): Promise<Record<number, number>> {
     const allMessages = await db.select().from(messages)
-      .where(and(eq(messages.recipientId, currentDeptId), eq(messages.isRead, false)));
+      .where(and(
+        eq(messages.recipientId, currentDeptId),
+        eq(messages.isRead, false),
+        eq(messages.isDeleted, false)
+      ));
     
     const counts: Record<number, number> = {};
     for (const msg of allMessages) {
@@ -200,13 +224,33 @@ export class DbStorage implements IStorage {
 
   async getAllDepartmentsUnreadCounts(): Promise<Record<number, number>> {
     const allMessages = await db.select().from(messages)
-      .where(eq(messages.isRead, false));
+      .where(and(eq(messages.isRead, false), eq(messages.isDeleted, false)));
     
     const counts: Record<number, number> = {};
     for (const msg of allMessages) {
       counts[msg.recipientId] = (counts[msg.recipientId] || 0) + 1;
     }
     return counts;
+  }
+
+  async listDeletedMessages(departmentId?: number): Promise<Message[]> {
+    const where = departmentId
+      ? and(
+          eq(messages.isDeleted, true),
+          or(eq(messages.senderId, departmentId), eq(messages.recipientId, departmentId))
+        )
+      : eq(messages.isDeleted, true);
+    return await db.select().from(messages)
+      .where(where)
+      .orderBy(desc(messages.deletedAt));
+  }
+
+  async restoreMessage(id: number): Promise<boolean> {
+    const result = await db.update(messages)
+      .set({ isDeleted: false, deletedAt: null })
+      .where(eq(messages.id, id))
+      .returning();
+    return result.length > 0;
   }
 
   // Attachments
@@ -231,7 +275,9 @@ export class DbStorage implements IStorage {
 
   // Assignments
   async getAssignments(): Promise<Assignment[]> {
-    const allAssignments = await db.select().from(assignments).orderBy(desc(assignments.createdAt));
+    const allAssignments = await db.select().from(assignments)
+      .where(eq(assignments.isDeleted, false))
+      .orderBy(desc(assignments.createdAt));
     
     // Helper to decode filename
     const decodeFilename = (filename: string): string => {
@@ -286,7 +332,8 @@ export class DbStorage implements IStorage {
   }
 
   async getAssignmentById(id: number): Promise<Assignment | undefined> {
-    const result = await db.select().from(assignments).where(eq(assignments.id, id));
+    const result = await db.select().from(assignments)
+      .where(and(eq(assignments.id, id), eq(assignments.isDeleted, false)));
     return result[0];
   }
 
@@ -296,26 +343,71 @@ export class DbStorage implements IStorage {
   }
 
   async updateAssignment(id: number, assignment: Partial<InsertAssignment>): Promise<Assignment | undefined> {
-    const result = await db.update(assignments).set(assignment).where(eq(assignments.id, id)).returning();
+    const result = await db.update(assignments)
+      .set(assignment)
+      .where(and(eq(assignments.id, id), eq(assignments.isDeleted, false)))
+      .returning();
     return result[0];
   }
 
   async deleteAssignment(id: number): Promise<boolean> {
-    const result = await db.delete(assignments).where(eq(assignments.id, id)).returning();
+    // Soft delete: mark as deleted
+    const result = await db.update(assignments)
+      .set({ isDeleted: true, deletedAt: new Date() })
+      .where(eq(assignments.id, id))
+      .returning();
     return result.length > 0;
   }
 
   async markAssignmentAsCompleted(id: number): Promise<Assignment | undefined> {
     const result = await db.update(assignments)
       .set({ isCompleted: true, completedAt: new Date() })
-      .where(eq(assignments.id, id))
+      .where(and(eq(assignments.id, id), eq(assignments.isDeleted, false)))
       .returning();
     return result[0];
   }
 
   async getUncompletedAssignmentsCount(): Promise<number> {
-    const allAssignments = await db.select().from(assignments);
+    const allAssignments = await db.select().from(assignments)
+      .where(eq(assignments.isDeleted, false));
     return allAssignments.filter(a => !a.isCompleted).length;
+  }
+
+  async listDeletedAssignments(): Promise<Assignment[]> {
+    const deletedAssignments = await db.select().from(assignments)
+      .where(eq(assignments.isDeleted, true))
+      .orderBy(desc(assignments.deletedAt));
+    
+    // Fetch attachments for each deleted assignment
+    const assignmentsWithAttachments = await Promise.all(
+      deletedAssignments.map(async (assignment) => {
+        const attachments = await db
+          .select({
+            id: assignmentAttachments.id,
+            file_name: assignmentAttachments.file_name,
+            fileSize: assignmentAttachments.fileSize,
+            mimeType: assignmentAttachments.mimeType,
+            createdAt: assignmentAttachments.createdAt,
+          })
+          .from(assignmentAttachments)
+          .where(eq(assignmentAttachments.assignmentId, assignment.id));
+        
+        return {
+          ...assignment,
+          attachments,
+        };
+      })
+    );
+    
+    return assignmentsWithAttachments;
+  }
+
+  async restoreAssignment(id: number): Promise<boolean> {
+    const result = await db.update(assignments)
+      .set({ isDeleted: false, deletedAt: null })
+      .where(eq(assignments.id, id))
+      .returning();
+    return result.length > 0;
   }
 
   // Assignment Attachments

@@ -710,6 +710,46 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Trash endpoints for messages
+  app.get("/api/trash/messages", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const departmentId = req.session.departmentId;
+      
+      // Admins can see all deleted messages, departments see only their own
+      const deletedMessages = await storage.listDeletedMessages(departmentId);
+      
+      res.json(deletedMessages);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/trash/messages/:id/restore", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const departmentId = req.session.departmentId;
+      
+      // First check if message exists in deleted messages visible to this department
+      const deletedMessages = await storage.listDeletedMessages(departmentId);
+      const messageToRestore = deletedMessages.find(m => m.id === id);
+      
+      if (!messageToRestore) {
+        return res.status(404).json({ error: 'Message not found in trash or access denied' });
+      }
+      
+      // Restore the message
+      const restored = await storage.restoreMessage(id);
+      
+      if (!restored) {
+        return res.status(500).json({ error: 'Failed to restore message' });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Get unread count for current department
   app.get("/api/messages/unread/count", requireAuth, async (req: Request, res: Response) => {
     try {
@@ -1067,6 +1107,13 @@ export function registerRoutes(app: Express) {
   app.get("/api/assignments/:id/attachments", requireAuth, async (req: Request, res: Response) => {
     try {
       const assignmentId = parseInt(req.params.id);
+      
+      // Verify assignment exists and is not deleted
+      const assignment = await storage.getAssignmentById(assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ error: 'Assignment not found' });
+      }
+      
       const attachments = await storage.getAssignmentAttachments(assignmentId);
       res.json(attachments);
     } catch (error: any) {
@@ -1083,10 +1130,75 @@ export function registerRoutes(app: Express) {
         return res.status(404).json({ error: 'Attachment not found' });
       }
 
+      // Verify parent assignment exists and is not deleted
+      const assignment = await storage.getAssignmentById(attachment.assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ error: 'Assignment not found or has been deleted' });
+      }
+
       res.setHeader('Content-Type', attachment.mimeType);
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(attachment.file_name)}"`);
       res.setHeader('Content-Length', attachment.fileSize.toString());
       res.send(attachment.fileData);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Trash endpoints for assignments
+  app.get("/api/trash/assignments", requireAuth, async (req: Request, res: Response) => {
+    try {
+      // Get all deleted assignments
+      const deletedAssignments = await storage.listDeletedAssignments();
+      
+      // Filter by departmentId if user is a department (not admin)
+      if (req.session.departmentId) {
+        const filteredAssignments = deletedAssignments.filter(assignment => 
+          assignment.recipientIds && assignment.recipientIds.length > 0
+            ? assignment.recipientIds.includes(req.session.departmentId as number)
+            : true
+        );
+        return res.json(filteredAssignments);
+      }
+      
+      // Admin sees all deleted assignments
+      res.json(deletedAssignments);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/trash/assignments/:id/restore", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Get all deleted assignments visible to this user
+      const deletedAssignments = await storage.listDeletedAssignments();
+      
+      // Filter by department if not admin
+      let assignmentToRestore;
+      if (req.session.departmentId) {
+        const filteredAssignments = deletedAssignments.filter(assignment => 
+          assignment.recipientIds && assignment.recipientIds.length > 0
+            ? assignment.recipientIds.includes(req.session.departmentId as number)
+            : true
+        );
+        assignmentToRestore = filteredAssignments.find(a => a.id === id);
+      } else {
+        assignmentToRestore = deletedAssignments.find(a => a.id === id);
+      }
+      
+      if (!assignmentToRestore) {
+        return res.status(404).json({ error: 'Assignment not found in trash or access denied' });
+      }
+      
+      const restored = await storage.restoreAssignment(id);
+      
+      if (!restored) {
+        return res.status(500).json({ error: 'Failed to restore assignment' });
+      }
+      
+      res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

@@ -70,16 +70,21 @@ export const messages: any = pgTable("messages", {
   documentDate: timestamp("document_date").notNull(),
   replyToId: integer("reply_to_id").references((): any => messages.id),
   isRead: boolean("is_read").default(false).notNull(),
+  isDeleted: boolean("is_deleted").default(false).notNull(),
+  deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   senderIdx: index("messages_sender_id_idx").on(table.senderId),
   recipientIdx: index("messages_recipient_id_idx").on(table.recipientId),
+  deletedIdx: index("messages_is_deleted_idx").on(table.isDeleted),
 }));
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   createdAt: true,
   isRead: true,
+  isDeleted: true,
+  deletedAt: true,
 }).extend({
   documentDate: z.coerce.date(),
 });
@@ -120,14 +125,20 @@ export const assignments = pgTable("assignments", {
   deadline: timestamp("deadline").notNull(), // Мӯҳлати иҷро
   isCompleted: boolean("is_completed").default(false).notNull(),
   completedAt: timestamp("completed_at"),
+  isDeleted: boolean("is_deleted").default(false).notNull(),
+  deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  deletedIdx: index("assignments_is_deleted_idx").on(table.isDeleted),
+}));
 
 export const insertAssignmentSchema = createInsertSchema(assignments).omit({
   id: true,
   createdAt: true,
   isCompleted: true,
   completedAt: true,
+  isDeleted: true,
+  deletedAt: true,
 }).extend({
   deadline: z.coerce.date(),
 });
