@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -55,9 +55,12 @@ interface SortableCardProps {
   onGenerateCode: (id: number) => void;
   onDelete: (id: number) => void;
   getBlockLabel: (block: string) => string;
+  iconVersion?: number;
 }
 
-function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete, getBlockLabel }: SortableCardProps) {
+function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete, getBlockLabel, iconVersion }: SortableCardProps) {
+  const [hasCustomIcon, setHasCustomIcon] = useState(true);
+  const iconSrc = `/api/departments/${department.id}/icon?v=${iconVersion || 0}`;
   const {
     attributes,
     listeners,
@@ -66,6 +69,10 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
     transition,
     isDragging,
   } = useSortable({ id: department.id });
+
+  useEffect(() => {
+    setHasCustomIcon(true);
+  }, [iconSrc]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -99,15 +106,18 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
           <div className="flex items-start justify-between gap-4 mb-3">
             {/* Department Icon */}
             <div className="w-12 h-12 rounded-md bg-muted flex-shrink-0 flex items-center justify-center overflow-hidden">
-              <img 
-                src={`/api/departments/${department.id}/icon?t=${Date.now()}`}
-                alt=""
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                }}
-              />
+              {hasCustomIcon ? (
+                <img 
+                  src={iconSrc}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onError={() => setHasCustomIcon(false)}
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-primary/20 text-primary rounded-md">
+                  <Building2 className="h-6 w-6" />
+                </div>
+              )}
             </div>
             
             <div className="flex-1 min-w-0">
@@ -231,7 +241,7 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: allDepartments = [], isLoading } = useQuery<Department[]>({
+  const { data: allDepartments = [], isLoading, dataUpdatedAt } = useQuery<Department[]>({
     queryKey: ['/api/departments'],
   });
 
@@ -831,6 +841,7 @@ export default function AdminDashboard() {
                             onGenerateCode={handleGenerateCode}
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
+                            iconVersion={dataUpdatedAt}
                           />
                         ))}
                       </div>
@@ -861,6 +872,7 @@ export default function AdminDashboard() {
                             onGenerateCode={handleGenerateCode}
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
+                            iconVersion={dataUpdatedAt}
                           />
                         ))}
                       </div>
@@ -891,6 +903,7 @@ export default function AdminDashboard() {
                             onGenerateCode={handleGenerateCode}
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
+                            iconVersion={dataUpdatedAt}
                           />
                         ))}
                       </div>
@@ -921,6 +934,7 @@ export default function AdminDashboard() {
                             onGenerateCode={handleGenerateCode}
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
+                            iconVersion={dataUpdatedAt}
                           />
                         ))}
                       </div>

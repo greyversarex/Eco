@@ -2,12 +2,15 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import * as LucideIcons from 'lucide-react';
 import { Building2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface DepartmentCardProps {
+  departmentId: number;
   name: string;
   icon?: string;
   unreadCount: number;
   onClick: () => void;
+  iconVersion?: number; // Optional version to force icon reload
 }
 
 // Convert kebab-case icon name to PascalCase component name
@@ -25,8 +28,15 @@ function getIconComponent(iconName: string = 'building-2') {
   return IconComponent || Building2;
 }
 
-export default function DepartmentCard({ name, icon, unreadCount, onClick }: DepartmentCardProps) {
+export default function DepartmentCard({ departmentId, name, icon, unreadCount, onClick, iconVersion }: DepartmentCardProps) {
+  const [hasCustomIcon, setHasCustomIcon] = useState(true);
   const IconComponent = getIconComponent(icon);
+  const iconSrc = `/api/departments/${departmentId}/icon?v=${iconVersion || 0}`;
+  
+  // Reset hasCustomIcon when iconSrc changes (after upload)
+  useEffect(() => {
+    setHasCustomIcon(true);
+  }, [iconSrc]);
   
   const words = name.split(' ');
   const firstWord = words[0];
@@ -47,8 +57,19 @@ export default function DepartmentCard({ name, icon, unreadCount, onClick }: Dep
         </div>
       )}
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0 mt-0.5">
-          <IconComponent className="h-5 w-5" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted shrink-0 mt-0.5 overflow-hidden">
+          {hasCustomIcon ? (
+            <img 
+              src={iconSrc}
+              alt=""
+              className="w-full h-full object-cover"
+              onError={() => setHasCustomIcon(false)}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-primary text-primary-foreground rounded-md">
+              <IconComponent className="h-5 w-5" />
+            </div>
+          )}
         </div>
         <div className="flex-1">
           <h3 className="text-base font-medium text-foreground leading-snug">

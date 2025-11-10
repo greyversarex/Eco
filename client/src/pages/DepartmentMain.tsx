@@ -18,7 +18,7 @@ export default function DepartmentMain() {
   const [searchQuery, setSearchQuery] = useState('');
   const { user, logout } = useAuth();
 
-  const { data: departments = [], isLoading } = useQuery<Omit<Department, 'accessCode'>[]>({
+  const { data: departments = [], isLoading, dataUpdatedAt } = useQuery<Omit<Department, 'accessCode'>[]>({
     queryKey: ['/api/departments/list'],
   });
 
@@ -220,10 +220,12 @@ export default function DepartmentMain() {
                   {departmentsByBlock.upper.map((dept) => (
                     <DepartmentCard
                       key={dept.id}
+                      departmentId={dept.id}
                       name={dept.name}
                       icon={dept.icon}
                       unreadCount={unreadCounts[dept.id] || 0}
                       onClick={() => handleDepartmentClick(dept.id)}
+                      iconVersion={dataUpdatedAt}
                     />
                   ))}
                 </div>
@@ -248,10 +250,12 @@ export default function DepartmentMain() {
                   {departmentsByBlock.middle.map((dept) => (
                     <DepartmentCard
                       key={dept.id}
+                      departmentId={dept.id}
                       name={dept.name}
                       icon={dept.icon}
                       unreadCount={unreadCounts[dept.id] || 0}
                       onClick={() => handleDepartmentClick(dept.id)}
+                      iconVersion={dataUpdatedAt}
                     />
                   ))}
                 </div>
@@ -276,10 +280,12 @@ export default function DepartmentMain() {
                   {departmentsByBlock.lower.map((dept) => (
                     <DepartmentCard
                       key={dept.id}
+                      departmentId={dept.id}
                       name={dept.name}
                       icon={dept.icon}
                       unreadCount={unreadCounts[dept.id] || 0}
                       onClick={() => handleDepartmentClick(dept.id)}
+                      iconVersion={dataUpdatedAt}
                     />
                   ))}
                 </div>
@@ -304,10 +310,12 @@ export default function DepartmentMain() {
                   {departmentsByBlock.district.map((dept) => (
                     <DepartmentCard
                       key={dept.id}
+                      departmentId={dept.id}
                       name={dept.name}
                       icon={dept.icon}
                       unreadCount={unreadCounts[dept.id] || 0}
                       onClick={() => handleDepartmentClick(dept.id)}
+                      iconVersion={dataUpdatedAt}
                     />
                   ))}
                 </div>

@@ -12,11 +12,12 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [iconVersion, setIconVersion] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Fetch current icon if department exists
-  const currentIconUrl = departmentId ? `/api/departments/${departmentId}/icon` : null;
+  // Fetch current icon if department exists - use iconVersion for cache-busting only after upload
+  const currentIconUrl = departmentId ? `/api/departments/${departmentId}/icon?v=${iconVersion}` : null;
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -82,6 +83,7 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
 
       setSelectedFile(null);
       setPreviewUrl(null);
+      setIconVersion(v => v + 1); // Increment version to bust cache
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -120,7 +122,7 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
             <img src={previewUrl} alt="Preview" className="w-full h-full object-cover rounded-md" />
           ) : currentIconUrl && departmentId ? (
             <img 
-              src={`${currentIconUrl}?t=${Date.now()}`} 
+              src={currentIconUrl} 
               alt="Current icon" 
               className="w-full h-full object-cover rounded-md"
               onError={(e) => {

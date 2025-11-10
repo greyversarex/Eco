@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Paperclip, X, LogOut } from 'lucide-react';
+import { ArrowLeft, Paperclip, X, LogOut, Building2 } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -17,6 +17,33 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import type { Department, Person } from '@shared/schema';
 import { Footer } from '@/components/Footer';
+
+function DepartmentIcon({ departmentId, iconVersion }: { departmentId: number; iconVersion?: number }) {
+  const [hasCustomIcon, setHasCustomIcon] = useState(true);
+  const src = `/api/departments/${departmentId}/icon?v=${iconVersion || 0}`;
+  
+  // Reset hasCustomIcon when src changes (after upload query invalidate)
+  useEffect(() => {
+    setHasCustomIcon(true);
+  }, [src]);
+  
+  return (
+    <div className="w-6 h-6 rounded bg-muted flex-shrink-0 flex items-center justify-center overflow-hidden">
+      {hasCustomIcon ? (
+        <img 
+          src={src}
+          alt=""
+          className="w-full h-full object-cover"
+          onError={() => setHasCustomIcon(false)}
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-primary/20 text-primary rounded">
+          <Building2 className="h-3 w-3" />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ComposeMessage() {
   
@@ -31,7 +58,7 @@ export default function ComposeMessage() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const { data: departments = [], isLoading: loadingDepartments } = useQuery<Omit<Department, 'accessCode'>[]>({
+  const { data: departments = [], isLoading: loadingDepartments, dataUpdatedAt } = useQuery<Omit<Department, 'accessCode'>[]>({
     queryKey: ['/api/departments/list'],
   });
 
@@ -474,6 +501,7 @@ export default function ComposeMessage() {
                               }}
                               data-testid={`checkbox-recipient-${dept.id}`}
                             />
+                            <DepartmentIcon departmentId={dept.id} iconVersion={dataUpdatedAt} />
                             <label
                               htmlFor={`recipient-${dept.id}`}
                               className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"

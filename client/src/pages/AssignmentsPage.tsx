@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock } from 'lucide-react';
+import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock, Building2 } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -18,6 +18,32 @@ import { useToast } from '@/hooks/use-toast';
 import type { Assignment, Person, Department } from '@shared/schema';
 import { Footer } from '@/components/Footer';
 import { DatePicker } from '@/components/ui/date-picker';
+
+function DepartmentIcon({ departmentId, iconVersion }: { departmentId: number; iconVersion?: number }) {
+  const [hasCustomIcon, setHasCustomIcon] = useState(true);
+  const src = `/api/departments/${departmentId}/icon?v=${iconVersion || 0}`;
+  
+  useEffect(() => {
+    setHasCustomIcon(true);
+  }, [src]);
+  
+  return (
+    <div className="w-6 h-6 rounded bg-muted flex-shrink-0 flex items-center justify-center overflow-hidden">
+      {hasCustomIcon ? (
+        <img 
+          src={src}
+          alt=""
+          className="w-full h-full object-cover"
+          onError={() => setHasCustomIcon(false)}
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-primary/20 text-primary rounded">
+          <Building2 className="h-3 w-3" />
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Progress indicator component with segmented daily view
 function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: Date; deadline: Date; isCompleted: boolean }) {
@@ -190,7 +216,7 @@ export default function AssignmentsPage() {
     queryKey: ['/api/assignments'],
   });
 
-  const { data: departments = [], isLoading: loadingDepartments } = useQuery<Department[]>({
+  const { data: departments = [], isLoading: loadingDepartments, dataUpdatedAt } = useQuery<Department[]>({
     queryKey: ['/api/departments/list'],
   });
 
@@ -485,6 +511,7 @@ export default function AssignmentsPage() {
                                     }}
                                     data-testid={`checkbox-recipient-${dept.id}`}
                                   />
+                                  <DepartmentIcon departmentId={dept.id} iconVersion={dataUpdatedAt} />
                                   <label htmlFor={`recipient-${dept.id}`} className="text-sm cursor-pointer">{dept.name}</label>
                                 </div>
                               ))
