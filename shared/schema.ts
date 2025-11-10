@@ -27,6 +27,7 @@ export const departments = pgTable("departments", {
   canCreateAssignmentFromMessage: boolean("can_create_assignment_from_message").default(false).notNull(), // Право создавать вазифа из сообщений
   canCreateAssignment: boolean("can_create_assignment").default(false).notNull(), // Право создавать супориши
   canCreateAnnouncement: boolean("can_create_announcement").default(false).notNull(), // Право создавать эълонҳо
+  icon: text("icon").default('building-2'), // Иконка департамента из lucide-react
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
