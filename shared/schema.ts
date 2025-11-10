@@ -66,7 +66,8 @@ export const messages: any = pgTable("messages", {
   content: text("content").notNull(),
   documentNumber: text("document_number"),
   senderId: integer("sender_id").notNull().references(() => departments.id),
-  recipientId: integer("recipient_id").notNull().references(() => departments.id),
+  recipientId: integer("recipient_id").references(() => departments.id), // Legacy field, kept for backward compatibility
+  recipientIds: integer("recipient_ids").array().default(sql`ARRAY[]::integer[]`).notNull(), // New field for broadcast messages
   executor: text("executor"),
   documentDate: timestamp("document_date").notNull(),
   replyToId: integer("reply_to_id").references((): any => messages.id),
@@ -77,6 +78,8 @@ export const messages: any = pgTable("messages", {
 }, (table) => ({
   senderIdx: index("messages_sender_id_idx").on(table.senderId),
   recipientIdx: index("messages_recipient_id_idx").on(table.recipientId),
+  // GIN index for array membership queries (WHERE x = ANY(recipient_ids))
+  recipientIdsIdx: index("messages_recipient_ids_idx").using("gin", table.recipientIds),
   deletedIdx: index("messages_is_deleted_idx").on(table.isDeleted),
 }));
 
@@ -86,8 +89,10 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   isRead: true,
   isDeleted: true,
   deletedAt: true,
+  recipientIds: true, // Optional during migration, will be populated from recipientId or explicit array
 }).extend({
   documentDate: z.coerce.date(),
+  recipientIds: z.array(z.number()).min(1).optional(), // Optional during migration
 });
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;

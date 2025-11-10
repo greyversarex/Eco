@@ -288,6 +288,46 @@ async function safeMigrate() {
       console.log(`✓ В таблице people уже есть ${count} записей`);
     }
 
+    // Миграция для broadcast messages - добавление recipient_ids массива
+    console.log('Миграция broadcast messages: добавление recipient_ids...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        -- Добавляем recipient_ids column если не существует
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'messages' AND column_name = 'recipient_ids'
+        ) THEN
+          ALTER TABLE messages ADD COLUMN recipient_ids integer[] NOT NULL DEFAULT ARRAY[]::integer[];
+          RAISE NOTICE 'Колонка recipient_ids добавлена в messages';
+          
+          -- Backfill: копируем recipient_id в recipient_ids для существующих записей
+          UPDATE messages 
+          SET recipient_ids = ARRAY[recipient_id] 
+          WHERE recipient_id IS NOT NULL AND recipient_ids = ARRAY[]::integer[];
+          RAISE NOTICE 'Существующие recipient_id скопированы в recipient_ids';
+          
+          -- Делаем recipient_id nullable для обратной совместимости
+          ALTER TABLE messages ALTER COLUMN recipient_id DROP NOT NULL;
+          RAISE NOTICE 'Колонка recipient_id теперь nullable';
+        ELSE
+          RAISE NOTICE 'Колонка recipient_ids уже существует в messages';
+        END IF;
+        
+        -- Создаем GIN индекс для эффективных запросов массива
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_indexes 
+          WHERE tablename = 'messages' AND indexname = 'messages_recipient_ids_idx'
+        ) THEN
+          CREATE INDEX messages_recipient_ids_idx ON messages USING gin(recipient_ids);
+          RAISE NOTICE 'GIN индекс messages_recipient_ids_idx создан';
+        ELSE
+          RAISE NOTICE 'GIN индекс messages_recipient_ids_idx уже существует';
+        END IF;
+      END $$;
+    `);
+    console.log('✓ Миграция broadcast messages завершена');
+
     console.log('\n✅ Миграция завершена успешно!');
     console.log('Все данные сохранены, новые поля добавлены.');
   } catch (error: any) {
