@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import MessageListItem from '@/components/MessageListItem';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Trash2, LogOut } from 'lucide-react';
+import { ArrowLeft, Trash2, LogOut, Search } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -18,6 +19,7 @@ export default function Inbox() {
   const [location, setLocation] = useLocation();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -66,6 +68,18 @@ export default function Inbox() {
     }));
   }, [filteredMessages, isOutbox, departments]);
 
+  const searchedMessages = useMemo(() => {
+    if (!searchQuery.trim()) return formattedMessages;
+    
+    const query = searchQuery.toLowerCase();
+    return formattedMessages.filter(msg => 
+      msg.subject.toLowerCase().includes(query) ||
+      msg.sender.toLowerCase().includes(query) ||
+      msg.documentNumber.toLowerCase().includes(query) ||
+      msg.content.toLowerCase().includes(query)
+    );
+  }, [formattedMessages, searchQuery]);
+
   const bulkDeleteMutation = useMutation({
     mutationFn: async (messageIds: number[]) => {
       return apiRequest('POST', '/api/messages/bulk-delete', { messageIds });
@@ -99,10 +113,10 @@ export default function Inbox() {
   };
 
   const handleSelectAll = () => {
-    if (selectedIds.size === formattedMessages.length) {
+    if (selectedIds.size === searchedMessages.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(formattedMessages.map(m => m.id)));
+      setSelectedIds(new Set(searchedMessages.map(m => m.id)));
     }
   };
 
@@ -231,6 +245,19 @@ export default function Inbox() {
       </header>
       <main className="mx-auto max-w-6xl relative z-10">
         <div className="border-x border-border bg-background/95 backdrop-blur-sm min-h-screen">
+          <div className="p-4 border-b border-border bg-background/50">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Ҷустуҷӯ дар паёмҳо..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+                data-testid="input-message-search"
+              />
+            </div>
+          </div>
           {loadingMessages || loadingDepartments ? (
             <div className="flex items-center justify-center p-12">
               <div className="text-center">
@@ -238,10 +265,10 @@ export default function Inbox() {
                 <p className="text-muted-foreground">Боргирӣ...</p>
               </div>
             </div>
-          ) : formattedMessages.length === 0 ? (
+          ) : searchedMessages.length === 0 ? (
             <div className="flex items-center justify-center p-12">
               <p className="text-muted-foreground">
-                Паёме нест
+                {searchQuery.trim() ? 'Паёме ёфт нашуд' : 'Паёме нест'}
               </p>
             </div>
           ) : (
@@ -254,7 +281,7 @@ export default function Inbox() {
                     data-testid="button-select-all"
                     className="gap-2 bg-green-600 text-white hover:bg-green-700 border-0 font-medium shadow-sm"
                   >
-                    {selectedIds.size === formattedMessages.length
+                    {selectedIds.size === searchedMessages.length
                       ? 'Бекор кардани интихоб'
                       : 'Ҳамаро қайд кардан'}
                   </Button>
@@ -296,7 +323,7 @@ export default function Inbox() {
                 <div />
               </div>
 
-              {formattedMessages.map((message) => (
+              {searchedMessages.map((message) => (
                 <MessageListItem
                   key={message.id}
                   {...message}

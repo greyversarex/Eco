@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, RotateCcw, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import bgImage from '@assets/eco-background-light.webp';
 
 interface Message {
   id: number;
@@ -135,8 +136,19 @@ export default function TrashPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto p-6 max-w-7xl">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-fixed relative"
+      style={{ 
+        backgroundImage: `url(${bgImage})`,
+      }}
+    >
+      <div 
+        className="absolute inset-0" 
+        style={{
+          background: 'rgba(255, 255, 255, 0.92)'
+        }}
+      />
+      <div className="container mx-auto p-6 max-w-7xl relative z-10">
         {/* Header */}
         <div className="mb-6 flex items-center gap-4">
           <Button

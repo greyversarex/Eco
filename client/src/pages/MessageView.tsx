@@ -570,7 +570,7 @@ export default function MessageView() {
                         </DialogTrigger>
                         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle>Эҷоди супориш</DialogTitle>
+                            <DialogTitle>Супориш</DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4 pt-4">
                             <div className="space-y-2">
