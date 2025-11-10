@@ -33,7 +33,7 @@ export default function AnnouncementsPage() {
 
   // Mark announcements as read when page loads
   useEffect(() => {
-    if (announcements.length > 0 && user?.department?.id) {
+    if (announcements.length > 0 && user?.userType === 'department' && user.department?.id) {
       const unreadAnnouncements = announcements.filter(
         (announcement) => !announcement.readBy.includes(user.department.id)
       );
@@ -54,7 +54,7 @@ export default function AnnouncementsPage() {
         });
       }
     }
-  }, [announcements.map(a => a.id).join(','), user?.department?.id]);
+  }, [announcements.map(a => a.id).join(','), user?.userType, user?.userType === 'department' ? user.department?.id : null]);
 
   const deleteAnnouncementMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -121,7 +121,7 @@ export default function AnnouncementsPage() {
     createAnnouncementMutation.mutate({ title, content });
   };
 
-  const canCreate = user?.userType === 'department' && user.department?.canCreateAnnouncement;
+  const canCreate = user?.userType === 'department' && (user.department as any)?.canCreateAnnouncement;
   const canDelete = canCreate; // Same permission for create and delete
 
   const formatDateTajik = (date: Date) => {
