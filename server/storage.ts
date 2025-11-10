@@ -168,7 +168,22 @@ export class DbStorage implements IStorage {
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
-    const result = await db.insert(messages).values(message).returning();
+    // Ensure backward compatibility: sync recipientId and recipientIds
+    const messageData: any = { ...message };
+    
+    // If recipientIds provided but not recipientId
+    if (messageData.recipientIds && messageData.recipientIds.length > 0 && !messageData.recipientId) {
+      // For single recipient, also set legacy recipientId field
+      if (messageData.recipientIds.length === 1) {
+        messageData.recipientId = messageData.recipientIds[0];
+      }
+    }
+    // If recipientId provided but not recipientIds, populate recipientIds array
+    else if (messageData.recipientId && (!messageData.recipientIds || messageData.recipientIds.length === 0)) {
+      messageData.recipientIds = [messageData.recipientId];
+    }
+    
+    const result = await db.insert(messages).values(messageData).returning();
     return result[0] as Message;
   }
 
@@ -229,7 +244,10 @@ export class DbStorage implements IStorage {
   async getUnreadCountsForAllDepartments(currentDeptId: number): Promise<Record<number, number>> {
     const allMessages = await db.select().from(messages)
       .where(and(
-        eq(messages.recipientId, currentDeptId),
+        or(
+          sql`${messages.recipientIds} @> ARRAY[${currentDeptId}]::integer[]`,
+          eq(messages.recipientId, currentDeptId)
+        ),
         eq(messages.isRead, false),
         eq(messages.isDeleted, false)
       ));
@@ -247,7 +265,15 @@ export class DbStorage implements IStorage {
     
     const counts: Record<number, number> = {};
     for (const msg of allMessages) {
-      counts[msg.recipientId] = (counts[msg.recipientId] || 0) + 1;
+      // For broadcast messages (recipientIds array), count for each recipient
+      if (msg.recipientIds && msg.recipientIds.length > 0) {
+        for (const recipientId of msg.recipientIds) {
+          counts[recipientId] = (counts[recipientId] || 0) + 1;
+        }
+      } else if (msg.recipientId) {
+        // Legacy single recipient
+        counts[msg.recipientId] = (counts[msg.recipientId] || 0) + 1;
+      }
     }
     return counts;
   }
@@ -256,7 +282,11 @@ export class DbStorage implements IStorage {
     const where = departmentId
       ? and(
           eq(messages.isDeleted, true),
-          or(eq(messages.senderId, departmentId), eq(messages.recipientId, departmentId))
+          or(
+            eq(messages.senderId, departmentId),
+            sql`${messages.recipientIds} @> ARRAY[${departmentId}]::integer[]`,
+            eq(messages.recipientId, departmentId)
+          )
         )
       : eq(messages.isDeleted, true);
     return await db.select().from(messages)

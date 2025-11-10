@@ -48,24 +48,48 @@ export default function Inbox() {
     if (isOutbox) {
       return messages.filter(msg => msg.senderId === currentDeptId);
     } else {
-      return messages.filter(msg => msg.recipientId === currentDeptId);
+      // Inbox: check both legacy recipientId and new recipientIds array
+      return messages.filter(msg => 
+        msg.recipientId === currentDeptId || 
+        msg.recipientIds?.includes(currentDeptId)
+      );
     }
   }, [messages, user, isOutbox]);
 
   const formattedMessages = useMemo(() => {
-    return filteredMessages.map(msg => ({
-      id: msg.id.toString(),
-      subject: msg.subject,
-      sender: isOutbox 
-        ? getDepartmentName(msg.recipientId)
-        : getDepartmentName(msg.senderId),
-      date: format(new Date(msg.documentDate), 'd. M. yyyy'),
-      isRead: msg.isRead,
-      hasAttachment: !!msg.attachmentUrl,
-      isSentMessage: isOutbox,
-      documentNumber: msg.documentNumber || '',
-      content: msg.content || '',
-    }));
+    return filteredMessages.map(msg => {
+      let senderName = '';
+      let recipientNames: string[] = [];
+      
+      if (isOutbox) {
+        // Outbox: show recipient(s)
+        if (msg.recipientIds && msg.recipientIds.length > 0) {
+          // Broadcast message - show all recipients
+          recipientNames = msg.recipientIds.map((id: number) => getDepartmentName(id)).filter((name: string) => name);
+        } else if (msg.recipientId) {
+          // Legacy single recipient
+          const name = getDepartmentName(msg.recipientId);
+          recipientNames = name ? [name] : [];
+        }
+        senderName = recipientNames.join(', '); // Fallback for search
+      } else {
+        // Inbox: show sender
+        senderName = getDepartmentName(msg.senderId);
+      }
+      
+      return {
+        id: msg.id.toString(),
+        subject: msg.subject,
+        sender: senderName,
+        recipientNames: recipientNames.length > 0 ? recipientNames : undefined,
+        date: format(new Date(msg.documentDate), 'd. M. yyyy'),
+        isRead: msg.isRead,
+        hasAttachment: !!msg.attachmentUrl,
+        isSentMessage: isOutbox,
+        documentNumber: msg.documentNumber || '',
+        content: msg.content || '',
+      };
+    });
   }, [filteredMessages, isOutbox, departments]);
 
   const searchedMessages = useMemo(() => {

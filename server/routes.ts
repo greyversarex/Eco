@@ -467,8 +467,12 @@ export function registerRoutes(app: Express) {
 
       // Check if user has access to this message
       if (req.session.departmentId) {
-        // Department can only see messages they sent or received
-        if (message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
+        // Department can see messages they sent or received (check both recipientId and recipientIds)
+        const isSender = message.senderId === req.session.departmentId;
+        const isLegacyRecipient = message.recipientId === req.session.departmentId;
+        const isBroadcastRecipient = message.recipientIds && message.recipientIds.includes(req.session.departmentId);
+        
+        if (!isSender && !isLegacyRecipient && !isBroadcastRecipient) {
           return res.status(403).json({ error: 'Access denied' });
         }
       } else if (!req.session.adminId) {
@@ -583,8 +587,9 @@ export function registerRoutes(app: Express) {
 
       res.json({
         success: true,
-        messageId: message.id,
-        recipientCount: recipientIds.length,
+        messagesCreated: 1,
+        messageIds: [message.id], // Single message with multiple recipients
+        failedRecipients: [],
         filesAttached: files.length,
       });
     } catch (error: any) {

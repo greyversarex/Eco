@@ -1,11 +1,17 @@
 import { Paperclip, CheckCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface MessageListItemProps {
   id: string;
   subject: string;
   sender: string;
+  recipientNames?: string[]; // For broadcast messages in outbox
   date: string;
   isRead: boolean;
   hasAttachment: boolean;
@@ -22,6 +28,7 @@ export default function MessageListItem({
   id,
   subject,
   sender,
+  recipientNames,
   date,
   isRead,
   hasAttachment,
@@ -33,6 +40,46 @@ export default function MessageListItem({
   documentNumber,
   content,
 }: MessageListItemProps) {
+  // Render recipient names as badges for broadcast messages
+  const renderRecipients = () => {
+    if (!recipientNames || recipientNames.length === 0) {
+      return <span className="text-sm text-muted-foreground">{sender}</span>;
+    }
+    
+    if (recipientNames.length === 1) {
+      return <span className="text-sm text-muted-foreground">{recipientNames[0]}</span>;
+    }
+    
+    // Show first 2 recipients + overflow count with tooltip
+    const visibleRecipients = recipientNames.slice(0, 2);
+    const hiddenCount = recipientNames.length - 2;
+    
+    return (
+      <div className="flex items-center gap-1 flex-wrap">
+        {visibleRecipients.map((name, idx) => (
+          <Badge key={idx} variant="secondary" className="text-xs py-0 px-2">
+            {name}
+          </Badge>
+        ))}
+        {hiddenCount > 0 && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className="text-xs py-0 px-2 cursor-help">
+                +{hiddenCount}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="space-y-1">
+                {recipientNames.slice(2).map((name, idx) => (
+                  <div key={idx} className="text-sm">{name}</div>
+                ))}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+    );
+  };
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggleSelect?.();
@@ -118,9 +165,9 @@ export default function MessageListItem({
           )}
         </div>
         
-        {/* Sender */}
+        {/* Sender/Recipients */}
         <div>
-          <span className="text-sm text-muted-foreground">{sender}</span>
+          {renderRecipients()}
         </div>
         
         {/* Date */}
