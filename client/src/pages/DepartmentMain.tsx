@@ -221,6 +221,7 @@ export default function DepartmentMain() {
                     <DepartmentCard
                       key={dept.id}
                       name={dept.name}
+                      icon={dept.icon}
                       unreadCount={unreadCounts[dept.id] || 0}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
@@ -248,6 +249,7 @@ export default function DepartmentMain() {
                     <DepartmentCard
                       key={dept.id}
                       name={dept.name}
+                      icon={dept.icon}
                       unreadCount={unreadCounts[dept.id] || 0}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
@@ -275,6 +277,7 @@ export default function DepartmentMain() {
                     <DepartmentCard
                       key={dept.id}
                       name={dept.name}
+                      icon={dept.icon}
                       unreadCount={unreadCounts[dept.id] || 0}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
@@ -302,6 +305,7 @@ export default function DepartmentMain() {
                     <DepartmentCard
                       key={dept.id}
                       name={dept.name}
+                      icon={dept.icon}
                       unreadCount={unreadCounts[dept.id] || 0}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />

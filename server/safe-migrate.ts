@@ -337,10 +337,16 @@ async function safeMigrate() {
           SELECT 1 FROM information_schema.columns 
           WHERE table_name = 'departments' AND column_name = 'icon'
         ) THEN
-          ALTER TABLE departments ADD COLUMN icon text DEFAULT 'building-2';
+          ALTER TABLE departments ADD COLUMN icon text NOT NULL DEFAULT 'building-2';
           RAISE NOTICE 'Колонка icon добавлена в departments';
         ELSE
           RAISE NOTICE 'Колонка icon уже существует в departments';
+          
+          -- Ensure existing icon column is NOT NULL
+          ALTER TABLE departments ALTER COLUMN icon SET DEFAULT 'building-2';
+          UPDATE departments SET icon = 'building-2' WHERE icon IS NULL;
+          ALTER TABLE departments ALTER COLUMN icon SET NOT NULL;
+          RAISE NOTICE 'Колонка icon обновлена: NOT NULL constraint установлен';
         END IF;
       END $$;
     `);

@@ -1,65 +1,32 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Building, FolderTree, Landmark, CloudRain, Mountain, MountainSnow, 
-  ClipboardCheck, Cog, Sprout, Leaf, Activity, Users, Wind, Cpu, 
-  TreePine, Calculator, Globe, Scale, LandPlot, Droplet, Shield, 
-  Trees, Microscope, Waves, Recycle, FlaskConical, Monitor, 
-  ClipboardList, Ruler, Dna, Sun, TrendingUp, Wrench, Newspaper, 
-  BookOpen, Factory, Binoculars, Building2 
-} from 'lucide-react';
-import { departmentIcons } from '@shared/departmentIcons';
+import * as LucideIcons from 'lucide-react';
+import { Building2 } from 'lucide-react';
 
 interface DepartmentCardProps {
   name: string;
+  icon?: string;
   unreadCount: number;
   onClick: () => void;
 }
 
-const iconMap: Record<string, any> = {
-  'building': Building,
-  'folder-tree': FolderTree,
-  'landmark': Landmark,
-  'cloud-rain': CloudRain,
-  'mountain': Mountain,
-  'mountain-snow': MountainSnow,
-  'clipboard-check': ClipboardCheck,
-  'cog': Cog,
-  'sprout': Sprout,
-  'leaf': Leaf,
-  'activity': Activity,
-  'users': Users,
-  'wind': Wind,
-  'cpu': Cpu,
-  'tree-pine': TreePine,
-  'calculator': Calculator,
-  'globe': Globe,
-  'scale': Scale,
-  'land-plot': LandPlot,
-  'droplet': Droplet,
-  'shield': Shield,
-  'trees': Trees,
-  'microscope': Microscope,
-  'waves': Waves,
-  'recycle': Recycle,
-  'flask-conical': FlaskConical,
-  'monitor': Monitor,
-  'clipboard-list': ClipboardList,
-  'ruler': Ruler,
-  'dna': Dna,
-  'sun': Sun,
-  'trending-up': TrendingUp,
-  'wrench': Wrench,
-  'newspaper': Newspaper,
-  'book-open': BookOpen,
-  'factory': Factory,
-  'binoculars': Binoculars,
-  'building-2': Building2,
-};
+// Convert kebab-case icon name to PascalCase component name
+function getIconComponent(iconName: string = 'building-2') {
+  // Convert kebab-case to PascalCase (e.g., 'cloud-rain' -> 'CloudRain')
+  const pascalCase = iconName
+    .split('-')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');
+  
+  // Get the icon component from LucideIcons
+  const IconComponent = (LucideIcons as any)[pascalCase];
+  
+  // Fallback to Building2 if icon not found
+  return IconComponent || Building2;
+}
 
-export default function DepartmentCard({ name, unreadCount, onClick }: DepartmentCardProps) {
-  const iconName = departmentIcons[name] || 'building-2';
-  const IconComponent = iconMap[iconName] || Building2;
+export default function DepartmentCard({ name, icon, unreadCount, onClick }: DepartmentCardProps) {
+  const IconComponent = getIconComponent(icon);
   
   const words = name.split(' ');
   const firstWord = words[0];

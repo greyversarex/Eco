@@ -165,6 +165,7 @@ export default function MonitoringPage() {
                     <DepartmentCard
                       key={dept.id}
                       name={dept.name}
+                      icon={dept.icon}
                       unreadCount={getMessageCountForDepartment(dept.id)}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
@@ -192,6 +193,7 @@ export default function MonitoringPage() {
                     <DepartmentCard
                       key={dept.id}
                       name={dept.name}
+                      icon={dept.icon}
                       unreadCount={getMessageCountForDepartment(dept.id)}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
@@ -219,6 +221,7 @@ export default function MonitoringPage() {
                     <DepartmentCard
                       key={dept.id}
                       name={dept.name}
+                      icon={dept.icon}
                       unreadCount={getMessageCountForDepartment(dept.id)}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
@@ -246,6 +249,7 @@ export default function MonitoringPage() {
                     <DepartmentCard
                       key={dept.id}
                       name={dept.name}
+                      icon={dept.icon}
                       unreadCount={getMessageCountForDepartment(dept.id)}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
