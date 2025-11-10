@@ -1083,7 +1083,9 @@ export function registerRoutes(app: Express) {
           // OR if department is in recipients list
           (assignment.recipientIds && assignment.recipientIds.includes(req.session.departmentId as number)) ||
           // OR if no recipients specified (legacy backward compatibility - show to all)
-          (!assignment.recipientIds || assignment.recipientIds.length === 0)
+          (!assignment.recipientIds || assignment.recipientIds.length === 0) ||
+          // OR if senderId is NULL (legacy assignments before migration - show to departments with create permission)
+          (assignment.senderId === null && req.session.departmentId)
         );
         return res.json(filteredAssignments);
       }
@@ -1342,7 +1344,9 @@ export function registerRoutes(app: Express) {
           // OR if department is in recipients list
           (assignment.recipientIds && assignment.recipientIds.includes(req.session.departmentId as number)) ||
           // OR if no recipients specified (legacy backward compatibility)
-          (!assignment.recipientIds || assignment.recipientIds.length === 0)
+          (!assignment.recipientIds || assignment.recipientIds.length === 0) ||
+          // OR if senderId is NULL (legacy assignments before migration - show to departments with create permission)
+          (assignment.senderId === null && req.session.departmentId)
         );
         return res.json(filteredAssignments);
       }
