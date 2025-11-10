@@ -300,7 +300,7 @@ export default function AssignmentsPage() {
     if (!topic) {
       toast({
         title: 'Хато',
-        description: 'Мавзӯъро интихоб кунед',
+        description: 'Мавзӯъ',
         variant: 'destructive',
       });
       return;
@@ -308,7 +308,7 @@ export default function AssignmentsPage() {
     if (selectedRecipients.length === 0) {
       toast({
         title: 'Хато',
-        description: 'Ҳадди ақал як гиранда интихоб кунед',
+        description: 'Ҳадди ақал як қабулкунанда интихоб кунед',
         variant: 'destructive',
       });
       return;
@@ -405,11 +405,11 @@ export default function AssignmentsPage() {
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Эҷоди супориш</DialogTitle>
+                  <DialogTitle>Вазифагузорӣ</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label>Мавзӯъро интихоб кунед</Label>
+                    <Label>Мавзӯъ</Label>
                     <Select value={topic} onValueChange={setTopic}>
                       <SelectTrigger data-testid="select-topic">
                         <SelectValue placeholder="Интихоб кунед" />
@@ -447,11 +447,9 @@ export default function AssignmentsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Гирандагон</Label>
-                    {loadingDepartments ? (
-                      <div className="text-sm text-muted-foreground">Боргирӣ...</div>
-                    ) : (
-                      <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label>Қабулкунандагон</Label>
+                      {!loadingDepartments && (
                         <Button
                           type="button"
                           size="sm"
@@ -463,13 +461,19 @@ export default function AssignmentsPage() {
                               setSelectedRecipients(allDeptIds);
                             }
                           }}
-                          className="mb-2 bg-green-600 hover:bg-green-700 text-white"
+                          className="bg-green-600 hover:bg-green-700 text-white"
                           data-testid="button-select-all-recipients"
                         >
                           {selectedRecipients.length === departments.length
                             ? 'Бекор кардан'
                             : 'Ҳамаро қайд кардан'}
                         </Button>
+                      )}
+                    </div>
+                    {loadingDepartments ? (
+                      <div className="text-sm text-muted-foreground">Боргирӣ...</div>
+                    ) : (
+                      <div>
                         <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {departments
@@ -507,7 +511,7 @@ export default function AssignmentsPage() {
                     <Label>Иҷрокунандагон</Label>
                     {selectedRecipients.length === 0 ? (
                       <p className="text-sm text-muted-foreground">
-                        Аввал гирандаро интихоб кунед
+                        Аввал қабулкунандаро интихоб кунед
                       </p>
                     ) : (
                       <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
@@ -597,13 +601,13 @@ export default function AssignmentsPage() {
                   </div>
 
                   <div className="flex justify-end gap-2 pt-4">
-                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      Бекор кардан
-                    </Button>
                     <Button onClick={handleSubmit} disabled={createAssignmentMutation.isPending}>
                       {createAssignmentMutation.isPending
                         ? 'Эҷод шуда истодааст...'
                         : 'Эҷод кардан'}
+                    </Button>
+                    <Button variant="destructive" onClick={() => setIsDialogOpen(false)}>
+                      Бекор кардан
                     </Button>
                   </div>
                 </div>
