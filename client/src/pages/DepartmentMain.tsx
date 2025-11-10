@@ -116,6 +116,14 @@ export default function DepartmentMain() {
                   </div>
                   <span className="font-semibold">{t.newMessage}</span>
                 </Button>
+                <Button
+                  size="icon"
+                  onClick={() => setLocation('/department/trash')}
+                  data-testid="button-trash"
+                  className="bg-white text-gray-700 hover:bg-white/90 h-11 w-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-gray-100"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </Button>
               </nav>
               <MobileNav 
                 translations={{
@@ -180,15 +188,6 @@ export default function DepartmentMain() {
                     {counters.unreadAnnouncements}
                   </span>
                 )}
-              </Button>
-              <Button
-                size="lg"
-                className="shrink-0 bg-destructive hover:bg-destructive/90 text-white font-medium px-8 h-11 rounded-md shadow-sm pl-[36px] pr-[36px] gap-2"
-                data-testid="button-trash"
-                onClick={() => setLocation('/department/trash')}
-              >
-                <Trash2 className="h-4 w-4" />
-                Корзина
               </Button>
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
