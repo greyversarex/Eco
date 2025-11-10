@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -28,13 +27,6 @@ interface Attachment {
   mimeType: string;
   uploadedAt: string;
 }
-
-const ASSIGNMENT_TOPICS = [
-  'Нақшаи корӣ',
-  'Протоколи назоратӣ',
-  'Қарорҳои ҳайати мушовара',
-  'Протоколҳои ҷаласаҳои ҳайати мушовара',
-];
 
 const EXECUTORS_LIST = [
   'Шукурзода И',
@@ -582,21 +574,17 @@ export default function MessageView() {
                           </DialogHeader>
                           <div className="space-y-4 pt-4">
                             <div className="space-y-2">
-                              <Label>Мавзӯъро интихоб кунед</Label>
-                              <Select value={assignmentTopic} onValueChange={setAssignmentTopic}>
-                                <SelectTrigger data-testid="select-assignment-topic">
-                                  <SelectValue placeholder="Интихоб кунед" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {ASSIGNMENT_TOPICS.map((t) => (
-                                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <Label>Мавзӯъ</Label>
+                              <Input
+                                value={assignmentTopic}
+                                onChange={(e) => setAssignmentTopic(e.target.value)}
+                                placeholder="Мавзӯъи супориш"
+                                data-testid="input-assignment-topic"
+                              />
                             </div>
 
                             <div className="space-y-2">
-                              <Label>Мазмуни супоришҳои додашуда</Label>
+                              <Label>Мазмун</Label>
                               <Textarea
                                 value={assignmentContent}
                                 onChange={(e) => setAssignmentContent(e.target.value)}

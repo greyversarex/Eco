@@ -1000,16 +1000,13 @@ export function registerRoutes(app: Express) {
       }
 
       // Parse executorIds from JSON field
-      console.log('[DEBUG] req.body.executorIds:', req.body.executorIds);
       const executorIdsRaw = JSON.parse(req.body.executorIds || '[]');
-      console.log('[DEBUG] executorIdsRaw:', executorIdsRaw);
       if (!Array.isArray(executorIdsRaw)) {
         return res.status(400).json({ error: 'ExecutorIds must be an array' });
       }
 
       // Convert executorIds to numbers and remove duplicates
       const executorIds = Array.from(new Set(executorIdsRaw.map(id => parseInt(String(id), 10)).filter(id => !isNaN(id))));
-      console.log('[DEBUG] executorIds after parsing:', executorIds);
 
       // Parse recipientIds from JSON field
       const recipientIdsRaw = JSON.parse(req.body.recipientIds || '[]');
@@ -1050,12 +1047,9 @@ export function registerRoutes(app: Express) {
         recipientIds: recipientIds,
         deadline: new Date(req.body.deadline),
       };
-      console.log('[DEBUG] assignmentData before validation:', assignmentData);
 
       // Validate assignment data
       const validationResult = insertAssignmentSchema.safeParse(assignmentData);
-      console.log('[DEBUG] validationResult.success:', validationResult.success);
-      console.log('[DEBUG] validationResult.data:', validationResult.success ? validationResult.data : validationResult.error);
       if (!validationResult.success) {
         return res.status(400).json({ error: 'Invalid request data', details: validationResult.error.errors });
       }
@@ -1111,14 +1105,10 @@ export function registerRoutes(app: Express) {
   // Delete assignment
   app.delete("/api/assignments/:id", requireAuth, async (req: Request, res: Response) => {
     try {
-      // Check if user is from authorized departments for deletion
+      // Check permissions: admins or departments with canCreateAssignment
       if (req.session.departmentId) {
         const dept = await storage.getDepartmentById(req.session.departmentId);
-        const allowedDepts = [
-          'Раёсати назорати давлатии истифода ва ҳифзи ҳавои атмосфера',
-          'Раёсати кадрҳо, коргузорӣ ва назорат'
-        ];
-        if (!dept || !allowedDepts.includes(dept.name)) {
+        if (!dept || !dept.canCreateAssignment) {
           return res.status(403).json({ error: 'Access denied' });
         }
       } else if (!req.session.adminId) {
