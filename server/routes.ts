@@ -999,16 +999,45 @@ export function registerRoutes(app: Express) {
         return res.status(403).json({ error: 'Access denied' });
       }
 
-      // Parse executors from JSON field
-      const executorsRaw = JSON.parse(req.body.executors || '[]');
-      if (!Array.isArray(executorsRaw)) {
-        return res.status(400).json({ error: 'Executors must be an array' });
+      // Parse executorIds from JSON field
+      console.log('[DEBUG] req.body.executorIds:', req.body.executorIds);
+      const executorIdsRaw = JSON.parse(req.body.executorIds || '[]');
+      console.log('[DEBUG] executorIdsRaw:', executorIdsRaw);
+      if (!Array.isArray(executorIdsRaw)) {
+        return res.status(400).json({ error: 'ExecutorIds must be an array' });
       }
+
+      // Convert executorIds to numbers and remove duplicates
+      const executorIds = Array.from(new Set(executorIdsRaw.map(id => parseInt(String(id), 10)).filter(id => !isNaN(id))));
+      console.log('[DEBUG] executorIds after parsing:', executorIds);
 
       // Parse recipientIds from JSON field
       const recipientIdsRaw = JSON.parse(req.body.recipientIds || '[]');
       if (!Array.isArray(recipientIdsRaw)) {
         return res.status(400).json({ error: 'RecipientIds must be an array' });
+      }
+      const recipientIds = recipientIdsRaw.map(id => parseInt(String(id), 10)).filter(id => !isNaN(id));
+
+      // Validate and get executor names from executorIds
+      const executors: string[] = [];
+      if (executorIds.length > 0) {
+        const people = await storage.getPeople();
+        const selectedPeople = people.filter((p: any) => executorIds.includes(p.id));
+        
+        // Validate that all executorIds belong to selected departments
+        for (const person of selectedPeople) {
+          if (!person.departmentId || !recipientIds.includes(person.departmentId)) {
+            return res.status(400).json({ 
+              error: `Executor ${person.name} does not belong to selected departments` 
+            });
+          }
+          executors.push(person.name);
+        }
+        
+        // Verify all executor IDs were found
+        if (selectedPeople.length !== executorIds.length) {
+          return res.status(400).json({ error: 'Some executor IDs are invalid' });
+        }
       }
 
       // Prepare assignment data
@@ -1016,13 +1045,17 @@ export function registerRoutes(app: Express) {
         topic: req.body.topic,
         content: req.body.content || null,
         documentNumber: req.body.documentNumber || null,
-        executors: executorsRaw,
-        recipientIds: recipientIdsRaw,
+        executors: executors,
+        executorIds: executorIds,
+        recipientIds: recipientIds,
         deadline: new Date(req.body.deadline),
       };
+      console.log('[DEBUG] assignmentData before validation:', assignmentData);
 
       // Validate assignment data
       const validationResult = insertAssignmentSchema.safeParse(assignmentData);
+      console.log('[DEBUG] validationResult.success:', validationResult.success);
+      console.log('[DEBUG] validationResult.data:', validationResult.success ? validationResult.data : validationResult.error);
       if (!validationResult.success) {
         return res.status(400).json({ error: 'Invalid request data', details: validationResult.error.errors });
       }

@@ -191,6 +191,7 @@ export default function AssignmentsPage() {
   const [content, setContent] = useState('');
   const [documentNumber, setDocumentNumber] = useState('');
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
+  const [selectedExecutorIds, setSelectedExecutorIds] = useState<number[]>([]);
   const [deadline, setDeadline] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
@@ -230,6 +231,7 @@ export default function AssignmentsPage() {
       setContent('');
       setDocumentNumber('');
       setSelectedRecipients([]);
+      setSelectedExecutorIds([]);
       setDeadline('');
       setSelectedFiles([]);
     },
@@ -331,6 +333,7 @@ export default function AssignmentsPage() {
       formData.append('documentNumber', documentNumber);
     }
     formData.append('recipientIds', JSON.stringify(selectedRecipients));
+    formData.append('executorIds', JSON.stringify(selectedExecutorIds));
     formData.append('deadline', deadline);
     
     selectedFiles.forEach((file) => {
@@ -487,7 +490,10 @@ export default function AssignmentsPage() {
                                       if (checked) {
                                         setSelectedRecipients([...selectedRecipients, dept.id]);
                                       } else {
+                                        // Remove department and clear its executors
                                         setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
+                                        const deptPeopleIds = allPeople.filter(p => p.departmentId === dept.id).map(p => p.id);
+                                        setSelectedExecutorIds(selectedExecutorIds.filter(id => !deptPeopleIds.includes(id)));
                                       }
                                     }}
                                     data-testid={`checkbox-recipient-${dept.id}`}
@@ -508,7 +514,14 @@ export default function AssignmentsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Иҷрокунандагон</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>Иҷрокунандагон</Label>
+                      {selectedExecutorIds.length > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          Интихоб шуд: {selectedExecutorIds.length}
+                        </span>
+                      )}
+                    </div>
                     {selectedRecipients.length === 0 ? (
                       <p className="text-sm text-muted-foreground">
                         Аввал қабулкунандаро интихоб кунед
@@ -523,13 +536,51 @@ export default function AssignmentsPage() {
                           
                           return (
                             <div key={recipientId} className="mb-4 last:mb-0">
-                              <div className="text-sm font-semibold mb-2 text-gray-700">
-                                {dept?.name || 'Номаълум'}
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="text-sm font-semibold text-gray-700">
+                                  {dept?.name || 'Номаълум'}
+                                </div>
+                                {peopleInDept.length > 1 && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      const deptPeopleIds = peopleInDept.map(p => p.id);
+                                      const allSelected = deptPeopleIds.every(id => selectedExecutorIds.includes(id));
+                                      if (allSelected) {
+                                        setSelectedExecutorIds(selectedExecutorIds.filter(id => !deptPeopleIds.includes(id)));
+                                      } else {
+                                        setSelectedExecutorIds(Array.from(new Set([...selectedExecutorIds, ...deptPeopleIds])));
+                                      }
+                                    }}
+                                    className="text-xs h-7"
+                                  >
+                                    {peopleInDept.every(p => selectedExecutorIds.includes(p.id)) ? 'Бекор кардан' : 'Ҳамаро интихоб'}
+                                  </Button>
+                                )}
                               </div>
-                              <div className="grid grid-cols-2 gap-2 pl-2">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-2">
                                 {peopleInDept.map(person => (
-                                  <div key={person.id} className="text-sm">
-                                    • {person.name}
+                                  <div key={person.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`executor-${person.id}`}
+                                      checked={selectedExecutorIds.includes(person.id)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setSelectedExecutorIds([...selectedExecutorIds, person.id]);
+                                        } else {
+                                          setSelectedExecutorIds(selectedExecutorIds.filter(id => id !== person.id));
+                                        }
+                                      }}
+                                      data-testid={`checkbox-executor-${person.id}`}
+                                    />
+                                    <label htmlFor={`executor-${person.id}`} className="text-sm cursor-pointer flex items-center gap-1.5">
+                                      {person.name}
+                                      {selectedExecutorIds.includes(person.id) && (
+                                        <span className="text-xs text-muted-foreground opacity-70">даъват</span>
+                                      )}
+                                    </label>
                                   </div>
                                 ))}
                               </div>

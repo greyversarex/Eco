@@ -176,6 +176,24 @@ async function safeMigrate() {
     `);
     console.log('✓ Индекс people_department_id_idx проверен');
 
+    // Добавляем executor_ids в assignments (если еще нет)
+    console.log('Проверка поля executor_ids в таблице assignments...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'assignments' AND column_name = 'executor_ids'
+        ) THEN
+          ALTER TABLE assignments ADD COLUMN executor_ids integer[] NOT NULL DEFAULT ARRAY[]::integer[];
+          RAISE NOTICE 'Колонка executor_ids добавлена в assignments';
+        ELSE
+          RAISE NOTICE 'Колонка executor_ids уже существует в assignments';
+        END IF;
+      END $$;
+    `);
+    console.log('✓ Поле executor_ids проверено');
+
     // Добавляем начальных исполнителей в таблицу people (если таблица пустая)
     console.log('Проверка исполнителей в таблице people...');
     const existingPeopleCount = await db.execute(sql`SELECT COUNT(*) FROM people`);

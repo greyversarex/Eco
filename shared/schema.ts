@@ -121,6 +121,7 @@ export const assignments = pgTable("assignments", {
   content: text("content"), // Мазмуни супоришҳои додашуда (комментарии)
   documentNumber: text("document_number"),
   executors: text("executors").array().notNull(), // Исполнители (массив имён)
+  executorIds: integer("executor_ids").array().notNull().default(sql`ARRAY[]::integer[]`), // ID выбранных исполнителей
   recipientIds: integer("recipient_ids").array().notNull().default(sql`ARRAY[]::integer[]`), // ID департаментов-получателей
   deadline: timestamp("deadline").notNull(), // Мӯҳлати иҷро
   isCompleted: boolean("is_completed").default(false).notNull(),
