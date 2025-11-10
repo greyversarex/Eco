@@ -379,6 +379,56 @@ async function safeMigrate() {
     `);
     console.log('✓ Таблица department_icons проверена');
 
+    // Добавляем is_deleted в messages (для функции Корзина/Trash)
+    console.log('Проверка поля is_deleted в таблице messages...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'messages' AND column_name = 'is_deleted'
+        ) THEN
+          ALTER TABLE messages ADD COLUMN is_deleted boolean NOT NULL DEFAULT false;
+          RAISE NOTICE 'Колонка is_deleted добавлена в messages';
+        ELSE
+          RAISE NOTICE 'Колонка is_deleted уже существует в messages';
+        END IF;
+      END $$;
+    `);
+    console.log('✓ Поле is_deleted в messages проверено');
+
+    // Создаем индекс для is_deleted в messages
+    console.log('Проверка индекса messages_is_deleted_idx...');
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS messages_is_deleted_idx ON messages(is_deleted);
+    `);
+    console.log('✓ Индекс messages_is_deleted_idx проверен');
+
+    // Добавляем is_deleted в assignments (для функции Корзина/Trash)
+    console.log('Проверка поля is_deleted в таблице assignments...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'assignments' AND column_name = 'is_deleted'
+        ) THEN
+          ALTER TABLE assignments ADD COLUMN is_deleted boolean NOT NULL DEFAULT false;
+          RAISE NOTICE 'Колонка is_deleted добавлена в assignments';
+        ELSE
+          RAISE NOTICE 'Колонка is_deleted уже существует в assignments';
+        END IF;
+      END $$;
+    `);
+    console.log('✓ Поле is_deleted в assignments проверено');
+
+    // Создаем индекс для is_deleted в assignments
+    console.log('Проверка индекса assignments_is_deleted_idx...');
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS assignments_is_deleted_idx ON assignments(is_deleted);
+    `);
+    console.log('✓ Индекс assignments_is_deleted_idx проверен');
+
     console.log('\n✅ Миграция завершена успешно!');
     console.log('Все данные сохранены, новые поля добавлены.');
   } catch (error: any) {
