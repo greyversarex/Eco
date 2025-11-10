@@ -1075,12 +1075,15 @@ export function registerRoutes(app: Express) {
     try {
       const allAssignments = await storage.getAssignments();
       
-      // Filter by recipientIds if user is a department
+      // Filter assignments: show if department is creator OR recipient
       if (req.session.departmentId) {
         const filteredAssignments = allAssignments.filter(assignment => 
-          assignment.recipientIds && assignment.recipientIds.length > 0
-            ? assignment.recipientIds.includes(req.session.departmentId as number)
-            : true // Show assignments without recipients to all (backward compatibility)
+          // Show if department is the creator (sender)
+          assignment.senderId === req.session.departmentId ||
+          // OR if department is in recipients list
+          (assignment.recipientIds && assignment.recipientIds.includes(req.session.departmentId as number)) ||
+          // OR if no recipients specified (legacy backward compatibility - show to all)
+          (!assignment.recipientIds || assignment.recipientIds.length === 0)
         );
         return res.json(filteredAssignments);
       }
@@ -1157,8 +1160,31 @@ export function registerRoutes(app: Express) {
         }
       }
 
+      // Determine senderId: for departments use departmentId, for admins require explicit sender
+      let senderId: number;
+      if (req.session.departmentId) {
+        senderId = req.session.departmentId;
+      } else if (req.session.adminId) {
+        // Admins MUST specify senderId explicitly with validation
+        if (!req.body.senderId) {
+          return res.status(400).json({ error: 'Admins must specify senderId (creator department)' });
+        }
+        senderId = parseInt(req.body.senderId);
+        if (isNaN(senderId)) {
+          return res.status(400).json({ error: 'Invalid senderId' });
+        }
+        // Validate that sender department exists
+        const senderDept = await storage.getDepartmentById(senderId);
+        if (!senderDept) {
+          return res.status(400).json({ error: 'Sender department not found' });
+        }
+      } else {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
       // Prepare assignment data
       const assignmentData = {
+        senderId: senderId, // Creator department ID
         topic: req.body.topic,
         content: req.body.content || null,
         documentNumber: req.body.documentNumber || null,
@@ -1222,20 +1248,34 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Delete assignment
+  // Delete assignment (only creator can delete)
   app.delete("/api/assignments/:id", requireAuth, async (req: Request, res: Response) => {
     try {
-      // Check permissions: admins or departments with canCreateAssignment
+      const id = parseInt(req.params.id);
+      
+      // Get assignment to check creator
+      const assignment = await storage.getAssignmentById(id);
+      if (!assignment) {
+        return res.status(404).json({ error: 'Assignment not found' });
+      }
+
+      // Check permissions: only creator department or admins can delete
       if (req.session.departmentId) {
-        const dept = await storage.getDepartmentById(req.session.departmentId);
-        if (!dept || !dept.canCreateAssignment) {
-          return res.status(403).json({ error: 'Access denied' });
+        // If senderId is null (legacy), allow any recipient with permission to delete
+        if (assignment.senderId && assignment.senderId !== req.session.departmentId) {
+          return res.status(403).json({ error: 'Only the creator can delete this assignment' });
+        }
+        // For null senderId (legacy), check if user has permission to create assignments
+        if (!assignment.senderId) {
+          const dept = await storage.getDepartmentById(req.session.departmentId);
+          if (!dept || !dept.canCreateAssignment) {
+            return res.status(403).json({ error: 'Access denied' });
+          }
         }
       } else if (!req.session.adminId) {
         return res.status(403).json({ error: 'Access denied' });
       }
 
-      const id = parseInt(req.params.id);
       const deleted = await storage.deleteAssignment(id);
       if (!deleted) {
         return res.status(404).json({ error: 'Assignment not found' });
@@ -1294,12 +1334,15 @@ export function registerRoutes(app: Express) {
       // Get all deleted assignments
       const deletedAssignments = await storage.listDeletedAssignments();
       
-      // Filter by departmentId if user is a department (not admin)
+      // Filter: show if department is creator OR recipient
       if (req.session.departmentId) {
         const filteredAssignments = deletedAssignments.filter(assignment => 
-          assignment.recipientIds && assignment.recipientIds.length > 0
-            ? assignment.recipientIds.includes(req.session.departmentId as number)
-            : true
+          // Show if department is the creator (sender)
+          assignment.senderId === req.session.departmentId ||
+          // OR if department is in recipients list
+          (assignment.recipientIds && assignment.recipientIds.includes(req.session.departmentId as number)) ||
+          // OR if no recipients specified (legacy backward compatibility)
+          (!assignment.recipientIds || assignment.recipientIds.length === 0)
         );
         return res.json(filteredAssignments);
       }
@@ -1315,24 +1358,29 @@ export function registerRoutes(app: Express) {
     try {
       const id = parseInt(req.params.id);
       
-      // Get all deleted assignments visible to this user
+      // Get the assignment from trash
       const deletedAssignments = await storage.listDeletedAssignments();
-      
-      // Filter by department if not admin
-      let assignmentToRestore;
-      if (req.session.departmentId) {
-        const filteredAssignments = deletedAssignments.filter(assignment => 
-          assignment.recipientIds && assignment.recipientIds.length > 0
-            ? assignment.recipientIds.includes(req.session.departmentId as number)
-            : true
-        );
-        assignmentToRestore = filteredAssignments.find(a => a.id === id);
-      } else {
-        assignmentToRestore = deletedAssignments.find(a => a.id === id);
-      }
+      const assignmentToRestore = deletedAssignments.find(a => a.id === id);
       
       if (!assignmentToRestore) {
-        return res.status(404).json({ error: 'Assignment not found in trash or access denied' });
+        return res.status(404).json({ error: 'Assignment not found in trash' });
+      }
+      
+      // Only creator or admin can restore
+      if (req.session.departmentId) {
+        // If senderId exists, only creator can restore
+        if (assignmentToRestore.senderId && assignmentToRestore.senderId !== req.session.departmentId) {
+          return res.status(403).json({ error: 'Only the creator can restore this assignment' });
+        }
+        // For null senderId (legacy), allow any recipient with permission to restore
+        if (!assignmentToRestore.senderId) {
+          const dept = await storage.getDepartmentById(req.session.departmentId);
+          if (!dept || !dept.canCreateAssignment) {
+            return res.status(403).json({ error: 'Access denied' });
+          }
+        }
+      } else if (!req.session.adminId) {
+        return res.status(403).json({ error: 'Access denied' });
       }
       
       const restored = await storage.restoreAssignment(id);

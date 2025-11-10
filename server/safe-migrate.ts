@@ -82,6 +82,31 @@ async function safeMigrate() {
     `);
     console.log('✓ Поле deleted_at в assignments проверено');
 
+    // Добавляем sender_id в assignments (создатель супориша)
+    console.log('Проверка поля sender_id в таблице assignments...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'assignments' AND column_name = 'sender_id'
+        ) THEN
+          ALTER TABLE assignments ADD COLUMN sender_id integer REFERENCES departments(id);
+          RAISE NOTICE 'Колонка sender_id добавлена в assignments';
+        ELSE
+          RAISE NOTICE 'Колонка sender_id уже существует в assignments';
+        END IF;
+      END $$;
+    `);
+    console.log('✓ Поле sender_id в assignments проверено');
+
+    // Создаем индекс для sender_id в assignments
+    console.log('Проверка индекса assignments_sender_id_idx...');
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS assignments_sender_id_idx ON assignments(sender_id);
+    `);
+    console.log('✓ Индекс assignments_sender_id_idx проверен');
+
     // Создаем индекс для is_deleted в assignments
     console.log('Проверка индекса assignments_is_deleted_idx...');
     await db.execute(sql`
