@@ -390,7 +390,7 @@ export default function MessageView() {
           background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
         }}
       >
-        <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
               <Button
@@ -431,7 +431,7 @@ export default function MessageView() {
           </div>
         </div>
       </header>
-      <main className="flex-1 w-full px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <div className="text-center">
