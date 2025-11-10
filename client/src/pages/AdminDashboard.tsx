@@ -97,6 +97,19 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
         {/* Department Info */}
         <div className="pl-6">
           <div className="flex items-start justify-between gap-4 mb-3">
+            {/* Department Icon */}
+            <div className="w-12 h-12 rounded-md bg-muted flex-shrink-0 flex items-center justify-center overflow-hidden">
+              <img 
+                src={`/api/departments/${department.id}/icon?t=${Date.now()}`}
+                alt=""
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+              />
+            </div>
+            
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-foreground text-lg mb-1 truncate">
                 {department.name}

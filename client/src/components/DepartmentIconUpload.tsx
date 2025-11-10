@@ -18,7 +18,7 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
   // Fetch current icon if department exists
   const currentIconUrl = departmentId ? `/api/departments/${departmentId}/icon` : null;
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -50,15 +50,20 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
       setPreviewUrl(reader.result as string);
     };
     reader.readAsDataURL(file);
+
+    // Auto-upload immediately if department exists
+    if (departmentId) {
+      await uploadFile(file);
+    }
   };
 
-  const handleUpload = async () => {
-    if (!selectedFile || !departmentId) return;
+  const uploadFile = async (file: File) => {
+    if (!departmentId) return;
 
     setIsUploading(true);
     try {
       const formData = new FormData();
-      formData.append('icon', selectedFile);
+      formData.append('icon', file);
 
       const response = await fetch(`/api/departments/${departmentId}/icon`, {
         method: 'POST',
@@ -72,7 +77,7 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
 
       toast({
         title: 'Муваффақият',
-        description: 'Иконкаи департамент бомуваффақият боргузорӣ шуд.',
+        description: 'Иконка бомуваффақият боргузорӣ шуд.',
       });
 
       setSelectedFile(null);
@@ -91,6 +96,11 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+    await uploadFile(selectedFile);
   };
 
   const handleRemove = () => {
