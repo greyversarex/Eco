@@ -10,6 +10,49 @@ async function safeMigrate() {
   console.log('🔄 Запуск безопасной миграции...\n');
 
   try {
+    // ВАЖНО: Сначала создаем все базовые таблицы, ПОТОМ делаем ALTER TABLE
+    
+    // Создаем таблицу assignments (если еще нет)
+    console.log('Проверка таблицы assignments...');
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS assignments (
+        id serial PRIMARY KEY,
+        topic text NOT NULL,
+        content text,
+        document_number text,
+        executors text[] NOT NULL,
+        executor_ids integer[] NOT NULL DEFAULT ARRAY[]::integer[],
+        recipient_ids integer[] NOT NULL DEFAULT ARRAY[]::integer[],
+        deadline timestamp NOT NULL,
+        is_completed boolean NOT NULL DEFAULT false,
+        completed_at timestamp,
+        is_deleted boolean NOT NULL DEFAULT false,
+        deleted_at timestamp,
+        created_at timestamp NOT NULL DEFAULT NOW()
+      );
+    `);
+    console.log('✓ Таблица assignments проверена');
+
+    // Создаем таблицу announcements (если еще нет)
+    console.log('Проверка таблицы announcements...');
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS announcements (
+        id serial PRIMARY KEY,
+        title text NOT NULL,
+        content text NOT NULL,
+        read_by integer[] NOT NULL DEFAULT ARRAY[]::integer[],
+        created_at timestamp NOT NULL DEFAULT NOW()
+      );
+    `);
+    console.log('✓ Таблица announcements проверена');
+
+    // Создаем индекс для is_deleted в assignments
+    console.log('Проверка индекса assignments_is_deleted_idx...');
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS assignments_is_deleted_idx ON assignments(is_deleted);
+    `);
+    console.log('✓ Индекс assignments_is_deleted_idx проверен');
+
     // Добавляем document_number в messages (если еще нет)
     console.log('Проверка поля document_number в таблице messages...');
     await db.execute(sql`
@@ -397,6 +440,24 @@ async function safeMigrate() {
     `);
     console.log('✓ Поле is_deleted в messages проверено');
 
+    // Добавляем deleted_at в messages
+    console.log('Проверка поля deleted_at в таблице messages...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'messages' AND column_name = 'deleted_at'
+        ) THEN
+          ALTER TABLE messages ADD COLUMN deleted_at timestamp;
+          RAISE NOTICE 'Колонка deleted_at добавлена в messages';
+        ELSE
+          RAISE NOTICE 'Колонка deleted_at уже существует в messages';
+        END IF;
+      END $$;
+    `);
+    console.log('✓ Поле deleted_at в messages проверено');
+
     // Создаем индекс для is_deleted в messages
     console.log('Проверка индекса messages_is_deleted_idx...');
     await db.execute(sql`
@@ -404,30 +465,49 @@ async function safeMigrate() {
     `);
     console.log('✓ Индекс messages_is_deleted_idx проверен');
 
-    // Добавляем is_deleted в assignments (для функции Корзина/Trash)
-    console.log('Проверка поля is_deleted в таблице assignments...');
+    // Создаем таблицу assignment_attachments
+    console.log('Проверка таблицы assignment_attachments...');
     await db.execute(sql`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns 
-          WHERE table_name = 'assignments' AND column_name = 'is_deleted'
-        ) THEN
-          ALTER TABLE assignments ADD COLUMN is_deleted boolean NOT NULL DEFAULT false;
-          RAISE NOTICE 'Колонка is_deleted добавлена в assignments';
-        ELSE
-          RAISE NOTICE 'Колонка is_deleted уже существует в assignments';
-        END IF;
-      END $$;
+      CREATE TABLE IF NOT EXISTS assignment_attachments (
+        id serial PRIMARY KEY,
+        assignment_id integer NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+        file_name text NOT NULL,
+        file_data bytea NOT NULL,
+        file_size integer NOT NULL,
+        mime_type text NOT NULL,
+        created_at timestamp NOT NULL DEFAULT NOW()
+      );
     `);
-    console.log('✓ Поле is_deleted в assignments проверено');
+    console.log('✓ Таблица assignment_attachments проверена');
 
-    // Создаем индекс для is_deleted в assignments
-    console.log('Проверка индекса assignments_is_deleted_idx...');
+    // Создаем индекс для assignment_attachments
+    console.log('Проверка индекса assignment_attachments_assignment_id_idx...');
     await db.execute(sql`
-      CREATE INDEX IF NOT EXISTS assignments_is_deleted_idx ON assignments(is_deleted);
+      CREATE INDEX IF NOT EXISTS assignment_attachments_assignment_id_idx ON assignment_attachments(assignment_id);
     `);
-    console.log('✓ Индекс assignments_is_deleted_idx проверен');
+    console.log('✓ Индекс assignment_attachments_assignment_id_idx проверен');
+
+    // Создаем таблицу announcement_attachments
+    console.log('Проверка таблицы announcement_attachments...');
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS announcement_attachments (
+        id serial PRIMARY KEY,
+        announcement_id integer NOT NULL REFERENCES announcements(id) ON DELETE CASCADE,
+        file_name text NOT NULL,
+        file_data bytea NOT NULL,
+        file_size integer NOT NULL,
+        mime_type text NOT NULL,
+        created_at timestamp NOT NULL DEFAULT NOW()
+      );
+    `);
+    console.log('✓ Таблица announcement_attachments проверена');
+
+    // Создаем индекс для announcement_attachments
+    console.log('Проверка индекса announcement_attachments_announcement_id_idx...');
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS announcement_attachments_announcement_id_idx ON announcement_attachments(announcement_id);
+    `);
+    console.log('✓ Индекс announcement_attachments_announcement_id_idx проверен');
 
     console.log('\n✅ Миграция завершена успешно!');
     console.log('Все данные сохранены, новые поля добавлены.');
