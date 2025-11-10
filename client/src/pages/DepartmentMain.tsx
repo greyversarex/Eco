@@ -120,7 +120,7 @@ export default function DepartmentMain() {
                   size="icon"
                   onClick={() => setLocation('/department/trash')}
                   data-testid="button-trash"
-                  className="bg-white text-gray-700 hover:bg-white/90 h-11 w-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-gray-100"
+                  className="bg-red-500 text-white hover:bg-red-600 h-11 w-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
                 >
                   <Trash2 className="h-5 w-5" />
                 </Button>
