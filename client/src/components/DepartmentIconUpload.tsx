@@ -32,11 +32,11 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
       return;
     }
 
-    // Validate file size (1MB max)
-    if (file.size > 1 * 1024 * 1024) {
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
       toast({
         title: 'Хатогӣ',
-        description: 'Андозаи файл бояд аз 1 MB зиёд набошад.',
+        description: 'Андозаи файл бояд аз 5 МБ зиёд набошад.',
         variant: 'destructive',
       });
       return;
@@ -114,10 +114,9 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
               alt="Current icon" 
               className="w-full h-full object-cover rounded-md"
               onError={(e) => {
-                // If image fails to load, show placeholder
+                // If image fails to load, hide it
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
-                target.parentElement!.innerHTML = '<div class="flex items-center justify-center w-full h-full"><svg class="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>';
               }}
             />
           ) : (

@@ -77,7 +77,7 @@ const upload = multer({
 const uploadIcon = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 1 * 1024 * 1024, // 1MB max file size for icons
+    fileSize: 5 * 1024 * 1024, // 5MB max file size for icons
     files: 1, // Only one file at a time
   },
 });
