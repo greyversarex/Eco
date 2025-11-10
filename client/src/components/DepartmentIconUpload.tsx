@@ -36,11 +36,11 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
       return;
     }
 
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: 'Хатогӣ',
-        description: 'Андозаи файл бояд аз 5 МБ зиёд набошад.',
+        description: 'Андозаи файл бояд аз 10 МБ зиёд набошад.',
         variant: 'destructive',
       });
       return;
