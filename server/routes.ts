@@ -73,6 +73,23 @@ const upload = multer({
   },
 });
 
+// Configure multer for department icon uploads with stricter limits
+const uploadIcon = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 1 * 1024 * 1024, // 1MB max file size for icons
+    files: 1, // Only one file at a time
+  },
+});
+
+// Allowed image MIME types for department icons
+const ALLOWED_ICON_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+];
+
 // Extend Express Request to include session
 declare module 'express-serve-static-core' {
   interface Request {
@@ -366,6 +383,112 @@ export function registerRoutes(app: Express) {
       
       res.json({ success: true });
     } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Department icon routes
+  app.post("/api/departments/:id/icon", requireAdmin, uploadIcon.single('icon'), async (req: Request, res: Response) => {
+    try {
+      const departmentId = parseInt(req.params.id);
+      
+      if (isNaN(departmentId)) {
+        return res.status(400).json({ error: 'Invalid department ID' });
+      }
+
+      // Verify department exists
+      const department = await storage.getDepartmentById(departmentId);
+      if (!department) {
+        return res.status(404).json({ error: 'Department not found' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      // Server-side MIME type verification using file-type
+      const { fileTypeFromBuffer } = await import('file-type');
+      const fileType = await fileTypeFromBuffer(req.file.buffer);
+      
+      if (!fileType || !ALLOWED_ICON_MIME_TYPES.includes(fileType.mime)) {
+        return res.status(400).json({ error: 'Invalid file type. Only images (PNG, JPEG, GIF, WebP) are allowed.' });
+      }
+
+      // Store icon in database
+      await storage.upsertDepartmentIcon({
+        departmentId,
+        fileName: req.file.originalname,
+        fileData: req.file.buffer,
+        fileSize: req.file.size,
+        mimeType: fileType.mime,
+      });
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Error uploading department icon:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/departments/:id/icon", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const departmentId = parseInt(req.params.id);
+      
+      if (isNaN(departmentId)) {
+        return res.status(400).json({ error: 'Invalid department ID' });
+      }
+
+      const icon = await storage.getDepartmentIcon(departmentId);
+      if (!icon) {
+        return res.status(404).json({ error: 'Icon not found' });
+      }
+
+      // Check If-Modified-Since header for conditional GET
+      const ifModifiedSince = req.headers['if-modified-since'];
+      if (ifModifiedSince) {
+        const modifiedDate = new Date(icon.updatedAt).getTime();
+        const requestDate = new Date(ifModifiedSince).getTime();
+        
+        if (modifiedDate <= requestDate) {
+          return res.status(304).end(); // Not Modified
+        }
+      }
+
+      // Set caching headers
+      res.setHeader('Content-Type', icon.mimeType);
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
+      res.setHeader('Last-Modified', new Date(icon.updatedAt).toUTCString());
+      res.setHeader('Content-Length', icon.fileSize.toString());
+      res.send(icon.fileData);
+    } catch (error: any) {
+      console.error('Error fetching department icon:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/departments/:id/icon", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const departmentId = parseInt(req.params.id);
+      
+      if (isNaN(departmentId)) {
+        return res.status(400).json({ error: 'Invalid department ID' });
+      }
+
+      // Verify department exists
+      const department = await storage.getDepartmentById(departmentId);
+      if (!department) {
+        return res.status(404).json({ error: 'Department not found' });
+      }
+
+      const success = await storage.deleteDepartmentIcon(departmentId);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Icon not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Error deleting department icon:', error);
       res.status(500).json({ error: error.message });
     }
   });

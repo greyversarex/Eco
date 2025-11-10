@@ -50,12 +50,15 @@ export const departments = pgTable("departments", {
   canCreateAssignmentFromMessage: boolean("can_create_assignment_from_message").default(false).notNull(), // Право создавать вазифа из сообщений
   canCreateAssignment: boolean("can_create_assignment").default(false).notNull(), // Право создавать супориши
   canCreateAnnouncement: boolean("can_create_announcement").default(false).notNull(), // Право создавать эълонҳо
+  icon: text("icon").default('building-2').notNull(), // Legacy field for backward compatibility, new icons use department_icons table
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertDepartmentSchema = createInsertSchema(departments).omit({
   id: true,
   createdAt: true,
+}).extend({
+  icon: z.string().optional(), // Optional - database default handles it
 });
 export type InsertDepartment = z.infer<typeof insertDepartmentSchema>;
 export type Department = typeof departments.$inferSelect;
