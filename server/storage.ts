@@ -88,7 +88,7 @@ export interface IStorage {
 // Database storage implementation
 import { db } from './db';
 import { departments, admins, messages, attachments, assignments, assignmentAttachments, announcements, announcementAttachments, people } from '@shared/schema';
-import { eq, or, and, desc, asc } from 'drizzle-orm';
+import { eq, or, and, desc, asc, sql } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
   // Departments
@@ -152,7 +152,17 @@ export class DbStorage implements IStorage {
   }
 
   async getMessagesByDepartment(departmentId: number): Promise<{ inbox: Message[]; outbox: Message[] }> {
-    const inbox = await db.select().from(messages).where(and(eq(messages.recipientId, departmentId), eq(messages.isDeleted, false))).orderBy(desc(messages.createdAt));
+    // Inbox: messages where departmentId is in recipientIds array, or legacy recipientId matches
+    const inbox = await db.select().from(messages).where(
+      and(
+        or(
+          sql`${messages.recipientIds} @> ARRAY[${departmentId}]::integer[]`,
+          eq(messages.recipientId, departmentId)
+        ),
+        eq(messages.isDeleted, false)
+      )
+    ).orderBy(desc(messages.createdAt));
+    
     const outbox = await db.select().from(messages).where(and(eq(messages.senderId, departmentId), eq(messages.isDeleted, false))).orderBy(desc(messages.createdAt));
     return { inbox, outbox };
   }
@@ -182,7 +192,10 @@ export class DbStorage implements IStorage {
   async getUnreadCountByDepartment(departmentId: number): Promise<number> {
     const result = await db.select().from(messages)
       .where(and(
-        eq(messages.recipientId, departmentId),
+        or(
+          sql`${messages.recipientIds} @> ARRAY[${departmentId}]::integer[]`,
+          eq(messages.recipientId, departmentId)
+        ),
         eq(messages.isRead, false),
         eq(messages.isDeleted, false)
       ));
@@ -192,7 +205,10 @@ export class DbStorage implements IStorage {
   async getMessagesByDepartmentPair(currentDeptId: number, otherDeptId: number): Promise<{ received: Message[]; sent: Message[] }> {
     const received = await db.select().from(messages)
       .where(and(
-        eq(messages.recipientId, currentDeptId),
+        or(
+          sql`${messages.recipientIds} @> ARRAY[${currentDeptId}]::integer[]`,
+          eq(messages.recipientId, currentDeptId)
+        ),
         eq(messages.senderId, otherDeptId),
         eq(messages.isDeleted, false)
       ))
@@ -200,7 +216,10 @@ export class DbStorage implements IStorage {
     const sent = await db.select().from(messages)
       .where(and(
         eq(messages.senderId, currentDeptId),
-        eq(messages.recipientId, otherDeptId),
+        or(
+          sql`${messages.recipientIds} @> ARRAY[${otherDeptId}]::integer[]`,
+          eq(messages.recipientId, otherDeptId)
+        ),
         eq(messages.isDeleted, false)
       ))
       .orderBy(desc(messages.createdAt));

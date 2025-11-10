@@ -557,44 +557,34 @@ export function registerRoutes(app: Express) {
         }
       }
 
-      // Create messages for all recipients
-      const createdMessages: number[] = [];
-      const failedRecipients: number[] = [];
+      // Create ONE message with recipientIds array (broadcast message)
+      const fullMessageData: any = {
+        ...messageData,
+        recipientIds, // New array field for broadcast
+        recipientId: null, // Legacy field kept null for new broadcast messages
+      };
+      
+      const message = await storage.createMessage(fullMessageData);
 
-      for (const recipientId of recipientIds) {
-        try {
-          const fullMessageData: any = {
-            ...messageData,
-            recipientId,
-          };
-          const message = await storage.createMessage(fullMessageData);
-          createdMessages.push(message.id);
-
-          // Attach files to this message in parallel
-          if (files.length > 0) {
-            await Promise.all(
-              files.map(file =>
-                storage.createAttachment({
-                  messageId: message.id,
-                  fileData: file.buffer,
-                  file_name: file.originalname,
-                  fileSize: file.size,
-                  mimeType: file.mimetype,
-                })
-              )
-            );
-          }
-        } catch (error) {
-          console.error(`Failed to create message for recipient ${recipientId}:`, error);
-          failedRecipients.push(recipientId);
-        }
+      // Attach files to this single message
+      if (files.length > 0) {
+        await Promise.all(
+          files.map(file =>
+            storage.createAttachment({
+              messageId: message.id,
+              fileData: file.buffer,
+              file_name: file.originalname,
+              fileSize: file.size,
+              mimeType: file.mimetype,
+            })
+          )
+        );
       }
 
       res.json({
         success: true,
-        messagesCreated: createdMessages.length,
-        messageIds: createdMessages,
-        failedRecipients,
+        messageId: message.id,
+        recipientCount: recipientIds.length,
         filesAttached: files.length,
       });
     } catch (error: any) {
