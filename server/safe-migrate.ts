@@ -328,6 +328,24 @@ async function safeMigrate() {
     `);
     console.log('✓ Миграция broadcast messages завершена');
 
+    // Добавляем icon в departments (если еще нет)
+    console.log('Проверка поля icon в таблице departments...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'departments' AND column_name = 'icon'
+        ) THEN
+          ALTER TABLE departments ADD COLUMN icon text DEFAULT 'building-2';
+          RAISE NOTICE 'Колонка icon добавлена в departments';
+        ELSE
+          RAISE NOTICE 'Колонка icon уже существует в departments';
+        END IF;
+      END $$;
+    `);
+    console.log('✓ Поле icon проверено');
+
     console.log('\n✅ Миграция завершена успешно!');
     console.log('Все данные сохранены, новые поля добавлены.');
   } catch (error: any) {
