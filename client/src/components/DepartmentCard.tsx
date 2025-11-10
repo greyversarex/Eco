@@ -57,7 +57,7 @@ export default function DepartmentCard({ departmentId, name, icon, unreadCount, 
         </div>
       )}
       <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted shrink-0 mt-0.5 overflow-hidden">
+        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-white shrink-0 mt-0.5 overflow-hidden">
           {hasCustomIcon ? (
             <img 
               src={iconSrc}

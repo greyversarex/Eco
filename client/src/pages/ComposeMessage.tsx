@@ -28,7 +28,7 @@ function DepartmentIcon({ departmentId, iconVersion }: { departmentId: number; i
   }, [src]);
   
   return (
-    <div className="w-6 h-6 rounded bg-muted flex-shrink-0 flex items-center justify-center overflow-hidden">
+    <div className="w-6 h-6 rounded bg-white flex-shrink-0 flex items-center justify-center overflow-hidden">
       {hasCustomIcon ? (
         <img 
           src={src}
