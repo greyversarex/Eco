@@ -606,16 +606,6 @@ export default function ComposeMessage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:justify-end">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => setLocation('/department/main')}
-                  data-testid="button-cancel"
-                  disabled={sendMessageMutation.isPending}
-                  className="w-full sm:w-auto"
-                >
-                  {t.cancel}
-                </Button>
                 <Button 
                   type="submit" 
                   data-testid="button-send" 
@@ -627,6 +617,16 @@ export default function ComposeMessage() {
                     : sendMessageMutation.isPending 
                       ? 'Фиристода мешавад...'
                       : t.send}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setLocation('/department/main')}
+                  data-testid="button-cancel"
+                  disabled={sendMessageMutation.isPending}
+                  className="w-full sm:w-auto"
+                >
+                  {t.cancel}
                 </Button>
               </div>
             </form>
