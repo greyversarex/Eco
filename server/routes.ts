@@ -1534,7 +1534,7 @@ export function registerRoutes(app: Express) {
       }
 
       const unreadAnnouncements = await storage.getUnreadAnnouncementsCount(departmentId);
-      const uncompletedAssignments = await storage.getUncompletedAssignmentsCount();
+      const uncompletedAssignments = await storage.getUncompletedAssignmentsCount(departmentId);
       
       res.json({
         unreadAnnouncements,

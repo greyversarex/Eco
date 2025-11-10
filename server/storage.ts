@@ -80,7 +80,7 @@ export interface IStorage {
   getAnnouncementAttachmentById(id: number): Promise<AnnouncementAttachment | undefined>;
   
   // Assignment counts
-  getUncompletedAssignmentsCount(): Promise<number>;
+  getUncompletedAssignmentsCount(departmentId: number): Promise<number>;
   
   // People
   getPeople(): Promise<Person[]>;
@@ -451,10 +451,23 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
-  async getUncompletedAssignmentsCount(): Promise<number> {
+  async getUncompletedAssignmentsCount(departmentId: number): Promise<number> {
     const allAssignments = await db.select().from(assignments)
       .where(eq(assignments.isDeleted, false));
-    return allAssignments.filter(a => !a.isCompleted).length;
+    
+    // Apply same filter as GET /api/assignments
+    const filteredAssignments = allAssignments.filter(assignment => 
+      // Show if department is the creator (sender)
+      assignment.senderId === departmentId ||
+      // OR if department is in recipients list
+      (assignment.recipientIds && assignment.recipientIds.includes(departmentId)) ||
+      // OR if no recipients specified (legacy backward compatibility - show to all)
+      (!assignment.recipientIds || assignment.recipientIds.length === 0) ||
+      // OR if senderId is NULL (legacy assignments before migration - show to departments)
+      (assignment.senderId === null)
+    );
+    
+    return filteredAssignments.filter(a => !a.isCompleted).length;
   }
 
   async listDeletedAssignments(): Promise<Assignment[]> {
