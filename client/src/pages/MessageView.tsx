@@ -555,7 +555,7 @@ export default function MessageView() {
                 )}
 
                 {user?.userType === 'department' && (
-                  <div className="pt-4 border-t flex gap-3 px-6">
+                  <div className="pt-4 border-t flex justify-between gap-3 px-6">
                     <Button onClick={handleReply} data-testid="button-reply" className="gap-2" size="lg">
                       <Reply className="h-4 w-4" />
                       {t.reply}
