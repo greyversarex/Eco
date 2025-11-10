@@ -103,19 +103,36 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
               );
             }
             
-            // Calculate dynamic color percentages
-            let greenPercent, yellowPercent, redPercent;
+            // Calculate dynamic color percentages using three-phase interpolation
+            // Phase 1 (0-33.33%): Green depletes from 33.33% to 0%, yellow and red grow equally to 50%
+            // Phase 2 (33.33-66.66%): Green=0, yellow depletes from 50% to 0%, red grows to 100%
+            // Phase 3 (66.66-100%): Green=0, yellow=0, red=100%
             
-            if (progressPercent <= 50) {
-              greenPercent = 33.33 - (progressPercent / 50 * 33.33);
-              yellowPercent = 33.33 + (progressPercent / 50 * 16.67);
-              redPercent = 33.33 + (progressPercent / 50 * 16.67);
+            const normalizedProgress = progressPercent / 100;
+            let green, yellow, red;
+            
+            if (normalizedProgress < 1/3) {
+              // Phase 1: Green drains, yellow and red grow proportionally
+              green = 1/3 - normalizedProgress;
+              yellow = 1/3 + normalizedProgress / 2;
+              red = 1/3 + normalizedProgress / 2;
+            } else if (normalizedProgress < 2/3) {
+              // Phase 2: Green=0, yellow drains, red grows
+              green = 0;
+              const phaseProgress = (normalizedProgress - 1/3) * 3;
+              yellow = 0.5 * (1 - phaseProgress);
+              red = 1 - yellow;
             } else {
-              greenPercent = 0;
-              const secondHalfProgress = progressPercent - 50;
-              yellowPercent = 50 - (secondHalfProgress / 50 * 50);
-              redPercent = 50 + (secondHalfProgress / 50 * 50);
+              // Phase 3: Only red remains (100%)
+              green = 0;
+              yellow = 0;
+              red = 1;
             }
+            
+            // Convert to percentages with safety bounds
+            const greenPercent = Math.max(0, Math.min(100, green * 100));
+            const yellowPercent = Math.max(0, Math.min(100, yellow * 100));
+            const redPercent = Math.max(0, Math.min(100, red * 100));
 
             const gradientStops = [];
             let currentPos = 0;
