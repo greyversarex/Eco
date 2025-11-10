@@ -7,7 +7,8 @@ import type {
   AssignmentAttachment, InsertAssignmentAttachment,
   Announcement, InsertAnnouncement,
   AnnouncementAttachment, InsertAnnouncementAttachment,
-  Person, InsertPerson
+  Person, InsertPerson,
+  DepartmentIcon, InsertDepartmentIcon
 } from "@shared/schema";
 
 export interface IStorage {
@@ -19,6 +20,11 @@ export interface IStorage {
   updateDepartment(id: number, department: Partial<InsertDepartment>): Promise<Department | undefined>;
   deleteDepartment(id: number): Promise<boolean>;
   reorderDepartments(updates: Array<{ id: number; sortOrder: number }>): Promise<void>;
+  
+  // Department Icons
+  getDepartmentIcon(departmentId: number): Promise<DepartmentIcon | undefined>;
+  upsertDepartmentIcon(icon: InsertDepartmentIcon): Promise<DepartmentIcon>;
+  deleteDepartmentIcon(departmentId: number): Promise<boolean>;
   
   // Admins
   getAdminByUsername(username: string): Promise<Admin | undefined>;
@@ -87,7 +93,7 @@ export interface IStorage {
 
 // Database storage implementation
 import { db } from './db';
-import { departments, admins, messages, attachments, assignments, assignmentAttachments, announcements, announcementAttachments, people } from '@shared/schema';
+import { departments, admins, messages, attachments, assignments, assignmentAttachments, announcements, announcementAttachments, people, departmentIcons } from '@shared/schema';
 import { eq, or, and, desc, asc, sql } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
@@ -128,6 +134,35 @@ export class DbStorage implements IStorage {
         .set({ sortOrder: update.sortOrder })
         .where(eq(departments.id, update.id));
     }
+  }
+
+  // Department Icons
+  async getDepartmentIcon(departmentId: number): Promise<DepartmentIcon | undefined> {
+    const result = await db.select().from(departmentIcons).where(eq(departmentIcons.departmentId, departmentId));
+    return result[0];
+  }
+
+  async upsertDepartmentIcon(icon: InsertDepartmentIcon): Promise<DepartmentIcon> {
+    // Try to insert, if conflict on departmentId then update
+    const result = await db.insert(departmentIcons)
+      .values({ ...icon, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: departmentIcons.departmentId,
+        set: {
+          fileName: icon.fileName,
+          fileData: icon.fileData,
+          fileSize: icon.fileSize,
+          mimeType: icon.mimeType,
+          updatedAt: new Date()
+        }
+      })
+      .returning();
+    return result[0];
+  }
+
+  async deleteDepartmentIcon(departmentId: number): Promise<boolean> {
+    const result = await db.delete(departmentIcons).where(eq(departmentIcons.departmentId, departmentId)).returning();
+    return result.length > 0;
   }
 
   // Admins

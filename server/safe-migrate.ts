@@ -328,7 +328,7 @@ async function safeMigrate() {
     `);
     console.log('✓ Миграция broadcast messages завершена');
 
-    // Добавляем icon в departments (если еще нет)
+    // Добавляем icon в departments (если еще нет) - оставляем для обратной совместимости
     console.log('Проверка поля icon в таблице departments...');
     await db.execute(sql`
       DO $$
@@ -351,6 +351,33 @@ async function safeMigrate() {
       END $$;
     `);
     console.log('✓ Поле icon проверено');
+
+    // Создаем таблицу department_icons для загрузки изображений
+    console.log('Проверка таблицы department_icons...');
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.tables 
+          WHERE table_name = 'department_icons'
+        ) THEN
+          CREATE TABLE department_icons (
+            id serial PRIMARY KEY,
+            department_id integer NOT NULL UNIQUE REFERENCES departments(id) ON DELETE CASCADE,
+            file_name text NOT NULL,
+            file_data bytea NOT NULL,
+            file_size integer NOT NULL,
+            mime_type text NOT NULL,
+            updated_at timestamp DEFAULT now() NOT NULL
+          );
+          CREATE INDEX department_icons_department_id_idx ON department_icons(department_id);
+          RAISE NOTICE 'Таблица department_icons создана';
+        ELSE
+          RAISE NOTICE 'Таблица department_icons уже существует';
+        END IF;
+      END $$;
+    `);
+    console.log('✓ Таблица department_icons проверена');
 
     console.log('\n✅ Миграция завершена успешно!');
     console.log('Все данные сохранены, новые поля добавлены.');

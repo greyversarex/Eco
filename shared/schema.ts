@@ -16,6 +16,29 @@ const bytea = customType<{ data: Buffer; notNull: false; default: false }>({
   },
 });
 
+// Department icons table - stores department icon images
+export const departmentIcons = pgTable("department_icons", {
+  id: serial("id").primaryKey(),
+  departmentId: integer("department_id").notNull().unique().references(() => departments.id, { onDelete: 'cascade' }),
+  fileName: text("file_name").notNull(),
+  fileData: bytea("file_data").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  deptIdx: index("department_icons_department_id_idx").on(table.departmentId),
+}));
+
+export const insertDepartmentIconSchema = z.object({
+  departmentId: z.number(),
+  fileName: z.string(),
+  fileData: z.instanceof(Buffer),
+  fileSize: z.number(),
+  mimeType: z.string(),
+});
+export type InsertDepartmentIcon = z.infer<typeof insertDepartmentIconSchema>;
+export type DepartmentIcon = typeof departmentIcons.$inferSelect;
+
 // Departments table
 export const departments = pgTable("departments", {
   id: serial("id").primaryKey(),
@@ -27,7 +50,6 @@ export const departments = pgTable("departments", {
   canCreateAssignmentFromMessage: boolean("can_create_assignment_from_message").default(false).notNull(), // Право создавать вазифа из сообщений
   canCreateAssignment: boolean("can_create_assignment").default(false).notNull(), // Право создавать супориши
   canCreateAnnouncement: boolean("can_create_announcement").default(false).notNull(), // Право создавать эълонҳо
-  icon: text("icon").default('building-2').notNull(), // Иконка департамента из lucide-react
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
