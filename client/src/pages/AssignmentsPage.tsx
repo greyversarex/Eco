@@ -688,6 +688,16 @@ export default function AssignmentsPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold">{assignment.topic}</h3>
+                      {assignment.content && (
+                        <div className="mt-3">
+                          <div className="text-sm font-medium text-gray-900 mb-1">
+                            Мазмун:
+                          </div>
+                          <div className="text-sm text-foreground bg-white p-3 rounded-md border border-primary/20 whitespace-pre-wrap">
+                            {assignment.content}
+                          </div>
+                        </div>
+                      )}
                       {assignment.recipientIds && assignment.recipientIds.length > 0 && (
                         <div className="text-sm text-muted-foreground mt-2">
                           <span className="font-medium">Қабулкунандагон:</span>{' '}
@@ -700,16 +710,6 @@ export default function AssignmentsPage() {
                         <span className="font-medium">Иҷрокунандагон:</span>{' '}
                         {assignment.executors.join(', ')}
                       </div>
-                      {assignment.content && (
-                        <div className="mt-3">
-                          <div className="text-sm font-medium text-gray-900 mb-1">
-                            Мазмуни супоришҳои додашуда:
-                          </div>
-                          <div className="text-sm text-foreground bg-white p-3 rounded-md border border-primary/20 whitespace-pre-wrap">
-                            {assignment.content}
-                          </div>
-                        </div>
-                      )}
                     </div>
                     {canDelete && (
                       <Button
