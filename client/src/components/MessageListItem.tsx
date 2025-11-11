@@ -68,13 +68,15 @@ export default function MessageListItem({
         {hiddenCount > 0 && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Badge 
-                variant="outline" 
-                className="text-xs py-0 px-2 cursor-help bg-primary/10 text-foreground border-primary/30 hover-elevate"
-                data-testid="badge-recipients-overflow"
-              >
-                +{hiddenCount}
-              </Badge>
+              <span className="inline-flex">
+                <Badge 
+                  variant="outline" 
+                  className="text-xs py-0 px-2 cursor-help bg-primary/10 text-foreground border-primary/30 hover-elevate"
+                  data-testid="badge-recipients-overflow"
+                >
+                  +{hiddenCount}
+                </Badge>
+              </span>
             </TooltipTrigger>
             <TooltipContent className="max-w-xs" side="bottom" align="start">
               <div className="space-y-1">
