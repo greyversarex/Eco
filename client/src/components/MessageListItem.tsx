@@ -57,7 +57,11 @@ export default function MessageListItem({
     return (
       <div className="flex items-center gap-1 flex-wrap">
         {visibleRecipients.map((name, idx) => (
-          <Badge key={idx} variant="secondary" className="text-xs py-0 px-2">
+          <Badge 
+            key={idx} 
+            variant="outline" 
+            className="text-xs py-0 px-2 bg-primary/5 text-foreground border-primary/20"
+          >
             {name}
           </Badge>
         ))}
@@ -65,17 +69,20 @@ export default function MessageListItem({
           <Tooltip>
             <TooltipTrigger asChild>
               <Badge 
-                variant="secondary" 
-                className="text-xs py-0 px-2 cursor-help"
+                variant="outline" 
+                className="text-xs py-0 px-2 cursor-help bg-primary/10 text-foreground border-primary/30 hover-elevate"
+                data-testid="badge-recipients-overflow"
               >
                 +{hiddenCount}
               </Badge>
             </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
+            <TooltipContent className="max-w-xs" side="bottom" align="start">
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground mb-2">Дигар қабулкунандагон:</p>
+                <p className="text-xs font-semibold mb-2">Дигар қабулкунандагон:</p>
                 {recipientNames.slice(2).map((name, idx) => (
-                  <div key={idx} className="text-sm py-0.5 px-2 rounded bg-muted/50">• {name}</div>
+                  <div key={idx} className="text-sm py-1 px-2 rounded bg-primary/10">
+                    • {name}
+                  </div>
                 ))}
               </div>
             </TooltipContent>
