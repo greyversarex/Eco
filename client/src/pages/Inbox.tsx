@@ -221,7 +221,7 @@ export default function Inbox() {
                 >
                   <Trash2 className="h-4 w-4" />
                   <span className="hidden sm:inline">
-                    Бекор кардан
+                    Нест кардан
                   </span>
                 </Button>
               ) : (
@@ -236,7 +236,7 @@ export default function Inbox() {
                   >
                     <Trash2 className="h-4 w-4" />
                     <span className="hidden sm:inline">
-                      Бекор кардан {selectedIds.size > 0 && `(${selectedIds.size})`}
+                      Нест кардан {selectedIds.size > 0 && `(${selectedIds.size})`}
                     </span>
                     <span className="sm:hidden">{selectedIds.size > 0 && `(${selectedIds.size})`}</span>
                   </Button>

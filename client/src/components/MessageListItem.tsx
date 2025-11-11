@@ -64,14 +64,18 @@ export default function MessageListItem({
         {hiddenCount > 0 && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Badge variant="outline" className="text-xs py-0 px-2 cursor-help">
+              <Badge 
+                variant="secondary" 
+                className="text-xs py-0 px-2 cursor-help"
+              >
                 +{hiddenCount}
               </Badge>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent className="max-w-xs">
               <div className="space-y-1">
+                <p className="text-xs font-semibold text-muted-foreground mb-2">Дигар қабулкунандагон:</p>
                 {recipientNames.slice(2).map((name, idx) => (
-                  <div key={idx} className="text-sm">{name}</div>
+                  <div key={idx} className="text-sm py-0.5 px-2 rounded bg-muted/50">• {name}</div>
                 ))}
               </div>
             </TooltipContent>
