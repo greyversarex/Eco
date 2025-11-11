@@ -698,14 +698,6 @@ export default function AssignmentsPage() {
                           </div>
                         </div>
                       )}
-                      {assignment.recipientIds && assignment.recipientIds.length > 0 && (
-                        <div className="text-sm text-muted-foreground mt-2">
-                          <span className="font-medium">Қабулкунандагон:</span>{' '}
-                          {assignment.recipientIds
-                            .map(id => departments.find(d => d.id === id)?.name || `ID ${id}`)
-                            .join(', ')}
-                        </div>
-                      )}
                       <div className="text-sm text-muted-foreground mt-2">
                         <span className="font-medium">Иҷрокунандагон:</span>{' '}
                         {assignment.executors.join(', ')}
