@@ -164,8 +164,10 @@ export default function MonitoringPage() {
                   {departmentsByBlock.upper.map((dept) => (
                     <DepartmentCard
                       key={dept.id}
+                      departmentId={dept.id}
                       name={dept.name}
                       icon={dept.icon}
+                      iconVersion={dept.iconVersion || 0}
                       unreadCount={getMessageCountForDepartment(dept.id)}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
@@ -192,8 +194,10 @@ export default function MonitoringPage() {
                   {departmentsByBlock.middle.map((dept) => (
                     <DepartmentCard
                       key={dept.id}
+                      departmentId={dept.id}
                       name={dept.name}
                       icon={dept.icon}
+                      iconVersion={dept.iconVersion || 0}
                       unreadCount={getMessageCountForDepartment(dept.id)}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
@@ -220,8 +224,10 @@ export default function MonitoringPage() {
                   {departmentsByBlock.lower.map((dept) => (
                     <DepartmentCard
                       key={dept.id}
+                      departmentId={dept.id}
                       name={dept.name}
                       icon={dept.icon}
+                      iconVersion={dept.iconVersion || 0}
                       unreadCount={getMessageCountForDepartment(dept.id)}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />
@@ -248,8 +254,10 @@ export default function MonitoringPage() {
                   {departmentsByBlock.district.map((dept) => (
                     <DepartmentCard
                       key={dept.id}
+                      departmentId={dept.id}
                       name={dept.name}
                       icon={dept.icon}
+                      iconVersion={dept.iconVersion || 0}
                       unreadCount={getMessageCountForDepartment(dept.id)}
                       onClick={() => handleDepartmentClick(dept.id)}
                     />

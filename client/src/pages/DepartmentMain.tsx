@@ -223,9 +223,9 @@ export default function DepartmentMain() {
                       departmentId={dept.id}
                       name={dept.name}
                       icon={dept.icon}
+                      iconVersion={dept.iconVersion || 0}
                       unreadCount={unreadCounts[dept.id] || 0}
                       onClick={() => handleDepartmentClick(dept.id)}
-                      iconVersion={dataUpdatedAt}
                     />
                   ))}
                 </div>
@@ -253,9 +253,9 @@ export default function DepartmentMain() {
                       departmentId={dept.id}
                       name={dept.name}
                       icon={dept.icon}
+                      iconVersion={dept.iconVersion || 0}
                       unreadCount={unreadCounts[dept.id] || 0}
                       onClick={() => handleDepartmentClick(dept.id)}
-                      iconVersion={dataUpdatedAt}
                     />
                   ))}
                 </div>
@@ -283,9 +283,9 @@ export default function DepartmentMain() {
                       departmentId={dept.id}
                       name={dept.name}
                       icon={dept.icon}
+                      iconVersion={dept.iconVersion || 0}
                       unreadCount={unreadCounts[dept.id] || 0}
                       onClick={() => handleDepartmentClick(dept.id)}
-                      iconVersion={dataUpdatedAt}
                     />
                   ))}
                 </div>
@@ -313,9 +313,9 @@ export default function DepartmentMain() {
                       departmentId={dept.id}
                       name={dept.name}
                       icon={dept.icon}
+                      iconVersion={dept.iconVersion || 0}
                       unreadCount={unreadCounts[dept.id] || 0}
                       onClick={() => handleDepartmentClick(dept.id)}
-                      iconVersion={dataUpdatedAt}
                     />
                   ))}
                 </div>
