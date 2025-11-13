@@ -24,6 +24,7 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 - **Assignments and Announcements:** Comprehensive system for managing tasks and platform-wide notifications with deadline tracking (three-color progress indicators using a three-phase algorithm where green depletes first, then yellow, then red), multi-executor assignment, topic selection, content/comments field, and completion status. Assignment creation forms (both main page and message compose) display department lists without icons for consistency. Features file attachments, read tracking for announcements, and badge counters for uncompleted assignments and unread announcements. Permissions are controlled through an admin panel via database flags (`canCreateAssignment`, `canCreateAssignmentFromMessage`, `canMonitor`).
 - **Broadcast Messaging:** Optimized endpoint for sending messages to multiple departments.
 - **Department Icon Upload:** Interactive icon upload system with image cropping and zooming.
+- **ZIP Archive Export System:** Admin-only feature to export department message history (inbox/outbox) as structured ZIP archives. Each message is stored in a separate folder containing a formatted Word document (`паём.docx`) with message metadata (sender, recipient, date, subject, document number, content) and all original file attachments. Folder names follow the pattern `{001}_{YYYY-MM-DD}_{sanitized_subject}` with robust filename sanitization to prevent Zip Slip attacks and ensure cross-platform compatibility. Utilizes `jszip` and `docx` libraries for archive generation.
 - **Recycle Bin (Корзина) System:** Soft-delete functionality for messages and assignments, with dedicated trash API endpoints, a TrashPage, and restore functionality.
 - **Unified Department Ordering System:** Centralized `sortOrder`-based department ordering across the application, managed via an admin panel with drag-and-drop functionality.
 - **People/Executors Management System:** System for managing people (executors/иҷрокунандагон) with department associations, including CRUD API endpoints and automatic filtering in message and assignment forms.
@@ -44,6 +45,7 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 - **Form Handling:** `react-hook-form`, `@hookform/resolvers`, `zod`.
 - **Drag and Drop:** `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`.
 - **Image Processing:** `react-easy-crop`, `sharp`.
+- **Archive Generation:** `jszip`, `docx`.
 - **Utilities:** `date-fns`, `clsx`, `tailwind-merge`.
 
 ### Third-Party Services

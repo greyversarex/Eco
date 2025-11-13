@@ -1594,7 +1594,11 @@ export function registerRoutes(app: Express) {
           ? new Date(message.documentDate)
           : new Date(message.createdAt);
 
-        const dateStr = messageDate.toLocaleDateString('en-GB').replace(/\//g, '-');
+        // Safe date format: YYYY-MM-DD (no problematic characters)
+        const year = messageDate.getFullYear();
+        const month = String(messageDate.getMonth() + 1).padStart(2, '0');
+        const day = String(messageDate.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
         
         // Get sender
         const sender = deptMap.get(message.senderId);
@@ -1607,9 +1611,16 @@ export function registerRoutes(app: Express) {
             : [];
         const recipients = recipientIdsList.map((id: number) => deptMap.get(id)).filter(Boolean);
 
-        // Create folder name (sanitize for filesystem)
+        // Create folder name with strict sanitization (prevent Zip Slip attack)
         const subject = message.subject || 'Мавзуъ нест';
-        const folderName = `${i + 1}_${dateStr}_${subject}`.replace(/[/\\?%*:|"<>]/g, '_').substring(0, 100);
+        // Remove all potentially dangerous characters including path separators, parent directory references, and Windows-invalid chars
+        const sanitizedSubject = subject
+          .replace(/\.\./g, '')  // Remove parent directory references
+          .replace(/[/\\?%*:|"<>\x00-\x1f]/g, '_')  // Remove path separators and invalid chars
+          .trim()
+          .substring(0, 50);  // Limit subject length
+        
+        const folderName = `${String(i + 1).padStart(3, '0')}_${dateStr}_${sanitizedSubject}`;
 
         // Create Word document for message
         const doc = new Document({
@@ -1736,9 +1747,15 @@ export function registerRoutes(app: Express) {
         const attachments = await storage.getAttachmentsByMessageId(message.id);
         
         for (const attachment of attachments) {
-          if (attachment.file_data) {
+          if (attachment.fileData) {
+            // Sanitize attachment filename (prevent Zip Slip)
+            const sanitizedFileName = attachment.file_name
+              .replace(/\.\./g, '')
+              .replace(/[/\\?%*:|"<>\x00-\x1f]/g, '_')
+              .trim();
+            
             // Add attachment to the message folder
-            zip.folder(folderName)?.file(attachment.file_name, attachment.file_data);
+            zip.folder(folderName)?.file(sanitizedFileName, attachment.fileData);
           }
         }
       }
