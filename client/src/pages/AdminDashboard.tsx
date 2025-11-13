@@ -20,7 +20,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { t } from '@/lib/i18n';
-import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical } from 'lucide-react';
+import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical, Download } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -213,6 +213,36 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
+
+          {/* Archive Buttons */}
+          <div className="flex gap-2 pt-3 border-t border-border">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(`/api/admin/departments/${department.id}/archive/inbox`, '_blank');
+              }}
+              data-testid={`button-archive-inbox-${department.id}`}
+              className="flex-1"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Воридшуда
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(`/api/admin/departments/${department.id}/archive/outbox`, '_blank');
+              }}
+              data-testid={`button-archive-outbox-${department.id}`}
+              className="flex-1"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Ирсолшуда
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -270,7 +300,7 @@ export default function AdminDashboard() {
   }, [departmentsByBlock]);
 
   const createMutation = useMutation({
-    mutationFn: async (data: { name: string; block: string; canMonitor: boolean; canCreateAssignmentFromMessage: boolean; canCreateAssignment: boolean }) => {
+    mutationFn: async (data: { name: string; block: string; canMonitor: boolean; canCreateAssignmentFromMessage: boolean; canCreateAssignment: boolean; canCreateAnnouncement: boolean }) => {
       const code = Math.random().toString(36).substring(2, 10).toUpperCase();
       return await apiRequest('POST', '/api/departments', { ...data, accessCode: code });
     },
@@ -281,6 +311,7 @@ export default function AdminDashboard() {
       setNewCanMonitor(false);
       setNewCanCreateAssignmentFromMessage(false);
       setNewCanCreateAssignment(false);
+      setNewCanCreateAnnouncement(false);
       setIsAddDialogOpen(false);
       toast({
         title: 'Муваффақият',

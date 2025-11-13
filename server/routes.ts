@@ -1540,4 +1540,121 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ error: error.message });
     }
   });
+
+  // Export chat archive for admin
+  app.get("/api/admin/departments/:departmentId/archive/:direction", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const departmentId = parseInt(req.params.departmentId);
+      const direction = req.params.direction as 'inbox' | 'outbox';
+
+      if (!['inbox', 'outbox'].includes(direction)) {
+        return res.status(400).json({ error: 'Invalid direction' });
+      }
+
+      const department = await storage.getDepartmentById(departmentId);
+      if (!department) {
+        return res.status(404).json({ error: 'Department not found' });
+      }
+
+      // Get messages
+      const allMessages = await storage.getMessagesByDepartment(departmentId);
+      const messages = direction === 'inbox' ? allMessages.inbox : allMessages.outbox;
+
+      // Format archive
+      const directionLabel = direction === 'inbox' ? 'Воридшуда' : 'Ирсолшуда';
+      const currentDate = new Date().toLocaleString('tg-TJ', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      let archive = `АРХИВИ ПАЁМҲО\n`;
+      archive += `Шуъба: ${department.name}\n`;
+      archive += `Самт: ${directionLabel}\n`;
+      archive += `Сана: ${currentDate}\n`;
+      archive += `\n========================================\n\n`;
+
+      // Get all unique department IDs
+      const allDeptIds = new Set<number>();
+      messages.forEach(msg => {
+        allDeptIds.add(msg.senderId);
+        if (msg.recipientIds && msg.recipientIds.length > 0) {
+          msg.recipientIds.forEach((id: number) => allDeptIds.add(id));
+        }
+        if (msg.recipientId) {
+          allDeptIds.add(msg.recipientId);
+        }
+      });
+
+      // Bulk fetch all departments
+      const depts = await Promise.all(
+        Array.from(allDeptIds).map(id => storage.getDepartmentById(id))
+      );
+      const deptMap = new Map(depts.filter(Boolean).map((d: any) => [d.id, d]));
+
+      for (const message of messages) {
+        const messageDate = message.documentDate 
+          ? new Date(message.documentDate).toLocaleString('tg-TJ', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+          : new Date(message.createdAt).toLocaleString('tg-TJ', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+
+        // Get sender
+        const sender = deptMap.get(message.senderId);
+
+        // Get recipients (handle both new and legacy formats)
+        const recipientIdsList = message.recipientIds && message.recipientIds.length > 0
+          ? message.recipientIds
+          : message.recipientId
+            ? [message.recipientId]
+            : [];
+        const recipients = recipientIdsList.map((id: number) => deptMap.get(id)).filter(Boolean);
+
+        archive += `Сана: ${messageDate}\n`;
+        archive += `Аз: ${sender?.name || 'Номаълум'}\n`;
+        archive += `Ба: ${recipients.map((r: any) => r?.name).join(', ') || 'Номаълум'}\n`;
+        
+        if (message.subject) {
+          archive += `Мавзуъ: ${message.subject}\n`;
+        }
+        
+        if (message.documentNumber) {
+          archive += `Рақами ҳуҷҷат: ${message.documentNumber}\n`;
+        }
+
+        archive += `\n${message.content}\n`;
+
+        // Get attachments
+        const attachments = await storage.getAttachmentsByMessageId(message.id);
+        if (attachments.length > 0) {
+          archive += `\nЗамимаҳо:\n`;
+          attachments.forEach((att: any, idx: number) => {
+            archive += `  ${idx + 1}. ${att.file_name} (${(att.fileSize / 1024).toFixed(2)} KB)\n`;
+          });
+        }
+
+        archive += `\n========================================\n\n`;
+      }
+
+      // Send as downloadable file
+      const filename = `${department.name}_${directionLabel}_${new Date().toISOString().split('T')[0]}.txt`;
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+      res.send(Buffer.from(archive, 'utf-8'));
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 }
