@@ -13,7 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import type { Message, Department } from '@shared/schema';
+import type { Message, Department, Person } from '@shared/schema';
 import { format } from 'date-fns';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
@@ -27,55 +27,6 @@ interface Attachment {
   mimeType: string;
   uploadedAt: string;
 }
-
-const EXECUTORS_LIST = [
-  'Шукурзода И',
-  'Раҳмонзода Л.Ш',
-  'Назирзода Абдуқодир. С',
-  'Қурбонзода Абдуллоҳ. Ҳ',
-  'Холзода Суҳроб. Хол',
-  'Сабзали Шаҳтут. Н',
-  'Собтрзода Қурбоналӣ. М',
-  'Нурализода Фируз. М',
-  'Сафарализода Бахтиёр. С',
-  'Ибодуллои Маҳмадулло',
-  'Салимзода Умаралӣ. С',
-  'Қаландарзода Абдуқаюм. Ҷ',
-  'Давлатзода Сарвар',
-  'Зарифзода Фарҳод. Т',
-  'Идизод Неъматулло. Р',
-  'Қурбонзода Фируз. А',
-  'Маҳмудов Насим. З',
-  'Раҳмоналӣ Маҳмадалӣ',
-  'Давлатзода Афзал. А',
-  'Бобохонзода Адолатхон. О',
-  'Шамсиддинзода Хуршед.Ш',
-  'Дустзода Ҳасан. Т',
-  'Шерматов Хисравшоҳ. Р',
-  'Сафаров Фирузю П',
-  'Улуғов Умидҷон. А',
-  'Тиллои Гулрухсор. А',
-  'Аҳрорзода Ҳамароҳ. Ҳ',
-  'Судурзода Саидисмон. С',
-  'Ятимов Олимҷон. Р',
-  'Ҷунайдзода Муҳибулло.Ҳ',
-  'Панҷиев Аъзам. А',
-  'Яқубов Ҷамолиддин. Н',
-  'Каримов Алихон. А',
-  'Алмосов Сафаралӣ. А',
-  'Ашуриён Хуршед. Қ',
-  'Юсуфзода Абдуҷалил.Ҳ',
-  'Маҳмадализода Шарофиддин. А',
-  'Камолзода Дилшод. Н',
-  'Каримзода Акмал. Т',
-  'Нуров Муродулло.Т',
-  'Расуло Ҷамшед. Д',
-  'Буев Абдулазиз. А',
-  'Камолов Эраҷ. Т',
-  'Раҷабов Сайҷафар. Д',
-  'Саъдуллоев Бекназар. С',
-  'Ҳуҷумбороа Фазлиддин. С',
-];
 
 const formatDateTajik = (date: Date) => {
   const monthsTajik = [
@@ -102,7 +53,7 @@ export default function MessageView() {
   const [assignmentTopic, setAssignmentTopic] = useState('');
   const [assignmentContent, setAssignmentContent] = useState('');
   const [assignmentDocNumber, setAssignmentDocNumber] = useState('');
-  const [selectedExecutors, setSelectedExecutors] = useState<string[]>([]);
+  const [selectedExecutorIds, setSelectedExecutorIds] = useState<number[]>([]);
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
   const [assignmentDeadline, setAssignmentDeadline] = useState('');
   const [assignmentFiles, setAssignmentFiles] = useState<File[]>([]);
@@ -119,6 +70,10 @@ export default function MessageView() {
   // Load department list for all purposes (sender name, recipients, etc.)
   const { data: departments = [], isLoading: loadingDepartments } = useQuery<any[]>({
     queryKey: ['/api/departments/list'],
+  });
+
+  const { data: allPeople = [] } = useQuery<Person[]>({
+    queryKey: ['/api/people'],
   });
 
   // Load attachments from database
@@ -241,7 +196,7 @@ export default function MessageView() {
       setAssignmentTopic('');
       setAssignmentContent('');
       setAssignmentDocNumber('');
-      setSelectedExecutors([]);
+      setSelectedExecutorIds([]);
       setSelectedRecipients([]);
       setAssignmentDeadline('');
       setAssignmentFiles([]);
@@ -327,18 +282,18 @@ export default function MessageView() {
       });
       return;
     }
-    if (selectedExecutors.length === 0) {
+    if (selectedRecipients.length === 0) {
       toast({
         title: 'Хато',
-        description: 'Иҷрокунандагонро интихоб кунед',
+        description: 'Ҳадди ақал як қабулкунанда интихоб кунед',
         variant: 'destructive',
       });
       return;
     }
-    if (selectedRecipients.length === 0) {
+    if (selectedExecutorIds.length === 0) {
       toast({
         title: 'Хато',
-        description: 'Ҳадди ақал як гиранда интихоб кунед',
+        description: 'Иҷрокунандагонро интихоб кунед',
         variant: 'destructive',
       });
       return;
@@ -360,7 +315,7 @@ export default function MessageView() {
     if (assignmentDocNumber) {
       formData.append('documentNumber', assignmentDocNumber);
     }
-    formData.append('executors', JSON.stringify(selectedExecutors));
+    formData.append('executorIds', JSON.stringify(selectedExecutorIds));
     formData.append('recipientIds', JSON.stringify(selectedRecipients));
     formData.append('deadline', assignmentDeadline);
     
@@ -608,42 +563,11 @@ export default function MessageView() {
                             </div>
 
                             <div className="space-y-2">
-                              <Label>Иҷрокунандагон</Label>
-                              <div className="border rounded-md p-4 max-h-60 overflow-y-auto grid grid-cols-2 gap-2">
-                                {EXECUTORS_LIST.map((executor) => (
-                                  <div key={executor} className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={`assignment-executor-${executor}`}
-                                      checked={selectedExecutors.includes(executor)}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          setSelectedExecutors([...selectedExecutors, executor]);
-                                        } else {
-                                          setSelectedExecutors(selectedExecutors.filter(e => e !== executor));
-                                        }
-                                      }}
-                                      data-testid={`checkbox-assignment-executor-${executor}`}
-                                    />
-                                    <label htmlFor={`assignment-executor-${executor}`} className="text-sm cursor-pointer">{executor}</label>
-                                  </div>
-                                ))}
-                              </div>
-                              {selectedExecutors.length > 0 && (
-                                <p className="text-sm text-muted-foreground">
-                                  Интихоб шуд: {selectedExecutors.length}
-                                </p>
-                              )}
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label>Гирандагон</Label>
-                              {loadingDepartments ? (
-                                <div className="text-sm text-muted-foreground">Боргирӣ...</div>
-                              ) : (
-                                <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <Label>Қабулкунандагон</Label>
+                                {!loadingDepartments && (
                                   <Button
                                     type="button"
-                                    variant="outline"
                                     size="sm"
                                     onClick={() => {
                                       const allDeptIds = departments.map(dept => dept.id);
@@ -653,35 +577,40 @@ export default function MessageView() {
                                         setSelectedRecipients(allDeptIds);
                                       }
                                     }}
-                                    className="mb-2"
-                                    data-testid="button-select-all-assignment-recipients"
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                    data-testid="button-select-all-recipients"
                                   >
                                     {selectedRecipients.length === departments.length
                                       ? 'Бекор кардан'
                                       : 'Ҳамаро қайд кардан'}
                                   </Button>
+                                )}
+                              </div>
+                              {loadingDepartments ? (
+                                <div className="text-sm text-muted-foreground">Боргирӣ...</div>
+                              ) : (
+                                <div>
                                   <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                       {departments
-                                        .sort((a: any, b: any) => {
-                                          const blockOrder = { upper: 0, middle: 1, lower: 2, district: 3 };
-                                          return blockOrder[a.block as keyof typeof blockOrder] - blockOrder[b.block as keyof typeof blockOrder];
-                                        })
+                                        .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
                                         .map((dept: any) => (
                                           <div key={dept.id} className="flex items-center space-x-2">
                                             <Checkbox
-                                              id={`assignment-recipient-${dept.id}`}
+                                              id={`recipient-${dept.id}`}
                                               checked={selectedRecipients.includes(dept.id)}
                                               onCheckedChange={(checked) => {
                                                 if (checked) {
                                                   setSelectedRecipients([...selectedRecipients, dept.id]);
                                                 } else {
                                                   setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
+                                                  const deptPeopleIds = allPeople.filter(p => p.departmentId === dept.id).map(p => p.id);
+                                                  setSelectedExecutorIds(selectedExecutorIds.filter(id => !deptPeopleIds.includes(id)));
                                                 }
                                               }}
-                                              data-testid={`checkbox-assignment-recipient-${dept.id}`}
+                                              data-testid={`checkbox-recipient-${dept.id}`}
                                             />
-                                            <label htmlFor={`assignment-recipient-${dept.id}`} className="text-sm cursor-pointer">{dept.name}</label>
+                                            <label htmlFor={`recipient-${dept.id}`} className="text-sm cursor-pointer">{dept.name}</label>
                                           </div>
                                         ))
                                       }
@@ -693,6 +622,89 @@ export default function MessageView() {
                                 <p className="text-sm text-muted-foreground">
                                   Интихоб шуд: {selectedRecipients.length}
                                 </p>
+                              )}
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <Label>Иҷрокунандагон</Label>
+                                {selectedExecutorIds.length > 0 && (
+                                  <span className="text-xs text-muted-foreground">
+                                    Интихоб шуд: {selectedExecutorIds.length}
+                                  </span>
+                                )}
+                              </div>
+                              {selectedRecipients.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">
+                                  Аввал қабулкунандаро интихоб кунед
+                                </p>
+                              ) : (
+                                <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
+                                  {selectedRecipients.map(recipientId => {
+                                    const dept = departments.find(d => d.id === recipientId);
+                                    const peopleInDept = allPeople.filter(p => p.departmentId === recipientId);
+                                    
+                                    if (peopleInDept.length === 0) return null;
+                                    
+                                    return (
+                                      <div key={recipientId} className="mb-4 last:mb-0">
+                                        <div className="flex items-center justify-between mb-2">
+                                          <div className="text-sm font-semibold text-gray-700">
+                                            {dept?.name || 'Номаълум'}
+                                          </div>
+                                          {peopleInDept.length > 1 && (
+                                            <Button
+                                              type="button"
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => {
+                                                const deptPeopleIds = peopleInDept.map(p => p.id);
+                                                const allSelected = deptPeopleIds.every(id => selectedExecutorIds.includes(id));
+                                                if (allSelected) {
+                                                  setSelectedExecutorIds(selectedExecutorIds.filter(id => !deptPeopleIds.includes(id)));
+                                                } else {
+                                                  setSelectedExecutorIds(Array.from(new Set([...selectedExecutorIds, ...deptPeopleIds])));
+                                                }
+                                              }}
+                                              className="text-xs h-7"
+                                            >
+                                              {peopleInDept.every(p => selectedExecutorIds.includes(p.id)) ? 'Бекор кардан' : 'Ҳамаро интихоб'}
+                                            </Button>
+                                          )}
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-2">
+                                          {peopleInDept.map(person => (
+                                            <div key={person.id} className="flex items-center space-x-2">
+                                              <Checkbox
+                                                id={`executor-${person.id}`}
+                                                checked={selectedExecutorIds.includes(person.id)}
+                                                onCheckedChange={(checked) => {
+                                                  if (checked) {
+                                                    setSelectedExecutorIds([...selectedExecutorIds, person.id]);
+                                                  } else {
+                                                    setSelectedExecutorIds(selectedExecutorIds.filter(id => id !== person.id));
+                                                  }
+                                                }}
+                                                data-testid={`checkbox-executor-${person.id}`}
+                                              />
+                                              <label htmlFor={`executor-${person.id}`} className="text-sm cursor-pointer flex items-center gap-1.5">
+                                                {person.name}
+                                                {selectedExecutorIds.includes(person.id) && (
+                                                  <span className="text-xs text-muted-foreground opacity-70">даъват</span>
+                                                )}
+                                              </label>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                  {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId)).length === 0 && (
+                                    <p className="text-sm text-muted-foreground text-center py-4">
+                                      Иҷрокунандае дар ин шуъбаҳо нест
+                                    </p>
+                                  )}
+                                </div>
                               )}
                             </div>
 
