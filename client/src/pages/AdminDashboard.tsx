@@ -25,6 +25,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
+import { useDepartmentIcon } from '@/hooks/use-department-icon';
 import type { Department } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
@@ -59,8 +60,7 @@ interface SortableCardProps {
 }
 
 function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete, getBlockLabel, iconVersion }: SortableCardProps) {
-  const [hasCustomIcon, setHasCustomIcon] = useState(true);
-  const iconSrc = `/api/departments/${department.id}/icon?v=${iconVersion || 0}`;
+  const { iconUrl } = useDepartmentIcon(department.id, iconVersion);
   const {
     attributes,
     listeners,
@@ -69,10 +69,6 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
     transition,
     isDragging,
   } = useSortable({ id: department.id });
-
-  useEffect(() => {
-    setHasCustomIcon(true);
-  }, [iconSrc]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -106,12 +102,11 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
           <div className="flex items-start justify-between gap-4 mb-3">
             {/* Department Icon */}
             <div className="w-12 h-12 rounded-md bg-muted flex-shrink-0 flex items-center justify-center overflow-hidden">
-              {hasCustomIcon ? (
+              {iconUrl ? (
                 <img 
-                  src={iconSrc}
+                  src={iconUrl}
                   alt=""
                   className="w-full h-full object-cover"
-                  onError={() => setHasCustomIcon(false)}
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-primary/20 text-primary rounded-md">
@@ -174,7 +169,7 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 pt-3 border-t border-border">
+          <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
             <Button
               variant="outline"
               size="sm"
@@ -183,10 +178,38 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
                 onEdit(department);
               }}
               data-testid={`button-edit-${department.id}`}
-              className="flex-1"
+              className="flex-1 min-w-[80px]"
             >
-              <Pencil className="h-4 w-4 mr-2" />
+              <Pencil className="h-4 w-4 mr-1" />
               Таҳрир
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(`/api/admin/departments/${department.id}/archive/inbox`, '_blank');
+              }}
+              data-testid={`button-archive-inbox-${department.id}`}
+              className="flex-1 min-w-[80px]"
+              title="Воридшуда"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              Вор.
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(`/api/admin/departments/${department.id}/archive/outbox`, '_blank');
+              }}
+              data-testid={`button-archive-outbox-${department.id}`}
+              className="flex-1 min-w-[80px]"
+              title="Ирсолшуда"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              Ирс.
             </Button>
             <Button
               variant="outline"
@@ -197,6 +220,7 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
               }}
               data-testid={`button-generate-${department.id}`}
               className="shrink-0"
+              title="Таҷдиди рамз"
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -209,38 +233,9 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
               }}
               data-testid={`button-delete-${department.id}`}
               className="shrink-0 text-destructive hover:text-destructive"
+              title="Нобуд кардан"
             >
               <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Archive Buttons */}
-          <div className="flex gap-2 pt-3 border-t border-border">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.open(`/api/admin/departments/${department.id}/archive/inbox`, '_blank');
-              }}
-              data-testid={`button-archive-inbox-${department.id}`}
-              className="flex-1"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Воридшуда
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.open(`/api/admin/departments/${department.id}/archive/outbox`, '_blank');
-              }}
-              data-testid={`button-archive-outbox-${department.id}`}
-              className="flex-1"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Ирсолшуда
             </Button>
           </div>
         </div>

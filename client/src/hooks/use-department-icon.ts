@@ -32,9 +32,10 @@ export function useDepartmentIcon(departmentId: number, iconVersion?: number) {
         }
 
         const blob = await response.blob();
-        objectUrl = URL.createObjectURL(blob);
         
+        // Only create object URL if still mounted
         if (!isCancelled) {
+          objectUrl = URL.createObjectURL(blob);
           setIconUrl(objectUrl);
           setIsLoading(false);
         }
