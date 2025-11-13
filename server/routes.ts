@@ -1541,9 +1541,12 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Export chat archive for admin
+  // Export chat archive for admin (ZIP with folders per message)
   app.get("/api/admin/departments/:departmentId/archive/:direction", requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
+      const JSZip = (await import('jszip')).default;
+      const { Document, Packer, Paragraph, TextRun, AlignmentType } = await import('docx');
+      
       const departmentId = parseInt(req.params.departmentId);
       const direction = req.params.direction as 'inbox' | 'outbox';
 
@@ -1560,21 +1563,7 @@ export function registerRoutes(app: Express) {
       const allMessages = await storage.getMessagesByDepartment(departmentId);
       const messages = direction === 'inbox' ? allMessages.inbox : allMessages.outbox;
 
-      // Format archive
       const directionLabel = direction === 'inbox' ? 'Воридшуда' : 'Ирсолшуда';
-      const currentDate = new Date().toLocaleString('tg-TJ', { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-
-      let archive = `АРХИВИ ПАЁМҲО\n`;
-      archive += `Шуъба: ${department.name}\n`;
-      archive += `Самт: ${directionLabel}\n`;
-      archive += `Сана: ${currentDate}\n`;
-      archive += `\n========================================\n\n`;
 
       // Get all unique department IDs
       const allDeptIds = new Set<number>();
@@ -1594,27 +1583,23 @@ export function registerRoutes(app: Express) {
       );
       const deptMap = new Map(depts.filter(Boolean).map((d: any) => [d.id, d]));
 
-      for (const message of messages) {
-        const messageDate = message.documentDate 
-          ? new Date(message.documentDate).toLocaleString('tg-TJ', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit'
-            })
-          : new Date(message.createdAt).toLocaleString('tg-TJ', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit'
-            });
+      // Create ZIP archive
+      const zip = new JSZip();
 
+      // Process each message
+      for (let i = 0; i < messages.length; i++) {
+        const message = messages[i];
+        
+        const messageDate = message.documentDate 
+          ? new Date(message.documentDate)
+          : new Date(message.createdAt);
+
+        const dateStr = messageDate.toLocaleDateString('en-GB').replace(/\//g, '-');
+        
         // Get sender
         const sender = deptMap.get(message.senderId);
 
-        // Get recipients (handle both new and legacy formats)
+        // Get recipients
         const recipientIdsList = message.recipientIds && message.recipientIds.length > 0
           ? message.recipientIds
           : message.recipientId
@@ -1622,38 +1607,156 @@ export function registerRoutes(app: Express) {
             : [];
         const recipients = recipientIdsList.map((id: number) => deptMap.get(id)).filter(Boolean);
 
-        archive += `Сана: ${messageDate}\n`;
-        archive += `Аз: ${sender?.name || 'Номаълум'}\n`;
-        archive += `Ба: ${recipients.map((r: any) => r?.name).join(', ') || 'Номаълум'}\n`;
-        
-        if (message.subject) {
-          archive += `Мавзуъ: ${message.subject}\n`;
-        }
-        
-        if (message.documentNumber) {
-          archive += `Рақами ҳуҷҷат: ${message.documentNumber}\n`;
-        }
+        // Create folder name (sanitize for filesystem)
+        const subject = message.subject || 'Мавзуъ нест';
+        const folderName = `${i + 1}_${dateStr}_${subject}`.replace(/[/\\?%*:|"<>]/g, '_').substring(0, 100);
 
-        archive += `\n${message.content}\n`;
+        // Create Word document for message
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: 'ПАЁМ',
+                    bold: true,
+                    size: 32,
+                  }),
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 400 },
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: 'Сана: ',
+                    bold: true,
+                  }),
+                  new TextRun({
+                    text: messageDate.toLocaleString('tg-TJ', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }),
+                  }),
+                ],
+                spacing: { after: 200 },
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: 'Аз: ',
+                    bold: true,
+                  }),
+                  new TextRun({
+                    text: sender?.name || 'Номаълум',
+                  }),
+                ],
+                spacing: { after: 200 },
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: 'Ба: ',
+                    bold: true,
+                  }),
+                  new TextRun({
+                    text: recipients.map((r: any) => r?.name).join(', ') || 'Номаълум',
+                  }),
+                ],
+                spacing: { after: 200 },
+              }),
+              ...(message.subject ? [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: 'Мавзуъ: ',
+                      bold: true,
+                    }),
+                    new TextRun({
+                      text: message.subject,
+                    }),
+                  ],
+                  spacing: { after: 200 },
+                }),
+              ] : []),
+              ...(message.documentNumber ? [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: 'Рақами ҳуҷҷат: ',
+                      bold: true,
+                    }),
+                    new TextRun({
+                      text: message.documentNumber,
+                    }),
+                  ],
+                  spacing: { after: 200 },
+                }),
+              ] : []),
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: '',
+                  }),
+                ],
+                spacing: { after: 200 },
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: 'Матн:',
+                    bold: true,
+                  }),
+                ],
+                spacing: { after: 200 },
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: message.content,
+                  }),
+                ],
+                spacing: { after: 400 },
+              }),
+            ],
+          }],
+        });
 
-        // Get attachments
+        // Generate Word document buffer
+        const docBuffer = await Packer.toBuffer(doc);
+        
+        // Add Word document to ZIP
+        zip.folder(folderName)?.file('паём.docx', docBuffer);
+
+        // Get and add attachments
         const attachments = await storage.getAttachmentsByMessageId(message.id);
-        if (attachments.length > 0) {
-          archive += `\nЗамимаҳо:\n`;
-          attachments.forEach((att: any, idx: number) => {
-            archive += `  ${idx + 1}. ${att.file_name} (${(att.fileSize / 1024).toFixed(2)} KB)\n`;
-          });
+        
+        for (const attachment of attachments) {
+          if (attachment.file_data) {
+            // Add attachment to the message folder
+            zip.folder(folderName)?.file(attachment.file_name, attachment.file_data);
+          }
         }
-
-        archive += `\n========================================\n\n`;
       }
 
-      // Send as downloadable file
-      const filename = `${department.name}_${directionLabel}_${new Date().toISOString().split('T')[0]}.txt`;
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      // Generate ZIP buffer
+      const zipBuffer = await zip.generateAsync({ 
+        type: 'nodebuffer',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 }
+      });
+
+      // Send ZIP file
+      const filename = `${department.name}_${directionLabel}_${new Date().toISOString().split('T')[0]}.zip`;
+      res.setHeader('Content-Type', 'application/zip');
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
-      res.send(Buffer.from(archive, 'utf-8'));
+      res.send(zipBuffer);
     } catch (error: any) {
+      console.error('Archive generation error:', error);
       res.status(500).json({ error: error.message });
     }
   });
