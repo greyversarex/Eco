@@ -2,7 +2,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import * as LucideIcons from 'lucide-react';
 import { Building2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useDepartmentIcon } from '@/hooks/use-department-icon';
 
 interface DepartmentCardProps {
   departmentId: number;
@@ -29,14 +29,8 @@ function getIconComponent(iconName: string = 'building-2') {
 }
 
 export default function DepartmentCard({ departmentId, name, icon, unreadCount, onClick, iconVersion }: DepartmentCardProps) {
-  const [hasCustomIcon, setHasCustomIcon] = useState(true);
+  const { iconUrl } = useDepartmentIcon(departmentId, iconVersion);
   const IconComponent = getIconComponent(icon);
-  const iconSrc = `/api/departments/${departmentId}/icon?v=${iconVersion || 0}`;
-  
-  // Reset hasCustomIcon when iconSrc changes (after upload)
-  useEffect(() => {
-    setHasCustomIcon(true);
-  }, [iconSrc]);
   
   const words = name.split(' ');
   const firstWord = words[0];
@@ -58,12 +52,11 @@ export default function DepartmentCard({ departmentId, name, icon, unreadCount, 
       )}
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-md bg-white shrink-0 mt-0.5 overflow-hidden">
-          {hasCustomIcon ? (
+          {iconUrl ? (
             <img 
-              src={iconSrc}
+              src={iconUrl}
               alt=""
               className="w-full h-full object-cover"
-              onError={() => setHasCustomIcon(false)}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-primary text-primary-foreground rounded-md">
