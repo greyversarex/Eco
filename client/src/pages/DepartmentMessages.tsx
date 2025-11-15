@@ -137,7 +137,38 @@ export default function DepartmentMessages() {
                     </p>
                   </div>
                 ) : (
-                  messages.received.map((message) => {
+                  <>
+                    {/* Column Headers - Received */}
+                    <div 
+                      className="hidden sm:grid border-b border-border px-6 py-3 bg-muted/30 font-semibold text-sm text-muted-foreground items-center gap-x-4"
+                      style={{
+                        gridTemplateColumns: '120px 1fr 180px 130px 80px'
+                      }}
+                    >
+                      {/* Document Number Header */}
+                      <div className="text-center">
+                        Рақами ҳуҷҷат
+                      </div>
+                      
+                      {/* Subject Header */}
+                      <div className="min-w-0 pl-2">
+                        Мавзӯъ ва мундариҷа
+                      </div>
+                      
+                      {/* Sender Header */}
+                      <div>
+                        Фиристанда
+                      </div>
+                      
+                      {/* Date Header */}
+                      <div>
+                        Сана
+                      </div>
+                      
+                      {/* Icons Header */}
+                      <div />
+                    </div>
+                    {messages.received.map((message) => {
                     const senderDept = departments.find((d) => d.id === message.senderId);
                     return (
                       <MessageListItem
@@ -152,7 +183,8 @@ export default function DepartmentMessages() {
                         documentNumber={message.documentNumber}
                       />
                     );
-                  })
+                  })}
+                  </>
                 )}
               </div>
             </TabsContent>
@@ -166,7 +198,38 @@ export default function DepartmentMessages() {
                     </p>
                   </div>
                 ) : (
-                  messages.sent.map((message) => {
+                  <>
+                    {/* Column Headers - Sent */}
+                    <div 
+                      className="hidden sm:grid border-b border-border px-6 py-3 bg-muted/30 font-semibold text-sm text-muted-foreground items-center gap-x-4"
+                      style={{
+                        gridTemplateColumns: '120px 1fr 180px 130px 80px'
+                      }}
+                    >
+                      {/* Document Number Header */}
+                      <div className="text-center">
+                        Рақами ҳуҷҷат
+                      </div>
+                      
+                      {/* Subject Header */}
+                      <div className="min-w-0 pl-2">
+                        Мавзӯъ ва мундариҷа
+                      </div>
+                      
+                      {/* Recipient Header */}
+                      <div>
+                        Қабулкунанда
+                      </div>
+                      
+                      {/* Date Header */}
+                      <div>
+                        Сана
+                      </div>
+                      
+                      {/* Icons Header */}
+                      <div />
+                    </div>
+                    {messages.sent.map((message) => {
                     const recipientDept = departments.find((d) => d.id === message.recipientId);
                     return (
                       <MessageListItem
@@ -182,7 +245,8 @@ export default function DepartmentMessages() {
                         documentNumber={message.documentNumber}
                       />
                     );
-                  })
+                  })}
+                  </>
                 )}
               </div>
             </TabsContent>
