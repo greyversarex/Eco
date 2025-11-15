@@ -235,6 +235,18 @@ export default function DepartmentMessages() {
                     {messages.sent.map((message) => {
                     let recipientNames: string[] = [];
                     
+                    // DEBUG: Log raw message data
+                    if (message.id === 1) {
+                      console.log('RAW MESSAGE DATA:', JSON.stringify({
+                        recipientId: message.recipientId,
+                        recipientIds: message.recipientIds,
+                        hasRecipientIds: !!message.recipientIds,
+                        recipientIdsType: typeof message.recipientIds,
+                        recipientIdsIsArray: Array.isArray(message.recipientIds),
+                        recipientIdsLength: message.recipientIds?.length
+                      }, null, 2));
+                    }
+                    
                     // Check recipientIds array first (broadcast to multiple departments)
                     if (message.recipientIds && message.recipientIds.length > 0) {
                       recipientNames = message.recipientIds
