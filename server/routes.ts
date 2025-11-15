@@ -870,6 +870,44 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Get deleted messages for a specific department (Admin only)
+  app.get("/api/trash/messages/department/:deptId", requireAuth, async (req: Request, res: Response) => {
+    try {
+      // Only admins can view trash for specific departments
+      if (req.session.departmentId) {
+        return res.status(403).json({ error: 'Access denied. Admin only.' });
+      }
+
+      const deptId = parseInt(req.params.deptId);
+      const deletedMessages = await storage.listDeletedMessages(deptId);
+      
+      res.json(deletedMessages);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Permanently delete a message (Admin only)
+  app.delete("/api/trash/messages/:id/permanent", requireAuth, async (req: Request, res: Response) => {
+    try {
+      // Only admins can permanently delete
+      if (req.session.departmentId) {
+        return res.status(403).json({ error: 'Access denied. Admin only.' });
+      }
+
+      const id = parseInt(req.params.id);
+      const deleted = await storage.permanentDeleteMessage(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Message not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Get unread count for current department
   app.get("/api/messages/unread/count", requireAuth, async (req: Request, res: Response) => {
     try {
@@ -1387,6 +1425,27 @@ export function registerRoutes(app: Express) {
       
       if (!restored) {
         return res.status(500).json({ error: 'Failed to restore assignment' });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Permanently delete an assignment (Admin only)
+  app.delete("/api/trash/assignments/:id/permanent", requireAuth, async (req: Request, res: Response) => {
+    try {
+      // Only admins can permanently delete
+      if (req.session.departmentId) {
+        return res.status(403).json({ error: 'Access denied. Admin only.' });
+      }
+
+      const id = parseInt(req.params.id);
+      const deleted = await storage.permanentDeleteAssignment(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Assignment not found' });
       }
       
       res.json({ success: true });

@@ -43,6 +43,7 @@ export interface IStorage {
   getAllDepartmentsUnreadCounts(): Promise<Record<number, number>>;
   listDeletedMessages(departmentId?: number): Promise<Message[]>;
   restoreMessage(id: number): Promise<boolean>;
+  permanentDeleteMessage(id: number): Promise<boolean>;
   
   // Attachments
   createAttachment(attachment: InsertAttachment): Promise<Attachment>;
@@ -59,6 +60,7 @@ export interface IStorage {
   markAssignmentAsCompleted(id: number): Promise<Assignment | undefined>;
   listDeletedAssignments(): Promise<Assignment[]>;
   restoreAssignment(id: number): Promise<boolean>;
+  permanentDeleteAssignment(id: number): Promise<boolean>;
   
   // Assignment Attachments
   createAssignmentAttachment(attachment: InsertAssignmentAttachment): Promise<AssignmentAttachment>;
@@ -340,6 +342,14 @@ export class DbStorage implements IStorage {
     return result.length > 0;
   }
 
+  async permanentDeleteMessage(id: number): Promise<boolean> {
+    // First delete all attachments
+    await db.delete(attachments).where(eq(attachments.messageId, id));
+    // Then permanently delete the message
+    const result = await db.delete(messages).where(eq(messages.id, id)).returning() as Message[];
+    return result.length > 0;
+  }
+
   // Attachments
   async createAttachment(attachment: InsertAttachment): Promise<Attachment> {
     const result = await db.insert(attachments).values(attachment).returning();
@@ -507,6 +517,14 @@ export class DbStorage implements IStorage {
       .set({ isDeleted: false, deletedAt: null })
       .where(eq(assignments.id, id))
       .returning();
+    return result.length > 0;
+  }
+
+  async permanentDeleteAssignment(id: number): Promise<boolean> {
+    // First delete all attachments
+    await db.delete(assignmentAttachments).where(eq(assignmentAttachments.assignmentId, id));
+    // Then permanently delete the assignment
+    const result = await db.delete(assignments).where(eq(assignments.id, id)).returning();
     return result.length > 0;
   }
 
