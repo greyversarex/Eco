@@ -1459,7 +1459,9 @@ export function registerRoutes(app: Express) {
   // Get all announcements
   app.get("/api/announcements", requireAuth, async (req: Request, res: Response) => {
     try {
-      const announcements = await storage.getAnnouncements();
+      // If department user, filter announcements by recipient
+      const departmentId = req.session.departmentId;
+      const announcements = await storage.getAnnouncements(departmentId);
       res.json(announcements);
     } catch (error: any) {
       res.status(500).json({ error: error.message });

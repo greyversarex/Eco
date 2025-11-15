@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { t } from '@/lib/i18n';
 import { ArrowLeft, Plus, LogOut, Trash2, Paperclip, Download } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
@@ -14,7 +15,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import type { Announcement } from '@shared/schema';
+import type { Announcement, Department } from '@shared/schema';
 import { Footer } from '@/components/Footer';
 import { format } from 'date-fns';
 
@@ -26,9 +27,14 @@ export default function AnnouncementsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [selectedDepartments, setSelectedDepartments] = useState<number[]>([]);
 
   const { data: announcements = [], isLoading } = useQuery<Announcement[]>({
     queryKey: ['/api/announcements'],
+  });
+
+  const { data: departments = [] } = useQuery<Omit<Department, 'accessCode'>[]>({
+    queryKey: ['/api/departments/list'],
   });
 
   // Mark announcements as read when page loads
@@ -90,6 +96,7 @@ export default function AnnouncementsPage() {
       setIsDialogOpen(false);
       setTitle('');
       setContent('');
+      setSelectedDepartments([]);
     },
     onError: (error: any) => {
       toast({
@@ -118,7 +125,11 @@ export default function AnnouncementsPage() {
       return;
     }
 
-    createAnnouncementMutation.mutate({ title, content });
+    createAnnouncementMutation.mutate({ 
+      title, 
+      content,
+      recipientIds: selectedDepartments.length > 0 ? selectedDepartments : undefined
+    });
   };
 
   const canCreate = user?.userType === 'department' && (user.department as any)?.canCreateAnnouncement;
@@ -218,6 +229,58 @@ export default function AnnouncementsPage() {
                       rows={6}
                       data-testid="textarea-content"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Гирандагон (ихтиёрӣ)</Label>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Агар шумо гирандагонро интихоб накунед, эълон ба ҳамаи шуъбаҳо фиристода мешавад
+                    </p>
+                    <div className="border rounded-md p-4 max-h-60 overflow-y-auto space-y-2">
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Checkbox
+                          id="select-all"
+                          checked={selectedDepartments.length === departments.length && departments.length > 0}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedDepartments(departments.map(d => d.id));
+                            } else {
+                              setSelectedDepartments([]);
+                            }
+                          }}
+                          data-testid="checkbox-select-all"
+                        />
+                        <label
+                          htmlFor="select-all"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          Ҳамаро интихоб кардан
+                        </label>
+                      </div>
+                      <div className="h-px bg-border my-2" />
+                      {departments.map((dept) => (
+                        <div key={dept.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`dept-${dept.id}`}
+                            checked={selectedDepartments.includes(dept.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedDepartments([...selectedDepartments, dept.id]);
+                              } else {
+                                setSelectedDepartments(selectedDepartments.filter(id => id !== dept.id));
+                              }
+                            }}
+                            data-testid={`checkbox-dept-${dept.id}`}
+                          />
+                          <label
+                            htmlFor={`dept-${dept.id}`}
+                            className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {dept.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="flex justify-end gap-2 pt-4">

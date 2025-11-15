@@ -68,7 +68,7 @@ export interface IStorage {
   getAssignmentAttachmentById(id: number): Promise<AssignmentAttachment | undefined>;
   
   // Announcements
-  getAnnouncements(): Promise<Announcement[]>;
+  getAnnouncements(departmentId?: number): Promise<Announcement[]>;
   getAnnouncementById(id: number): Promise<Announcement | undefined>;
   createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
   updateAnnouncement(id: number, announcement: Partial<InsertAnnouncement>): Promise<Announcement | undefined>;
@@ -544,8 +544,23 @@ export class DbStorage implements IStorage {
   }
 
   // Announcements
-  async getAnnouncements(): Promise<Announcement[]> {
-    const allAnnouncements = await db.select().from(announcements).orderBy(desc(announcements.createdAt));
+  async getAnnouncements(departmentId?: number): Promise<Announcement[]> {
+    // If departmentId is provided, filter announcements
+    // Show announcements where:
+    // - recipientIds is NULL (announcement for everyone)
+    // - OR recipientIds contains this departmentId (targeted announcement)
+    const where = departmentId !== undefined
+      ? or(
+          sql`${announcements.recipientIds} IS NULL`,
+          sql`${announcements.recipientIds} @> ARRAY[${departmentId}]::integer[]`
+        )
+      : undefined;
+    
+    const query = where 
+      ? db.select().from(announcements).where(where)
+      : db.select().from(announcements);
+    
+    const allAnnouncements = await query.orderBy(desc(announcements.createdAt));
     
     // Helper to decode filename
     const decodeFilename = (filename: string): string => {

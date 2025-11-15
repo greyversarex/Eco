@@ -333,9 +333,9 @@ export default function Inbox() {
                   Мавзӯъ ва мундариҷа
                 </div>
                 
-                {/* Sender Header */}
+                {/* Sender/Recipient Header */}
                 <div>
-                  Фиристанда
+                  {isOutbox ? 'Қабулкунанда' : 'Фиристанда'}
                 </div>
                 
                 {/* Date Header */}

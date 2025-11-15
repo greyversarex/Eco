@@ -25,12 +25,14 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 - **Broadcast Messaging:** Optimized endpoint for sending messages to multiple departments.
 - **Department Icon Upload:** Interactive icon upload system with image cropping and zooming.
 - **ZIP Archive Export System:** Admin-only feature to export department message history (inbox/outbox) as structured ZIP archives. Each message is stored in a separate folder containing a formatted Word document (`паём.docx`) with message metadata (sender, recipient, date, subject, document number, content) and all original file attachments. Folder names follow the pattern `{001}_{YYYY-MM-DD}_{sanitized_subject}` with robust filename sanitization to prevent Zip Slip attacks and ensure cross-platform compatibility. Utilizes `jszip` and `docx` libraries for archive generation.
-- **Recycle Bin (Корзина) System:** Soft-delete functionality for messages and assignments, with dedicated trash API endpoints, a TrashPage, and restore functionality.
+- **Recycle Bin (Корзина) System:** Soft-delete functionality for messages and assignments with department-scoped visibility. Each department sees only their own deleted items in trash. Admin panel includes department-specific trash view with permanent delete capability (admin-only). Permanent deletion triggers immediate cache refresh for both trash and main message lists.
 - **Unified Department Ordering System:** Centralized `sortOrder`-based department ordering across the application, managed via an admin panel with drag-and-drop functionality.
 - **People/Executors Management System:** System for managing people (executors/иҷрокунандагон) with department associations, including CRUD API endpoints and automatic filtering in message and assignment forms.
 - **Flexible Permission System:** Database-driven permission system allowing dynamic control over `canCreateAssignment`, `canCreateAssignmentFromMessage`, and `canMonitor` capabilities for any department.
 - **Department-Specific Assignments:** Assignments are department-targeted via a `recipientIds` field, ensuring departments only see relevant assignments while admins see all.
+- **Targeted Announcements:** Announcements support multi-department targeting via `recipientIds` array field. Announcements with null/empty recipientIds are broadcast to all departments. Announcements with specific recipientIds are only visible to targeted departments. Admin announcement creation form includes department multi-select with visual feedback.
 - **Document Number Field:** Optional `documentNumber` (Рақами ҳуҷҷат) field for Messages and Assignments.
+- **Message List Headers:** Inbox and Sent message lists include column headers with context-aware labels. Sent messages use "Қабулкунанда" (Recipient) while received messages use "Фиристанда" (Sender).
 - **Performance Optimization:** Achieved 85% data transfer reduction for slow networks through WebP image compression, gzip middleware, HTTP Cache-Control headers, and frontend code splitting.
 - **Footer Information:** Footer displays "Раёсати рақамикунонӣ ва инноватсия" contact information with two phone numbers.
 

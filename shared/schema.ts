@@ -217,6 +217,7 @@ export const announcements = pgTable("announcements", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   content: text("content").notNull(),
+  recipientIds: integer("recipient_ids").array(),
   readBy: integer("read_by").array().notNull().default(sql`ARRAY[]::integer[]`),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -225,6 +226,8 @@ export const insertAnnouncementSchema = createInsertSchema(announcements).omit({
   id: true,
   readBy: true,
   createdAt: true,
+}).extend({
+  recipientIds: z.array(z.number()).optional(),
 });
 export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
 export type Announcement = typeof announcements.$inferSelect & {
