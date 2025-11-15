@@ -58,6 +58,7 @@ export default function MessageView() {
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
   const [assignmentDeadline, setAssignmentDeadline] = useState('');
   const [assignmentFiles, setAssignmentFiles] = useState<File[]>([]);
+  const [showAllInvited, setShowAllInvited] = useState(false);
   
   // Get 'from' query parameter to know where to go back
   const searchParams = new URLSearchParams(window.location.search);
@@ -199,6 +200,7 @@ export default function MessageView() {
       setAssignmentDocNumber('');
       setSelectedExecutorIds([]);
       setSelectedRecipients([]);
+      setShowAllInvited(false);
       setAssignmentDeadline('');
       setAssignmentFiles([]);
     },
@@ -531,7 +533,10 @@ export default function MessageView() {
                       {t.reply}
                     </Button>
                     {user.department?.canCreateAssignmentFromMessage && (
-                      <Dialog open={isAssignmentDialogOpen} onOpenChange={setIsAssignmentDialogOpen}>
+                      <Dialog open={isAssignmentDialogOpen} onOpenChange={(open) => {
+                        setIsAssignmentDialogOpen(open);
+                        if (!open) setShowAllInvited(false);
+                      }}>
                         <DialogTrigger asChild>
                           <Button onClick={openAssignmentDialog} data-testid="button-create-assignment" className="gap-2 bg-green-600 hover:bg-green-700 text-white" size="lg">
                             <FileText className="h-4 w-4" />
@@ -640,15 +645,71 @@ export default function MessageView() {
                               )}
                             </div>
 
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <Label>Иҷрокунандагон</Label>
-                                {selectedExecutorIds.length > 0 && (
+                            {/* Даъват (Приглашенные) - раскрываемый список */}
+                            {selectedExecutorIds.length > 0 && (
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <Label>Даъват</Label>
                                   <span className="text-xs text-muted-foreground">
                                     Интихоб шуд: {selectedExecutorIds.length}
                                   </span>
-                                )}
+                                </div>
+                                <div className="border rounded-md p-4">
+                                  <div className="space-y-2">
+                                    {(() => {
+                                      const invitedPeople = allPeople.filter(p => selectedExecutorIds.includes(p.id));
+                                      const displayedPeople = showAllInvited ? invitedPeople : invitedPeople.slice(0, 5);
+                                      
+                                      return (
+                                        <>
+                                          {displayedPeople.map(person => {
+                                            const dept = departments.find(d => d.id === person.departmentId);
+                                            return (
+                                              <div key={person.id} className="flex items-center justify-between space-x-2 py-1">
+                                                <div className="flex items-center space-x-2 flex-1">
+                                                  <Checkbox
+                                                    id={`invited-${person.id}`}
+                                                    checked={true}
+                                                    onCheckedChange={() => {
+                                                      setSelectedExecutorIds(selectedExecutorIds.filter(id => id !== person.id));
+                                                    }}
+                                                    data-testid={`checkbox-invited-${person.id}`}
+                                                  />
+                                                  <label htmlFor={`invited-${person.id}`} className="text-sm cursor-pointer flex-1">
+                                                    {person.name}
+                                                  </label>
+                                                </div>
+                                                <span className="text-xs text-muted-foreground">
+                                                  {dept?.name || 'Номаълум'}
+                                                </span>
+                                              </div>
+                                            );
+                                          })}
+                                          {invitedPeople.length > 5 && (
+                                            <div className="pt-2 border-t">
+                                              <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setShowAllInvited(!showAllInvited)}
+                                                className="text-xs w-full"
+                                                data-testid="button-toggle-invited"
+                                              >
+                                                {showAllInvited ? 'Пинҳон кардан' : `Тамоми рӯйхат (${invitedPeople.length})`}
+                                              </Button>
+                                            </div>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
+                                  </div>
+                                </div>
                               </div>
+                            )}
+
+                            {/* Иҷрокунандагон (Исполнители) - список с чекбоксами для выбора */}
+                            <div className="space-y-2">
+                              <Label>Иҷрокунандагон</Label>
                               {selectedRecipients.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">
                                   Аввал қабулкунандаро интихоб кунед
@@ -702,11 +763,8 @@ export default function MessageView() {
                                                 }}
                                                 data-testid={`checkbox-executor-${person.id}`}
                                               />
-                                              <label htmlFor={`executor-${person.id}`} className="text-sm cursor-pointer flex items-center gap-1.5">
+                                              <label htmlFor={`executor-${person.id}`} className="text-sm cursor-pointer">
                                                 {person.name}
-                                                {selectedExecutorIds.includes(person.id) && (
-                                                  <span className="text-xs text-muted-foreground opacity-70">даъват</span>
-                                                )}
                                               </label>
                                             </div>
                                           ))}
