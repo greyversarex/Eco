@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { t } from '@/lib/i18n';
 import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
@@ -578,7 +579,7 @@ export default function AssignmentsPage() {
                     </div>
                   )}
 
-                  {/* Иҷрокунандагон (Исполнители) - список с чекбоксами для выбора */}
+                  {/* Иҷрокунандагон (Исполнители) - показывает ТОЛЬКО не выбранных людей с чекбоксами */}
                   <div className="space-y-2">
                     <Label>Иҷрокунандагон</Label>
                     {selectedRecipients.length === 0 ? (
@@ -589,7 +590,10 @@ export default function AssignmentsPage() {
                       <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
                         {selectedRecipients.map(recipientId => {
                           const dept = departments.find(d => d.id === recipientId);
-                          const peopleInDept = allPeople.filter(p => p.departmentId === recipientId);
+                          // ВАЖНО: показываем только тех, кто НЕ выбран (не в приглашенных)
+                          const peopleInDept = allPeople.filter(p => 
+                            p.departmentId === recipientId && !selectedExecutorIds.includes(p.id)
+                          );
                           
                           if (peopleInDept.length === 0) return null;
                           
@@ -606,16 +610,11 @@ export default function AssignmentsPage() {
                                     size="sm"
                                     onClick={() => {
                                       const deptPeopleIds = peopleInDept.map(p => p.id);
-                                      const allSelected = deptPeopleIds.every(id => selectedExecutorIds.includes(id));
-                                      if (allSelected) {
-                                        setSelectedExecutorIds(selectedExecutorIds.filter(id => !deptPeopleIds.includes(id)));
-                                      } else {
-                                        setSelectedExecutorIds(Array.from(new Set([...selectedExecutorIds, ...deptPeopleIds])));
-                                      }
+                                      setSelectedExecutorIds(Array.from(new Set([...selectedExecutorIds, ...deptPeopleIds])));
                                     }}
                                     className="text-xs h-7"
                                   >
-                                    {peopleInDept.every(p => selectedExecutorIds.includes(p.id)) ? 'Бекор кардан' : 'Ҳамаро интихоб'}
+                                    Ҳамаро интихоб
                                   </Button>
                                 )}
                               </div>
@@ -624,12 +623,10 @@ export default function AssignmentsPage() {
                                   <div key={person.id} className="flex items-center space-x-2">
                                     <Checkbox
                                       id={`executor-${person.id}`}
-                                      checked={selectedExecutorIds.includes(person.id)}
+                                      checked={false}
                                       onCheckedChange={(checked) => {
                                         if (checked) {
                                           setSelectedExecutorIds([...selectedExecutorIds, person.id]);
-                                        } else {
-                                          setSelectedExecutorIds(selectedExecutorIds.filter(id => id !== person.id));
                                         }
                                       }}
                                       data-testid={`checkbox-executor-${person.id}`}
@@ -643,9 +640,11 @@ export default function AssignmentsPage() {
                             </div>
                           );
                         })}
-                        {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId)).length === 0 && (
+                        {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId) && !selectedExecutorIds.includes(p.id)).length === 0 && (
                           <p className="text-sm text-muted-foreground text-center py-4">
-                            Иҷрокунандае дар ин шуъбаҳо нест
+                            {selectedExecutorIds.length > 0 
+                              ? 'Ҳама иҷрокунандагон даъват шудаанд'
+                              : 'Иҷрокунандае дар ин шуъбаҳо нест'}
                           </p>
                         )}
                       </div>
@@ -723,22 +722,36 @@ export default function AssignmentsPage() {
           )}
         </div>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center p-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">Боргирӣ...</p>
-            </div>
-          </div>
-        ) : assignments.length === 0 ? (
-          <Card className="p-12 text-center bg-white">
-            <p className="text-muted-foreground">
-              Ҳанӯз супоришҳо нестанд
-            </p>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {assignments.map((assignment) => (
+        <Tabs defaultValue="all" className="space-y-4">
+          <TabsList className="bg-white border">
+            <TabsTrigger value="all" data-testid="tab-all-assignments">
+              Ҳама ({assignments.length})
+            </TabsTrigger>
+            <TabsTrigger value="incomplete" data-testid="tab-incomplete-assignments">
+              Анҷомнашуда ({assignments.filter(a => !a.isCompleted).length})
+            </TabsTrigger>
+            <TabsTrigger value="completed" data-testid="tab-completed-assignments">
+              Анҷомшуда ({assignments.filter(a => a.isCompleted).length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all">
+            {isLoading ? (
+              <div className="flex items-center justify-center p-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+                  <p className="text-muted-foreground">Боргирӣ...</p>
+                </div>
+              </div>
+            ) : assignments.length === 0 ? (
+              <Card className="p-12 text-center bg-white">
+                <p className="text-muted-foreground">
+                  Ҳанӯз супоришҳо нестанд
+                </p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {assignments.map((assignment) => (
               <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
@@ -826,9 +839,218 @@ export default function AssignmentsPage() {
                   )}
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )}
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="incomplete">
+            {isLoading ? (
+              <div className="flex items-center justify-center p-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+                  <p className="text-muted-foreground">Боргирӣ...</p>
+                </div>
+              </div>
+            ) : assignments.filter(a => !a.isCompleted).length === 0 ? (
+              <Card className="p-12 text-center bg-white">
+                <p className="text-muted-foreground">
+                  Супоришҳои анҷомнашуда нестанд
+                </p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {assignments.filter(a => !a.isCompleted).map((assignment) => (
+                  <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-baseline gap-3 flex-wrap mb-2">
+                            <h3 className="text-lg font-semibold">{assignment.topic}</h3>
+                            {assignment.documentNumber && (
+                              <span className="text-sm text-muted-foreground">
+                                <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
+                              </span>
+                            )}
+                          </div>
+                          {assignment.content && (
+                            <div className="mt-3">
+                              <div className="text-sm font-medium text-gray-900 mb-1">
+                                Мазмун:
+                              </div>
+                              <div className="text-sm text-foreground bg-white p-3 rounded-md border border-primary/20 whitespace-pre-wrap">
+                                {assignment.content}
+                              </div>
+                            </div>
+                          )}
+                          <div className="text-sm text-muted-foreground mt-2">
+                            <span className="font-medium">Иҷрокунандагон:</span>{' '}
+                            {assignment.executors.join(', ')}
+                          </div>
+                        </div>
+                        {canDelete && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteAssignmentMutation.mutate(assignment.id)}
+                            disabled={deleteAssignmentMutation.isPending}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            data-testid={`button-delete-assignment-${assignment.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                      
+                      {assignment.attachments && assignment.attachments.length > 0 && (
+                        <div className="pt-3 border-t">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Paperclip className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm font-medium">
+                              Файлҳои замимашуда
+                              {' '}({assignment.attachments.length})
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {assignment.attachments.map((attachment) => (
+                              <a
+                                key={attachment.id}
+                                href={`/api/assignment-attachments/${attachment.id}`}
+                                download
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm transition-colors"
+                                data-testid={`button-download-attachment-${attachment.id}`}
+                              >
+                                <Download className="h-4 w-4" />
+                                <span className="truncate max-w-[200px]">{attachment.file_name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  ({(attachment.fileSize / 1024).toFixed(1)} KB)
+                                </span>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {!assignment.isCompleted && new Date() <= new Date(assignment.deadline) && (
+                        <Button
+                          onClick={() => completeAssignmentMutation.mutate(assignment.id)}
+                          disabled={completeAssignmentMutation.isPending}
+                          className="mt-2"
+                          data-testid={`button-complete-${assignment.id}`}
+                        >
+                          Иҷро шуд
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="completed">
+            {isLoading ? (
+              <div className="flex items-center justify-center p-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+                  <p className="text-muted-foreground">Боргирӣ...</p>
+                </div>
+              </div>
+            ) : assignments.filter(a => a.isCompleted).length === 0 ? (
+              <Card className="p-12 text-center bg-white">
+                <p className="text-muted-foreground">
+                  Супоришҳои анҷомшуда нестанд
+                </p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {assignments.filter(a => a.isCompleted).map((assignment) => (
+                  <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-baseline gap-3 flex-wrap mb-2">
+                            <h3 className="text-lg font-semibold">{assignment.topic}</h3>
+                            {assignment.documentNumber && (
+                              <span className="text-sm text-muted-foreground">
+                                <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
+                              </span>
+                            )}
+                          </div>
+                          {assignment.content && (
+                            <div className="mt-3">
+                              <div className="text-sm font-medium text-gray-900 mb-1">
+                                Мазмун:
+                              </div>
+                              <div className="text-sm text-foreground bg-white p-3 rounded-md border border-primary/20 whitespace-pre-wrap">
+                                {assignment.content}
+                              </div>
+                            </div>
+                          )}
+                          <div className="text-sm text-muted-foreground mt-2">
+                            <span className="font-medium">Иҷрокунандагон:</span>{' '}
+                            {assignment.executors.join(', ')}
+                          </div>
+                        </div>
+                        {canDelete && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteAssignmentMutation.mutate(assignment.id)}
+                            disabled={deleteAssignmentMutation.isPending}
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            data-testid={`button-delete-assignment-${assignment.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                      
+                      {assignment.attachments && assignment.attachments.length > 0 && (
+                        <div className="pt-3 border-t">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Paperclip className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm font-medium">
+                              Файлҳои замимашуда
+                              {' '}({assignment.attachments.length})
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {assignment.attachments.map((attachment) => (
+                              <a
+                                key={attachment.id}
+                                href={`/api/assignment-attachments/${attachment.id}`}
+                                download
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm transition-colors"
+                                data-testid={`button-download-attachment-${attachment.id}`}
+                              >
+                                <Download className="h-4 w-4" />
+                                <span className="truncate max-w-[200px]">{attachment.file_name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  ({(attachment.fileSize / 1024).toFixed(1)} KB)
+                                </span>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
 
       <Footer />

@@ -707,7 +707,7 @@ export default function MessageView() {
                               </div>
                             )}
 
-                            {/* Иҷрокунандагон (Исполнители) - список с чекбоксами для выбора */}
+                            {/* Иҷрокунандагон (Исполнители) - показывает ТОЛЬКО не выбранных людей с чекбоксами */}
                             <div className="space-y-2">
                               <Label>Иҷрокунандагон</Label>
                               {selectedRecipients.length === 0 ? (
@@ -718,7 +718,10 @@ export default function MessageView() {
                                 <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
                                   {selectedRecipients.map(recipientId => {
                                     const dept = departments.find(d => d.id === recipientId);
-                                    const peopleInDept = allPeople.filter(p => p.departmentId === recipientId);
+                                    // ВАЖНО: показываем только тех, кто НЕ выбран (не в приглашенных)
+                                    const peopleInDept = allPeople.filter(p => 
+                                      p.departmentId === recipientId && !selectedExecutorIds.includes(p.id)
+                                    );
                                     
                                     if (peopleInDept.length === 0) return null;
                                     
@@ -735,16 +738,11 @@ export default function MessageView() {
                                               size="sm"
                                               onClick={() => {
                                                 const deptPeopleIds = peopleInDept.map(p => p.id);
-                                                const allSelected = deptPeopleIds.every(id => selectedExecutorIds.includes(id));
-                                                if (allSelected) {
-                                                  setSelectedExecutorIds(selectedExecutorIds.filter(id => !deptPeopleIds.includes(id)));
-                                                } else {
-                                                  setSelectedExecutorIds(Array.from(new Set([...selectedExecutorIds, ...deptPeopleIds])));
-                                                }
+                                                setSelectedExecutorIds(Array.from(new Set([...selectedExecutorIds, ...deptPeopleIds])));
                                               }}
                                               className="text-xs h-7"
                                             >
-                                              {peopleInDept.every(p => selectedExecutorIds.includes(p.id)) ? 'Бекор кардан' : 'Ҳамаро интихоб'}
+                                              Ҳамаро интихоб
                                             </Button>
                                           )}
                                         </div>
@@ -753,12 +751,10 @@ export default function MessageView() {
                                             <div key={person.id} className="flex items-center space-x-2">
                                               <Checkbox
                                                 id={`executor-${person.id}`}
-                                                checked={selectedExecutorIds.includes(person.id)}
+                                                checked={false}
                                                 onCheckedChange={(checked) => {
                                                   if (checked) {
                                                     setSelectedExecutorIds([...selectedExecutorIds, person.id]);
-                                                  } else {
-                                                    setSelectedExecutorIds(selectedExecutorIds.filter(id => id !== person.id));
                                                   }
                                                 }}
                                                 data-testid={`checkbox-executor-${person.id}`}
@@ -772,9 +768,11 @@ export default function MessageView() {
                                       </div>
                                     );
                                   })}
-                                  {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId)).length === 0 && (
+                                  {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId) && !selectedExecutorIds.includes(p.id)).length === 0 && (
                                     <p className="text-sm text-muted-foreground text-center py-4">
-                                      Иҷрокунандае дар ин шуъбаҳо нест
+                                      {selectedExecutorIds.length > 0 
+                                        ? 'Ҳама иҷрокунандагон даъват шудаанд'
+                                        : 'Иҷрокунандае дар ин шуъбаҳо нест'}
                                     </p>
                                   )}
                                 </div>

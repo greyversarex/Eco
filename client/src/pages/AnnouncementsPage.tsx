@@ -29,6 +29,7 @@ export default function AnnouncementsPage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [selectedDepartments, setSelectedDepartments] = useState<number[]>([]);
+  const [expandedAnnouncements, setExpandedAnnouncements] = useState<Set<number>>(new Set());
 
   const { data: announcements = [], isLoading } = useQuery<Announcement[]>({
     queryKey: ['/api/announcements'],
@@ -346,27 +347,59 @@ export default function AnnouncementsPage() {
                         Даъватшудагон:
                       </span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {announcement.recipientIds && announcement.recipientIds.length > 0 ? (
-                        announcement.recipientIds.map((deptId: number) => {
-                          const dept = departments.find(d => d.id === deptId);
-                          return dept ? (
-                            <div
-                              key={deptId}
-                              className="px-3 py-1.5 bg-primary/10 text-primary rounded-md text-sm border border-primary/20"
-                              data-testid={`recipient-dept-${deptId}`}
-                            >
-                              {dept.name}
-                            </div>
-                          ) : null;
-                        })
-                      ) : (
-                        <div
-                          className="px-3 py-1.5 bg-muted/50 text-muted-foreground rounded-md text-sm border border-border"
-                          data-testid="recipient-all-departments"
+                    <div className="flex flex-col gap-2">
+                      <div className="flex flex-wrap gap-2">
+                        {announcement.recipientIds && announcement.recipientIds.length > 0 ? (
+                          (() => {
+                            const isExpanded = expandedAnnouncements.has(announcement.id);
+                            const recipientDepts = announcement.recipientIds
+                              .map(deptId => departments.find(d => d.id === deptId))
+                              .filter(dept => dept !== undefined);
+                            const displayedDepts = isExpanded ? recipientDepts : recipientDepts.slice(0, 5);
+                            
+                            return (
+                              <>
+                                {displayedDepts.map((dept) => (
+                                  <div
+                                    key={dept.id}
+                                    className="px-3 py-1.5 bg-primary/10 text-primary rounded-md text-sm border border-primary/20"
+                                    data-testid={`recipient-dept-${dept.id}`}
+                                  >
+                                    {dept.name}
+                                  </div>
+                                ))}
+                              </>
+                            );
+                          })()
+                        ) : (
+                          <div
+                            className="px-3 py-1.5 bg-muted/50 text-muted-foreground rounded-md text-sm border border-border"
+                            data-testid="recipient-all-departments"
                         >
                           Ҳама шуъбаҳо
                         </div>
+                      )}
+                      </div>
+                      {announcement.recipientIds && announcement.recipientIds.length > 5 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const newExpanded = new Set(expandedAnnouncements);
+                            if (newExpanded.has(announcement.id)) {
+                              newExpanded.delete(announcement.id);
+                            } else {
+                              newExpanded.add(announcement.id);
+                            }
+                            setExpandedAnnouncements(newExpanded);
+                          }}
+                          className="text-xs"
+                          data-testid={`button-toggle-recipients-${announcement.id}`}
+                        >
+                          {expandedAnnouncements.has(announcement.id) 
+                            ? 'Пинҳон кардан' 
+                            : `Тамоми рӯйхат (${announcement.recipientIds.length})`}
+                        </Button>
                       )}
                     </div>
                   </div>

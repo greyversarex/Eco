@@ -91,12 +91,12 @@ export const messages: any = pgTable("messages", {
   subject: text("subject").notNull(),
   content: text("content").notNull(),
   documentNumber: text("document_number"),
-  senderId: integer("sender_id").notNull().references(() => departments.id),
-  recipientId: integer("recipient_id").references(() => departments.id), // Legacy field, kept for backward compatibility
+  senderId: integer("sender_id").notNull().references(() => departments.id, { onDelete: 'cascade' }),
+  recipientId: integer("recipient_id").references(() => departments.id, { onDelete: 'cascade' }), // Legacy field, kept for backward compatibility
   recipientIds: integer("recipient_ids").array().default(sql`ARRAY[]::integer[]`).notNull(), // New field for broadcast messages
   executor: text("executor"),
   documentDate: timestamp("document_date").notNull(),
-  replyToId: integer("reply_to_id").references((): any => messages.id),
+  replyToId: integer("reply_to_id").references((): any => messages.id, { onDelete: 'cascade' }),
   isRead: boolean("is_read").default(false).notNull(),
   isDeleted: boolean("is_deleted").default(false).notNull(),
   deletedAt: timestamp("deleted_at"),
@@ -149,7 +149,7 @@ export type Attachment = typeof attachments.$inferSelect;
 // Assignments table (Поручения / Супоришҳо)
 export const assignments = pgTable("assignments", {
   id: serial("id").primaryKey(),
-  senderId: integer("sender_id").references(() => departments.id), // Создатель супориша (nullable для миграции)
+  senderId: integer("sender_id").references(() => departments.id, { onDelete: 'cascade' }), // Создатель супориша (nullable для миграции)
   topic: text("topic").notNull(), // Мавзӯъ: "Нақшаи корӣ", "Протоколи назоратӣ", etc.
   content: text("content"), // Мазмуни супоришҳои додашуда (комментарии)
   documentNumber: text("document_number"),
