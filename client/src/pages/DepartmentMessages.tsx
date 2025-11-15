@@ -170,12 +170,15 @@ export default function DepartmentMessages() {
                     </div>
                     {messages.received.map((message) => {
                     const senderDept = departments.find((d) => d.id === message.senderId);
+                    const senderName = message.senderId === null 
+                      ? 'Системавӣ' 
+                      : (senderDept?.name || 'Номаълум');
                     return (
                       <MessageListItem
                         key={message.id}
                         id={message.id.toString()}
                         subject={message.subject}
-                        sender={senderDept?.name || 'Unknown'}
+                        sender={senderName}
                         date={new Date(message.createdAt).toLocaleDateString('ru-RU')}
                         isRead={message.isRead}
                         hasAttachment={!!message.attachmentUrl}
@@ -230,13 +233,31 @@ export default function DepartmentMessages() {
                       <div />
                     </div>
                     {messages.sent.map((message) => {
-                    const recipientDept = departments.find((d) => d.id === message.recipientId);
+                    let recipientNames: string[] = [];
+                    
+                    // Check recipientIds array first (broadcast to multiple departments)
+                    if (message.recipientIds && message.recipientIds.length > 0) {
+                      recipientNames = message.recipientIds
+                        .map((id: number) => departments.find((d) => d.id === id)?.name)
+                        .filter((name: string | undefined): name is string => !!name);
+                    } else if (message.recipientId) {
+                      // Single recipient (legacy)
+                      const recipientDept = departments.find((d) => d.id === message.recipientId);
+                      if (recipientDept?.name) {
+                        recipientNames = [recipientDept.name];
+                      }
+                    } else {
+                      // Broadcast to all departments (recipientId and recipientIds both null/empty)
+                      recipientNames = ['Ҳама шуъбаҳо'];
+                    }
+                    
                     return (
                       <MessageListItem
                         key={message.id}
                         id={message.id.toString()}
                         subject={message.subject}
-                        sender={recipientDept?.name || 'Unknown'}
+                        sender={recipientNames.join(', ')}
+                        recipientNames={recipientNames}
                         date={new Date(message.createdAt).toLocaleDateString('ru-RU')}
                         isRead={message.isRead}
                         hasAttachment={!!message.attachmentUrl}

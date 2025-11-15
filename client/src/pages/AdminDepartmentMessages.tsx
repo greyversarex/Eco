@@ -131,8 +131,26 @@ export default function AdminDepartmentMessages() {
                     </p>
                   ) : (
                     deletedMessages.map((message) => {
+                      // Resolve sender name
                       const senderDept = departments.find((d) => d.id === message.senderId);
-                      const recipientDept = departments.find((d) => d.id === message.recipientId);
+                      const senderName = message.senderId === null 
+                        ? 'Системавӣ' 
+                        : (senderDept?.name || 'Номаълум');
+                      
+                      // Resolve recipient name(s) - check recipientIds array first
+                      let recipientName = '';
+                      if (message.recipientIds && message.recipientIds.length > 0) {
+                        const recipientNames = message.recipientIds
+                          .map((id: number) => departments.find((d) => d.id === id)?.name)
+                          .filter((name: string | undefined): name is string => !!name);
+                        recipientName = recipientNames.length > 0 ? recipientNames.join(', ') : 'Номаълум';
+                      } else if (message.recipientId) {
+                        const recipientDept = departments.find((d) => d.id === message.recipientId);
+                        recipientName = recipientDept?.name || 'Номаълум';
+                      } else {
+                        recipientName = 'Ҳама шуъбаҳо';
+                      }
+                      
                       return (
                         <div
                           key={message.id}
@@ -141,7 +159,7 @@ export default function AdminDepartmentMessages() {
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">{message.subject}</p>
                             <p className="text-xs text-muted-foreground">
-                              Аз: {senderDept?.name || 'Unknown'} → Ба: {recipientDept?.name || 'Unknown'}
+                              Аз: {senderName} → Ба: {recipientName}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               Нест шуд: {message.deletedAt ? new Date(message.deletedAt).toLocaleDateString('ru-RU') : ''}
@@ -240,12 +258,15 @@ export default function AdminDepartmentMessages() {
                     </div>
                     {receivedMessages.map((message) => {
                       const senderDept = departments.find((d) => d.id === message.senderId);
+                      const senderName = message.senderId === null 
+                        ? 'Системавӣ' 
+                        : (senderDept?.name || 'Номаълум');
                       return (
                         <MessageListItem
                           key={message.id}
                           id={message.id.toString()}
                           subject={message.subject}
-                          sender={senderDept?.name || 'Unknown'}
+                          sender={senderName}
                           date={new Date(message.createdAt).toLocaleDateString('ru-RU')}
                           isRead={message.isRead}
                           hasAttachment={!!message.attachmentUrl}
@@ -300,13 +321,31 @@ export default function AdminDepartmentMessages() {
                       <div />
                     </div>
                     {sentMessages.map((message) => {
-                      const recipientDept = departments.find((d) => d.id === message.recipientId);
+                      let recipientNames: string[] = [];
+                      
+                      // Check recipientIds array first (broadcast to multiple departments)
+                      if (message.recipientIds && message.recipientIds.length > 0) {
+                        recipientNames = message.recipientIds
+                          .map((id: number) => departments.find((d) => d.id === id)?.name)
+                          .filter((name: string | undefined): name is string => !!name);
+                      } else if (message.recipientId) {
+                        // Single recipient (legacy)
+                        const recipientDept = departments.find((d) => d.id === message.recipientId);
+                        if (recipientDept?.name) {
+                          recipientNames = [recipientDept.name];
+                        }
+                      } else {
+                        // Broadcast to all departments (recipientId and recipientIds both null/empty)
+                        recipientNames = ['Ҳама шуъбаҳо'];
+                      }
+                      
                       return (
                         <MessageListItem
                           key={message.id}
                           id={message.id.toString()}
                           subject={message.subject}
-                          sender={recipientDept?.name || 'Unknown'}
+                          sender={recipientNames.join(', ')}
+                          recipientNames={recipientNames}
                           date={new Date(message.createdAt).toLocaleDateString('ru-RU')}
                           isRead={true}
                           hasAttachment={!!message.attachmentUrl}

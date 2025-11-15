@@ -70,11 +70,19 @@ export default function Inbox() {
           // Legacy single recipient
           const name = getDepartmentName(msg.recipientId);
           recipientNames = name ? [name] : [];
+        } else if (msg.recipientId === null) {
+          // Broadcast to all departments
+          recipientNames = ['Ҳама шуъбаҳо'];
         }
         senderName = recipientNames.join(', '); // Fallback for search
       } else {
         // Inbox: show sender
-        senderName = getDepartmentName(msg.senderId);
+        if (msg.senderId === null) {
+          senderName = 'Системавӣ';
+        } else {
+          const name = getDepartmentName(msg.senderId);
+          senderName = name || 'Номаълум';
+        }
       }
       
       return {
