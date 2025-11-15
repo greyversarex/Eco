@@ -243,14 +243,35 @@ export default function MessageView() {
   };
 
   // Open assignment dialog with pre-filled data from message
-  const openAssignmentDialog = () => {
+  const openAssignmentDialog = async () => {
     if (!message) return;
-    // Pre-fill content from message subject and content
-    setAssignmentContent(message.subject + (message.content ? '\n\n' + message.content : ''));
+    
+    // Pre-fill topic from message subject
+    setAssignmentTopic(message.subject || '');
+    
+    // Pre-fill content from message content (not subject!)
+    setAssignmentContent(message.content || '');
+    
     // Pre-fill document number if available
     if (message.documentNumber) {
       setAssignmentDocNumber(message.documentNumber);
     }
+    
+    // Copy attachments from message to assignment
+    if (attachments && attachments.length > 0) {
+      try {
+        const filePromises = attachments.map(async (attachment) => {
+          const response = await fetch(`/api/attachments/${attachment.id}`);
+          const blob = await response.blob();
+          return new File([blob], attachment.filename, { type: attachment.mimeType });
+        });
+        const files = await Promise.all(filePromises);
+        setAssignmentFiles(files);
+      } catch (error) {
+        console.error('Failed to copy attachments:', error);
+      }
+    }
+    
     setIsAssignmentDialogOpen(true);
   };
 

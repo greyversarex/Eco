@@ -687,7 +687,14 @@ export default function AssignmentsPage() {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold">{assignment.topic}</h3>
+                      <div className="flex items-baseline gap-3 flex-wrap mb-2">
+                        <h3 className="text-lg font-semibold">{assignment.topic}</h3>
+                        {assignment.documentNumber && (
+                          <span className="text-sm text-muted-foreground">
+                            <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
+                          </span>
+                        )}
+                      </div>
                       {assignment.content && (
                         <div className="mt-3">
                           <div className="text-sm font-medium text-gray-900 mb-1">
