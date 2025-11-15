@@ -30,6 +30,7 @@ import type { Department } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { Footer } from '@/components/Footer';
+import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
 import {
   DndContext,
   closestCenter,
@@ -507,64 +508,57 @@ export default function AdminDashboard() {
           background: 'rgba(255, 255, 255, 0.92)'
         }}
       />
-      <header 
-        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
-        style={{
-          background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
-        }}
-      >
-        <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
-            <div className="flex items-start gap-2 sm:gap-3 min-w-0 flex-1 pt-2">
-              <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
-              <div className="min-w-0 text-left">
-                <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{t.adminPanel}</h1>
-                <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">Портали электронӣ</p>
-              </div>
+      <PageHeader variant="admin">
+        <PageHeaderContainer className="px-3 sm:px-4 md:px-6 lg:px-8">
+          <PageHeaderLeft className="gap-2 sm:gap-3 min-w-0 flex-1 pt-2">
+            <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0" />
+            <div className="min-w-0 text-left">
+              <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{t.adminPanel}</h1>
+              <p className="text-xs text-muted-foreground hidden sm:block">Портали электронӣ</p>
             </div>
-            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.location.href = '/admin/departments'}
-                data-testid="button-departments"
-                className="gap-2 hidden sm:flex text-white hover:bg-white/20"
-              >
-                <Mail className="h-4 w-4" />
-                <span className="hidden md:inline">Паёмҳо</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.location.href = '/admin/people'}
-                data-testid="button-people"
-                className="gap-2 hidden sm:flex text-white hover:bg-white/20"
-              >
-                <Users className="h-4 w-4" />
-                <span className="hidden md:inline">Иҷрокунандагон</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.location.href = '/admin/departments'}
-                data-testid="button-departments-mobile"
-                className="sm:hidden text-white hover:bg-white/20"
-              >
-                <Mail className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                onClick={logout}
-                data-testid="button-logout"
-                className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Баромад</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+          </PageHeaderLeft>
+          <PageHeaderRight className="gap-2 sm:gap-4 shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.location.href = '/admin/departments'}
+              data-testid="button-departments"
+              className="gap-2 hidden sm:flex"
+            >
+              <Mail className="h-4 w-4" />
+              <span className="hidden md:inline">Паёмҳо</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.location.href = '/admin/people'}
+              data-testid="button-people"
+              className="gap-2 hidden sm:flex"
+            >
+              <Users className="h-4 w-4" />
+              <span className="hidden md:inline">Иҷрокунандагон</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.location.href = '/admin/departments'}
+              data-testid="button-departments-mobile"
+              className="sm:hidden"
+            >
+              <Mail className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              onClick={logout}
+              data-testid="button-logout"
+              className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Баромад</span>
+            </Button>
+          </PageHeaderRight>
+        </PageHeaderContainer>
+      </PageHeader>
 
       <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
         <div className="space-y-4">

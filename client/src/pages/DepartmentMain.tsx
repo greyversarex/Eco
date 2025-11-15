@@ -12,6 +12,7 @@ import type { Department } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { Footer } from '@/components/Footer';
+import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
 
 export default function DepartmentMain() {
   const [, setLocation] = useLocation();
@@ -60,17 +61,12 @@ export default function DepartmentMain() {
           background: 'rgba(255, 255, 255, 0.92)'
         }}
       />
-      <header 
-        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
-        style={{
-          background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
-        }}
-      >
-        <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
+      <PageHeader variant="department">
+        <PageHeaderContainer className="px-3 sm:px-4 md:px-6 lg:px-8">
+          <PageHeaderLeft className="gap-2 min-w-0 flex-1 md:flex-initial">
             <button 
               onClick={() => setLocation('/department/main')}
-              className="flex items-start gap-2 min-w-0 hover:opacity-80 transition-opacity flex-1 md:flex-initial pt-2"
+              className="flex items-start gap-2 min-w-0 hover:opacity-80 transition-opacity pt-2"
               data-testid="button-home"
             >
               <img src={logoImage} alt="Логотип" className="h-8 w-8 sm:h-10 sm:w-10 object-contain shrink-0 drop-shadow-md" />
@@ -81,75 +77,75 @@ export default function DepartmentMain() {
                 <p className="text-xs text-white/90 drop-shadow-sm truncate">Портали электронӣ</p>
               </div>
             </button>
-            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4">
-              <nav className="hidden md:flex items-center gap-2.5">
-                <Button
-                  size="default"
-                  onClick={() => setLocation('/department/inbox')}
-                  data-testid="button-inbox"
-                  className="gap-2.5 bg-white text-green-700 hover:bg-white/90 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-green-100"
-                >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-green-100">
-                    <Inbox className="h-4 w-4 text-green-700" />
-                  </div>
-                  <span className="font-semibold">{t.inbox}</span>
-                </Button>
-                <Button
-                  size="default"
-                  onClick={() => setLocation('/department/outbox')}
-                  data-testid="button-outbox"
-                  className="gap-2.5 bg-white text-green-700 hover:bg-white/90 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-green-100"
-                >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-green-100">
-                    <Send className="h-4 w-4 text-green-700" />
-                  </div>
-                  <span className="font-semibold">{t.outbox}</span>
-                </Button>
-                <Button
-                  size="default"
-                  onClick={() => setLocation('/department/compose')}
-                  data-testid="button-compose"
-                  className="gap-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white/20">
-                    <PenSquare className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="font-semibold">{t.newMessage}</span>
-                </Button>
-                <Button
-                  size="icon"
-                  onClick={() => setLocation('/department/trash')}
-                  data-testid="button-trash"
-                  className="bg-red-500 text-white hover:bg-red-600 h-11 w-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </Button>
-              </nav>
-              <MobileNav 
-                translations={{
-                  inbox: t.inbox,
-                  outbox: t.outbox,
-                  newMessage: t.newMessage,
-                  menu: t.menu,
-                }}
-              />
-              <div className="hidden sm:flex items-center gap-2">
-                <Button
-                  size="default"
-                  onClick={logout}
-                  data-testid="button-logout"
-                  className="gap-2.5 bg-red-500 hover:bg-red-600 text-white font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white/20">
-                    <LogOut className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="font-semibold">Баромад</span>
-                </Button>
-              </div>
+          </PageHeaderLeft>
+          <PageHeaderRight className="gap-1.5 sm:gap-2 md:gap-4">
+            <nav className="hidden md:flex items-center gap-2.5">
+              <Button
+                size="default"
+                onClick={() => setLocation('/department/inbox')}
+                data-testid="button-inbox"
+                className="gap-2.5 bg-white text-green-700 hover:bg-white/90 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-green-100"
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-green-100">
+                  <Inbox className="h-4 w-4 text-green-700" />
+                </div>
+                <span className="font-semibold">{t.inbox}</span>
+              </Button>
+              <Button
+                size="default"
+                onClick={() => setLocation('/department/outbox')}
+                data-testid="button-outbox"
+                className="gap-2.5 bg-white text-green-700 hover:bg-white/90 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-green-100"
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-green-100">
+                  <Send className="h-4 w-4 text-green-700" />
+                </div>
+                <span className="font-semibold">{t.outbox}</span>
+              </Button>
+              <Button
+                size="default"
+                onClick={() => setLocation('/department/compose')}
+                data-testid="button-compose"
+                className="gap-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white/20">
+                  <PenSquare className="h-4 w-4 text-white" />
+                </div>
+                <span className="font-semibold">{t.newMessage}</span>
+              </Button>
+              <Button
+                size="icon"
+                onClick={() => setLocation('/department/trash')}
+                data-testid="button-trash"
+                className="bg-red-500 text-white hover:bg-red-600 h-11 w-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              >
+                <Trash2 className="h-5 w-5" />
+              </Button>
+            </nav>
+            <MobileNav 
+              translations={{
+                inbox: t.inbox,
+                outbox: t.outbox,
+                newMessage: t.newMessage,
+                menu: t.menu,
+              }}
+            />
+            <div className="hidden sm:flex items-center gap-2">
+              <Button
+                size="default"
+                onClick={logout}
+                data-testid="button-logout"
+                className="gap-2.5 bg-red-500 hover:bg-red-600 text-white font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white/20">
+                  <LogOut className="h-4 w-4 text-white" />
+                </div>
+                <span className="font-semibold">Баромад</span>
+              </Button>
             </div>
-          </div>
-        </div>
-      </header>
+          </PageHeaderRight>
+        </PageHeaderContainer>
+      </PageHeader>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
         {isLoading ? (

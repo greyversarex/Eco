@@ -11,6 +11,7 @@ import type { Department, Message } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { Footer } from '@/components/Footer';
+import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
 
 export default function MonitoringPage() {
   const [, setLocation] = useLocation();
@@ -88,49 +89,42 @@ export default function MonitoringPage() {
           background: 'rgba(255, 255, 255, 0.92)'
         }}
       />
-      <header 
-        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
-        style={{
-          background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
-        }}
-      >
-        <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
-            <div className="flex items-center gap-3 min-w-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation('/department/main')}
-                className="text-white hover:bg-white/20 shrink-0"
-                data-testid="button-back"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div className="flex items-start gap-2 sm:gap-3">
-                <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
-                <div className="min-w-0 text-left">
-                  <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">
-                    Назорат
-                  </h1>
-                  <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">Портали электронӣ</p>
-                </div>
+      <PageHeader variant="department">
+        <PageHeaderContainer className="px-3 sm:px-4 md:px-6 lg:px-8">
+          <PageHeaderLeft className="gap-3 min-w-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation('/department/main')}
+              className="text-white hover:bg-white/20 shrink-0"
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex items-start gap-2 sm:gap-3">
+              <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
+              <div className="min-w-0 text-left">
+                <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">
+                  Назорат
+                </h1>
+                <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">Портали электронӣ</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={logout}
-                data-testid="button-logout"
-                className="flex items-center gap-2 text-white hover:bg-white/20"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Баромад</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+          </PageHeaderLeft>
+          <PageHeaderRight className="gap-2 shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={logout}
+              data-testid="button-logout"
+              className="flex items-center gap-2 text-white hover:bg-white/20"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Баромад</span>
+            </Button>
+          </PageHeaderRight>
+        </PageHeaderContainer>
+      </PageHeader>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
         {isLoading ? (

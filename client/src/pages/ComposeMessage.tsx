@@ -17,6 +17,7 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import type { Department, Person } from '@shared/schema';
 import { Footer } from '@/components/Footer';
+import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
 
 export default function ComposeMessage() {
   
@@ -308,53 +309,46 @@ export default function ComposeMessage() {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      <header 
-        className="border-b border-border/20 backdrop-blur-md"
-        style={{
-          background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
-        }}
-      >
-        <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation('/department/main')}
-                data-testid="button-back"
-                className="shrink-0 text-white hover:bg-white/20"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <button 
-                onClick={() => setLocation('/department/main')}
-                className="flex items-start gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity pt-1"
-                data-testid="button-home"
-              >
-                <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
-                <div className="min-w-0 text-left">
-                  <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{t.newMessage}</h1>
-                  <p className="text-xs text-white/90 drop-shadow-sm truncate">Портали электронӣ</p>
-                </div>
-              </button>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                onClick={() => {
-                  fetch('/api/auth/logout', { method: 'POST' })
-                    .then(() => setLocation('/'));
-                }}
-                data-testid="button-logout"
-                className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Баромад</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <PageHeader variant="department">
+        <PageHeaderContainer className="px-3 sm:px-4 md:px-6 lg:px-8">
+          <PageHeaderLeft className="gap-2 sm:gap-4 min-w-0 flex-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation('/department/main')}
+              data-testid="button-back"
+              className="shrink-0 text-white hover:bg-white/20"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <button 
+              onClick={() => setLocation('/department/main')}
+              className="flex items-start gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity pt-1"
+              data-testid="button-home"
+            >
+              <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
+              <div className="min-w-0 text-left">
+                <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{t.newMessage}</h1>
+                <p className="text-xs text-white/90 drop-shadow-sm truncate">Портали электронӣ</p>
+              </div>
+            </button>
+          </PageHeaderLeft>
+          <PageHeaderRight className="gap-2">
+            <Button
+              size="sm"
+              onClick={() => {
+                fetch('/api/auth/logout', { method: 'POST' })
+                  .then(() => setLocation('/'));
+              }}
+              data-testid="button-logout"
+              className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white border-0 font-medium shadow-md"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Баромад</span>
+            </Button>
+          </PageHeaderRight>
+        </PageHeaderContainer>
+      </PageHeader>
 
       <main className="flex-1 mx-auto max-w-4xl w-full px-3 py-6 sm:px-4 md:px-6 lg:px-8">
         <Card>

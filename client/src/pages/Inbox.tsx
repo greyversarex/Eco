@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
+import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
 
 export default function Inbox() {
   const [location, setLocation] = useLocation();
@@ -188,37 +189,31 @@ export default function Inbox() {
           background: 'rgba(255, 255, 255, 0.92)'
         }}
       />
-      <header 
-        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
-        style={{
-          background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
-        }}
-      >
-        <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation('/department/main')}
-                data-testid="button-back"
-                className="shrink-0 text-white hover:bg-white/20"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <button 
-                onClick={() => setLocation('/department/main')}
-                className="flex items-start gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity pt-1"
-                data-testid="button-home"
-              >
-                <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0 drop-shadow-md" />
-                <div className="min-w-0 text-left">
-                  <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{pageTitle}</h1>
-                  <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">Портали электронӣ</p>
-                </div>
-              </button>
-            </div>
-            <div className="flex items-center gap-2">
+      <PageHeader variant="department">
+        <PageHeaderContainer className="px-3 sm:px-4 md:px-6 lg:px-8">
+          <PageHeaderLeft className="gap-2 sm:gap-4 min-w-0 flex-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation('/department/main')}
+              data-testid="button-back"
+              className="shrink-0 text-white hover:bg-white/20"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <button 
+              onClick={() => setLocation('/department/main')}
+              className="flex items-start gap-2 sm:gap-3 min-w-0 hover:opacity-80 transition-opacity pt-1"
+              data-testid="button-home"
+            >
+              <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0 drop-shadow-md" />
+              <div className="min-w-0 text-left">
+                <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{pageTitle}</h1>
+                <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">Портали электронӣ</p>
+              </div>
+            </button>
+          </PageHeaderLeft>
+          <PageHeaderRight className="gap-2">
               {!isDeleteMode ? (
                 <Button
                   variant="ghost"
@@ -271,10 +266,9 @@ export default function Inbox() {
                 <LogOut className="h-4 w-4" />
                 <span>Баромад</span>
               </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+          </PageHeaderRight>
+        </PageHeaderContainer>
+      </PageHeader>
       <main className="mx-auto max-w-6xl relative z-10">
         <div className="border-x border-border bg-background/95 backdrop-blur-sm min-h-screen">
           <div className="p-4 border-b border-border bg-background/50">
