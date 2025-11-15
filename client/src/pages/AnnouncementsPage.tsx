@@ -341,6 +341,38 @@ export default function AnnouncementsPage() {
                 <CardContent>
                   <div className="text-base leading-relaxed whitespace-pre-line">{announcement.content}</div>
                   
+                  {/* Recipients Section - Даъватшудагон */}
+                  <div className="pt-4 mt-4 border-t">
+                    <div className="flex items-start gap-2 mb-2">
+                      <span className="text-sm font-medium">
+                        Даъватшудагон:
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {announcement.recipientIds && announcement.recipientIds.length > 0 ? (
+                        announcement.recipientIds.map((deptId: number) => {
+                          const dept = departments.find(d => d.id === deptId);
+                          return dept ? (
+                            <div
+                              key={deptId}
+                              className="px-3 py-1.5 bg-primary/10 text-primary rounded-md text-sm border border-primary/20"
+                              data-testid={`recipient-dept-${deptId}`}
+                            >
+                              {dept.name}
+                            </div>
+                          ) : null;
+                        })
+                      ) : (
+                        <div
+                          className="px-3 py-1.5 bg-muted/50 text-muted-foreground rounded-md text-sm border border-border"
+                          data-testid="recipient-all-departments"
+                        >
+                          Ҳама шуъбаҳо
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
                   {announcement.attachments && announcement.attachments.length > 0 && (
                     <div className="pt-4 mt-4 border-t">
                       <div className="flex items-center gap-2 mb-2">
