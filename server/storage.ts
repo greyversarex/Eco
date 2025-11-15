@@ -218,8 +218,11 @@ export class DbStorage implements IStorage {
       messageData.recipientIds = [messageData.recipientId];
     }
     
-    const result = await db.insert(messages).values(messageData).returning();
-    return result[0] as Message;
+    const result = await db.insert(messages).values(messageData).returning() as Message[];
+    if (!result[0]) {
+      throw new Error('Failed to create message');
+    }
+    return result[0];
   }
 
   async markMessageAsRead(id: number): Promise<Message | undefined> {
