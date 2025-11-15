@@ -147,8 +147,8 @@ export default function MessageListItem({
         } ${isSelected ? 'bg-primary/10' : ''}`}
         style={{
           gridTemplateColumns: selectable 
-            ? 'auto 120px 1fr 150px 130px 80px'
-            : '120px 1fr 150px 130px 80px'
+            ? 'auto 120px 1fr 180px 130px 80px'
+            : '120px 1fr 180px 130px 80px'
         }}
         onClick={handleItemClick}
         data-testid={`message-item-${id}`}
