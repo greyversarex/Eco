@@ -1178,11 +1178,13 @@ export function registerRoutes(app: Express) {
       }
       const recipientIds = recipientIdsRaw.map(id => parseInt(String(id), 10)).filter(id => !isNaN(id));
 
-      // Validate and get executor names from executorIds
+      // Get all people
+      const allPeople = await storage.getPeople();
+      
+      // Validate and get invited executor names from executorIds (Даъват - приглашенные)
       const executors: string[] = [];
       if (executorIds.length > 0) {
-        const people = await storage.getPeople();
-        const selectedPeople = people.filter((p: any) => executorIds.includes(p.id));
+        const selectedPeople = allPeople.filter((p: any) => executorIds.includes(p.id));
         
         // Validate that all executorIds belong to selected departments
         for (const person of selectedPeople) {
@@ -1199,6 +1201,13 @@ export function registerRoutes(app: Express) {
           return res.status(400).json({ error: 'Some executor IDs are invalid' });
         }
       }
+      
+      // Get ALL people from recipient departments (Иҷрокунандагон - все исполнители)
+      const allDepartmentPeople = allPeople.filter((p: any) => 
+        p.departmentId && recipientIds.includes(p.departmentId)
+      );
+      const allDepartmentExecutorIds = allDepartmentPeople.map((p: any) => p.id);
+      const allDepartmentExecutors = allDepartmentPeople.map((p: any) => p.name);
 
       // Determine senderId: for departments use departmentId, for admins require explicit sender
       let senderId: number;
@@ -1228,8 +1237,10 @@ export function registerRoutes(app: Express) {
         topic: req.body.topic,
         content: req.body.content || null,
         documentNumber: req.body.documentNumber || null,
-        executors: executors,
-        executorIds: executorIds,
+        executors: executors, // Invited executors (Даъват)
+        executorIds: executorIds, // Invited executor IDs (Даъват)
+        allDepartmentExecutors: allDepartmentExecutors, // All department people (Иҷрокунандагон)
+        allDepartmentExecutorIds: allDepartmentExecutorIds, // All department people IDs (Иҷрокунандагон)
         recipientIds: recipientIds,
         deadline: new Date(req.body.deadline),
       };

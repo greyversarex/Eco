@@ -200,7 +200,6 @@ export default function AssignmentsPage() {
   const [selectedExecutorIds, setSelectedExecutorIds] = useState<number[]>([]);
   const [deadline, setDeadline] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [showAllInvited, setShowAllInvited] = useState(false);
 
   const { data: assignments = [], isLoading } = useQuery<Assignment[]>({
     queryKey: ['/api/assignments'],
@@ -241,7 +240,6 @@ export default function AssignmentsPage() {
       setSelectedExecutorIds([]);
       setDeadline('');
       setSelectedFiles([]);
-      setShowAllInvited(false);
     },
     onError: (error: any) => {
       toast({
@@ -404,10 +402,7 @@ export default function AssignmentsPage() {
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-2xl font-bold">Рӯйхати супоришҳо</h2>
           {canCreate && (
-            <Dialog open={isDialogOpen} onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) setShowAllInvited(false);
-            }}>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2" data-testid="button-create-assignment">
                   <Plus className="h-4 w-4" />
@@ -517,71 +512,16 @@ export default function AssignmentsPage() {
                     )}
                   </div>
 
-                  {/* Даъват (Приглашенные) - раскрываемый список */}
-                  {selectedExecutorIds.length > 0 && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label>Даъват</Label>
+                  {/* Иҷрокунандагон (Исполнители) - все люди с чекбоксами */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Иҷрокунандагон</Label>
+                      {selectedExecutorIds.length > 0 && (
                         <span className="text-xs text-muted-foreground">
                           Интихоб шуд: {selectedExecutorIds.length}
                         </span>
-                      </div>
-                      <div className="border rounded-md p-4">
-                        <div className="space-y-2">
-                          {(() => {
-                            const invitedPeople = allPeople.filter(p => selectedExecutorIds.includes(p.id));
-                            const displayedPeople = showAllInvited ? invitedPeople : invitedPeople.slice(0, 5);
-                            
-                            return (
-                              <>
-                                {displayedPeople.map(person => {
-                                  const dept = departments.find(d => d.id === person.departmentId);
-                                  return (
-                                    <div key={person.id} className="flex items-center justify-between space-x-2 py-1">
-                                      <div className="flex items-center space-x-2 flex-1">
-                                        <Checkbox
-                                          id={`invited-${person.id}`}
-                                          checked={true}
-                                          onCheckedChange={() => {
-                                            setSelectedExecutorIds(selectedExecutorIds.filter(id => id !== person.id));
-                                          }}
-                                          data-testid={`checkbox-invited-${person.id}`}
-                                        />
-                                        <label htmlFor={`invited-${person.id}`} className="text-sm cursor-pointer flex-1">
-                                          {person.name}
-                                        </label>
-                                      </div>
-                                      <span className="text-xs text-muted-foreground">
-                                        {dept?.name || 'Номаълум'}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-                                {invitedPeople.length > 5 && (
-                                  <div className="pt-2 border-t">
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => setShowAllInvited(!showAllInvited)}
-                                      className="text-xs w-full"
-                                      data-testid="button-toggle-invited"
-                                    >
-                                      {showAllInvited ? 'Пинҳон кардан' : `Тамоми рӯйхат (${invitedPeople.length})`}
-                                    </Button>
-                                  </div>
-                                )}
-                              </>
-                            );
-                          })()}
-                        </div>
-                      </div>
+                      )}
                     </div>
-                  )}
-
-                  {/* Иҷрокунандагон (Исполнители) - показывает ТОЛЬКО не выбранных людей с чекбоксами */}
-                  <div className="space-y-2">
-                    <Label>Иҷрокунандагон</Label>
                     {selectedRecipients.length === 0 ? (
                       <p className="text-sm text-muted-foreground">
                         Аввал қабулкунандаро интихоб кунед
@@ -590,10 +530,8 @@ export default function AssignmentsPage() {
                       <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
                         {selectedRecipients.map(recipientId => {
                           const dept = departments.find(d => d.id === recipientId);
-                          // ВАЖНО: показываем только тех, кто НЕ выбран (не в приглашенных)
-                          const peopleInDept = allPeople.filter(p => 
-                            p.departmentId === recipientId && !selectedExecutorIds.includes(p.id)
-                          );
+                          // Показываем ВСЕХ людей из департамента с чекбоксами
+                          const peopleInDept = allPeople.filter(p => p.departmentId === recipientId);
                           
                           if (peopleInDept.length === 0) return null;
                           
@@ -771,10 +709,22 @@ export default function AssignmentsPage() {
                           </div>
                         </div>
                       )}
-                      <div className="text-sm text-muted-foreground mt-2">
-                        <span className="font-medium">Иҷрокунандагон:</span>{' '}
-                        {assignment.executors.join(', ')}
-                      </div>
+                      
+                      {/* Даъват (Приглашенные исполнители) */}
+                      {assignment.executors && assignment.executors.length > 0 && (
+                        <div className="text-sm text-muted-foreground mt-2">
+                          <span className="font-medium">Даъват:</span>{' '}
+                          {assignment.executors.join(', ')}
+                        </div>
+                      )}
+                      
+                      {/* Иҷрокунандагон (Все люди из департаментов) */}
+                      {assignment.allDepartmentExecutors && assignment.allDepartmentExecutors.length > 0 && (
+                        <div className="text-sm text-muted-foreground mt-2">
+                          <span className="font-medium">Иҷрокунандагон:</span>{' '}
+                          {assignment.allDepartmentExecutors.join(', ')}
+                        </div>
+                      )}
                     </div>
                     {canDelete && (
                       <Button
@@ -880,10 +830,22 @@ export default function AssignmentsPage() {
                               </div>
                             </div>
                           )}
-                          <div className="text-sm text-muted-foreground mt-2">
-                            <span className="font-medium">Иҷрокунандагон:</span>{' '}
-                            {assignment.executors.join(', ')}
-                          </div>
+                          
+                          {/* Даъват (Приглашенные исполнители) */}
+                          {assignment.executors && assignment.executors.length > 0 && (
+                            <div className="text-sm text-muted-foreground mt-2">
+                              <span className="font-medium">Даъват:</span>{' '}
+                              {assignment.executors.join(', ')}
+                            </div>
+                          )}
+                          
+                          {/* Иҷрокунандагон (Все люди из департаментов) */}
+                          {assignment.allDepartmentExecutors && assignment.allDepartmentExecutors.length > 0 && (
+                            <div className="text-sm text-muted-foreground mt-2">
+                              <span className="font-medium">Иҷрокунандагон:</span>{' '}
+                              {assignment.allDepartmentExecutors.join(', ')}
+                            </div>
+                          )}
                         </div>
                         {canDelete && (
                           <Button

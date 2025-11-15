@@ -153,8 +153,10 @@ export const assignments = pgTable("assignments", {
   topic: text("topic").notNull(), // Мавзӯъ: "Нақшаи корӣ", "Протоколи назоратӣ", etc.
   content: text("content"), // Мазмуни супоришҳои додашуда (комментарии)
   documentNumber: text("document_number"),
-  executors: text("executors").array().notNull(), // Исполнители (массив имён)
-  executorIds: integer("executor_ids").array().notNull().default(sql`ARRAY[]::integer[]`), // ID выбранных исполнителей
+  executors: text("executors").array().notNull(), // ПРИГЛАШЕННЫЕ исполнители (массив имён) - Даъват
+  executorIds: integer("executor_ids").array().notNull().default(sql`ARRAY[]::integer[]`), // ID ПРИГЛАШЕННЫХ исполнителей - Даъват
+  allDepartmentExecutors: text("all_department_executors").array().notNull().default(sql`ARRAY[]::text[]`), // ВСЕ люди из департаментов (массив имён) - Иҷрокунандагон
+  allDepartmentExecutorIds: integer("all_department_executor_ids").array().notNull().default(sql`ARRAY[]::integer[]`), // ID ВСЕХ людей из департаментов - Иҷрокунандагон
   recipientIds: integer("recipient_ids").array().notNull().default(sql`ARRAY[]::integer[]`), // ID департаментов-получателей
   deadline: timestamp("deadline").notNull(), // Мӯҳлати иҷро
   isCompleted: boolean("is_completed").default(false).notNull(),
