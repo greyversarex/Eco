@@ -567,32 +567,6 @@ export default function AdminDashboard() {
       </header>
 
       <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-8 md:px-6 lg:px-8 relative z-10">
-        <div className="mb-6 sm:mb-8 grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-lg border border-border bg-card p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-primary/10 p-3">
-                <Building2 className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{t.departments}</p>
-                <p className="text-2xl font-semibold text-foreground">{allDepartments.length}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-border bg-card p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-primary/10 p-3">
-                <Mail className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">{t.totalMessages}</p>
-                <p className="text-2xl font-semibold text-foreground">-</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className="space-y-4">
           {/* Поисковик */}
           <div className="max-w-xl">

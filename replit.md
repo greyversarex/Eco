@@ -32,7 +32,7 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 - **Department-Specific Assignments:** Assignments are department-targeted via a `recipientIds` field, ensuring departments only see relevant assignments while admins see all.
 - **Targeted Announcements:** Announcements support multi-department targeting via `recipientIds` array field. Announcements with null/empty recipientIds are broadcast to all departments. Announcements with specific recipientIds are only visible to targeted departments. Admin announcement creation form includes department multi-select with visual feedback.
 - **Document Number Field:** Optional `documentNumber` (Рақами ҳуҷҷат) field for Messages and Assignments.
-- **Message List Headers:** Inbox and Sent message lists include column headers with context-aware labels. Sent messages use "Қабулкунанда" (Recipient) while received messages use "Фиристанда" (Sender).
+- **Message List Headers:** Inbox and Sent message lists include column headers with context-aware labels. Sent messages use "Қабулкунанда" (Recipient) while received messages use "Фиристанда" (Sender). Admin department message views also include identical column headers with proper grid alignment (120px 1fr 180px 130px 80px).
 - **Performance Optimization:** Achieved 85% data transfer reduction for slow networks through WebP image compression, gzip middleware, HTTP Cache-Control headers, and frontend code splitting.
 - **Footer Information:** Footer displays "Раёсати рақамикунонӣ ва инноватсия" contact information with two phone numbers.
 

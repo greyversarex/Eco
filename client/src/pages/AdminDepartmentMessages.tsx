@@ -40,7 +40,7 @@ export default function AdminDepartmentMessages() {
     },
     onSuccess: () => {
       toast({
-        title: t.success,
+        title: "Муваффақият",
         description: "Паём бутаври доимӣ нест карда шуд",
       });
       // Refetch both trash list and main messages list immediately
@@ -50,7 +50,7 @@ export default function AdminDepartmentMessages() {
     onError: () => {
       toast({
         variant: "destructive",
-        title: t.error,
+        title: "Хатогӣ",
         description: "Хатогӣ ҳангоми нест кардан",
       });
     },
@@ -208,11 +208,35 @@ export default function AdminDepartmentMessages() {
                   </div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-12 gap-2 px-4 py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30">
-                      <div className="col-span-5">Мавзуъ</div>
-                      <div className="col-span-3">Фиристанда</div>
-                      <div className="col-span-2">Рақами ҳуҷҷат</div>
-                      <div className="col-span-2">Сана</div>
+                    {/* Column Headers - Received */}
+                    <div 
+                      className="hidden sm:grid border-b border-border px-6 py-3 bg-muted/30 font-semibold text-sm text-muted-foreground items-center gap-x-4"
+                      style={{
+                        gridTemplateColumns: '120px 1fr 180px 130px 80px'
+                      }}
+                    >
+                      {/* Document Number Header */}
+                      <div className="text-center">
+                        Рақами ҳуҷҷат
+                      </div>
+                      
+                      {/* Subject Header */}
+                      <div className="min-w-0 pl-2">
+                        Мавзӯъ ва мундариҷа
+                      </div>
+                      
+                      {/* Sender Header */}
+                      <div>
+                        Фиристанда
+                      </div>
+                      
+                      {/* Date Header */}
+                      <div>
+                        Сана
+                      </div>
+                      
+                      {/* Icons Header */}
+                      <div />
                     </div>
                     {receivedMessages.map((message) => {
                       const senderDept = departments.find((d) => d.id === message.senderId);
@@ -245,11 +269,35 @@ export default function AdminDepartmentMessages() {
                   </div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-12 gap-2 px-4 py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30">
-                      <div className="col-span-5">Мавзуъ</div>
-                      <div className="col-span-3">Қабулкунанда</div>
-                      <div className="col-span-2">Рақами ҳуҷҷат</div>
-                      <div className="col-span-2">Сана</div>
+                    {/* Column Headers - Sent */}
+                    <div 
+                      className="hidden sm:grid border-b border-border px-6 py-3 bg-muted/30 font-semibold text-sm text-muted-foreground items-center gap-x-4"
+                      style={{
+                        gridTemplateColumns: '120px 1fr 180px 130px 80px'
+                      }}
+                    >
+                      {/* Document Number Header */}
+                      <div className="text-center">
+                        Рақами ҳуҷҷат
+                      </div>
+                      
+                      {/* Subject Header */}
+                      <div className="min-w-0 pl-2">
+                        Мавзӯъ ва мундариҷа
+                      </div>
+                      
+                      {/* Recipient Header */}
+                      <div>
+                        Қабулкунанда
+                      </div>
+                      
+                      {/* Date Header */}
+                      <div>
+                        Сана
+                      </div>
+                      
+                      {/* Icons Header */}
+                      <div />
                     </div>
                     {sentMessages.map((message) => {
                       const recipientDept = departments.find((d) => d.id === message.recipientId);
