@@ -663,10 +663,13 @@ export default function AssignmentsPage() {
         <Tabs defaultValue="all" className="space-y-4">
           <TabsList className="bg-white border">
             <TabsTrigger value="all" data-testid="tab-all-assignments">
-              Ҳама ({assignments.filter(a => !a.isCompleted).length})
+              Ҳама ({assignments.filter(a => !a.isCompleted && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length})
+            </TabsTrigger>
+            <TabsTrigger value="overdue" data-testid="tab-overdue-assignments">
+              Иҷронашуда ({assignments.filter(a => !a.isCompleted && new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0))).length})
             </TabsTrigger>
             <TabsTrigger value="completed" data-testid="tab-completed-assignments">
-              Анҷомшуда ({assignments.filter(a => a.isCompleted).length})
+              Иҷрошуда ({assignments.filter(a => a.isCompleted).length})
             </TabsTrigger>
           </TabsList>
 
@@ -678,7 +681,7 @@ export default function AssignmentsPage() {
                   <p className="text-muted-foreground">Боргирӣ...</p>
                 </div>
               </div>
-            ) : assignments.filter(a => !a.isCompleted).length === 0 ? (
+            ) : assignments.filter(a => !a.isCompleted && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length === 0 ? (
               <Card className="p-12 text-center bg-white">
                 <p className="text-muted-foreground">
                   Ҳанӯз супоришҳо нестанд
@@ -686,7 +689,7 @@ export default function AssignmentsPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {assignments.filter(a => !a.isCompleted).map((assignment) => (
+                {assignments.filter(a => !a.isCompleted && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).map((assignment) => (
               <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
@@ -791,6 +794,115 @@ export default function AssignmentsPage() {
             )}
           </TabsContent>
 
+          <TabsContent value="overdue">
+            {isLoading ? (
+              <div className="flex items-center justify-center p-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+                  <p className="text-muted-foreground">Боргирӣ...</p>
+                </div>
+              </div>
+            ) : assignments.filter(a => !a.isCompleted && new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0))).length === 0 ? (
+              <Card className="p-12 text-center bg-white">
+                <p className="text-muted-foreground">
+                  Супоришҳои иҷронашуда нестанд
+                </p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {assignments.filter(a => !a.isCompleted && new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0))).map((assignment) => (
+              <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-baseline gap-3 flex-wrap mb-2">
+                        <h3 className="text-lg font-semibold">{assignment.topic}</h3>
+                        {assignment.documentNumber && (
+                          <span className="text-sm text-muted-foreground">
+                            <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
+                          </span>
+                        )}
+                      </div>
+                      {assignment.content && (
+                        <div className="mt-3">
+                          <div className="text-sm font-medium text-gray-900 mb-1">
+                            Мазмун:
+                          </div>
+                          <div className="text-sm text-foreground bg-white p-3 rounded-md border border-primary/20 whitespace-pre-wrap">
+                            {assignment.content}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Даъват (Приглашенные исполнители) */}
+                      {assignment.executors && assignment.executors.length > 0 && (
+                        <div className="text-sm text-muted-foreground mt-2">
+                          <span className="font-medium">Даъват:</span>{' '}
+                          {assignment.executors.join(', ')}
+                        </div>
+                      )}
+                      
+                      {/* Иҷрокунандагон (Все люди из департаментов) */}
+                      {assignment.allDepartmentExecutors && assignment.allDepartmentExecutors.length > 0 && (
+                        <div className="text-sm text-muted-foreground mt-2">
+                          <span className="font-medium">Иҷрокунандагон:</span>{' '}
+                          {assignment.allDepartmentExecutors.join(', ')}
+                        </div>
+                      )}
+                    </div>
+                    {canDelete && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteAssignmentMutation.mutate(assignment.id)}
+                        disabled={deleteAssignmentMutation.isPending}
+                        data-testid={`button-delete-${assignment.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                  
+                  {assignment.attachments && assignment.attachments.length > 0 && (
+                    <div className="pt-3 border-t">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Paperclip className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          Файлҳои замимашуда
+                          {' '}({assignment.attachments.length})
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {assignment.attachments.map((attachment) => (
+                          <a
+                            key={attachment.id}
+                            href={`/api/assignment-attachments/${attachment.id}`}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm transition-colors"
+                            data-testid={`button-download-attachment-${attachment.id}`}
+                          >
+                            <Download className="h-4 w-4" />
+                            <span className="truncate max-w-[200px]">{attachment.file_name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              ({(attachment.fileSize / 1024).toFixed(1)} KB)
+                            </span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="completed">
             {isLoading ? (
               <div className="flex items-center justify-center p-12">
@@ -802,7 +914,7 @@ export default function AssignmentsPage() {
             ) : assignments.filter(a => a.isCompleted).length === 0 ? (
               <Card className="p-12 text-center bg-white">
                 <p className="text-muted-foreground">
-                  Супоришҳои анҷомшуда нестанд
+                  Супоришҳои иҷрошуда нестанд
                 </p>
               </Card>
             ) : (
