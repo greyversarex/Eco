@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import MessageListItem from '@/components/MessageListItem';
 import { t } from '@/lib/i18n';
+import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -83,29 +84,29 @@ export default function AdminDepartmentMessages() {
           background: 'rgba(255, 255, 255, 0.92)'
         }}
       />
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md relative">
-        <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation('/admin/departments')}
-                data-testid="button-back"
-                className="shrink-0"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div className="flex items-start gap-2 sm:gap-3 min-w-0 pt-1">
-                <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0" />
-                <div className="min-w-0 text-left">
-                  <h1 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">
-                    {department?.name || 'Шуъба'}
-                  </h1>
-                  <p className="text-xs text-muted-foreground hidden sm:block">Портали электронӣ - {t.adminPanel}</p>
-                </div>
+      <PageHeader variant="admin">
+        <PageHeaderContainer>
+          <PageHeaderLeft>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation('/admin/departments')}
+              data-testid="button-back"
+              className="shrink-0"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex items-start gap-2 sm:gap-3 min-w-0 pt-1">
+              <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0" />
+              <div className="min-w-0 text-left">
+                <h1 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">
+                  {department?.name || 'Шуъба'}
+                </h1>
+                <p className="text-xs text-muted-foreground hidden sm:block">Портали электронӣ - {t.adminPanel}</p>
               </div>
             </div>
+          </PageHeaderLeft>
+          <PageHeaderRight>
             <Dialog open={trashDialogOpen} onOpenChange={setTrashDialogOpen}>
               <DialogTrigger asChild>
                 <Button
@@ -181,9 +182,9 @@ export default function AdminDepartmentMessages() {
                 </div>
               </DialogContent>
             </Dialog>
-          </div>
-        </div>
-      </header>
+          </PageHeaderRight>
+        </PageHeaderContainer>
+      </PageHeader>
 
       <main className="mx-auto max-w-6xl relative z-10 py-6">
         {isLoading ? (

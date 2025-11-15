@@ -17,6 +17,7 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import type { Announcement, Department } from '@shared/schema';
 import { Footer } from '@/components/Footer';
+import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
 import { format } from 'date-fns';
 
 export default function AnnouncementsPage() {
@@ -153,32 +154,29 @@ export default function AnnouncementsPage() {
     >
       <div className="absolute inset-0" style={{ background: 'rgba(255, 255, 255, 0.92)' }} />
       
-      <header
-        className="sticky top-0 z-50 border-b border-border/20 backdrop-blur-md relative"
-        style={{ background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)' }}
-      >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation('/department/main')}
-                className="text-white hover:bg-white/20"
-                data-testid="button-back"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <button onClick={() => setLocation('/department/main')} className="flex items-center gap-3">
-                <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain drop-shadow-md" />
-                <div>
-                  <h1 className="text-lg font-semibold text-white drop-shadow-md">
-                    Эълонҳо
-                  </h1>
-                  <p className="text-xs text-white/90 drop-shadow-sm">Портали электронӣ</p>
-                </div>
-              </button>
-            </div>
+      <PageHeader variant="department">
+        <PageHeaderContainer>
+          <PageHeaderLeft>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation('/department/main')}
+              className="text-white hover:bg-white/20"
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <button onClick={() => setLocation('/department/main')} className="flex items-center gap-3">
+              <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain drop-shadow-md" />
+              <div>
+                <h1 className="text-lg font-semibold text-white drop-shadow-md">
+                  Эълонҳо
+                </h1>
+                <p className="text-xs text-white/90 drop-shadow-sm">Портали электронӣ</p>
+              </div>
+            </button>
+          </PageHeaderLeft>
+          <PageHeaderRight>
             <Button
               size="sm"
               onClick={() => {
@@ -190,9 +188,9 @@ export default function AnnouncementsPage() {
               <LogOut className="h-4 w-4" />
               <span>Баромад</span>
             </Button>
-          </div>
-        </div>
-      </header>
+          </PageHeaderRight>
+        </PageHeaderContainer>
+      </PageHeader>
 
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 py-8 sm:px-6 lg:px-8 relative z-10">
         <div className="mb-6 flex items-center justify-between">
