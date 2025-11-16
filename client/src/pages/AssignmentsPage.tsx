@@ -561,10 +561,12 @@ export default function AssignmentsPage() {
                                   <div key={person.id} className="flex items-center space-x-2">
                                     <Checkbox
                                       id={`executor-${person.id}`}
-                                      checked={false}
+                                      checked={selectedExecutorIds.includes(person.id)}
                                       onCheckedChange={(checked) => {
                                         if (checked) {
                                           setSelectedExecutorIds([...selectedExecutorIds, person.id]);
+                                        } else {
+                                          setSelectedExecutorIds(selectedExecutorIds.filter(id => id !== person.id));
                                         }
                                       }}
                                       data-testid={`checkbox-executor-${person.id}`}

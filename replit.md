@@ -6,6 +6,10 @@
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Fixes
+- **Assignment Checkbox Bug (November 2025):** Fixed executor selection checkboxes in assignment creation dialogs (both AssignmentsPage and MessageView). Checkboxes were hardcoded to `checked={false}`, causing visual state mismatch and duplicate selection counts. Now properly use `checked={selectedExecutorIds.includes(person.id)}` with proper add/remove logic.
+- **Production Database Schema Sync:** Production database missing `recipient_ids` column in `announcements` table resolved by running `npm run db:push` command to synchronize schema without data loss.
+
 ## System Architecture
 
 ### Frontend Architecture
