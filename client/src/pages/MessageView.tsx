@@ -114,12 +114,15 @@ export default function MessageView() {
   useEffect(() => {
     if (id && message && !message.isRead && user?.userType === 'department' && !markAsReadMutation.isPending) {
       const currentDepartmentId = user.department.id;
-      // Only mark as read if current user is the recipient
-      if (message.recipientId === currentDepartmentId) {
+      // Check if current user is recipient (either via recipientId or recipientIds array)
+      const isRecipient = message.recipientId === currentDepartmentId || 
+                          (message.recipientIds && message.recipientIds.includes(currentDepartmentId));
+      
+      if (isRecipient) {
         markAsReadMutation.mutate(id);
       }
     }
-  }, [id, message?.isRead, message?.recipientId, user, markAsReadMutation.isPending]);
+  }, [id, message?.isRead, message?.recipientId, message?.recipientIds, user, markAsReadMutation.isPending]);
 
   const getSenderName = (senderId: number) => {
     const dept = departments.find(d => d.id === senderId);

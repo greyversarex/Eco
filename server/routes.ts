@@ -724,13 +724,35 @@ export function registerRoutes(app: Express) {
   app.patch("/api/messages/:id/read", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const message = await storage.markMessageAsRead(id);
       
+      // Get message first to verify user is recipient
+      const message = await storage.getMessageById(id);
       if (!message) {
         return res.status(404).json({ error: 'Message not found' });
       }
       
-      res.json(message);
+      // Only departments can mark messages as read, and only their own messages
+      if (!req.session.departmentId) {
+        return res.status(403).json({ error: 'Only departments can mark messages as read' });
+      }
+      
+      const currentDepartmentId = req.session.departmentId;
+      
+      // Check if current department is a recipient (either via recipientId or recipientIds array)
+      const isRecipient = message.recipientId === currentDepartmentId || 
+                          (message.recipientIds && message.recipientIds.includes(currentDepartmentId));
+      
+      if (!isRecipient) {
+        return res.status(403).json({ error: 'You are not the recipient of this message' });
+      }
+      
+      const updatedMessage = await storage.markMessageAsRead(id);
+      
+      if (!updatedMessage) {
+        return res.status(500).json({ error: 'Failed to mark message as read' });
+      }
+      
+      res.json(updatedMessage);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
