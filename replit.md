@@ -9,6 +9,7 @@ Preferred communication style: Simple, everyday language.
 ## Recent Fixes
 - **Assignment Checkbox Bug (November 2025):** Fixed executor selection checkboxes in assignment creation dialogs (both AssignmentsPage and MessageView). Checkboxes were hardcoded to `checked={false}`, causing visual state mismatch and duplicate selection counts. Now properly use `checked={selectedExecutorIds.includes(person.id)}` with proper add/remove logic.
 - **Production Database Schema Sync:** Production database missing `recipient_ids` column in `announcements` table resolved by running `npm run db:push` command to synchronize schema without data loss.
+- **"Даъват" Section in Assignment Creation (November 2025):** Added "Даъват" (Invited) section in assignment creation dialogs (both AssignmentsPage and MessageView). When executors are selected, they appear in a separate "Даъват" section above "Иҷрокунандагон", showing invited people with department names and ability to remove them. Section supports collapsible view for >5 people. "Иҷрокунандагон" section now only shows non-invited people to avoid confusion.
 
 ## System Architecture
 
