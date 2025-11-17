@@ -107,7 +107,7 @@ export default function MonitoringPage() {
                 <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">
                   Назорат
                 </h1>
-                <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">Портали электронӣ</p>
+                <p className="text-xs text-white/90 drop-shadow-sm hidden sm:block">EcoDoc - Портали электронӣ</p>
               </div>
             </div>
           </PageHeaderLeft>

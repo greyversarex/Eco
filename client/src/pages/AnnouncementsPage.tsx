@@ -173,7 +173,7 @@ export default function AnnouncementsPage() {
                 <h1 className="text-lg font-semibold text-white drop-shadow-md">
                   Эълонҳо
                 </h1>
-                <p className="text-xs text-white/90 drop-shadow-sm">Портали электронӣ</p>
+                <p className="text-xs text-white/90 drop-shadow-sm">EcoDoc - Портали электронӣ</p>
               </div>
             </button>
           </PageHeaderLeft>

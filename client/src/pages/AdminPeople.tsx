@@ -199,7 +199,7 @@ export default function AdminPeople() {
                   Идораи иҷрокунандагон
                 </h1>
                 <p className="text-sm text-green-100">
-                  Портали электронӣ
+                  EcoDoc - Портали электронӣ
                 </p>
               </div>
             </div>

@@ -155,7 +155,7 @@ export default function AdminDepartmentMessages() {
                 <h1 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">
                   {department?.name || 'Шуъба'}
                 </h1>
-                <p className="text-xs text-muted-foreground hidden sm:block">Портали электронӣ - {t.adminPanel}</p>
+                <p className="text-xs text-muted-foreground hidden sm:block">EcoDoc - Портали электронӣ - {t.adminPanel}</p>
               </div>
             </div>
           </PageHeaderLeft>

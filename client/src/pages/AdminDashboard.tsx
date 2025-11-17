@@ -514,7 +514,7 @@ export default function AdminDashboard() {
             <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0" />
             <div className="min-w-0 text-left">
               <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{t.adminPanel}</h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">Портали электронӣ</p>
+              <p className="text-xs text-muted-foreground hidden sm:block">EcoDoc - Портали электронӣ</p>
             </div>
           </PageHeaderLeft>
           <PageHeaderRight className="gap-2 sm:gap-4 shrink-0">

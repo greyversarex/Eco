@@ -329,7 +329,7 @@ export default function ComposeMessage() {
               <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0 drop-shadow-md" />
               <div className="min-w-0 text-left">
                 <h1 className="text-base sm:text-lg font-semibold text-white drop-shadow-md truncate">{t.newMessage}</h1>
-                <p className="text-xs text-white/90 drop-shadow-sm truncate">Портали электронӣ</p>
+                <p className="text-xs text-white/90 drop-shadow-sm truncate">EcoDoc - Портали электронӣ</p>
               </div>
             </button>
           </PageHeaderLeft>

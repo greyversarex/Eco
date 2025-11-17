@@ -74,7 +74,7 @@ export default function DepartmentMain() {
                 <h1 className="text-sm sm:text-base md:text-lg font-semibold text-white drop-shadow-md truncate">
                   {user?.userType === 'department' ? user.department?.name : ''}
                 </h1>
-                <p className="text-xs text-white/90 drop-shadow-sm truncate">Портали электронӣ</p>
+                <p className="text-xs text-white/90 drop-shadow-sm truncate">EcoDoc - Портали электронӣ</p>
               </div>
             </button>
           </PageHeaderLeft>

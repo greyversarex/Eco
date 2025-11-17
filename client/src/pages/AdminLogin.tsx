@@ -70,9 +70,9 @@ export default function AdminLogin() {
       <div className="w-full max-w-md relative z-10 flex flex-col items-center -mt-16 md:ml-12">
         <div className="text-center space-y-2 mb-6">
           <div className="flex justify-center mb-4">
-            <img src={logoImage} alt="ЭкоТоҷикистон лого" className="h-20 w-20 object-contain drop-shadow-lg" />
+            <img src={logoImage} alt="EcoDoc лого" className="h-20 w-20 object-contain drop-shadow-lg" />
           </div>
-          <h1 className="text-2xl font-semibold text-foreground md:text-white md:drop-shadow-lg">ЭкоТоҷикистон</h1>
+          <h1 className="text-2xl font-semibold text-foreground md:text-white md:drop-shadow-lg">EcoDoc</h1>
           <p className="text-sm text-muted-foreground md:text-white/95 md:drop-shadow-md">Портали рақамии Кумитаи ҳифзи муҳити зист</p>
         </div>
 
