@@ -12,6 +12,7 @@ import { useAuth } from '@/lib/auth';
 import type { Message, Department } from '@shared/schema';
 import { format } from 'date-fns';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiFetch } from '@/lib/api-config';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
@@ -257,7 +258,7 @@ export default function Inbox() {
               <Button
                 size="sm"
                 onClick={() => {
-                  fetch('/api/auth/logout', { method: 'POST' })
+                  apiFetch('/api/auth/logout', { method: 'POST' })
                     .then(() => setLocation('/'));
                 }}
                 data-testid="button-logout"

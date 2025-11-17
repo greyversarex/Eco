@@ -13,6 +13,7 @@ import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiFetch } from '@/lib/api-config';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import type { Announcement, Department } from '@shared/schema';
@@ -48,7 +49,7 @@ export default function AnnouncementsPage() {
 
       if (unreadAnnouncements.length > 0) {
         const markReadPromises = unreadAnnouncements.map((announcement) =>
-          fetch(`/api/announcements/${announcement.id}/mark-read`, {
+          apiFetch(`/api/announcements/${announcement.id}/mark-read`, {
             method: 'POST',
             credentials: 'include',
           }).catch((error) => {
@@ -181,7 +182,7 @@ export default function AnnouncementsPage() {
             <Button
               size="sm"
               onClick={() => {
-                fetch('/api/auth/logout', { method: 'POST' }).then(() => setLocation('/'));
+                apiFetch('/api/auth/logout', { method: 'POST' }).then(() => setLocation('/'));
               }}
               className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white"
               data-testid="button-logout"

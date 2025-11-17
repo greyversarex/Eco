@@ -13,6 +13,7 @@ import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiFetch } from '@/lib/api-config';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import type { Assignment, Person, Department } from '@shared/schema';
@@ -216,7 +217,7 @@ export default function AssignmentsPage() {
 
   const createAssignmentMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const res = await fetch('/api/assignments', {
+      const res = await apiFetch('/api/assignments', {
         method: 'POST',
         body: formData,
         credentials: 'include',
@@ -387,7 +388,7 @@ export default function AssignmentsPage() {
             <Button
               size="sm"
               onClick={() => {
-                fetch('/api/auth/logout', { method: 'POST' }).then(() => setLocation('/'));
+                apiFetch('/api/auth/logout', { method: 'POST' }).then(() => setLocation('/'));
               }}
               className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white"
               data-testid="button-logout"

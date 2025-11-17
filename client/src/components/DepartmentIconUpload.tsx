@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, X, ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { apiFetch, buildApiUrl } from '@/lib/api-config';
 import ImageCropDialog from '@/components/ImageCropDialog';
 
 interface DepartmentIconUploadProps {
@@ -20,7 +21,7 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
   const { toast } = useToast();
 
   // Fetch current icon if department exists - use iconVersion for cache-busting only after upload
-  const currentIconUrl = departmentId ? `/api/departments/${departmentId}/icon?v=${iconVersion}` : null;
+  const currentIconUrl = departmentId ? buildApiUrl(`/api/departments/${departmentId}/icon?v=${iconVersion}`) : null;
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,7 +64,7 @@ export default function DepartmentIconUpload({ departmentId, onUploadSuccess }: 
       const formData = new FormData();
       formData.append('icon', blob, 'icon.png');
 
-      const response = await fetch(`/api/departments/${departmentId}/icon`, {
+      const response = await apiFetch(`/api/departments/${departmentId}/icon`, {
         method: 'POST',
         body: formData,
       });

@@ -11,6 +11,7 @@ import { t } from '@/lib/i18n';
 import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X, Forward } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { apiFetch, buildApiUrl } from '@/lib/api-config';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import type { Message, Department, Person } from '@shared/schema';
@@ -192,7 +193,7 @@ export default function MessageView() {
         formData.append('recipientIds[]', recipientId.toString());
       });
       
-      const res = await fetch(`/api/messages/${id}/forward`, {
+      const res = await apiFetch(`/api/messages/${id}/forward`, {
         method: 'POST',
         body: formData,
         credentials: 'include',
@@ -228,7 +229,7 @@ export default function MessageView() {
 
   const createAssignmentMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const res = await fetch('/api/assignments', {
+      const res = await apiFetch('/api/assignments', {
         method: 'POST',
         body: formData,
         credentials: 'include',
@@ -316,7 +317,7 @@ export default function MessageView() {
     if (attachments && attachments.length > 0) {
       try {
         const filePromises = attachments.map(async (attachment) => {
-          const response = await fetch(`/api/attachments/${attachment.id}`);
+          const response = await apiFetch(`/api/attachments/${attachment.id}`);
           const blob = await response.blob();
           return new File([blob], attachment.filename, { type: attachment.mimeType });
         });
@@ -443,7 +444,7 @@ export default function MessageView() {
             <Button
               size="sm"
               onClick={() => {
-                fetch('/api/auth/logout', { method: 'POST' })
+                apiFetch('/api/auth/logout', { method: 'POST' })
                   .then(() => setLocation('/'));
               }}
               data-testid="button-logout"

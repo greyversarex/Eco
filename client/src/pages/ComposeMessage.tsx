@@ -13,6 +13,7 @@ import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiFetch } from '@/lib/api-config';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import type { Department, Person } from '@shared/schema';
@@ -58,7 +59,7 @@ export default function ComposeMessage() {
             const formData = new FormData();
             formData.append('file', file);
             
-            const response = await fetch(`/api/messages/${messageId}/attachments`, {
+            const response = await apiFetch(`/api/messages/${messageId}/attachments`, {
               method: 'POST',
               body: formData,
             });
@@ -170,7 +171,7 @@ export default function ComposeMessage() {
           formData.append('files', file);
         });
 
-        const response = await fetch('/api/messages/broadcast', {
+        const response = await apiFetch('/api/messages/broadcast', {
           method: 'POST',
           body: formData,
         });
@@ -209,7 +210,7 @@ export default function ComposeMessage() {
             const formData = new FormData();
             formData.append('file', file);
             
-            const response = await fetch(`/api/messages/${message.id}/attachments`, {
+            const response = await apiFetch(`/api/messages/${message.id}/attachments`, {
               method: 'POST',
               body: formData,
             });
@@ -337,7 +338,7 @@ export default function ComposeMessage() {
             <Button
               size="sm"
               onClick={() => {
-                fetch('/api/auth/logout', { method: 'POST' })
+                apiFetch('/api/auth/logout', { method: 'POST' })
                   .then(() => setLocation('/'));
               }}
               data-testid="button-logout"
