@@ -850,8 +850,14 @@ export function registerRoutes(app: Express) {
       const isDepartment = req.session.departmentId;
       const isAdmin = req.session.adminId;
       
-      if (isDepartment && message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
-        return res.status(403).json({ error: 'No permission to delete this message' });
+      if (isDepartment) {
+        const isSender = message.senderId === req.session.departmentId;
+        const isRecipient = message.recipientId === req.session.departmentId || 
+                           (message.recipientIds && message.recipientIds.includes(req.session.departmentId));
+        
+        if (!isSender && !isRecipient) {
+          return res.status(403).json({ error: 'No permission to delete this message' });
+        }
       }
       
       const deleted = await storage.deleteMessage(id);
@@ -902,9 +908,15 @@ export function registerRoutes(app: Express) {
           const isAdmin = req.session.adminId;
           
           // Departments can only delete messages they sent or received
-          if (isDepartment && message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
-            deletedCount.failed++;
-            continue;
+          if (isDepartment) {
+            const isSender = message.senderId === req.session.departmentId;
+            const isRecipient = message.recipientId === req.session.departmentId || 
+                               (message.recipientIds && message.recipientIds.includes(req.session.departmentId));
+            
+            if (!isSender && !isRecipient) {
+              deletedCount.failed++;
+              continue;
+            }
           }
           
           // Admins can delete any message (no additional check needed)
