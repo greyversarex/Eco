@@ -722,7 +722,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Forward message endpoint
-  app.post("/api/messages/:id/forward", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
+  app.post("/api/messages/:id/forward", requireAuth, upload.none(), async (req: Request, res: Response) => {
     try {
       const messageId = parseInt(req.params.id);
       
@@ -1565,6 +1565,29 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Get deleted assignments for a specific department (Admin only)
+  app.get("/api/trash/assignments/department/:deptId", requireAuth, async (req: Request, res: Response) => {
+    try {
+      // Only admins can view trash for specific departments
+      if (req.session.departmentId) {
+        return res.status(403).json({ error: 'Access denied. Admin only.' });
+      }
+
+      const deptId = parseInt(req.params.deptId);
+      const deletedAssignments = await storage.listDeletedAssignments();
+      
+      // Filter assignments where this department is sender or recipient
+      const filtered = deletedAssignments.filter(assignment => 
+        assignment.senderId === deptId ||
+        (assignment.recipientIds && assignment.recipientIds.includes(deptId))
+      );
+      
+      res.json(filtered);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Trash endpoints for announcements
   app.get("/api/trash/announcements", requireAuth, async (req: Request, res: Response) => {
     try {
@@ -1626,6 +1649,29 @@ export function registerRoutes(app: Express) {
       }
       
       res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get deleted announcements for a specific department (Admin only)
+  app.get("/api/trash/announcements/department/:deptId", requireAuth, async (req: Request, res: Response) => {
+    try {
+      // Only admins can view trash for specific departments
+      if (req.session.departmentId) {
+        return res.status(403).json({ error: 'Access denied. Admin only.' });
+      }
+
+      const deptId = parseInt(req.params.deptId);
+      const deletedAnnouncements = await storage.listDeletedAnnouncements();
+      
+      // Filter announcements where this department is a recipient or it's broadcast to all
+      const filtered = deletedAnnouncements.filter(announcement => 
+        !announcement.recipientIds || announcement.recipientIds.length === 0 ||
+        announcement.recipientIds.includes(deptId)
+      );
+      
+      res.json(filtered);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

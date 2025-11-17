@@ -10,14 +10,16 @@ import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import type { Message, Department } from '@shared/schema';
+import type { Message, Department, Assignment, Announcement } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
+import { format } from 'date-fns';
 
 export default function AdminDepartmentMessages() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute('/admin/department/:id');
   const [trashDialogOpen, setTrashDialogOpen] = useState(false);
+  const [trashTab, setTrashTab] = useState<'messages' | 'assignments' | 'announcements'>('messages');
   const { toast } = useToast();
 
   const departmentId = params?.id ? parseInt(params.id) : null;
@@ -35,7 +37,17 @@ export default function AdminDepartmentMessages() {
     enabled: !!departmentId && trashDialogOpen,
   });
 
-  const permanentDeleteMutation = useMutation({
+  const { data: deletedAssignments = [] } = useQuery<Assignment[]>({
+    queryKey: [`/api/trash/assignments/department/${departmentId}`],
+    enabled: !!departmentId && trashDialogOpen,
+  });
+
+  const { data: deletedAnnouncements = [] } = useQuery<Announcement[]>({
+    queryKey: [`/api/trash/announcements/department/${departmentId}`],
+    enabled: !!departmentId && trashDialogOpen,
+  });
+
+  const permanentDeleteMessageMutation = useMutation({
     mutationFn: async (messageId: number) => {
       return await apiRequest('DELETE', `/api/trash/messages/${messageId}/permanent`, undefined);
     },
@@ -44,9 +56,50 @@ export default function AdminDepartmentMessages() {
         title: "Муваффақият",
         description: "Паём бутаври доимӣ нест карда шуд",
       });
-      // Refetch both trash list and main messages list immediately
-      queryClient.refetchQueries({ queryKey: [`/api/trash/messages/department/${departmentId}`] });
-      queryClient.refetchQueries({ queryKey: ['/api/messages'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/trash/messages/department/${departmentId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Хатогӣ",
+        description: "Хатогӣ ҳангоми нест кардан",
+      });
+    },
+  });
+
+  const permanentDeleteAssignmentMutation = useMutation({
+    mutationFn: async (assignmentId: number) => {
+      return await apiRequest('DELETE', `/api/trash/assignments/${assignmentId}/permanent`, undefined);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Муваффақият",
+        description: "Супориш бутаври доимӣ нест карда шуд",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/trash/assignments/department/${departmentId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Хатогӣ",
+        description: "Хатогӣ ҳангоми нест кардан",
+      });
+    },
+  });
+
+  const permanentDeleteAnnouncementMutation = useMutation({
+    mutationFn: async (announcementId: number) => {
+      return await apiRequest('DELETE', `/api/trash/announcements/${announcementId}/permanent`, undefined);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Муваффақият",
+        description: "Эълон бутаври доимӣ нест карда шуд",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/trash/announcements/department/${departmentId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
     },
     onError: () => {
       toast({
@@ -122,62 +175,203 @@ export default function AdminDepartmentMessages() {
                 <DialogHeader>
                   <DialogTitle>Сабади хурда ({department?.name})</DialogTitle>
                   <DialogDescription>
-                    Паёмҳои нестшудаи ин шуъба. Шумо метавонед онҳоро бутаври доимӣ нест кунед.
+                    Ҳуҷҷатҳо, супоришҳо ва эълонҳои нестшудаи ин шуъба. Шумо метавонед онҳоро бутаври доимӣ нест кунед.
                   </DialogDescription>
                 </DialogHeader>
+
+                {/* Section Filter Buttons */}
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    variant={trashTab === 'messages' ? 'default' : 'outline'}
+                    onClick={() => setTrashTab('messages')}
+                    size="sm"
+                    data-testid="button-filter-messages"
+                    className="flex-1"
+                  >
+                    Ҳуҷҷатҳо
+                    {deletedMessages.length > 0 && (
+                      <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-xs">
+                        {deletedMessages.length}
+                      </span>
+                    )}
+                  </Button>
+                  <Button
+                    variant={trashTab === 'assignments' ? 'default' : 'outline'}
+                    onClick={() => setTrashTab('assignments')}
+                    size="sm"
+                    data-testid="button-filter-assignments"
+                    className="flex-1"
+                  >
+                    Супоришҳо
+                    {deletedAssignments.length > 0 && (
+                      <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-xs">
+                        {deletedAssignments.length}
+                      </span>
+                    )}
+                  </Button>
+                  <Button
+                    variant={trashTab === 'announcements' ? 'default' : 'outline'}
+                    onClick={() => setTrashTab('announcements')}
+                    size="sm"
+                    data-testid="button-filter-announcements"
+                    className="flex-1"
+                  >
+                    Эълонҳо
+                    {deletedAnnouncements.length > 0 && (
+                      <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-xs">
+                        {deletedAnnouncements.length}
+                      </span>
+                    )}
+                  </Button>
+                </div>
+
                 <div className="space-y-2 mt-4">
-                  {deletedMessages.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">
-                      Сабади хурда холӣ аст
-                    </p>
-                  ) : (
-                    deletedMessages.map((message) => {
-                      // Resolve sender name
-                      const senderDept = departments.find((d) => d.id === message.senderId);
-                      const senderName = message.senderId === null 
-                        ? 'Системавӣ' 
-                        : (senderDept?.name || 'Номаълум');
-                      
-                      // Resolve recipient name(s) - check recipientIds array first
-                      let recipientName = '';
-                      if (message.recipientIds && message.recipientIds.length > 0) {
-                        const recipientNames = message.recipientIds
-                          .map((id: number) => departments.find((d) => d.id === id)?.name)
-                          .filter((name: string | undefined): name is string => !!name);
-                        recipientName = recipientNames.length > 0 ? recipientNames.join(', ') : 'Номаълум';
-                      } else if (message.recipientId) {
-                        const recipientDept = departments.find((d) => d.id === message.recipientId);
-                        recipientName = recipientDept?.name || 'Номаълум';
-                      } else {
-                        recipientName = 'Ҳама шуъбаҳо';
-                      }
-                      
-                      return (
-                        <div
-                          key={message.id}
-                          className="flex items-center justify-between p-3 border rounded-md hover-elevate"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{message.subject}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Аз: {senderName} → Ба: {recipientName}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Нест шуд: {message.deletedAt ? new Date(message.deletedAt).toLocaleDateString('ru-RU') : ''}
-                            </p>
-                          </div>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => permanentDeleteMutation.mutate(message.id)}
-                            disabled={permanentDeleteMutation.isPending}
-                            data-testid={`button-delete-${message.id}`}
-                          >
-                            Нест кардан
-                          </Button>
-                        </div>
-                      );
-                    })
+                  {/* Messages Section */}
+                  {trashTab === 'messages' && (
+                    <>
+                      {deletedMessages.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-8">
+                          Ҳуҷҷатҳои нестшуда нест
+                        </p>
+                      ) : (
+                        deletedMessages.map((message) => {
+                          const senderDept = departments.find((d) => d.id === message.senderId);
+                          const senderName = message.senderId === null ? 'Системавӣ' : (senderDept?.name || 'Номаълум');
+                          
+                          let recipientName = '';
+                          if (message.recipientIds && message.recipientIds.length > 0) {
+                            const recipientNames = message.recipientIds
+                              .map((id: number) => departments.find((d) => d.id === id)?.name)
+                              .filter((name: string | undefined): name is string => !!name);
+                            recipientName = recipientNames.length > 0 ? recipientNames.join(', ') : 'Номаълум';
+                          } else if (message.recipientId) {
+                            const recipientDept = departments.find((d) => d.id === message.recipientId);
+                            recipientName = recipientDept?.name || 'Номаълум';
+                          } else {
+                            recipientName = 'Ҳама шуъбаҳо';
+                          }
+                          
+                          return (
+                            <div key={message.id} className="flex items-center justify-between p-3 border rounded-md hover-elevate">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">{message.subject}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Аз: {senderName} → Ба: {recipientName}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Нест шуд: {message.deletedAt ? new Date(message.deletedAt).toLocaleDateString('ru-RU') : ''}
+                                </p>
+                              </div>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => permanentDeleteMessageMutation.mutate(message.id)}
+                                disabled={permanentDeleteMessageMutation.isPending}
+                                data-testid={`button-delete-message-${message.id}`}
+                              >
+                                Нест кардан
+                              </Button>
+                            </div>
+                          );
+                        })
+                      )}
+                    </>
+                  )}
+
+                  {/* Assignments Section */}
+                  {trashTab === 'assignments' && (
+                    <>
+                      {deletedAssignments.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-8">
+                          Супоришҳои нестшуда нест
+                        </p>
+                      ) : (
+                        deletedAssignments.map((assignment) => {
+                          const senderName = assignment.senderId 
+                            ? departments.find(d => d.id === assignment.senderId)?.name || 'Номаълум'
+                            : 'Системавӣ';
+                          
+                          const recipientNames = assignment.recipientIds
+                            ? assignment.recipientIds
+                                .map(id => departments.find(d => d.id === id)?.name)
+                                .filter((name): name is string => !!name)
+                            : [];
+
+                          return (
+                            <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-md hover-elevate">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">{assignment.topic}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Аз: {senderName}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Қабулкунандагон: {recipientNames.length > 0 ? recipientNames.join(', ') : 'Номаълум'}
+                                </p>
+                                {assignment.deadline && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Мӯҳлат: {format(new Date(assignment.deadline), 'dd.MM.yyyy')}
+                                  </p>
+                                )}
+                                <p className="text-xs text-muted-foreground">
+                                  Нест шуд: {assignment.deletedAt ? new Date(assignment.deletedAt).toLocaleDateString('ru-RU') : ''}
+                                </p>
+                              </div>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => permanentDeleteAssignmentMutation.mutate(assignment.id)}
+                                disabled={permanentDeleteAssignmentMutation.isPending}
+                                data-testid={`button-delete-assignment-${assignment.id}`}
+                              >
+                                Нест кардан
+                              </Button>
+                            </div>
+                          );
+                        })
+                      )}
+                    </>
+                  )}
+
+                  {/* Announcements Section */}
+                  {trashTab === 'announcements' && (
+                    <>
+                      {deletedAnnouncements.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-8">
+                          Эълонҳои нестшуда нест
+                        </p>
+                      ) : (
+                        deletedAnnouncements.map((announcement) => {
+                          const recipientNames = announcement.recipientIds
+                            ? announcement.recipientIds
+                                .map(id => departments.find(d => d.id === id)?.name)
+                                .filter((name): name is string => !!name)
+                            : [];
+
+                          return (
+                            <div key={announcement.id} className="flex items-center justify-between p-3 border rounded-md hover-elevate">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">{announcement.title}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Барои: {recipientNames.length > 0 ? recipientNames.join(', ') : 'Ҳама шуъбаҳо'}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Нест шуд: {announcement.deletedAt ? new Date(announcement.deletedAt).toLocaleDateString('ru-RU') : ''}
+                                </p>
+                              </div>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => permanentDeleteAnnouncementMutation.mutate(announcement.id)}
+                                disabled={permanentDeleteAnnouncementMutation.isPending}
+                                data-testid={`button-delete-announcement-${announcement.id}`}
+                              >
+                                Нест кардан
+                              </Button>
+                            </div>
+                          );
+                        })
+                      )}
+                    </>
                   )}
                 </div>
               </DialogContent>
