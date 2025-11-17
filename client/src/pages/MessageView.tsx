@@ -62,7 +62,7 @@ export default function MessageView() {
   
   // Forward modal state
   const [isForwardDialogOpen, setIsForwardDialogOpen] = useState(false);
-  const [forwardRecipientId, setForwardRecipientId] = useState<number | null>(null);
+  const [forwardRecipientIds, setForwardRecipientIds] = useState<number[]>([]);
   
   // Get 'from' query parameter to know where to go back
   const searchParams = new URLSearchParams(window.location.search);
@@ -183,12 +183,14 @@ export default function MessageView() {
 
   const forwardMessageMutation = useMutation({
     mutationFn: async () => {
-      if (!id || !forwardRecipientId) {
-        throw new Error('Recipient required');
+      if (!id || forwardRecipientIds.length === 0) {
+        throw new Error('At least one recipient required');
       }
       
       const formData = new FormData();
-      formData.append('recipientId', forwardRecipientId.toString());
+      forwardRecipientIds.forEach(recipientId => {
+        formData.append('recipientIds[]', recipientId.toString());
+      });
       
       const res = await fetch(`/api/messages/${id}/forward`, {
         method: 'POST',
@@ -209,7 +211,7 @@ export default function MessageView() {
         description: 'Ҳуҷҷат иловашуд',
       });
       setIsForwardDialogOpen(false);
-      setForwardRecipientId(null);
+      setForwardRecipientIds([]);
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
       if (id) {
         queryClient.invalidateQueries({ queryKey: ['/api/messages', id] });
@@ -606,7 +608,26 @@ export default function MessageView() {
                           </DialogHeader>
                           <div className="space-y-4 pt-4">
                             <div className="space-y-2">
-                              <Label>Шуъба</Label>
+                              <div className="flex items-center justify-between">
+                                <Label>Шуъба</Label>
+                                <Button
+                                  type="button"
+                                  onClick={() => {
+                                    const availableDepts = departments.filter(dept => dept.id !== user?.department?.id);
+                                    if (forwardRecipientIds.length === availableDepts.length) {
+                                      setForwardRecipientIds([]);
+                                    } else {
+                                      setForwardRecipientIds(availableDepts.map(dept => dept.id));
+                                    }
+                                  }}
+                                  className="bg-green-600 hover:bg-green-700 text-white text-sm h-8 px-3"
+                                  data-testid="button-select-all-forward"
+                                >
+                                  {forwardRecipientIds.length === departments.filter(dept => dept.id !== user?.department?.id).length
+                                    ? 'Бекор кардан'
+                                    : 'Ҳамаро қайд кардан'}
+                                </Button>
+                              </div>
                               <div className="space-y-2 max-h-96 overflow-y-auto border rounded-lg p-4">
                                 {departments
                                   .filter(dept => dept.id !== user?.department?.id)
@@ -614,9 +635,13 @@ export default function MessageView() {
                                     <div key={dept.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-accent">
                                       <Checkbox
                                         id={`forward-dept-${dept.id}`}
-                                        checked={forwardRecipientId === dept.id}
+                                        checked={forwardRecipientIds.includes(dept.id)}
                                         onCheckedChange={(checked) => {
-                                          setForwardRecipientId(checked ? dept.id : null);
+                                          if (checked) {
+                                            setForwardRecipientIds([...forwardRecipientIds, dept.id]);
+                                          } else {
+                                            setForwardRecipientIds(forwardRecipientIds.filter(id => id !== dept.id));
+                                          }
                                         }}
                                         data-testid={`checkbox-forward-recipient-${dept.id}`}
                                       />
@@ -635,7 +660,7 @@ export default function MessageView() {
                                 variant="outline"
                                 onClick={() => {
                                   setIsForwardDialogOpen(false);
-                                  setForwardRecipientId(null);
+                                  setForwardRecipientIds([]);
                                 }}
                                 data-testid="button-cancel-forward"
                               >
@@ -643,7 +668,7 @@ export default function MessageView() {
                               </Button>
                               <Button
                                 onClick={() => forwardMessageMutation.mutate()}
-                                disabled={!forwardRecipientId || forwardMessageMutation.isPending}
+                                disabled={forwardRecipientIds.length === 0 || forwardMessageMutation.isPending}
                                 data-testid="button-submit-forward"
                               >
                                 {forwardMessageMutation.isPending ? 'Фиристода истодааст...' : 'Фиристодан'}

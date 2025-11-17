@@ -721,7 +721,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Forward message endpoint
+  // Forward message endpoint (supports multiple recipients)
   app.post("/api/messages/:id/forward", requireAuth, upload.none(), async (req: Request, res: Response) => {
     try {
       const messageId = parseInt(req.params.id);
@@ -743,10 +743,14 @@ export function registerRoutes(app: Express) {
         }
       }
       
-      // Parse recipient ID
-      const recipientId = parseInt(req.body.recipientId);
-      if (isNaN(recipientId)) {
-        return res.status(400).json({ error: 'Valid recipient ID required' });
+      // Parse recipient IDs from array
+      const recipientIdsRaw = req.body['recipientIds[]'];
+      const recipientIds = Array.isArray(recipientIdsRaw) 
+        ? recipientIdsRaw.map(id => parseInt(id)).filter(id => !isNaN(id))
+        : [parseInt(recipientIdsRaw)].filter(id => !isNaN(id));
+      
+      if (recipientIds.length === 0) {
+        return res.status(400).json({ error: 'At least one valid recipient ID required' });
       }
       
       // Ensure sender is the authenticated department
@@ -758,7 +762,7 @@ export function registerRoutes(app: Express) {
           subject: originalMessage.subject.startsWith('Иловашуда: ') ? originalMessage.subject : `Иловашуда: ${originalMessage.subject}`,
           content: originalMessage.content,
           senderId: senderId, // Current user becomes the sender
-          recipientIds: [recipientId],
+          recipientIds: recipientIds,
           recipientId: null,
           executor: originalMessage.executor,
           documentDate: originalMessage.documentDate,
@@ -789,7 +793,7 @@ export function registerRoutes(app: Express) {
           );
         }
         
-        res.json({ success: true, messageId: forwardedMessage.id });
+        res.json({ success: true, messageId: forwardedMessage.id, recipientsCount: recipientIds.length });
       } else {
         return res.status(403).json({ error: 'Only departments can forward messages' });
       }
