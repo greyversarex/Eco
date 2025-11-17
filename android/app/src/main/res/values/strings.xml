@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">EcoDoc</string>
+    <string name="title_activity_main">EcoDoc</string>
+    <string name="package_name">tj.gov.eco.ecodoc</string>
+    <string name="custom_url_scheme">tj.gov.eco.ecodoc</string>
+</resources>

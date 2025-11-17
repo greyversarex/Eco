@@ -1,12 +1,15 @@
-# ЭкоТоҷикистон Platform
+# EcoDoc Platform (formerly ЭкоТоҷикистон)
 
 ## Overview
-ЭкоТоҷикистон is a secure, bilingual (Tajik and Russian) internal messaging and document management platform for governmental and organizational departments in Tajikistan. Its core purpose is to centralize official communication, prioritizing security, data persistence, and future mobile compatibility via an API-first architecture. The system offers department-level access with unique codes and an administrative panel for platform management, aiming to enhance communication efficiency and transparency within Tajikistan's environmental protection sector. It features a comprehensive assignment and announcement system with file attachment support, read tracking, and badge counters to improve inter-departmental coordination and oversight. The platform is optimized for performance on slow internet connections.
+EcoDoc is a secure, bilingual (Tajik and Russian) internal messaging and document management platform for governmental and organizational departments in Tajikistan. Its core purpose is to centralize official communication, prioritizing security, data persistence, and mobile compatibility via an API-first architecture. The system offers department-level access with unique codes and an administrative panel for platform management, aiming to enhance communication efficiency and transparency within Tajikistan's environmental protection sector. It features a comprehensive assignment and announcement system with file attachment support, read tracking, and badge counters to improve inter-departmental coordination and oversight. The platform is optimized for performance on slow internet connections and is available as native iOS and Android mobile applications via Capacitor.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
-## Recent Fixes
+## Recent Changes
+- **Platform Rebranding (November 2025):** Platform rebranded from "ЭкоТоҷикистон" to "EcoDoc" across all UI pages (15+), including login pages, headers, and index.html title.
+- **Mobile App Conversion (November 2025):** Successfully converted web application to native iOS and Android mobile applications using Capacitor. Generated platform-specific icons and splash screens with green theme (#16a34a). Created comprehensive build and deployment guide (MOBILE_BUILD_GUIDE.md).
+- **Multi-recipient Message Forwarding (November 2025):** Implemented multi-recipient forwarding with checkbox selection UI and green "Ҳамаро қайд кардан" (Select All) button that filters out sender's department.
 - **Message Read Status Bug (November 2025):** Fixed critical bug where messages were not being marked as read when recipient opened them. Root causes: (1) Backend API endpoint lacked recipient verification - any user could mark any message as read; (2) Frontend only checked `recipientId` field, ignoring `recipientIds` array for broadcast messages. Solution: Added backend permission checks ensuring only actual recipients can mark messages as read (checking both `recipientId` and `recipientIds`), and updated frontend to properly detect recipients in both single and broadcast scenarios. Badge counter now correctly decrements when messages are read.
 - **Assignment Checkbox Bug (November 2025):** Fixed executor selection checkboxes in assignment creation dialogs (both AssignmentsPage and MessageView). Checkboxes were hardcoded to `checked={false}`, causing visual state mismatch and duplicate selection counts. Now properly use `checked={selectedExecutorIds.includes(person.id)}` with proper add/remove logic.
 - **Production Database Schema Sync:** Production database missing `recipient_ids` column in `announcements` table resolved by running `npm run db:push` command to synchronize schema without data loss.
@@ -16,6 +19,14 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 The frontend uses React with TypeScript, Vite, Wouter for routing, TanStack Query for server state, and Tailwind CSS with shadcn/ui and Radix UI for components. It adheres to Material Design principles with a minimalistic aesthetic, green accents, and supports light mode. Inter and Roboto fonts provide Cyrillic support. The interface is bilingual (Tajik default). Authentication pages feature adaptive eco-themed backgrounds, while department pages maintain consistent green gradient headers. An API-first approach means the frontend renders data from backend responses. Session-based authentication protects routes, and an admin panel allows comprehensive department management.
+
+### Mobile Architecture
+The platform is available as native iOS and Android applications via Capacitor 7.x. The web application is wrapped in a native WebView container, allowing 95%+ code reuse while providing native app capabilities. Mobile-specific features include:
+- **Native Icons & Splash Screens:** Green-themed (#16a34a) adaptive icons and splash screens for both platforms
+- **App Distribution:** Ready for deployment to Apple App Store and Google Play Store
+- **Native API Access:** Extensible architecture supporting native device features (camera, geolocation, push notifications) via Capacitor plugins
+- **Build Configuration:** Separate iOS (Xcode) and Android (Gradle) build systems with signing configurations
+- **Deployment Workflow:** Documented build and release process in MOBILE_BUILD_GUIDE.md
 
 ### Backend Architecture
 The backend is built with Node.js, Express.js, and TypeScript, following a RESTful API design. It uses session-based authentication with express-session and a PostgreSQL store, and Bcrypt for password hashing. The API provides endpoints for authentication, department management, CRUD operations for messages (including inbox/outbox filtering, and broadcast messaging), announcements, assignments, and file attachments. It supports two user types: Department (via access code) and Admin (via username/password), implementing role-based access control with a 30-day session expiration. A storage abstraction interface with a Drizzle ORM implementation ensures type-safe PostgreSQL operations. Zod is used for schema validation.
@@ -51,6 +62,7 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 - **Authentication & Security:** `bcrypt`, `express-session`.
 - **Backend Framework:** `express`, `tsx`.
 - **Frontend Framework:** `react`, `@tanstack/react-query`, `wouter`.
+- **Mobile Framework:** `@capacitor/core`, `@capacitor/ios`, `@capacitor/android`, `@capacitor/cli`, `@capacitor/assets`.
 - **UI Components:** `@radix-ui/*`, `tailwindcss`, `class-variance-authority`, `lucide-react`.
 - **Form Handling:** `react-hook-form`, `@hookform/resolvers`, `zod`.
 - **Drag and Drop:** `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`.

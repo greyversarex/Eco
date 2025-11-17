@@ -1,0 +1,397 @@
+# 📱 EcoDoc Mobile - Руководство по сборке и публикации
+
+## 🎯 Обзор
+
+EcoDoc теперь доступен как нативное мобильное приложение для iOS и Android благодаря Capacitor. Веб-приложение упаковано в нативный контейнер без изменения кода.
+
+## 📋 Предварительные требования
+
+### Для iOS:
+- **macOS** (обязательно для сборки iOS приложений)
+- **Xcode** 14+ ([скачать из App Store](https://apps.apple.com/us/app/xcode/id497799835))
+- **CocoaPods**: `sudo gem install cocoapods`
+- **Apple Developer Account** ($99/год для публикации в App Store)
+
+### Для Android:
+- **Android Studio** ([скачать здесь](https://developer.android.com/studio))
+- **Java Development Kit (JDK)** 17+
+- **Android SDK** (устанавливается с Android Studio)
+- **Google Play Developer Account** ($25 единоразово для публикации)
+
+## 🚀 Команды для разработки
+
+### Сборка веб-приложения
+```bash
+npm run build
+```
+
+### Синхронизация с нативными проектами
+```bash
+# Пересобрать веб-приложение и синхронизировать с нативными проектами
+npm run cap:sync
+
+# Или использовать алиас
+npm run cap:build
+```
+
+⚠️ **Примечание**: Команды выше синхронизируют веб-ассеты с нативными проектами. Для создания production APK/AAB или iOS архивов используйте команды ниже или нативные IDE.
+
+### Открытие нативных IDE
+
+#### iOS (Xcode):
+```bash
+npm run cap:open:ios
+```
+
+#### Android (Android Studio):
+```bash
+npm run cap:open:android
+```
+
+## ✅ Верификация конфигурации
+
+Перед началом сборки проверьте, что все настройки корректны:
+
+### Проверка Bundle Identifiers
+
+#### iOS:
+```bash
+grep "PRODUCT_BUNDLE_IDENTIFIER" ios/App/App.xcodeproj/project.pbxproj
+```
+Должно быть: `PRODUCT_BUNDLE_IDENTIFIER = tj.gov.eco.ecodoc;`
+
+#### Android:
+```bash
+grep "applicationId\|namespace" android/app/build.gradle
+```
+Должно быть:
+- `namespace "tj.gov.eco.ecodoc"`
+- `applicationId "tj.gov.eco.ecodoc"`
+
+### Проверка версий
+
+#### Android (`android/app/build.gradle`):
+```gradle
+versionCode = 1          // Увеличивать с каждым релизом
+versionName = "1.0.0"    // Семантическое версионирование
+```
+
+#### iOS (Xcode → General):
+- **Version**: 1.0.0
+- **Build**: 1
+
+⚠️ **Важно**: Bundle ID должен совпадать в `capacitor.config.ts`, iOS проекте и Android `build.gradle`
+
+## 📱 Сборка для iOS
+
+### 1. Установка зависимостей iOS
+```bash
+cd ios/App
+pod install
+cd ../..
+```
+
+### 2. Открытие проекта в Xcode
+```bash
+npm run cap:open:ios
+```
+
+### 3. Настройка проекта в Xcode
+1. Выберите проект **App** в навигаторе слева
+2. В **Signing & Capabilities**:
+   - Выберите свою команду разработчика
+   - Измените Bundle Identifier (например: `tj.gov.eco.ecodoc`)
+3. В **General**:
+   - Версия: `1.0.0`
+   - Build: `1`
+   - Deployment Target: `iOS 13.0+`
+
+### 4. Запуск на симуляторе
+1. Выберите симулятор из выпадающего списка (например, iPhone 15 Pro)
+2. Нажмите ▶️ (Run)
+
+### 5. Запуск на реальном устройстве
+1. Подключите iPhone к Mac через USB
+2. Выберите устройство из списка
+3. Нажмите ▶️ (Run)
+4. На iPhone: **Настройки → Основные → Управление устройством** → Доверять разработчику
+
+### 6. Архивирование для App Store
+1. **Product → Archive**
+2. После завершения откроется **Organizer**
+3. Выберите архив → **Distribute App**
+4. Выберите **App Store Connect**
+5. Следуйте мастеру загрузки
+
+### 7. Публикация в App Store
+1. Войдите в [App Store Connect](https://appstoreconnect.apple.com/)
+2. Создайте новое приложение
+3. Заполните метаданные:
+   - Название: **EcoDoc**
+   - Подзаголовок: **Портали электронӣ**
+   - Описание: Подробное описание функций
+   - Скриншоты (обязательно для iPhone)
+   - Категория: Productivity / Business
+4. После загрузки билда через Xcode, выберите его в разделе **Build**
+5. Отправьте на проверку
+
+## 🤖 Сборка для Android
+
+### 1. Открытие проекта в Android Studio
+```bash
+npm run cap:open:android
+```
+
+### 2. Настройка проекта
+Файл: `android/app/build.gradle`
+```gradle
+android {
+    namespace = "tj.gov.eco.ecodoc"
+    compileSdk = 34
+    
+    defaultConfig {
+        applicationId = "tj.gov.eco.ecodoc"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0.0"
+    }
+}
+```
+
+### 3. Запуск на эмуляторе
+1. **Tools → Device Manager**
+2. Создайте виртуальное устройство (например, Pixel 7)
+3. Нажмите ▶️ (Run)
+
+### 4. Запуск на реальном устройстве
+1. На Android: **Настройки → О телефоне → Номер сборки** (нажать 7 раз)
+2. **Настройки → Для разработчиков → Отладка по USB** (включить)
+3. Подключите устройство через USB
+4. В Android Studio нажмите ▶️ (Run)
+
+### 5. Создание подписанного APK/AAB
+
+#### Создание ключа подписи (однократно):
+```bash
+cd android
+keytool -genkey -v -keystore ecodoc-release-key.keystore \
+  -alias ecodoc-key-alias \
+  -keyalg RSA -keysize 2048 -validity 10000
+```
+
+**⚠️ Важно:** Сохраните пароль и храните файл `.keystore` в безопасном месте!
+
+#### Настройка подписи:
+Создайте `android/key.properties`:
+```properties
+storePassword=ваш_пароль_хранилища
+keyPassword=ваш_пароль_ключа
+keyAlias=ecodoc-key-alias
+storeFile=../ecodoc-release-key.keystore
+```
+
+Обновите `android/app/build.gradle`:
+```gradle
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    ...
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties['storePassword']
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+```
+
+#### Сборка релизной версии:
+
+**Из корня проекта:**
+```bash
+# 1. Сначала синхронизируйте веб-ассеты
+npm run cap:build
+
+# 2. Затем соберите Android release
+npm run cap:build:android:bundle  # AAB для Google Play Store (рекомендуется)
+# или
+npm run cap:build:android  # APK для прямой установки
+```
+
+⚠️ **Важно**: Всегда запускайте `npm run cap:build` перед Android production build, чтобы обеспечить актуальность веб-ассетов!
+
+**Или вручную из папки android:**
+```bash
+cd android
+./gradlew bundleRelease  # Для AAB (рекомендуется для Play Store)
+# или
+./gradlew assembleRelease  # Для APK
+cd ..
+```
+
+**Расположение файлов:**
+- AAB: `android/app/build/outputs/bundle/release/app-release.aab`
+- APK: `android/app/build/outputs/apk/release/app-release.apk`
+
+### 6. Публикация в Google Play Store
+1. Войдите в [Google Play Console](https://play.google.com/console/)
+2. **Создать приложение**
+3. Заполните метаданные:
+   - Название: **EcoDoc**
+   - Краткое описание: До 80 символов
+   - Полное описание: Подробное описание
+   - Скриншоты (минимум 2 для каждого типа устройства)
+   - Иконка: 512×512px
+   - Заглавное изображение: 1024×500px
+4. **Производство → Создать новый релиз**
+5. Загрузите AAB файл
+6. Отправьте на проверку
+
+## 🔄 Обновление приложения
+
+### Процесс обновления:
+1. Обновите код веб-приложения
+2. Соберите: `npm run build`
+3. Синхронизируйте: `npm run cap:sync`
+4. Увеличьте версию в:
+   - **iOS**: Xcode → General → Version и Build
+   - **Android**: `android/app/build.gradle` → `versionCode` и `versionName`
+5. Соберите и опубликуйте новую версию
+
+### Версионирование:
+- **versionName/Version**: Видимая пользователю (например, `1.0.1`, `1.1.0`, `2.0.0`)
+- **versionCode/Build**: Целое число, всегда увеличивается (1, 2, 3, ...)
+
+## 🛠️ Добавление нативных возможностей
+
+Capacitor предоставляет доступ к нативным API:
+
+### Установка плагинов:
+```bash
+npm install @capacitor/camera @capacitor/geolocation @capacitor/push-notifications
+npx cap sync
+```
+
+### Примеры использования:
+
+#### Камера:
+```typescript
+import { Camera, CameraResultType } from '@capacitor/camera';
+
+const photo = await Camera.getPhoto({
+  quality: 90,
+  allowEditing: true,
+  resultType: CameraResultType.Uri
+});
+```
+
+#### Push-уведомления:
+```typescript
+import { PushNotifications } from '@capacitor/push-notifications';
+
+await PushNotifications.requestPermissions();
+```
+
+## 📝 Конфигурация
+
+### capacitor.config.ts
+```typescript
+{
+  appId: 'tj.gov.eco.ecodoc',
+  appName: 'EcoDoc',
+  webDir: 'dist/public',
+  server: {
+    androidScheme: 'https',
+    iosScheme: 'https',
+  }
+}
+```
+
+### Изменение иконок и splash screen:
+1. Обновите `resources/logo.png` (1024×1024px, PNG)
+2. Запустите:
+```bash
+npx @capacitor/assets generate --ios --android \
+  --iconBackgroundColor '#16a34a' \
+  --splashBackgroundColor '#16a34a'
+```
+3. Синхронизируйте: `npm run cap:sync`
+
+## 🐛 Отладка
+
+### iOS отладка:
+1. Откройте Safari → **Разработка** → [Ваше устройство] → [EcoDoc]
+2. Используйте Web Inspector для отладки
+
+### Android отладка:
+1. Chrome → `chrome://inspect`
+2. Выберите ваше устройство
+3. Используйте DevTools
+
+### Логи в Xcode:
+- Откройте **View → Debug Area → Activate Console**
+
+### Логи в Android Studio:
+- Откройте **Logcat** внизу экрана
+- Фильтр: `package:mine`
+
+## 📦 Структура проекта
+
+```
+workspace/
+├── android/           # Нативный проект Android
+│   └── app/
+│       └── src/main/
+│           ├── assets/   # Веб-ассеты
+│           └── res/      # Иконки и splash screens
+├── ios/               # Нативный проект iOS
+│   └── App/
+│       └── App/
+│           ├── Assets.xcassets/  # Иконки и splash screens
+│           └── public/           # Веб-ассеты
+├── resources/         # Исходные ассеты для генерации
+│   └── logo.png
+├── dist/public/       # Скомпилированное веб-приложение
+└── capacitor.config.ts # Конфигурация Capacitor
+```
+
+## 🔗 Полезные ссылки
+
+- [Capacitor Документация](https://capacitorjs.com/docs)
+- [iOS Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/)
+- [Android Design Guidelines](https://developer.android.com/design)
+- [App Store Connect](https://appstoreconnect.apple.com/)
+- [Google Play Console](https://play.google.com/console/)
+
+## ⚠️ Важные замечания
+
+1. **Безопасность**: Никогда не коммитьте файлы `.keystore` и `key.properties` в Git
+2. **Тестирование**: Всегда тестируйте на реальных устройствах перед публикацией
+3. **Обновления**: Регулярно обновляйте Capacitor и плагины
+4. **Разрешения**: Запрашивайте только необходимые разрешения в манифестах
+
+## 🆘 Помощь и поддержка
+
+При возникновении проблем:
+1. Проверьте [Capacitor Community Forum](https://forum.ionicframework.com/)
+2. [Stack Overflow](https://stackoverflow.com/questions/tagged/capacitor)
+3. [Capacitor GitHub Issues](https://github.com/ionic-team/capacitor/issues)
+
+---
+
+**Версия документа:** 1.0.0  
+**Последнее обновление:** Ноябрь 2025
