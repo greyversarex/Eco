@@ -721,6 +721,84 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Forward message endpoint
+  app.post("/api/messages/:id/forward", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      
+      // Get original message
+      const originalMessage = await storage.getMessageById(messageId);
+      if (!originalMessage) {
+        return res.status(404).json({ error: 'Original message not found' });
+      }
+      
+      // Verify user has access to this message (is sender or recipient)
+      if (req.session.departmentId) {
+        const isSender = originalMessage.senderId === req.session.departmentId;
+        const isRecipient = originalMessage.recipientId === req.session.departmentId || 
+                           (originalMessage.recipientIds && originalMessage.recipientIds.includes(req.session.departmentId));
+        
+        if (!isSender && !isRecipient) {
+          return res.status(403).json({ error: 'Access denied' });
+        }
+      }
+      
+      // Parse recipient ID
+      const recipientId = parseInt(req.body.recipientId);
+      if (isNaN(recipientId)) {
+        return res.status(400).json({ error: 'Valid recipient ID required' });
+      }
+      
+      // Ensure sender is the authenticated department
+      if (req.session.departmentId) {
+        const senderId = req.session.departmentId;
+        
+        // Create forwarded message
+        const forwardedMessageData: any = {
+          subject: originalMessage.subject.startsWith('Иловашуда: ') ? originalMessage.subject : `Иловашуда: ${originalMessage.subject}`,
+          content: originalMessage.content,
+          senderId: senderId, // Current user becomes the sender
+          recipientIds: [recipientId],
+          recipientId: null,
+          executor: originalMessage.executor,
+          documentDate: originalMessage.documentDate,
+          documentNumber: originalMessage.documentNumber,
+          replyToId: null,
+          originalSenderId: originalMessage.originalSenderId || originalMessage.senderId, // Track original sender
+          forwardedById: senderId, // Track who forwarded it
+        };
+        
+        const forwardedMessage = await storage.createMessage(forwardedMessageData);
+        
+        // Copy attachments from original message
+        const originalAttachments = await storage.getAttachmentsByMessageId(messageId);
+        if (originalAttachments.length > 0) {
+          await Promise.all(
+            originalAttachments.map(async (attachment) => {
+              const fullAttachment = await storage.getAttachmentById(attachment.id);
+              if (fullAttachment) {
+                await storage.createAttachment({
+                  messageId: forwardedMessage.id,
+                  fileData: fullAttachment.fileData,
+                  file_name: fullAttachment.file_name,
+                  fileSize: fullAttachment.fileSize,
+                  mimeType: fullAttachment.mimeType,
+                });
+              }
+            })
+          );
+        }
+        
+        res.json({ success: true, messageId: forwardedMessage.id });
+      } else {
+        return res.status(403).json({ error: 'Only departments can forward messages' });
+      }
+    } catch (error: any) {
+      console.error('Error forwarding message:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.patch("/api/messages/:id/read", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
@@ -1479,6 +1557,72 @@ export function registerRoutes(app: Express) {
       
       if (!deleted) {
         return res.status(404).json({ error: 'Assignment not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Trash endpoints for announcements
+  app.get("/api/trash/announcements", requireAuth, async (req: Request, res: Response) => {
+    try {
+      // Get all deleted announcements
+      const deletedAnnouncements = await storage.listDeletedAnnouncements();
+      
+      // Filter: show if department is recipient
+      if (req.session.departmentId) {
+        const filteredAnnouncements = deletedAnnouncements.filter(announcement => 
+          // Show if no specific recipients (broadcast to all)
+          !announcement.recipientIds || announcement.recipientIds.length === 0 ||
+          // OR if department is in recipients list
+          announcement.recipientIds.includes(req.session.departmentId as number)
+        );
+        return res.json(filteredAnnouncements);
+      }
+      
+      // Admin sees all deleted announcements
+      res.json(deletedAnnouncements);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/trash/announcements/:id/restore", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Only admin can restore announcements
+      if (!req.session.adminId) {
+        return res.status(403).json({ error: 'Only admins can restore announcements' });
+      }
+      
+      const restored = await storage.restoreAnnouncement(id);
+      
+      if (!restored) {
+        return res.status(500).json({ error: 'Failed to restore announcement' });
+      }
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Permanently delete an announcement (Admin only)
+  app.delete("/api/trash/announcements/:id/permanent", requireAuth, async (req: Request, res: Response) => {
+    try {
+      // Only admins can permanently delete
+      if (!req.session.adminId) {
+        return res.status(403).json({ error: 'Access denied. Admin only.' });
+      }
+
+      const id = parseInt(req.params.id);
+      const deleted = await storage.permanentDeleteAnnouncement(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Announcement not found' });
       }
       
       res.json({ success: true });

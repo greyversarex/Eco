@@ -97,6 +97,8 @@ export const messages: any = pgTable("messages", {
   executor: text("executor"),
   documentDate: timestamp("document_date").notNull(),
   replyToId: integer("reply_to_id").references((): any => messages.id, { onDelete: 'cascade' }),
+  originalSenderId: integer("original_sender_id").references(() => departments.id, { onDelete: 'cascade' }), // Original sender if forwarded
+  forwardedById: integer("forwarded_by_id").references(() => departments.id, { onDelete: 'cascade' }), // Who forwarded the message
   isRead: boolean("is_read").default(false).notNull(),
   isDeleted: boolean("is_deleted").default(false).notNull(),
   deletedAt: timestamp("deleted_at"),
@@ -115,6 +117,8 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   isRead: true,
   isDeleted: true,
   deletedAt: true,
+  originalSenderId: true, // Populated by forwarding logic
+  forwardedById: true, // Populated by forwarding logic
   recipientIds: true, // Optional during migration, will be populated from recipientId or explicit array
 }).extend({
   documentDate: z.coerce.date(),
@@ -221,12 +225,16 @@ export const announcements = pgTable("announcements", {
   content: text("content").notNull(),
   recipientIds: integer("recipient_ids").array(),
   readBy: integer("read_by").array().notNull().default(sql`ARRAY[]::integer[]`),
+  isDeleted: boolean("is_deleted").notNull().default(false),
+  deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertAnnouncementSchema = createInsertSchema(announcements).omit({
   id: true,
   readBy: true,
+  isDeleted: true,
+  deletedAt: true,
   createdAt: true,
 }).extend({
   recipientIds: z.array(z.number()).optional(),

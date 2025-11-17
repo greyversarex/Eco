@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X } from 'lucide-react';
+import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X, Forward } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -59,6 +59,10 @@ export default function MessageView() {
   const [assignmentDeadline, setAssignmentDeadline] = useState('');
   const [assignmentFiles, setAssignmentFiles] = useState<File[]>([]);
   const [showAllInvited, setShowAllInvited] = useState(false);
+  
+  // Forward modal state
+  const [isForwardDialogOpen, setIsForwardDialogOpen] = useState(false);
+  const [forwardRecipientId, setForwardRecipientId] = useState<number | null>(null);
   
   // Get 'from' query parameter to know where to go back
   const searchParams = new URLSearchParams(window.location.search);
@@ -172,6 +176,49 @@ export default function MessageView() {
       toast({
         title: 'Хато',
         description: error.message || 'Хатогӣ ҳангоми несткунии ҳуҷҷат',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const forwardMessageMutation = useMutation({
+    mutationFn: async () => {
+      if (!id || !forwardRecipientId) {
+        throw new Error('Recipient required');
+      }
+      
+      const formData = new FormData();
+      formData.append('recipientId', forwardRecipientId.toString());
+      
+      const res = await fetch(`/api/messages/${id}/forward`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to forward message');
+      }
+      
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Муваффақият',
+        description: 'Ҳуҷҷат иловашуд',
+      });
+      setIsForwardDialogOpen(false);
+      setForwardRecipientId(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      if (id) {
+        queryClient.invalidateQueries({ queryKey: ['/api/messages', id] });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Хато',
+        description: error.message || 'Хатогӣ ҳангоми иловакунии ҳуҷҷат',
         variant: 'destructive',
       });
     },
@@ -494,6 +541,16 @@ export default function MessageView() {
                       <span className="font-medium text-[#000000]">Фиристанда:</span> {getSenderName(message.senderId)}
                     </div>
                   </div>
+                  {message.originalSenderId && message.forwardedById && (
+                    <div data-testid="text-forwarded-info" className="space-y-1 bg-accent/30 p-3 rounded-md">
+                      <div className="text-foreground text-sm">
+                        <span className="font-medium text-[#000000]">Муаллифи аслӣ:</span> {getSenderName(message.originalSenderId)}
+                      </div>
+                      <div className="text-foreground text-sm">
+                        <span className="font-medium text-[#000000]">Иловакунанда:</span> {getSenderName(message.forwardedById)}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {attachments.length > 0 && (
@@ -531,10 +588,71 @@ export default function MessageView() {
 
                 {user?.userType === 'department' && (
                   <div className="pt-4 border-t flex justify-between gap-3 px-6">
-                    <Button onClick={handleReply} data-testid="button-reply" className="gap-2" size="lg">
-                      <Reply className="h-4 w-4" />
-                      {t.reply}
-                    </Button>
+                    <div className="flex gap-3">
+                      <Button onClick={handleReply} data-testid="button-reply" className="gap-2" size="lg">
+                        <Reply className="h-4 w-4" />
+                        {t.reply}
+                      </Button>
+                      <Dialog open={isForwardDialogOpen} onOpenChange={setIsForwardDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button data-testid="button-forward" className="gap-2" size="lg" variant="outline">
+                            <Forward className="h-4 w-4" />
+                            Фиристодан
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle>Ҳуҷҷатро ба шуъба фиристодан</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 pt-4">
+                            <div className="space-y-2">
+                              <Label>Шуъба</Label>
+                              <div className="space-y-2 max-h-96 overflow-y-auto border rounded-lg p-4">
+                                {departments
+                                  .filter(dept => dept.id !== user?.department?.id)
+                                  .map(dept => (
+                                    <div key={dept.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-accent">
+                                      <Checkbox
+                                        id={`forward-dept-${dept.id}`}
+                                        checked={forwardRecipientId === dept.id}
+                                        onCheckedChange={(checked) => {
+                                          setForwardRecipientId(checked ? dept.id : null);
+                                        }}
+                                        data-testid={`checkbox-forward-recipient-${dept.id}`}
+                                      />
+                                      <Label 
+                                        htmlFor={`forward-dept-${dept.id}`} 
+                                        className="flex-1 cursor-pointer text-base"
+                                      >
+                                        {dept.name}
+                                      </Label>
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                            <div className="flex justify-end gap-3 pt-4">
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setIsForwardDialogOpen(false);
+                                  setForwardRecipientId(null);
+                                }}
+                                data-testid="button-cancel-forward"
+                              >
+                                Бекор кардан
+                              </Button>
+                              <Button
+                                onClick={() => forwardMessageMutation.mutate()}
+                                disabled={!forwardRecipientId || forwardMessageMutation.isPending}
+                                data-testid="button-submit-forward"
+                              >
+                                {forwardMessageMutation.isPending ? 'Фиристода истодааст...' : 'Фиристодан'}
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                     {user.department?.canCreateAssignmentFromMessage && (
                       <Dialog open={isAssignmentDialogOpen} onOpenChange={(open) => {
                         setIsAssignmentDialogOpen(open);

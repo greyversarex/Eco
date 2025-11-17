@@ -75,6 +75,9 @@ export interface IStorage {
   deleteAnnouncement(id: number): Promise<boolean>;
   markAnnouncementAsRead(id: number, departmentId: number): Promise<Announcement | undefined>;
   getUnreadAnnouncementsCount(departmentId: number): Promise<number>;
+  listDeletedAnnouncements(): Promise<Announcement[]>;
+  restoreAnnouncement(id: number): Promise<boolean>;
+  permanentDeleteAnnouncement(id: number): Promise<boolean>;
   
   // Announcement Attachments
   createAnnouncementAttachment(attachment: InsertAnnouncementAttachment): Promise<AnnouncementAttachment>;
@@ -653,6 +656,51 @@ export class DbStorage implements IStorage {
   async getUnreadAnnouncementsCount(departmentId: number): Promise<number> {
     const allAnnouncements = await db.select().from(announcements);
     return allAnnouncements.filter(a => !a.readBy.includes(departmentId)).length;
+  }
+
+  async listDeletedAnnouncements(): Promise<Announcement[]> {
+    const deletedAnnouncements = await db.select().from(announcements)
+      .where(eq(announcements.isDeleted, true))
+      .orderBy(desc(announcements.deletedAt));
+    
+    // Fetch attachments for each deleted announcement
+    const announcementsWithAttachments = await Promise.all(
+      deletedAnnouncements.map(async (announcement) => {
+        const attachments = await db
+          .select({
+            id: announcementAttachments.id,
+            file_name: announcementAttachments.file_name,
+            fileSize: announcementAttachments.fileSize,
+            mimeType: announcementAttachments.mimeType,
+            createdAt: announcementAttachments.createdAt,
+          })
+          .from(announcementAttachments)
+          .where(eq(announcementAttachments.announcementId, announcement.id));
+        
+        return {
+          ...announcement,
+          attachments,
+        };
+      })
+    );
+    
+    return announcementsWithAttachments;
+  }
+
+  async restoreAnnouncement(id: number): Promise<boolean> {
+    const result = await db.update(announcements)
+      .set({ isDeleted: false, deletedAt: null })
+      .where(eq(announcements.id, id))
+      .returning();
+    return result.length > 0;
+  }
+
+  async permanentDeleteAnnouncement(id: number): Promise<boolean> {
+    // First delete all attachments
+    await db.delete(announcementAttachments).where(eq(announcementAttachments.announcementId, id));
+    // Then permanently delete the announcement
+    const result = await db.delete(announcements).where(eq(announcements.id, id)).returning();
+    return result.length > 0;
   }
 
   // Announcement Attachments

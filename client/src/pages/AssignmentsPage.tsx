@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { t } from '@/lib/i18n';
 import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
@@ -201,6 +200,7 @@ export default function AssignmentsPage() {
   const [deadline, setDeadline] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showAllInvited, setShowAllInvited] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'overdue' | 'completed'>('all');
 
   const { data: assignments = [], isLoading } = useQuery<Assignment[]>({
     queryKey: ['/api/assignments'],
@@ -720,20 +720,36 @@ export default function AssignmentsPage() {
           )}
         </div>
 
-        <Tabs defaultValue="all" className="space-y-4">
-          <TabsList className="bg-white border">
-            <TabsTrigger value="all" data-testid="tab-all-assignments">
+        <div className="space-y-4">
+          <div className="flex gap-3 flex-wrap">
+            <Button
+              variant={activeFilter === 'all' ? 'default' : 'outline'}
+              onClick={() => setActiveFilter('all')}
+              data-testid="tab-all-assignments"
+              className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+            >
               Ҳама ({assignments.filter(a => !a.isCompleted && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length})
-            </TabsTrigger>
-            <TabsTrigger value="overdue" data-testid="tab-overdue-assignments">
+            </Button>
+            <Button
+              variant={activeFilter === 'overdue' ? 'default' : 'outline'}
+              onClick={() => setActiveFilter('overdue')}
+              data-testid="tab-overdue-assignments"
+              className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+            >
               Иҷронашуда ({assignments.filter(a => !a.isCompleted && new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0))).length})
-            </TabsTrigger>
-            <TabsTrigger value="completed" data-testid="tab-completed-assignments">
+            </Button>
+            <Button
+              variant={activeFilter === 'completed' ? 'default' : 'outline'}
+              onClick={() => setActiveFilter('completed')}
+              data-testid="tab-completed-assignments"
+              className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+            >
               Иҷрошуда ({assignments.filter(a => a.isCompleted).length})
-            </TabsTrigger>
-          </TabsList>
+            </Button>
+          </div>
 
-          <TabsContent value="all">
+          {activeFilter === 'all' && (
+            <div>
             {isLoading ? (
               <div className="flex items-center justify-center p-12">
                 <div className="text-center">
@@ -852,9 +868,11 @@ export default function AssignmentsPage() {
                 ))}
               </div>
             )}
-          </TabsContent>
+          </div>
+          )}
 
-          <TabsContent value="overdue">
+          {activeFilter === 'overdue' && (
+            <div>
             {isLoading ? (
               <div className="flex items-center justify-center p-12">
                 <div className="text-center">
@@ -961,9 +979,11 @@ export default function AssignmentsPage() {
                 ))}
               </div>
             )}
-          </TabsContent>
+          </div>
+          )}
 
-          <TabsContent value="completed">
+          {activeFilter === 'completed' && (
+            <div>
             {isLoading ? (
               <div className="flex items-center justify-center p-12">
                 <div className="text-center">
@@ -1071,8 +1091,9 @@ export default function AssignmentsPage() {
                 ))}
               </div>
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
+          )}
+        </div>
       </main>
 
       <Footer />

@@ -32,6 +32,15 @@ interface Assignment {
   recipientIds: number[] | null;
 }
 
+interface Announcement {
+  id: number;
+  title: string;
+  content: string;
+  recipientIds: number[] | null;
+  createdAt: string;
+  deletedAt: string | null;
+}
+
 interface Department {
   id: number;
   name: string;
@@ -41,9 +50,11 @@ const t = {
   trash: "Корзина",
   messages: "Паёмҳо",
   assignments: "Супоришҳо",
+  announcements: "Эълонҳо",
   restore: "Барқарор кардан",
   noDeletedMessages: "Паёмҳои бекоркардашуда нест",
   noDeletedAssignments: "Супоришҳои бекоркардашуда нест",
+  noDeletedAnnouncements: "Эълонҳои бекоркардашуда нест",
   loading: "Боргирӣ...",
   success: "Муваффақият",
   restoreSuccess: "Барқарор карда шуд",
@@ -61,7 +72,7 @@ const t = {
 export default function TrashPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<"messages" | "assignments">("messages");
+  const [activeTab, setActiveTab] = useState<"messages" | "assignments" | "announcements">("messages");
 
   // Fetch deleted messages
   const { data: deletedMessages = [], isLoading: loadingMessages } = useQuery<Message[]>({
@@ -71,6 +82,11 @@ export default function TrashPage() {
   // Fetch deleted assignments
   const { data: deletedAssignments = [], isLoading: loadingAssignments } = useQuery<Assignment[]>({
     queryKey: ['/api/trash/assignments'],
+  });
+
+  // Fetch deleted announcements
+  const { data: deletedAnnouncements = [], isLoading: loadingAnnouncements } = useQuery<Announcement[]>({
+    queryKey: ['/api/trash/announcements'],
   });
 
   // Fetch departments for display names
@@ -127,12 +143,38 @@ export default function TrashPage() {
     },
   });
 
+  // Restore announcement mutation
+  const restoreAnnouncementMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest('POST', `/api/trash/announcements/${id}/restore`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/trash/announcements'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
+      toast({
+        title: t.success,
+        description: t.restoreSuccess,
+      });
+    },
+    onError: () => {
+      toast({
+        title: t.error,
+        description: t.restoreError,
+        variant: 'destructive',
+      });
+    },
+  });
+
   const handleRestoreMessage = (id: number) => {
     restoreMessageMutation.mutate(id);
   };
 
   const handleRestoreAssignment = (id: number) => {
     restoreAssignmentMutation.mutate(id);
+  };
+
+  const handleRestoreAnnouncement = (id: number) => {
+    restoreAnnouncementMutation.mutate(id);
   };
 
   return (
@@ -168,13 +210,16 @@ export default function TrashPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "messages" | "assignments")}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "messages" | "assignments" | "announcements")}>
           <TabsList className="mb-6">
             <TabsTrigger value="messages" data-testid="tab-messages">
               {t.messages}
             </TabsTrigger>
             <TabsTrigger value="assignments" data-testid="tab-assignments">
               {t.assignments}
+            </TabsTrigger>
+            <TabsTrigger value="announcements" data-testid="tab-announcements">
+              {t.announcements}
             </TabsTrigger>
           </TabsList>
 
@@ -275,6 +320,63 @@ export default function TrashPage() {
                           onClick={() => handleRestoreAssignment(assignment.id)}
                           disabled={restoreAssignmentMutation.isPending}
                           data-testid={`button-restore-assignment-${assignment.id}`}
+                          className="gap-2"
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                          {t.restore}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </TabsContent>
+
+          {/* Deleted Announcements Tab */}
+          <TabsContent value="announcements">
+            <Card className="p-6">
+              {loadingAnnouncements ? (
+                <div className="flex items-center justify-center p-12">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+                    <p className="text-muted-foreground">{t.loading}</p>
+                  </div>
+                </div>
+              ) : deletedAnnouncements.length === 0 ? (
+                <div className="flex items-center justify-center p-12">
+                  <p className="text-muted-foreground">{t.noDeletedAnnouncements}</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {deletedAnnouncements.map((announcement) => (
+                    <div 
+                      key={announcement.id} 
+                      className="p-4 rounded-md border bg-card hover-elevate"
+                      data-testid={`announcement-item-${announcement.id}`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-1">
+                          <h3 className="font-semibold text-lg">{announcement.title}</h3>
+                          <div className="text-sm text-muted-foreground space-y-1">
+                            {announcement.recipientIds && announcement.recipientIds.length > 0 && (
+                              <div>{t.recipients}: {announcement.recipientIds.map(id => getDepartmentName(id)).join(', ')}</div>
+                            )}
+                            {!announcement.recipientIds || announcement.recipientIds.length === 0 && (
+                              <div>{t.recipients}: Ҳама шуъбаҳо</div>
+                            )}
+                            {announcement.deletedAt && (
+                              <div className="text-destructive">
+                                {t.deletedOn} {format(new Date(announcement.deletedAt), 'dd.MM.yyyy HH:mm')}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleRestoreAnnouncement(announcement.id)}
+                          disabled={restoreAnnouncementMutation.isPending}
+                          data-testid={`button-restore-announcement-${announcement.id}`}
                           className="gap-2"
                         >
                           <RotateCcw className="h-4 w-4" />
