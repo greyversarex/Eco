@@ -595,7 +595,7 @@ export default function MessageView() {
                       </Button>
                       <Dialog open={isForwardDialogOpen} onOpenChange={setIsForwardDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button data-testid="button-forward" className="gap-2" size="lg" variant="outline">
+                          <Button data-testid="button-forward" className="gap-2" size="lg">
                             <Forward className="h-4 w-4" />
                             Фиристодан
                           </Button>
