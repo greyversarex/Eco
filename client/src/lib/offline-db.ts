@@ -52,13 +52,20 @@ export interface CachedAnnouncement {
   cachedAt: number;
 }
 
+export interface DraftAttachment {
+  name: string;
+  type: string;
+  size: number;
+  data: ArrayBuffer;
+}
+
 export interface DraftMessage {
   id: string;
   subject: string;
   content: string;
   recipientIds: number[];
   documentNumber?: string;
-  attachments?: File[];
+  attachments?: DraftAttachment[];
   createdAt: number;
   syncStatus: 'pending' | 'syncing' | 'failed' | 'synced';
   errorMessage?: string;
@@ -74,6 +81,21 @@ export interface CachedAttachment {
   size: number;
   data: Blob;
   cachedAt: number;
+}
+
+// Helper functions to convert between File and DraftAttachment
+export async function fileToAttachment(file: File): Promise<DraftAttachment> {
+  const arrayBuffer = await file.arrayBuffer();
+  return {
+    name: file.name,
+    type: file.type,
+    size: file.size,
+    data: arrayBuffer,
+  };
+}
+
+export function attachmentToFile(attachment: DraftAttachment): File {
+  return new File([attachment.data], attachment.name, { type: attachment.type });
 }
 
 class OfflineDB {

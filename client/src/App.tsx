@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -135,12 +135,17 @@ function Router() {
 function OfflineSync() {
   const isOnline = useOnlineStatus();
   const { syncAllPendingDrafts, pendingCount } = useDrafts();
+  const isSyncing = useRef(false);
 
   useEffect(() => {
-    if (isOnline && pendingCount > 0) {
+    if (isOnline && pendingCount > 0 && !isSyncing.current) {
       // Auto-sync drafts when connection is restored
       console.log('📱 Связь восстановлена. Синхронизация черновиков...');
-      syncAllPendingDrafts();
+      isSyncing.current = true;
+      
+      syncAllPendingDrafts().finally(() => {
+        isSyncing.current = false;
+      });
     }
   }, [isOnline, pendingCount, syncAllPendingDrafts]);
 

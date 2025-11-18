@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { offlineDB, type DraftMessage } from '@/lib/offline-db';
-import { apiRequest } from '@/lib/queryClient';
+import { offlineDB, type DraftMessage, fileToAttachment, attachmentToFile } from '@/lib/offline-db';
+import { apiFetch } from '@/lib/api-config';
 import { useToast } from '@/hooks/use-toast';
 
 /**
@@ -26,9 +26,24 @@ export function useDrafts() {
     loadDrafts();
   }, [loadDrafts]);
 
-  const saveDraft = useCallback(async (draft: Omit<DraftMessage, 'id' | 'createdAt' | 'syncStatus'>) => {
+  const saveDraft = useCallback(async (draft: { 
+    subject: string;
+    content?: string;
+    recipientIds: number[];
+    documentNumber?: string;
+    attachments?: File[];
+  }) => {
+    // Convert File objects to DraftAttachment
+    const attachments = draft.attachments 
+      ? await Promise.all(draft.attachments.map(file => fileToAttachment(file)))
+      : undefined;
+
     const newDraft: DraftMessage = {
-      ...draft,
+      subject: draft.subject,
+      content: draft.content || '',
+      recipientIds: draft.recipientIds,
+      documentNumber: draft.documentNumber,
+      attachments,
       id: `draft-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       createdAt: Date.now(),
       syncStatus: 'pending',
@@ -79,6 +94,11 @@ export function useDrafts() {
       await offlineDB.updateDraftStatus(draft.id, 'syncing');
       await loadDrafts();
 
+      // Convert DraftAttachment back to File objects
+      const files = draft.attachments 
+        ? draft.attachments.map(att => attachmentToFile(att))
+        : [];
+
       // Prepare FormData for files
       const formData = new FormData();
       formData.append('subject', draft.subject);
@@ -89,17 +109,16 @@ export function useDrafts() {
         formData.append('documentNumber', draft.documentNumber);
       }
 
-      if (draft.attachments && draft.attachments.length > 0) {
-        for (const file of draft.attachments) {
+      if (files.length > 0) {
+        for (const file of files) {
           formData.append('attachments', file);
         }
       }
 
-      // Send message
-      const response = await fetch('/api/messages', {
+      // Send message using apiFetch (includes auth headers)
+      const response = await apiFetch('/api/messages', {
         method: 'POST',
         body: formData,
-        credentials: 'include',
       });
 
       if (!response.ok) {
