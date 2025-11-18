@@ -21,6 +21,8 @@ import logoImage from '@assets/logo-optimized.webp';
 import { Footer } from '@/components/Footer';
 import { DatePicker } from '@/components/ui/date-picker';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
+import { offlineDB } from '@/lib/offline-db';
+import { useOnlineStatus } from '@/hooks/use-offline';
 
 interface Attachment {
   id: number;
@@ -279,15 +281,71 @@ export default function MessageView() {
     }
   };
 
+  const isOnline = useOnlineStatus();
+
   const handleDownload = async (attachmentId: number, fileName: string) => {
     try {
-      // Download directly from database via API
+      // Check cache first
+      const cachedFile = await offlineDB.getAttachment(attachmentId);
+      
+      if (cachedFile) {
+        // Use cached file
+        console.log('📦 Using cached attachment:', fileName);
+        const blob = cachedFile.data;
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        return;
+      }
+
+      // Not in cache - check if online
+      if (!isOnline) {
+        toast({
+          title: 'Офлайн',
+          description: 'Файл дар кеш нест. Барои боргирӣ интернет лозим аст',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Download from server
+      console.log('🌐 Downloading attachment from server:', fileName);
+      const response = await apiFetch(`/api/attachments/${attachmentId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to download');
+      }
+
+      const blob = await response.blob();
+      const contentType = response.headers.get('content-type') || 'application/octet-stream';
+
+      // Cache for offline use
+      await offlineDB.cacheAttachment({
+        id: attachmentId,
+        messageId: parseInt(id || '0'),
+        filename: fileName,
+        mimeType: contentType,
+        size: blob.size,
+        data: blob,
+        cachedAt: Date.now(),
+      });
+
+      // Download
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = `/api/attachments/${attachmentId}`;
+      link.href = url;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      console.log('✅ Attachment downloaded and cached');
     } catch (error: any) {
       console.error('Download error:', error);
       toast({

@@ -3,6 +3,26 @@ import { offlineDB, type DraftMessage, fileToAttachment, attachmentToFile } from
 import { apiFetch } from '@/lib/api-config';
 import { useToast } from '@/hooks/use-toast';
 
+// Background Sync tag
+const SYNC_TAG = 'sync-drafts';
+
+/**
+ * Register Background Sync for automatic draft synchronization
+ */
+async function registerBackgroundSync() {
+  try {
+    if ('serviceWorker' in navigator && 'sync' in ServiceWorkerRegistration.prototype) {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.sync.register(SYNC_TAG);
+      console.log('📱 Background Sync registered');
+    } else {
+      console.log('⚠️ Background Sync not supported');
+    }
+  } catch (error) {
+    console.error('❌ Failed to register Background Sync:', error);
+  }
+}
+
 /**
  * Hook to manage draft messages
  */
@@ -52,6 +72,9 @@ export function useDrafts() {
     try {
       await offlineDB.saveDraft(newDraft);
       await loadDrafts();
+      
+      // Register Background Sync for automatic retry
+      await registerBackgroundSync();
       
       toast({
         title: 'Черновик сохранён',
