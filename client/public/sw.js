@@ -1,7 +1,7 @@
 // EcoDoc Service Worker with Background Sync support
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { CacheFirst, NetworkFirst } from 'workbox-strategies';
+import { CacheFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
@@ -42,22 +42,38 @@ registerRoute(
   })
 );
 
-// Cache API requests (NetworkFirst strategy)
+// Offline-first: Cache READ requests (GET) - StaleWhileRevalidate
+// Shows cached data immediately, updates in background
 registerRoute(
-  /\/api\/.*/i,
-  new NetworkFirst({
-    cacheName: 'api-cache',
-    networkTimeoutSeconds: 10,
+  ({ request, url }) => {
+    return request.method === 'GET' && url.pathname.startsWith('/api/');
+  },
+  new StaleWhileRevalidate({
+    cacheName: 'api-read-cache',
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 50,
-        maxAgeSeconds: 60 * 5, // 5 minutes
+        maxEntries: 100, // More entries for reading
+        maxAgeSeconds: 60 * 60 * 24, // 24 hours
       }),
       new CacheableResponsePlugin({
         statuses: [0, 200],
       }),
     ],
   })
+);
+
+// Network-only for WRITE requests (POST/PATCH/DELETE)
+// Never cache mutations - offline writes handled by background sync
+registerRoute(
+  ({ request, url }) => {
+    return (
+      (request.method === 'POST' ||
+       request.method === 'PATCH' ||
+       request.method === 'DELETE') &&
+      url.pathname.startsWith('/api/')
+    );
+  },
+  new NetworkOnly()
 );
 
 // Background Sync for draft messages
