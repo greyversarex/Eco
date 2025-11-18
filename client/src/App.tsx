@@ -1,10 +1,12 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, DepartmentRoute, AdminRoute, AuthenticatedRoute } from "@/lib/auth";
+import { useOfflineDB, useOnlineStatus } from "@/hooks/use-offline";
+import { useDrafts } from "@/hooks/use-drafts";
 
 // Eager load critical pages
 import DepartmentLogin from "@/pages/DepartmentLogin";
@@ -25,6 +27,7 @@ const AssignmentsPage = lazy(() => import("@/pages/AssignmentsPage"));
 const AnnouncementsPage = lazy(() => import("@/pages/AnnouncementsPage"));
 const MonitoringPage = lazy(() => import("@/pages/MonitoringPage"));
 const TrashPage = lazy(() => import("@/pages/TrashPage"));
+const DraftsPage = lazy(() => import("@/pages/DraftsPage"));
 
 // Loading fallback component
 function PageLoader() {
@@ -118,18 +121,46 @@ function Router() {
             <TrashPage />
           </DepartmentRoute>
         </Route>
+        <Route path="/department/drafts">
+          <DepartmentRoute>
+            <DraftsPage />
+          </DepartmentRoute>
+        </Route>
         <Route component={NotFound} />
       </Switch>
     </Suspense>
   );
 }
 
+function OfflineSync() {
+  const isOnline = useOnlineStatus();
+  const { syncAllPendingDrafts, pendingCount } = useDrafts();
+
+  useEffect(() => {
+    if (isOnline && pendingCount > 0) {
+      // Auto-sync drafts when connection is restored
+      console.log('📱 Связь восстановлена. Синхронизация черновиков...');
+      syncAllPendingDrafts();
+    }
+  }, [isOnline, pendingCount, syncAllPendingDrafts]);
+
+  return null;
+}
+
 function App() {
+  // Initialize IndexedDB
+  const { isReady, error } = useOfflineDB();
+
+  if (error) {
+    console.error('Failed to initialize offline database:', error);
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
+          {isReady && <OfflineSync />}
           <Router />
         </TooltipProvider>
       </AuthProvider>

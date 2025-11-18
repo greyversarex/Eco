@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Paperclip, X, LogOut } from 'lucide-react';
+import { ArrowLeft, Paperclip, X, LogOut, Save } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -19,6 +19,9 @@ import { useToast } from '@/hooks/use-toast';
 import type { Department, Person } from '@shared/schema';
 import { Footer } from '@/components/Footer';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
+import { useOnlineStatus } from '@/hooks/use-offline';
+import { useDrafts } from '@/hooks/use-drafts';
+import { OfflineIndicator } from '@/components/offline-indicator';
 
 export default function ComposeMessage() {
   
@@ -32,6 +35,8 @@ export default function ComposeMessage() {
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const isOnline = useOnlineStatus();
+  const { saveDraft } = useDrafts();
 
   const { data: departments = [], isLoading: loadingDepartments, dataUpdatedAt } = useQuery<Omit<Department, 'accessCode'>[]>({
     queryKey: ['/api/departments/list'],
@@ -300,6 +305,51 @@ export default function ComposeMessage() {
     setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
   };
 
+  const handleSaveDraft = async () => {
+    // Validate required fields
+    if (!subject.trim()) {
+      toast({
+        title: 'Хато',
+        description: 'Мавзуъро ворид кунед',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (selectedRecipients.length === 0) {
+      toast({
+        title: 'Хато',
+        description: 'Ҳадди ақал як гиранда интихоб кунед',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await saveDraft({
+        subject,
+        content,
+        recipientIds: selectedRecipients,
+        documentNumber: documentNumber || undefined,
+        attachments: selectedFiles.length > 0 ? selectedFiles : undefined,
+      });
+
+      // Clear form
+      setSubject('');
+      setContent('');
+      setDocumentNumber('');
+      setSelectedRecipients([]);
+      setDate('');
+      setSelectedFiles([]);
+
+      // Redirect to drafts page
+      setLocation('/department/drafts');
+    } catch (error) {
+      // Error already shown in useDrafts hook
+      console.error('Failed to save draft:', error);
+    }
+  };
+
   return (
     <div 
       className="min-h-screen flex flex-col"
@@ -335,6 +385,7 @@ export default function ComposeMessage() {
             </button>
           </PageHeaderLeft>
           <PageHeaderRight className="gap-2">
+            <OfflineIndicator />
             <Button
               size="sm"
               onClick={() => {
@@ -602,16 +653,28 @@ export default function ComposeMessage() {
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:justify-end">
                 <Button 
-                  type="submit" 
-                  data-testid="button-send" 
-                  disabled={sendMessageMutation.isPending || isUploadingFiles}
+                  type="button"
+                  onClick={handleSaveDraft}
+                  variant="outline"
+                  data-testid="button-save-draft" 
                   className="w-full sm:w-auto"
                 >
-                  {isUploadingFiles 
-                    ? 'Файлҳо бор мешаванд...' 
-                    : sendMessageMutation.isPending 
-                      ? 'Фиристода мешавад...'
-                      : t.send}
+                  <Save className="h-4 w-4 mr-2" />
+                  Сохранить черновик
+                </Button>
+                <Button 
+                  type="submit" 
+                  data-testid="button-send" 
+                  disabled={sendMessageMutation.isPending || isUploadingFiles || !isOnline}
+                  className="w-full sm:w-auto"
+                >
+                  {!isOnline 
+                    ? 'Офлайн'
+                    : isUploadingFiles 
+                      ? 'Файлҳо бор мешаванд...' 
+                      : sendMessageMutation.isPending 
+                        ? 'Фиристода мешавад...'
+                        : t.send}
                 </Button>
                 <Button
                   type="button"
