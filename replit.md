@@ -1,7 +1,11 @@
 # EcoDoc Platform
 
 ## Overview
-EcoDoc is a secure, bilingual (Tajik and Russian) internal messaging and document management platform designed for governmental and organizational departments in Tajikistan. Its primary goal is to centralize official communication, ensuring security, data persistence, and mobile compatibility through an API-first approach. The platform provides department-level access with unique codes, an administrative panel for comprehensive management, and aims to boost communication efficiency and transparency within Tajikistan's environmental protection sector. Key features include an assignment and announcement system with file attachments, read tracking, and badge counters. It is optimized for performance on slow internet connections and is available as native iOS and Android mobile applications via Capacitor.
+EcoDoc is a secure, bilingual (Tajik and Russian) internal messaging and document management platform designed for governmental and organizational departments in Tajikistan. Its primary goal is to centralize official communication, ensuring security, data persistence, and mobile compatibility through an API-first approach. The platform provides department-level access with unique codes, an administrative panel for comprehensive management, and aims to boost communication efficiency and transparency within Tajikistan's environmental protection sector. Key features include an assignment and announcement system with file attachments, read tracking, and badge counters. It is optimized for performance on slow internet connections and is available in three deployment modes:
+
+1. **PWA (Progressive Web App)**: Installable directly from the browser on any device without app stores
+2. **Native Mobile Apps**: iOS and Android applications via Capacitor 7.4.4
+3. **Web Application**: Standard browser access
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -11,8 +15,26 @@ Preferred communication style: Simple, everyday language.
 ### Frontend Architecture
 The frontend is built with React, TypeScript, Vite, Wouter for routing, TanStack Query for server state, and Tailwind CSS with shadcn/ui and Radix UI components. It adheres to Material Design principles with a minimalistic aesthetic, green accents, and light mode. Inter and Roboto fonts provide Cyrillic support. The interface is bilingual (Tajik default). Authentication pages feature adaptive eco-themed backgrounds, while department pages have consistent green gradient headers. It follows an API-first approach, using session-based authentication for route protection, and includes an admin panel for department management.
 
-### Mobile Architecture
-The platform is available as native iOS and Android applications via Capacitor 7.x, wrapping the web application in a native WebView for extensive code reuse. It includes native icons and splash screens (green-themed), and supports app distribution to Apple App Store and Google Play Store. The architecture is extensible for native device features via Capacitor plugins. Mobile apps connect to the production server on Timeweb using a unified PostgreSQL database, with an API configuration system (`api-config.ts`) that automatically routes requests based on the environment.
+### Mobile & PWA Architecture
+The platform offers multiple deployment options:
+
+**PWA (Progressive Web App)**:
+- Built with vite-plugin-pwa and Workbox
+- Service Worker for offline functionality and caching
+- Auto-update mechanism with user confirmation
+- Installable on all platforms (Android, iOS, Desktop) directly from browser
+- Optimized caching strategies: CacheFirst for static assets/fonts, NetworkFirst for API calls
+- Manifest.json with 192x192 and 512x512 icons (auto-generated from resources/logo.png)
+- No app store approval required, instant updates
+
+**Native Mobile Apps**:
+- iOS and Android applications via Capacitor 7.x
+- Native WebView wrapper with extensive code reuse
+- Native icons and splash screens (green-themed)
+- App store distribution support (Apple App Store, Google Play Store)
+- Extensible for native device features via Capacitor plugins
+- Connects to production server on Timeweb using unified PostgreSQL database
+- API configuration system (`api-config.ts`) for environment-based routing
 
 ### Backend Architecture
 The backend is developed with Node.js, Express.js, and TypeScript, implementing a RESTful API design. It uses session-based authentication with express-session, a PostgreSQL store, and Bcrypt for password hashing. The API provides endpoints for authentication, department management, CRUD operations for messages (including broadcast), announcements, assignments, and file attachments. It supports two user types: Department (via access code) and Admin (via username/password), with role-based access control and a 30-day session expiration. A Drizzle ORM implementation ensures type-safe PostgreSQL operations, and Zod is used for schema validation.
@@ -45,9 +67,10 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 
 ### Core Dependencies
 - **Database:** `pg`, `drizzle-orm`, `drizzle-kit`, `connect-pg-simple`.
-- **Authentication & Security:** `bcrypt`, `express-session`.
+- **Authentication & Security:** `bcrypt`, `express-session`, `cors`, `helmet`.
 - **Backend Framework:** `express`, `tsx`.
 - **Frontend Framework:** `react`, `@tanstack/react-query`, `wouter`.
+- **PWA:** `vite-plugin-pwa`, `workbox-window`.
 - **Mobile Framework:** `@capacitor/core`, `@capacitor/ios`, `@capacitor/android`, `@capacitor/cli`, `@capacitor/assets`.
 - **UI Components:** `@radix-ui/*`, `tailwindcss`, `class-variance-authority`, `lucide-react`.
 - **Form Handling:** `react-hook-form`, `@hookform/resolvers`, `zod`.
@@ -61,6 +84,35 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 - Google Fonts (Inter and Roboto).
 
 ## Recent Changes
+
+### November 18, 2025 - PWA Implementation & Security Hardening
+
+**Progressive Web App (PWA):**
+- Implemented full PWA support with `vite-plugin-pwa` and Workbox
+- Auto-generated 192x192 and 512x512 icons from resources/logo.png
+- Configured Service Worker with smart caching strategies:
+  - CacheFirst for static assets and Google Fonts (1-year cache)
+  - NetworkFirst for API calls (10s timeout, 5-min cache)
+- Auto-update mechanism with user confirmation prompt
+- PWA installable on all platforms directly from browser
+- Created `PWA_SETUP.md` with user installation instructions
+- Added PWA meta tags and manifest configuration
+
+**Security Enhancements:**
+- ✅ Added `helmet` middleware for HTTP security headers
+- ✅ Configured CORS with `ALLOWED_ORIGINS` environment variable support
+- ✅ Enabled `credentials: true` for cross-origin session cookies
+- ✅ Removed hardcoded SESSION_SECRET - now requires environment variable
+- ✅ Added `trust proxy` configuration for HTTPS deployments
+- ✅ Updated session cookies: `secure: true` and `sameSite: 'none'` in production
+
+**Mobile App Support:**
+- Fixed critical CORS blocking mobile apps (Android/iOS via Capacitor)
+- Session cookies now work correctly for cross-origin requests
+- Created `БЫСТРЫЙ_СТАРТ_МОБИЛЬНОЕ_ПРИЛОЖЕНИЕ.md` with step-by-step mobile build guide
+- Documented production server requirements (HTTPS, ALLOWED_ORIGINS)
+
+**Status:** All mobile deployment blockers resolved. Apps functional on Android/iOS.
 
 ### November 18, 2025 - Comprehensive Technical Audit
 Conducted full system audit documenting all aspects of the platform:
