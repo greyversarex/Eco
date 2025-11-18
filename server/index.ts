@@ -4,6 +4,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import compression from "compression";
 import cors from "cors";
+import helmet from "helmet";
 import http from "http";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -16,6 +17,11 @@ const isProduction = process.env.NODE_ENV === 'production';
 if (isProduction) {
   app.set('trust proxy', 1);
 }
+
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -50,9 +56,8 @@ app.use(express.urlencoded({ extended: false }));
 // Setup session store
 const PgSession = connectPgSimple(session);
 
-// Ensure SESSION_SECRET is set in production
-if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
-  throw new Error('SESSION_SECRET must be set in production environment');
+if (!process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET environment variable must be set');
 }
 
 app.use(
@@ -62,7 +67,7 @@ app.use(
       tableName: 'sessions',
       createTableIfMissing: true,
     }),
-    secret: process.env.SESSION_SECRET || 'eco-tajikistan-secret-key-change-in-production',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
