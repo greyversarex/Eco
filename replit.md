@@ -143,3 +143,48 @@ Conducted full system audit documenting all aspects of the platform:
 - Performance: 7/10 (improve to 8.5/10 after file upload optimization)
 - Code Quality: 7.5/10 (improve to 9/10 after testing + documentation)
 - Operational Readiness: 5/10 (improve to 8/10 after monitoring + logging)
+
+### November 19, 2025 - Production HTTP Configuration & Mobile Support
+
+**HTTP Production Deployment:**
+- ✅ Updated `server/index.ts` for HTTP-only deployment (no HTTPS required)
+- ✅ Disabled Helmet CSP and COEP policies to allow mobile assets
+- ✅ Enhanced CORS with debug logging for blocked origins
+- ✅ Modified session cookies for HTTP compatibility
+- ✅ Created production deployment documentation
+
+**Server Configuration Changes:**
+
+**Helmet Security:**
+```typescript
+helmet({
+  contentSecurityPolicy: false,        // Mobile assets support
+  crossOriginEmbedderPolicy: false,   // Mobile compatibility
+})
+```
+
+**CORS Enhancement:**
+- Auto-allows requests without origin (mobile apps)
+- Reads allowed origins from `ALLOWED_ORIGINS` environment variable
+- Logs blocked origins: `console.log('Blocked by CORS:', origin)`
+- Development mode allows all origins
+
+**Session Cookies (HTTP Compatible):**
+```typescript
+cookie: {
+  secure: process.env.SECURE_COOKIES === 'true' ? true : false,  // Default: false (HTTP)
+  sameSite: 'lax',  // Always 'lax' for mobile/HTTP compatibility
+  maxAge: 30 days
+}
+```
+
+**Environment Variables:**
+- `ALLOWED_ORIGINS` - Comma-separated list of allowed origins
+- `SECURE_COOKIES` - Set to 'true' only for HTTPS (default: false)
+- `SESSION_SECRET` - Required secret key (minimum 32 characters)
+
+**Documentation Created:**
+- `PRODUCTION_SETUP.md` - Comprehensive production setup guide (English)
+- `БЫСТРЫЙ_СТАРТ_ПРОДАКШН.md` - Quick start guide (Russian)
+
+**Status:** Server now deployable on HTTP production servers with full mobile app support. Tested and working on Timeweb production environment.

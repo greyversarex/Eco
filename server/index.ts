@@ -27,11 +27,15 @@ app.use(cors({
   origin: (origin, callback) => {
     const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [];
     
+    // Allow requests without origin (mobile apps) or from allowed origins
     if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
       callback(null, true);
     } else if (!isProduction) {
+      // Allow all origins in development
       callback(null, true);
     } else {
+      // Block and log unauthorized origins in production
+      console.log('Blocked by CORS:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -73,8 +77,10 @@ app.use(
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
+      // Secure cookies only if explicitly enabled (default: false for HTTP support)
+      secure: process.env.SECURE_COOKIES === 'true' ? true : false,
+      // Always use 'lax' for better compatibility with mobile apps and HTTP
+      sameSite: 'lax',
     },
   })
 );
