@@ -17,7 +17,7 @@ export const t = {
   inbox: 'Ҳуҷҷатҳои воридшуда',
   outbox: 'Ҳуҷҷатҳои ирсолшуда',
   newMessage: 'Ҳуҷҷати нав',
-  trash: 'Савати ахлот',
+  trash: 'Сабат',
   logout: 'Баромад',
   menu: 'Меню',
   

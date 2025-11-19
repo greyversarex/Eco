@@ -47,7 +47,7 @@ interface Department {
 }
 
 const t = {
-  trash: "Савати ахлот",
+  trash: "Сабат",
   messages: "Паёмҳо",
   assignments: "Супоришҳо",
   announcements: "Эълонҳо",
