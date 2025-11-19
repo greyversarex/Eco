@@ -7,7 +7,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Menu, Inbox, Send, PenSquare, LogOut, FileText } from 'lucide-react';
+import { Menu, Inbox, Send, PenSquare, LogOut } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/lib/auth';
 
@@ -79,16 +79,6 @@ export default function MobileNav({ translations }: MobileNavProps) {
                 <Send className="h-4 w-4 text-white" />
               </div>
               <span>{translations.outbox}</span>
-            </Button>
-            <Button
-              className="justify-start gap-2.5 h-12 text-sm font-medium bg-blue-600 hover:bg-blue-700 shadow-md"
-              onClick={() => navigateTo('/department/drafts')}
-              data-testid="mobile-nav-drafts"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
-                <FileText className="h-4 w-4 text-white" />
-              </div>
-              <span>Черновики</span>
             </Button>
             <Button
               className="justify-start gap-2.5 h-12 text-sm font-medium bg-primary hover:bg-primary/90 shadow-md"

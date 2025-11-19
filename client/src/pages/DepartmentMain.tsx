@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import MobileNav from '@/components/MobileNav';
 import DepartmentCard from '@/components/DepartmentCard';
 import { t } from '@/lib/i18n';
-import { Inbox, Send, PenSquare, LogOut, Search, Eye, Trash2, FileText } from 'lucide-react';
+import { Inbox, Send, PenSquare, LogOut, Search, Eye, Trash2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import type { Department } from '@shared/schema';
@@ -101,17 +101,6 @@ export default function DepartmentMain() {
                   <Send className="h-4 w-4 text-green-700" />
                 </div>
                 <span className="font-semibold">{t.outbox}</span>
-              </Button>
-              <Button
-                size="default"
-                onClick={() => setLocation('/department/drafts')}
-                data-testid="button-drafts"
-                className="gap-2.5 bg-white text-blue-700 hover:bg-white/90 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-blue-100"
-              >
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-100">
-                  <FileText className="h-4 w-4 text-blue-700" />
-                </div>
-                <span className="font-semibold">Черновики</span>
               </Button>
               <Button
                 size="default"
