@@ -39,6 +39,10 @@ export default function DepartmentMain() {
 
   // Group departments by block and sort by sortOrder
   const departmentsByBlock = {
+    // Unread messages block - only departments with unread messages
+    unread: filteredDepartments
+      .filter((d) => (unreadCounts[d.id] || 0) > 0)
+      .sort((a, b) => (unreadCounts[b.id] || 0) - (unreadCounts[a.id] || 0)), // Sort by most unread first
     upper: filteredDepartments.filter((d) => d.block === 'upper').sort((a, b) => a.sortOrder - b.sortOrder),
     middle: filteredDepartments.filter((d) => d.block === 'middle').sort((a, b) => a.sortOrder - b.sortOrder),
     lower: filteredDepartments.filter((d) => d.block === 'lower').sort((a, b) => a.sortOrder - b.sortOrder),
@@ -211,6 +215,38 @@ export default function DepartmentMain() {
                 </Button>
               )}
             </div>
+
+            {/* Unread messages block - only show on mobile/small screens */}
+            {departmentsByBlock.unread.length > 0 && (
+              <div className="space-y-4 md:hidden">
+                <h2 className="text-xl font-semibold text-red-600 px-2">Паёмҳои нохондашуда</h2>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {departmentsByBlock.unread.map((dept) => (
+                    <DepartmentCard
+                      key={dept.id}
+                      departmentId={dept.id}
+                      name={dept.name}
+                      icon={dept.icon}
+                      iconVersion={dataUpdatedAt}
+                      unreadCount={unreadCounts[dept.id] || 0}
+                      onClick={() => handleDepartmentClick(dept.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Separator between unread and regular blocks */}
+            {departmentsByBlock.unread.length > 0 && departmentsByBlock.upper.length > 0 && (
+              <div className="relative py-4 md:hidden">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t-4 border-red-500/30"></div>
+                </div>
+                <div className="relative flex justify-center">
+                  <div className="h-3 w-3 rounded-full bg-red-500"></div>
+                </div>
+              </div>
+            )}
 
             {departmentsByBlock.upper.length > 0 && (
               <div className="space-y-4">

@@ -36,8 +36,9 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Flexible Permission System:** Database-driven permissions for `canCreateAssignment`, `canCreateAssignmentFromMessage`, and `canMonitor`.
 *   **Targeted Assignments & Announcements:** Assignments and announcements can be targeted to specific departments via `recipientIds`.
 *   **Document Number Field:** Optional `documentNumber` field for Messages and Assignments.
-*   **Web Push Notifications:** Real-time browser notifications for new messages, assignments, and announcements using W3C Push API and VAPID authentication. Backend automatically refetches authoritative records post-creation to ensure normalized recipients, implements resilient delivery with Promise.allSettled, auto-cleans stale subscriptions, and provides ownership verification. Frontend uses authenticated subscription lifecycle integrated with QueryClientProvider. Includes manual permission request via NotificationButton (User Gesture) to avoid browser blocking.
+*   **Web Push Notifications:** Real-time browser notifications for new messages, assignments, and announcements using W3C Push API and VAPID authentication. Backend automatically refetches authoritative records post-creation to ensure normalized recipients, implements resilient delivery with Promise.allSettled, auto-cleans stale subscriptions, and provides ownership verification. Frontend uses authenticated subscription lifecycle integrated with QueryClientProvider. Includes manual permission request via NotificationButton (User Gesture) to avoid browser blocking. Uses `credentials: 'include'` for authenticated API requests.
 *   **App Icon Badging:** Displays unread count (messages, announcements, assignments) on app icon using Badging API. Works on PWA and native mobile apps. Auto-refreshes every 30 seconds for authenticated users and clears badge on logout.
+*   **Unread Messages Block (Mobile):** Special first block on mobile view showing departments with unread messages, displayed with red header "Паёмҳои нохондашуда" (Unread Messages). Auto-sorted by unread count (highest first). Only visible when unread messages exist.
 *   **Performance Optimization:** Achieves 85% data transfer reduction for slow networks through WebP image compression, gzip middleware, HTTP Cache-Control headers, and frontend code splitting.
 
 ### External Dependencies
@@ -58,5 +59,6 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Third-Party Services:** PostgreSQL server (version 13+), Google Fonts (Inter and Roboto)
 
 ### Recent Changes
+*   **2025-11-20 (Update 3):** Added mobile-only "Unread Messages" block (Паёмҳои нохондашуда) displayed first when departments have unread messages. Confirmed push notification subscribe endpoints use `credentials: 'include'` for proper authentication.
 *   **2025-11-20 (Update 2):** Added App Icon Badging (red circle with unread count) using Badging API for PWA/native apps. Implemented manual NotificationButton for permission requests (User Gesture) to avoid browser blocking. Auto-clears badge on logout.
 *   **2025-11-20 (Update 1):** Web Push Notifications fully implemented with VAPID authentication, authoritative recipient refetch pattern, resilient delivery, auto-cleanup of stale subscriptions, and comprehensive documentation (PUSH_NOTIFICATIONS_SETUP.md). Production-ready pending VAPID environment variable configuration.
