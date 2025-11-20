@@ -5,6 +5,9 @@ const config: CapacitorConfig = {
   appName: 'EcoDoc',
   webDir: 'dist/public',
   server: {
+    // Production server URL (Timeweb)
+    url: 'http://176.98.176.158:5000',
+    cleartext: true,
     androidScheme: 'https',
     iosScheme: 'https',
   },
