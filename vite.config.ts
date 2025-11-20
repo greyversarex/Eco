@@ -22,7 +22,10 @@ export default defineConfig({
         background_color: "#ffffff",
         display: "standalone",
         orientation: "portrait",
+        start_url: "/",
+        scope: "/",
         lang: "tg",
+        categories: ["productivity", "business"],
         icons: [
           {
             src: "/icon-192x192.png",
@@ -52,6 +55,8 @@ export default defineConfig({
       },
       injectManifest: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        globIgnores: ["**/apple-splash-*.png"],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
       },
       devOptions: {
         enabled: true,
