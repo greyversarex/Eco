@@ -126,8 +126,8 @@ async function syncDrafts() {
     if (successCount > 0 && self.registration.showNotification) {
       await self.registration.showNotification('EcoDoc', {
         body: `${successCount} сообщений отправлено`,
-        icon: '/icon-192x192.png',
-        badge: '/icon-192x192.png',
+        icon: '/pwa-192.png',
+        badge: '/pwa-192.png',
         tag: 'draft-sync',
       });
     }
