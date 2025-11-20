@@ -8,6 +8,7 @@ import { AuthProvider, DepartmentRoute, AdminRoute, AuthenticatedRoute } from "@
 import { useOfflineDB, useOnlineStatus } from "@/hooks/use-offline";
 import { useDrafts } from "@/hooks/use-drafts";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useAppBadge } from "@/hooks/useAppBadge";
 
 // Eager load critical pages
 import DepartmentLogin from "@/pages/DepartmentLogin";
@@ -158,6 +159,11 @@ function PushNotificationsManager() {
   return null;
 }
 
+function AppBadgeManager() {
+  useAppBadge();
+  return null;
+}
+
 function App() {
   // Initialize IndexedDB
   const { isReady, error } = useOfflineDB();
@@ -173,6 +179,7 @@ function App() {
           <Toaster />
           {isReady && <OfflineSync />}
           <PushNotificationsManager />
+          <AppBadgeManager />
           <Router />
         </TooltipProvider>
       </AuthProvider>
