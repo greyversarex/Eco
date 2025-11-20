@@ -72,21 +72,12 @@ export default function NotificationButton({ variant = 'desktop' }: Notification
           });
         }
 
-        // Send subscription to server
-        const p256dhKey = subscription.getKey('p256dh');
-        const authKey = subscription.getKey('auth');
-        
-        const subscriptionData = {
-          endpoint: subscription.endpoint,
-          keys: {
-            p256dh: btoa(String.fromCharCode(...Array.from(new Uint8Array(p256dhKey!)))),
-            auth: btoa(String.fromCharCode(...Array.from(new Uint8Array(authKey!)))),
-          },
-        };
-
-        await apiRequest('POST', '/api/push/subscribe', subscriptionData);
-
+        // Subscription will be sent to server by usePushNotifications hook
+        // which monitors permission changes and handles subscription automatically
         alert('Уведомления успешно включены!');
+        
+        // Reload page to trigger usePushNotifications hook
+        window.location.reload();
       }
     } catch (error) {
       console.error('Failed to subscribe to push notifications:', error);
