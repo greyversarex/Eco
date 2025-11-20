@@ -13,6 +13,7 @@ import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { Footer } from '@/components/Footer';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
+import NotificationButton from '@/components/NotificationButton';
 
 export default function DepartmentMain() {
   const [, setLocation] = useLocation();
@@ -121,6 +122,7 @@ export default function DepartmentMain() {
               >
                 <Trash2 className="h-5 w-5" />
               </Button>
+              <NotificationButton variant="desktop" />
             </nav>
             <MobileNav 
               translations={{

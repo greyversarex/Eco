@@ -64,18 +64,13 @@ export function usePushNotifications() {
         const registration = await navigator.serviceWorker.ready;
 
         // Check current permission
-        let permission = Notification.permission;
+        const permission = Notification.permission;
 
-        // If permission is default (not asked yet), request it
-        if (permission === 'default') {
-          // Wait a bit before asking (don't ask immediately on page load)
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          permission = await Notification.requestPermission();
-        }
-
-        // If permission denied, nothing we can do
-        if (permission === 'denied') {
-          console.log('Notification permission denied');
+        // Only auto-subscribe if permission is already granted
+        // Don't automatically request permission (browser blocks it)
+        // User should use NotificationButton to grant permission
+        if (permission !== 'granted') {
+          console.log('Notification permission not granted. Use the notification button to enable.');
           return;
         }
 
