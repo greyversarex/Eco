@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "cc.ecodoc.app",
+      "sha256_cert_fingerprints": ["2B:FA:E5:CE:75:32:80:46:57:AC:41:8B:61:7F:9F:AC:41:90:28:34:94:BC:76:3A:7C:D6:6A:E3:51:91:C5:06"]
+    }
+  }
+]

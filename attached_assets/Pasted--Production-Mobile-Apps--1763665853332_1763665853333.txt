@@ -1,0 +1,55 @@
+ы переходим на стадию Production и Mobile Apps. Я вручную внес изменения на боевом сервере, и теперь нам нужно синхронизировать код в Replit, чтобы он соответствовал продакшену, а также добавить функционал Push-уведомлений.
+
+Пожалуйста, выполни следующие задачи шаг за шагом:
+
+ШАГ 1: Синхронизация настроек сервера (Server Config)
+Обнови файл `server/index.ts`. Он должен быть настроен для работы за Nginx (SSL) и поддерживать мобильные приложения.
+Используй точно этот код для конфигурации middleware (замени текущий):
+
+1. Trust Proxy: Включи `app.set('trust proxy', 1);` если NODE_ENV=production.
+2. Helmet: Отключи CSP, чтобы не ломать мобильные веб-вью: `contentSecurityPolicy: false`.
+3. CORS: Обнови origin check. Разреши запросы без origin (для мобильных приложений) и добавь поддержку доменов из env.
+4. Session Cookies: Это критично!
+   - secure: true (мы используем HTTPS).
+   - sameSite: 'none' (важно для PWA/Mobile авторизации).
+   - maxAge: 30 дней.
+
+ШАГ 2: Digital Asset Links (Android App)
+Создай папку `client/public/.well-known` и в ней файл `assetlinks.json`.
+Вставь в него этот код (это нужно для скрытия адресной строки на Android):
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "cc.ecodoc.app",
+      "sha256_cert_fingerprints": ["2B:FA:E5:CE:75:32:80:46:57:AC:41:8B:61:7F:9F:AC:41:90:28:34:94:BC:76:3A:7C:D6:6A:E3:51:91:C5:06"]
+    }
+  }
+]
+
+ШАГ 3: Внедрение Push Notifications (Web-Push)
+Нам нужно, чтобы пользователи получали уведомления о новых сообщениях, даже если приложение закрыто.
+
+1. Dependencies: Установи пакет `web-push`.
+2. Database: В `shared/schema.ts` добавь новую таблицу `push_subscriptions`.
+   - id (serial pk)
+   - user_id (integer, references users/departments)
+   - endpoint (text, not null)
+   - p256dh (text, not null)
+   - auth (text, not null)
+   - created_at
+3. Backend API (`server/routes.ts`):
+   - Добавь POST `/api/push/subscribe` для сохранения подписки от клиента.
+   - Добавь POST `/api/push/send` (или интегрируй в создание сообщений), чтобы отправлять уведомления.
+   - Используй VAPID ключи из process.env (VITE_VAPID_PUBLIC_KEY и VAPID_PRIVATE_KEY).
+4. Frontend:
+   - В `client/src/App.tsx` или главном лейауте добавь логику запроса разрешения (`Notification.requestPermission`).
+   - Если разрешено -> подписываемся на pushManager и отправляем подписку на сервер.
+5. Service Worker (`client/public/sw.js`):
+   - Добавь обработчик события `push`, который будет показывать уведомление с заголовком и текстом.
+   - Добавь обработчик `notificationclick`, который открывает приложение при клике.
+
+Ключи VAPID я добавлю в Secrets сам, в коде используй `process.env`.
+
+Пожалуйста, реализуй это надежно.

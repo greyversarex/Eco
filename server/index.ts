@@ -77,10 +77,10 @@ app.use(
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       httpOnly: true,
-      // Secure cookies only if explicitly enabled (default: false for HTTP support)
-      secure: process.env.SECURE_COOKIES === 'true' ? true : false,
-      // Always use 'lax' for better compatibility with mobile apps and HTTP
-      sameSite: 'lax',
+      // Secure cookies for HTTPS (production behind Nginx)
+      secure: isProduction,
+      // sameSite: 'none' for PWA/Mobile authorization across domains
+      sameSite: isProduction ? 'none' : 'lax',
     },
   })
 );

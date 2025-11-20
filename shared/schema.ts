@@ -290,5 +290,26 @@ export const insertPersonSchema = createInsertSchema(people).omit({
 export type InsertPerson = z.infer<typeof insertPersonSchema>;
 export type Person = typeof people.$inferSelect;
 
+// Push Subscriptions table - stores web push notification subscriptions
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(), // Department ID or Admin ID
+  userType: text("user_type").notNull(), // 'department' or 'admin'
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("push_subscriptions_user_idx").on(table.userId, table.userType),
+  endpointIdx: index("push_subscriptions_endpoint_idx").on(table.endpoint),
+}));
+
+export const insertPushSubscriptionSchema = createInsertSchema(pushSubscriptions).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertPushSubscription = z.infer<typeof insertPushSubscriptionSchema>;
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+
 // Note: Sessions table is managed by connect-pg-simple
 // It will be created automatically with the correct schema
