@@ -36,6 +36,7 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Flexible Permission System:** Database-driven permissions for `canCreateAssignment`, `canCreateAssignmentFromMessage`, and `canMonitor`.
 *   **Targeted Assignments & Announcements:** Assignments and announcements can be targeted to specific departments via `recipientIds`.
 *   **Document Number Field:** Optional `documentNumber` field for Messages and Assignments.
+*   **Web Push Notifications:** Real-time browser notifications for new messages, assignments, and announcements using W3C Push API and VAPID authentication. Backend automatically refetches authoritative records post-creation to ensure normalized recipients, implements resilient delivery with Promise.allSettled, auto-cleans stale subscriptions, and provides ownership verification. Frontend uses authenticated subscription lifecycle integrated with QueryClientProvider.
 *   **Performance Optimization:** Achieves 85% data transfer reduction for slow networks through WebP image compression, gzip middleware, HTTP Cache-Control headers, and frontend code splitting.
 
 ### External Dependencies
@@ -51,5 +52,9 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Drag and Drop:** `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`
 *   **Image Processing:** `react-easy-crop`, `sharp`
 *   **Archive Generation:** `jszip`, `docx`
+*   **Push Notifications:** `web-push`
 *   **Utilities:** `date-fns`, `clsx`, `tailwind-merge`
 *   **Third-Party Services:** PostgreSQL server (version 13+), Google Fonts (Inter and Roboto)
+
+### Recent Changes
+*   **2025-11-20:** Web Push Notifications fully implemented with VAPID authentication, authoritative recipient refetch pattern, resilient delivery, auto-cleanup of stale subscriptions, and comprehensive documentation (PUSH_NOTIFICATIONS_SETUP.md). Production-ready pending VAPID environment variable configuration.
