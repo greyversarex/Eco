@@ -1,9 +1,10 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
-import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema, insertAssignmentSchema, insertAnnouncementSchema, insertPersonSchema } from "@shared/schema";
+import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema, insertAssignmentSchema, insertAnnouncementSchema, insertPersonSchema, insertPushSubscriptionSchema } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
+import webpush from "web-push";
 
 // Allowed MIME types for file uploads
 const ALLOWED_MIME_TYPES = [
@@ -2077,4 +2078,142 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ error: error.message });
     }
   });
+
+  // Push Notifications Endpoints
+  
+  // Configure VAPID details from backend environment variables
+  const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+  const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+  const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@ecodoc.tj';
+
+  if (!vapidPublicKey || !vapidPrivateKey) {
+    console.warn('⚠️ VAPID keys not configured. Push notifications will not work.');
+    console.warn('Please set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY environment variables.');
+  } else {
+    webpush.setVapidDetails(
+      vapidSubject,
+      vapidPublicKey,
+      vapidPrivateKey
+    );
+    console.log('✅ Push notifications configured');
+  }
+
+  // Subscribe to push notifications
+  app.post("/api/push/subscribe", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      if (!user) {
+        return res.status(401).json({ error: "Не авторизован" });
+      }
+
+      const { endpoint, keys } = req.body;
+
+      if (!endpoint || !keys?.p256dh || !keys?.auth) {
+        return res.status(400).json({ error: "Неверные данные подписки" });
+      }
+
+      const subscriptionData = {
+        userId: user.id,
+        userType: user.type,
+        endpoint,
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+      };
+
+      const validated = insertPushSubscriptionSchema.parse(subscriptionData);
+
+      // Check if subscription already exists
+      const existing = await storage.getPushSubscriptionByEndpoint(endpoint);
+      
+      if (existing) {
+        // Update existing subscription
+        await storage.updatePushSubscription(existing.id, validated);
+      } else {
+        // Create new subscription
+        await storage.createPushSubscription(validated);
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Push subscription error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Unsubscribe from push notifications
+  app.post("/api/push/unsubscribe", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      if (!user) {
+        return res.status(401).json({ error: "Не авторизован" });
+      }
+
+      const { endpoint } = req.body;
+
+      if (!endpoint) {
+        return res.status(400).json({ error: "Endpoint обязателен" });
+      }
+
+      // Verify ownership before deleting
+      const subscription = await storage.getPushSubscriptionByEndpoint(endpoint);
+      if (subscription && subscription.userId === user.id && subscription.userType === user.type) {
+        await storage.deletePushSubscriptionByEndpoint(endpoint);
+        res.json({ success: true });
+      } else {
+        res.status(403).json({ error: "Нет доступа к этой подписке" });
+      }
+    } catch (error: any) {
+      console.error('Push unsubscribe error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Send push notification (helper function)
+  async function sendPushNotification(userId: number, userType: string, payload: { title: string; body: string; url?: string }) {
+    try {
+      if (!vapidPublicKey || !vapidPrivateKey) {
+        console.warn('VAPID keys not configured, skipping push notification');
+        return;
+      }
+
+      const subscriptions = await storage.getPushSubscriptionsByUser(userId, userType);
+      
+      const notificationPayload = JSON.stringify({
+        title: payload.title,
+        body: payload.body,
+        icon: '/pwa-192.png',
+        badge: '/pwa-192.png',
+        url: payload.url || '/',
+      });
+
+      const sendPromises = subscriptions.map(async (sub) => {
+        try {
+          await webpush.sendNotification(
+            {
+              endpoint: sub.endpoint,
+              keys: {
+                p256dh: sub.p256dh,
+                auth: sub.auth,
+              },
+            },
+            notificationPayload
+          );
+        } catch (error: any) {
+          console.error('Failed to send push to subscription:', error);
+          
+          // If subscription is no longer valid, delete it
+          if (error.statusCode === 410) {
+            await storage.deletePushSubscriptionByEndpoint(sub.endpoint);
+          }
+        }
+      });
+
+      await Promise.all(sendPromises);
+    } catch (error) {
+      console.error('Error sending push notifications:', error);
+    }
+  }
+
+  // Store sendPushNotification function for use in other routes
+  (app as any).sendPushNotification = sendPushNotification;
 }

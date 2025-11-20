@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, DepartmentRoute, AdminRoute, AuthenticatedRoute } from "@/lib/auth";
 import { useOfflineDB, useOnlineStatus } from "@/hooks/use-offline";
 import { useDrafts } from "@/hooks/use-drafts";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 // Eager load critical pages
 import DepartmentLogin from "@/pages/DepartmentLogin";
@@ -155,6 +156,9 @@ function OfflineSync() {
 function App() {
   // Initialize IndexedDB
   const { isReady, error } = useOfflineDB();
+  
+  // Initialize Push Notifications
+  usePushNotifications();
 
   if (error) {
     console.error('Failed to initialize offline database:', error);

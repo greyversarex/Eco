@@ -217,4 +217,69 @@ self.addEventListener('message', (event) => {
   }
 });
 
-console.log('[SW] ✅ Service Worker loaded with Background Sync support');
+// Push Notification Event Handler
+self.addEventListener('push', (event) => {
+  console.log('[SW] 📬 Push notification received');
+  
+  let notificationData = {
+    title: 'EcoDoc',
+    body: 'Новое уведомление',
+    icon: '/pwa-192.png',
+    badge: '/pwa-192.png',
+    url: '/',
+  };
+
+  try {
+    if (event.data) {
+      notificationData = event.data.json();
+    }
+  } catch (error) {
+    console.error('[SW] Failed to parse push notification data:', error);
+  }
+
+  const promiseChain = self.registration.showNotification(
+    notificationData.title,
+    {
+      body: notificationData.body,
+      icon: notificationData.icon || '/pwa-192.png',
+      badge: notificationData.badge || '/pwa-192.png',
+      tag: 'ecodoc-notification',
+      requireInteraction: false,
+      data: {
+        url: notificationData.url || '/',
+      },
+    }
+  );
+
+  event.waitUntil(promiseChain);
+});
+
+// Notification Click Event Handler
+self.addEventListener('notificationclick', (event) => {
+  console.log('[SW] 🖱️ Notification clicked');
+  
+  event.notification.close();
+
+  const urlToOpen = event.notification.data?.url || '/';
+
+  // Open or focus the app
+  const promiseChain = clients
+    .matchAll({ type: 'window', includeUncontrolled: true })
+    .then((windowClients) => {
+      // Check if there's already a window/tab open
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If no matching window, open a new one
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    });
+
+  event.waitUntil(promiseChain);
+});
+
+console.log('[SW] ✅ Service Worker loaded with Background Sync and Push Notifications support');

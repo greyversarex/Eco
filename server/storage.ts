@@ -8,7 +8,8 @@ import type {
   Announcement, InsertAnnouncement,
   AnnouncementAttachment, InsertAnnouncementAttachment,
   Person, InsertPerson,
-  DepartmentIcon, InsertDepartmentIcon
+  DepartmentIcon, InsertDepartmentIcon,
+  PushSubscription, InsertPushSubscription
 } from "@shared/schema";
 
 export interface IStorage {
@@ -94,11 +95,18 @@ export interface IStorage {
   createPerson(person: InsertPerson): Promise<Person>;
   updatePerson(id: number, person: Partial<InsertPerson>): Promise<Person | undefined>;
   deletePerson(id: number): Promise<boolean>;
+  
+  // Push Subscriptions
+  getPushSubscriptionsByUser(userId: number, userType: string): Promise<PushSubscription[]>;
+  getPushSubscriptionByEndpoint(endpoint: string): Promise<PushSubscription | undefined>;
+  createPushSubscription(subscription: InsertPushSubscription): Promise<PushSubscription>;
+  updatePushSubscription(id: number, subscription: Partial<InsertPushSubscription>): Promise<PushSubscription | undefined>;
+  deletePushSubscriptionByEndpoint(endpoint: string): Promise<boolean>;
 }
 
 // Database storage implementation
 import { db } from './db';
-import { departments, admins, messages, attachments, assignments, assignmentAttachments, announcements, announcementAttachments, people, departmentIcons } from '@shared/schema';
+import { departments, admins, messages, attachments, assignments, assignmentAttachments, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions } from '@shared/schema';
 import { eq, or, and, desc, asc, sql } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
@@ -744,6 +752,43 @@ export class DbStorage implements IStorage {
 
   async deletePerson(id: number): Promise<boolean> {
     const result = await db.delete(people).where(eq(people.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Push Subscriptions
+  async getPushSubscriptionsByUser(userId: number, userType: string): Promise<PushSubscription[]> {
+    return await db.select()
+      .from(pushSubscriptions)
+      .where(and(
+        eq(pushSubscriptions.userId, userId),
+        eq(pushSubscriptions.userType, userType)
+      ));
+  }
+
+  async getPushSubscriptionByEndpoint(endpoint: string): Promise<PushSubscription | undefined> {
+    const result = await db.select()
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.endpoint, endpoint));
+    return result[0];
+  }
+
+  async createPushSubscription(subscription: InsertPushSubscription): Promise<PushSubscription> {
+    const result = await db.insert(pushSubscriptions).values(subscription).returning();
+    return result[0];
+  }
+
+  async updatePushSubscription(id: number, subscription: Partial<InsertPushSubscription>): Promise<PushSubscription | undefined> {
+    const result = await db.update(pushSubscriptions)
+      .set(subscription)
+      .where(eq(pushSubscriptions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deletePushSubscriptionByEndpoint(endpoint: string): Promise<boolean> {
+    const result = await db.delete(pushSubscriptions)
+      .where(eq(pushSubscriptions.endpoint, endpoint))
+      .returning();
     return result.length > 0;
   }
 }
