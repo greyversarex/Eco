@@ -709,6 +709,37 @@ export function registerRoutes(app: Express) {
         );
       }
 
+      // Send push notifications to recipients
+      // Refetch message to get authoritative recipientIds (handles legacy recipientId normalization)
+      const sendPushNotification = (app as any).sendPushNotification;
+      if (sendPushNotification) {
+        const createdMessage = await storage.getMessageById(message.id);
+        if (!createdMessage) {
+          console.error('Failed to refetch message for push notifications, message ID:', message.id);
+        } else {
+          const finalRecipientIds = createdMessage.recipientIds || [];
+          
+          if (finalRecipientIds.length > 0) {
+            const sender = await storage.getDepartmentById(createdMessage.senderId);
+            const senderName = sender?.name || 'Неизвестно';
+            
+            // Send notification to each recipient
+            const notificationPromises = finalRecipientIds.map(recipientId =>
+              sendPushNotification(recipientId, 'department', {
+                title: 'Новое сообщение',
+                body: `От: ${senderName}`,
+                url: '/department/inbox',
+              }).catch((err: any) => console.error('Push notification failed:', err))
+            );
+            
+            // Wait for all notifications to complete
+            await Promise.allSettled(notificationPromises);
+          } else {
+            console.error('No recipients for push notification after normalization, message ID:', message.id, 'recipientIds:', finalRecipientIds);
+          }
+        }
+      }
+
       res.json({
         success: true,
         messagesCreated: 1,
@@ -1396,6 +1427,37 @@ export function registerRoutes(app: Express) {
         );
       }
 
+      // Send push notifications to recipients
+      // Refetch assignment to get authoritative recipientIds
+      const sendPushNotification = (app as any).sendPushNotification;
+      if (sendPushNotification) {
+        const createdAssignment = await storage.getAssignmentById(assignment.id);
+        if (!createdAssignment) {
+          console.error('Failed to refetch assignment for push notifications, assignment ID:', assignment.id);
+        } else {
+          const finalRecipientIds = createdAssignment.recipientIds || [];
+          
+          if (finalRecipientIds.length > 0) {
+            const sender = await storage.getDepartmentById(createdAssignment.senderId);
+            const senderName = sender?.name || 'Неизвестно';
+            
+            // Send notification to each recipient department
+            const notificationPromises = finalRecipientIds.map(recipientId =>
+              sendPushNotification(recipientId, 'department', {
+                title: 'Новое задание',
+                body: `${createdAssignment.topic} - ${senderName}`,
+                url: '/department/assignments',
+              }).catch((err: any) => console.error('Push notification failed:', err))
+            );
+            
+            // Wait for all notifications to complete
+            await Promise.allSettled(notificationPromises);
+          } else {
+            console.error('No recipients for push notification after normalization, assignment ID:', assignment.id, 'recipientIds:', finalRecipientIds);
+          }
+        }
+      }
+
       res.json(assignment);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -1742,6 +1804,35 @@ export function registerRoutes(app: Express) {
       }
 
       const announcement = await storage.createAnnouncement(validationResult.data);
+      
+      // Send push notifications to all recipients
+      // Refetch announcement to get authoritative recipientIds
+      const sendPushNotification = (app as any).sendPushNotification;
+      if (sendPushNotification) {
+        const createdAnnouncement = await storage.getAnnouncementById(announcement.id);
+        if (!createdAnnouncement) {
+          console.error('Failed to refetch announcement for push notifications, announcement ID:', announcement.id);
+        } else {
+          const finalRecipientIds = createdAnnouncement.recipientIds || [];
+          
+          if (finalRecipientIds.length > 0) {
+            // Send notification to each recipient department
+            const notificationPromises = finalRecipientIds.map(recipientId =>
+              sendPushNotification(recipientId, 'department', {
+                title: 'Новое объявление',
+                body: createdAnnouncement.content.substring(0, 100),
+                url: '/department/announcements',
+              }).catch((err: any) => console.error('Push notification failed:', err))
+            );
+            
+            // Wait for all notifications to complete
+            await Promise.allSettled(notificationPromises);
+          } else {
+            console.error('No recipients for push notification after normalization, announcement ID:', announcement.id, 'recipientIds:', finalRecipientIds);
+          }
+        }
+      }
+      
       res.json(announcement);
     } catch (error: any) {
       res.status(500).json({ error: error.message });

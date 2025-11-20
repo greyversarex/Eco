@@ -153,12 +153,14 @@ function OfflineSync() {
   return null;
 }
 
+function PushNotificationsManager() {
+  usePushNotifications();
+  return null;
+}
+
 function App() {
   // Initialize IndexedDB
   const { isReady, error } = useOfflineDB();
-  
-  // Initialize Push Notifications
-  usePushNotifications();
 
   if (error) {
     console.error('Failed to initialize offline database:', error);
@@ -170,6 +172,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           {isReady && <OfflineSync />}
+          <PushNotificationsManager />
           <Router />
         </TooltipProvider>
       </AuthProvider>
