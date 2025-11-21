@@ -16,6 +16,7 @@ import AdminLogin from "@/pages/AdminLogin";
 
 // Lazy load all other pages
 const NotFound = lazy(() => import("@/pages/not-found"));
+const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 const DepartmentMain = lazy(() => import("@/pages/DepartmentMain"));
 const DepartmentMessages = lazy(() => import("@/pages/DepartmentMessages"));
 const Inbox = lazy(() => import("@/pages/Inbox"));
@@ -48,6 +49,7 @@ function Router() {
     <Suspense fallback={<PageLoader />}>
       <Switch>
         <Route path="/" component={DepartmentLogin} />
+        <Route path="/privacy" component={PrivacyPolicy} />
         <Route path="/admin" component={AdminLogin} />
         <Route path="/admin-login" component={AdminLogin} />
         <Route path="/admin/dashboard">
