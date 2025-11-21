@@ -14,10 +14,13 @@ const app = express();
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-if (isProduction) {
-  app.set('trust proxy', 1);
-}
+// CRITICAL: Trust proxy ALWAYS (required for Nginx with secure cookies)
+// Without this, secure: true breaks authorization on HTTPS->HTTP proxied connections
+app.set('trust proxy', 1);
 
+// ============================================================================
+// HELMET CONFIGURATION - Permissive for iframe/mobile compatibility
+// ============================================================================
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
@@ -26,26 +29,56 @@ app.use(helmet({
   frameguard: false,
 }));
 
+// ============================================================================
+// CORS CONFIGURATION - Bulletproof for PWA/Android/Nginx
+// ============================================================================
 app.use(cors({
   origin: (origin, callback) => {
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [];
-    
-    // Allow requests without origin (mobile apps) or from allowed origins
-    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+    // List of allowed origins from environment or fallback
+    const allowedOrigins = process.env.ALLOWED_ORIGINS
+      ?.split(',')
+      .map(o => o.trim())
+      .filter(o => o.length > 0) || [];
+
+    // Development: allow all origins (including no origin)
+    if (!isProduction) {
       callback(null, true);
-    } else if (!isProduction) {
-      // Allow all origins in development
-      callback(null, true);
-    } else {
-      // Block and log unauthorized origins in production
-      console.log('Blocked by CORS:', origin);
-      callback(new Error('Not allowed by CORS'));
+      return;
     }
+
+    // Production: strict origin checking
+    // Allow requests WITHOUT origin header (native mobile apps, Capacitor)
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    // Allow wildcard (if explicitly set)
+    if (allowedOrigins.includes('*')) {
+      callback(null, true);
+      return;
+    }
+
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    // Reject unauthorized origins
+    log(`[CORS] Blocked origin: ${origin}`);
+    callback(new Error('Not allowed by CORS'));
   },
-  credentials: true,
-  exposedHeaders: ['set-cookie'],
+  credentials: true, // CRITICAL: Allow cookies to be sent
+  exposedHeaders: ['set-cookie', 'Content-Type'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 3600,
 }));
 
+// ============================================================================
+// COMPRESSION CONFIGURATION
+// ============================================================================
 app.use(compression({
   filter: (req: Request, res: Response) => {
     if (req.headers['x-no-compression']) {
@@ -54,13 +87,18 @@ app.use(compression({
     return compression.filter(req, res);
   },
   threshold: 1024,
-  level: 6
+  level: 6,
 }));
 
+// ============================================================================
+// BODY PARSERS
+// ============================================================================
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Setup session store
+// ============================================================================
+// SESSION CONFIGURATION - Bulletproof for Nginx + HTTPS + PWA/Android
+// ============================================================================
 const PgSession = connectPgSimple(session);
 
 if (!process.env.SESSION_SECRET) {
@@ -77,17 +115,25 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    // CRITICAL: proxy: true tells Express that cookies are set correctly via X-Forwarded-* headers
+    proxy: true,
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      httpOnly: true,
-      // Secure cookies for HTTPS (production behind Nginx)
-      secure: isProduction,
-      // sameSite: 'none' for PWA/Mobile authorization across domains
-      sameSite: isProduction ? 'none' : 'lax',
+      httpOnly: true, // Prevent JavaScript access (security)
+      // secure: true = HTTPS only (required for production behind Nginx)
+      // sameSite: 'lax' = Allow cookies in cross-site requests from links but not form submissions
+      secure: isProduction, // true for HTTPS, false for local HTTP
+      sameSite: 'lax', // 'lax' is most compatible with Android PWA/native apps
+      // Domain matching for subdomain compatibility (if needed, set explicitly)
+      // domain: process.env.COOKIE_DOMAIN,
+      path: '/',
     },
   })
 );
 
+// ============================================================================
+// REQUEST LOGGING MIDDLEWARE
+// ============================================================================
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -118,6 +164,38 @@ app.use((req, res, next) => {
   next();
 });
 
+// ============================================================================
+// DIAGNOSTIC LOGGING FOR PUSH NOTIFICATIONS
+// ============================================================================
+// Log cookies and origin specifically for push subscription endpoint
+app.use((req, res, next) => {
+  if (req.path === '/api/push/subscribe' && req.method === 'POST') {
+    const cookies = req.headers.cookie || 'NO_COOKIE_HEADER';
+    const origin = req.get('origin') || 'NO_ORIGIN_HEADER';
+    const xForwardedFor = req.get('x-forwarded-for') || 'NONE';
+    const userAgent = req.get('user-agent') || 'UNKNOWN';
+    
+    log(
+      `[PUSH_SUBSCRIBE] Origin: ${origin} | IP: ${xForwardedFor} | ` +
+      `Cookies: ${cookies.substring(0, 50)}... | UA: ${userAgent.substring(0, 40)}...`
+    );
+
+    // Log session info
+    if ((req as any).session && (req as any).session.passport) {
+      log(`[PUSH_SUBSCRIBE] Session found - User: ${JSON.stringify((req as any).session.passport.user)}`);
+    } else if ((req as any).session) {
+      log(`[PUSH_SUBSCRIBE] Session found but no passport info`);
+    } else {
+      log(`[PUSH_SUBSCRIBE] NO SESSION FOUND`);
+    }
+  }
+
+  next();
+});
+
+// ============================================================================
+// ROUTE REGISTRATION & ERROR HANDLING
+// ============================================================================
 (async () => {
   registerRoutes(app);
   const server = http.createServer(app);
@@ -130,19 +208,14 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Setup Vite in development, serve static files in production
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
+  // Start server
   const port = parseInt(process.env.PORT || '5000', 10);
   server.listen({
     port,
