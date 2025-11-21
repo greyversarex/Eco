@@ -647,6 +647,42 @@ export function registerRoutes(app: Express) {
       }
       
       const message = await storage.createMessage(parsedData);
+
+      // Send push notification to recipient(s)
+      const sendPushNotification = (app as any).sendPushNotification;
+      if (sendPushNotification) {
+        // Refetch message to get authoritative recipientIds (handles legacy recipientId normalization)
+        const createdMessage = await storage.getMessageById(message.id);
+        if (!createdMessage) {
+          console.error('Failed to refetch message for push notifications, message ID:', message.id);
+        } else {
+          // Handle both new (recipientIds array) and legacy (single recipientId) formats
+          let finalRecipientIds: number[] = createdMessage.recipientIds || [];
+          
+          // Fallback to legacy recipientId if recipientIds is empty
+          if (finalRecipientIds.length === 0 && createdMessage.recipientId) {
+            finalRecipientIds = [createdMessage.recipientId];
+          }
+          
+          if (finalRecipientIds.length > 0) {
+            const sender = await storage.getDepartmentById(createdMessage.senderId);
+            const senderName = sender?.name || 'Неизвестно';
+            
+            // Send notification to each recipient
+            const notificationPromises = finalRecipientIds.map((recipientId: number) =>
+              sendPushNotification(recipientId, 'department', {
+                title: 'Новое сообщение',
+                body: `От: ${senderName}`,
+                url: '/department/inbox',
+              }).catch((err: any) => console.error('Push notification failed:', err))
+            );
+            
+            // Wait for all notifications to complete
+            await Promise.allSettled(notificationPromises);
+          }
+        }
+      }
+
       res.json(message);
     } catch (error: any) {
       if (error instanceof z.ZodError) {

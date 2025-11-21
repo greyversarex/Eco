@@ -14,12 +14,14 @@ const app = express();
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-// CRITICAL: Trust proxy ALWAYS (required for Nginx with secure cookies)
-// Without this, secure: true breaks authorization on HTTPS->HTTP proxied connections
+// ============================================================================
+// TRUST PROXY - КРИТИЧНО для работы за Nginx
+// ============================================================================
+// Обязательно включить trust proxy для корректной работы secure cookies и IP forwarding
 app.set('trust proxy', 1);
 
 // ============================================================================
-// HELMET CONFIGURATION - Permissive for iframe/mobile compatibility
+// HELMET - Разрешающая конфигурация для PWA/Mobile/iframe
 // ============================================================================
 app.use(helmet({
   contentSecurityPolicy: false,
@@ -30,54 +32,22 @@ app.use(helmet({
 }));
 
 // ============================================================================
-// CORS CONFIGURATION - Bulletproof for PWA/Android/Nginx
+// CORS - МАКСИМАЛЬНО РАЗРЕШАЮЩИЙ для PWA/Android/iOS
 // ============================================================================
+// ВНИМАНИЕ: origin: true разрешает ВСЕ origins (включая cross-origin PWA/WebView)
+// Это необходимо для Mobile PWA, но для дополнительной безопасности в production
+// можно настроить переменную окружения ALLOWED_ORIGINS (через запятую)
 app.use(cors({
-  origin: (origin, callback) => {
-    // List of allowed origins from environment or fallback
-    const allowedOrigins = process.env.ALLOWED_ORIGINS
-      ?.split(',')
-      .map(o => o.trim())
-      .filter(o => o.length > 0) || [];
-
-    // Development: allow all origins (including no origin)
-    if (!isProduction) {
-      callback(null, true);
-      return;
-    }
-
-    // Production: strict origin checking
-    // Allow requests WITHOUT origin header (native mobile apps, Capacitor)
-    if (!origin) {
-      callback(null, true);
-      return;
-    }
-
-    // Allow wildcard (if explicitly set)
-    if (allowedOrigins.includes('*')) {
-      callback(null, true);
-      return;
-    }
-
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-      return;
-    }
-
-    // Reject unauthorized origins
-    log(`[CORS] Blocked origin: ${origin}`);
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true, // CRITICAL: Allow cookies to be sent
+  origin: true, // Разрешить ВСЕ origins (критично для PWA/Mobile)
+  credentials: true, // КРИТИЧНО: разрешить отправку cookies
   exposedHeaders: ['set-cookie', 'Content-Type'],
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
   maxAge: 3600,
 }));
 
 // ============================================================================
-// COMPRESSION CONFIGURATION
+// COMPRESSION
 // ============================================================================
 app.use(compression({
   filter: (req: Request, res: Response) => {
@@ -97,12 +67,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // ============================================================================
-// SESSION CONFIGURATION - Bulletproof for Nginx + HTTPS + PWA/Android
+// SESSION - Mobile-First конфигурация для PWA/WebView
 // ============================================================================
 const PgSession = connectPgSimple(session);
 
 if (!process.env.SESSION_SECRET) {
   throw new Error('SESSION_SECRET environment variable must be set');
+}
+
+// Определить HTTPS режим (production ИЛИ явно установлен env флаг для staging/mobile testing)
+// HTTPS режим включает secure cookies + sameSite:'none' для поддержки PWA/Mobile
+const isHTTPS = isProduction || process.env.FORCE_HTTPS === 'true';
+
+if (isHTTPS) {
+  log('🔒 HTTPS mode enabled: secure cookies + sameSite:none (PWA/Mobile support)');
+} else {
+  log('⚠️  HTTP mode: secure:false + sameSite:lax (local development only)');
+  log('⚠️  For PWA/Mobile testing set FORCE_HTTPS=true or use NODE_ENV=production');
 }
 
 app.use(
@@ -115,25 +96,27 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    // CRITICAL: proxy: true tells Express that cookies are set correctly via X-Forwarded-* headers
+    // КРИТИЧНО: proxy: true для работы за Nginx
     proxy: true,
     cookie: {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      httpOnly: true, // Prevent JavaScript access (security)
-      // secure: true = HTTPS only (required for production behind Nginx)
-      // sameSite: 'lax' = Allow cookies in cross-site requests (most compatible with PWA/native apps)
-      // Note: sameSite: 'none' requires secure: true, which breaks HTTP development
-      secure: isProduction, // true for HTTPS (production), false for local HTTP
-      sameSite: isProduction ? 'lax' : 'lax', // 'lax' works for both HTTP and HTTPS with PWA
-      // Domain matching for subdomain compatibility (if needed, set explicitly)
-      // domain: process.env.COOKIE_DOMAIN,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 дней
+      httpOnly: true, // Защита от XSS
+      // КРИТИЧНО для PWA/WebView:
+      // HTTPS mode (production/staging):
+      //   - secure: true + sameSite: 'none' = поддержка cross-site PWA/Mobile
+      // HTTP mode (local dev):
+      //   - secure: false + sameSite: 'lax' = работает без HTTPS
+      // 
+      // Для staging с HTTPS: установить FORCE_HTTPS=true ИЛИ NODE_ENV=production
+      secure: isHTTPS, // true для HTTPS, false для HTTP
+      sameSite: isHTTPS ? 'none' : 'lax', // 'none' для PWA (требует HTTPS), 'lax' для local dev
       path: '/',
     },
   })
 );
 
 // ============================================================================
-// REQUEST LOGGING MIDDLEWARE
+// REQUEST LOGGING
 // ============================================================================
 app.use((req, res, next) => {
   const start = Date.now();
@@ -166,31 +149,30 @@ app.use((req, res, next) => {
 });
 
 // ============================================================================
-// DIAGNOSTIC LOGGING FOR PUSH NOTIFICATIONS
+// DIAGNOSTIC LOGGING для Push Notifications
 // ============================================================================
-// Log cookies and session specifically for push subscription endpoint
 app.use((req, res, next) => {
-  if (req.path === '/api/push/subscribe' && req.method === 'POST') {
+  // Логировать все /api/push запросы для диагностики
+  if (req.path.startsWith('/api/push')) {
     const cookies = req.headers.cookie ? 'YES' : 'NO';
     const origin = req.get('origin') || 'NO_ORIGIN';
-    const xForwardedFor = req.get('x-forwarded-for') || 'NONE';
+    const userAgent = req.get('user-agent')?.substring(0, 50) || 'UNKNOWN';
     const req_any = req as any;
     
     log(
-      `[PUSH_SUBSCRIBE_PRE] Origin: ${origin} | Cookies: ${cookies} | IP: ${xForwardedFor}`
+      `[PUSH] ${req.method} ${req.path} | Origin: ${origin} | Cookies: ${cookies}`
     );
 
-    // Log session info BEFORE middleware processes it
+    // Логировать session перед обработкой middleware
     if (req_any.session) {
       const sessionInfo = {
         id: req_any.session?.id ? 'YES' : 'NO',
         departmentId: req_any.session?.departmentId || null,
         adminId: req_any.session?.adminId || null,
-        keys: Object.keys(req_any.session || {}).filter(k => k !== 'cookie'),
       };
-      log(`[PUSH_SUBSCRIBE_PRE] Session data: ${JSON.stringify(sessionInfo)}`);
+      log(`[PUSH] Session: ${JSON.stringify(sessionInfo)}`);
     } else {
-      log(`[PUSH_SUBSCRIBE_PRE] NO SESSION OBJECT`);
+      log(`[PUSH] ❌ NO SESSION OBJECT`);
     }
   }
 
@@ -198,7 +180,7 @@ app.use((req, res, next) => {
 });
 
 // ============================================================================
-// ROUTE REGISTRATION & ERROR HANDLING
+// ROUTES & ERROR HANDLING
 // ============================================================================
 (async () => {
   registerRoutes(app);
@@ -212,14 +194,14 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Setup Vite in development, serve static files in production
+  // Vite в development, статика в production
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // Start server
+  // Запуск сервера
   const port = parseInt(process.env.PORT || '5000', 10);
   server.listen({
     port,
