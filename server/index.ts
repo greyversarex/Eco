@@ -21,6 +21,9 @@ if (isProduction) {
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: false,
+  crossOriginOpenerPolicy: false,
+  frameguard: false,
 }));
 
 app.use(cors({
