@@ -149,6 +149,11 @@ class OfflineDB {
           attachmentsStore.createIndex('announcementId', 'announcementId', { unique: false });
           attachmentsStore.createIndex('cachedAt', 'cachedAt', { unique: false });
         }
+
+        // Auth session store for offline login
+        if (!db.objectStoreNames.contains('authSession')) {
+          db.createObjectStore('authSession', { keyPath: 'id' });
+        }
       };
     });
   }
@@ -441,14 +446,73 @@ class OfflineDB {
     }
   }
 
+  // Auth session storage for offline login
+  async saveAuthSession(user: any): Promise<void> {
+    const db = await this.ensureDB();
+    
+    // Create auth store if it doesn't exist
+    if (!db.objectStoreNames.contains('authSession')) {
+      throw new Error('Auth store not initialized');
+    }
+    
+    const transaction = db.transaction(['authSession'], 'readwrite');
+    const store = transaction.objectStore('authSession');
+
+    return new Promise((resolve, reject) => {
+      const request = store.put({
+        id: 'current',
+        user,
+        savedAt: Date.now(),
+      });
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async getAuthSession(): Promise<any | null> {
+    const db = await this.ensureDB();
+    
+    if (!db.objectStoreNames.contains('authSession')) {
+      return null;
+    }
+    
+    const transaction = db.transaction(['authSession'], 'readonly');
+    const store = transaction.objectStore('authSession');
+
+    return new Promise((resolve, reject) => {
+      const request = store.get('current');
+      request.onsuccess = () => resolve(request.result?.user || null);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async clearAuthSession(): Promise<void> {
+    const db = await this.ensureDB();
+    
+    if (!db.objectStoreNames.contains('authSession')) {
+      return;
+    }
+    
+    const transaction = db.transaction(['authSession'], 'readwrite');
+    const store = transaction.objectStore('authSession');
+
+    return new Promise((resolve, reject) => {
+      const request = store.delete('current');
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   async clearAll(): Promise<void> {
     const db = await this.ensureDB();
-    const stores = ['messages', 'assignments', 'announcements', 'drafts', 'attachments'];
+    const stores = ['messages', 'assignments', 'announcements', 'drafts', 'attachments', 'authSession'];
     
     const transaction = db.transaction(stores, 'readwrite');
     
     for (const storeName of stores) {
-      transaction.objectStore(storeName).clear();
+      if (db.objectStoreNames.contains(storeName)) {
+        transaction.objectStore(storeName).clear();
+      }
     }
 
     return new Promise((resolve, reject) => {

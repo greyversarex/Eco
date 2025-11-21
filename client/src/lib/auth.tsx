@@ -1,6 +1,8 @@
-import { createContext, useContext, ReactNode, useEffect } from 'react';
+import { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
+import { useOnlineStatus } from '@/hooks/use-offline';
+import { offlineDB } from './offline-db';
 import { apiRequest } from './queryClient';
 
 interface Department {
@@ -24,28 +26,59 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const isOnline = useOnlineStatus();
+  const [cachedUser, setCachedUser] = useState<any>(null);
+  const [isLoadingCache, setIsLoadingCache] = useState(true);
+
+  // Try to load offline cached auth session on first load
+  useEffect(() => {
+    offlineDB.getAuthSession().then(user => {
+      if (user) {
+        setCachedUser(user);
+      }
+      setIsLoadingCache(false);
+    }).catch(() => {
+      setIsLoadingCache(false);
+    });
+  }, []);
 
   const { data: user, isLoading } = useQuery<{ userType: 'department'; department: Department } | { userType: 'admin'; admin: { id: number } }>({
     queryKey: ['/api/auth/me'],
     retry: false,
     staleTime: 0, // Always fetch fresh auth data for security
+    // Don't retry if offline - we'll use cached session instead
+    enabled: isOnline || !cachedUser,
   });
+
+  // Save authenticated user to offline storage for offline login
+  useEffect(() => {
+    if (user) {
+      offlineDB.saveAuthSession(user).catch(err => {
+        console.error('Failed to save auth session offline:', err);
+      });
+    }
+  }, [user]);
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await apiRequest('POST', '/api/auth/logout', undefined);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await offlineDB.clearAuthSession();
       queryClient.clear();
       setLocation('/');
     },
   });
 
+  // Use cached session if offline and no online user data yet
+  const effectiveUser = user || (isOnline === false && cachedUser ? cachedUser : null);
+  const effectiveIsLoading = isLoadingCache || (isOnline && isLoading);
+
   return (
     <AuthContext.Provider
       value={{
-        user: user || null,
-        isLoading,
+        user: effectiveUser,
+        isLoading: effectiveIsLoading,
         logout: () => logoutMutation.mutate(),
       }}
     >
