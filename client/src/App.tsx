@@ -167,6 +167,7 @@ function AppBadgeManager() {
 function App() {
   // Initialize IndexedDB
   const { isReady, error } = useOfflineDB();
+  const isOnline = useOnlineStatus();
 
   if (error) {
     console.error('Failed to initialize offline database:', error);
@@ -177,7 +178,16 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
-          {isReady && <OfflineSync />}
+          {isReady && (
+            <>
+              <OfflineSync />
+              {!isOnline && (
+                <div className="fixed top-0 left-0 right-0 bg-yellow-100 text-yellow-800 px-4 py-2 text-center text-sm z-50" data-testid="banner-offline">
+                  Офлайн режим - сохранено: {new Date().toLocaleTimeString()}
+                </div>
+              )}
+            </>
+          )}
           <PushNotificationsManager />
           <AppBadgeManager />
           <Router />
