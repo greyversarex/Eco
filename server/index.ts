@@ -121,9 +121,10 @@ app.use(
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       httpOnly: true, // Prevent JavaScript access (security)
       // secure: true = HTTPS only (required for production behind Nginx)
-      // sameSite: 'lax' = Allow cookies in cross-site requests from links but not form submissions
-      secure: isProduction, // true for HTTPS, false for local HTTP
-      sameSite: 'lax', // 'lax' is most compatible with Android PWA/native apps
+      // sameSite: 'lax' = Allow cookies in cross-site requests (most compatible with PWA/native apps)
+      // Note: sameSite: 'none' requires secure: true, which breaks HTTP development
+      secure: isProduction, // true for HTTPS (production), false for local HTTP
+      sameSite: isProduction ? 'lax' : 'lax', // 'lax' works for both HTTP and HTTPS with PWA
       // Domain matching for subdomain compatibility (if needed, set explicitly)
       // domain: process.env.COOKIE_DOMAIN,
       path: '/',
@@ -167,26 +168,29 @@ app.use((req, res, next) => {
 // ============================================================================
 // DIAGNOSTIC LOGGING FOR PUSH NOTIFICATIONS
 // ============================================================================
-// Log cookies and origin specifically for push subscription endpoint
+// Log cookies and session specifically for push subscription endpoint
 app.use((req, res, next) => {
   if (req.path === '/api/push/subscribe' && req.method === 'POST') {
-    const cookies = req.headers.cookie || 'NO_COOKIE_HEADER';
-    const origin = req.get('origin') || 'NO_ORIGIN_HEADER';
+    const cookies = req.headers.cookie ? 'YES' : 'NO';
+    const origin = req.get('origin') || 'NO_ORIGIN';
     const xForwardedFor = req.get('x-forwarded-for') || 'NONE';
-    const userAgent = req.get('user-agent') || 'UNKNOWN';
+    const req_any = req as any;
     
     log(
-      `[PUSH_SUBSCRIBE] Origin: ${origin} | IP: ${xForwardedFor} | ` +
-      `Cookies: ${cookies.substring(0, 50)}... | UA: ${userAgent.substring(0, 40)}...`
+      `[PUSH_SUBSCRIBE_PRE] Origin: ${origin} | Cookies: ${cookies} | IP: ${xForwardedFor}`
     );
 
-    // Log session info
-    if ((req as any).session && (req as any).session.passport) {
-      log(`[PUSH_SUBSCRIBE] Session found - User: ${JSON.stringify((req as any).session.passport.user)}`);
-    } else if ((req as any).session) {
-      log(`[PUSH_SUBSCRIBE] Session found but no passport info`);
+    // Log session info BEFORE middleware processes it
+    if (req_any.session) {
+      const sessionInfo = {
+        id: req_any.session?.id ? 'YES' : 'NO',
+        departmentId: req_any.session?.departmentId || null,
+        adminId: req_any.session?.adminId || null,
+        keys: Object.keys(req_any.session || {}).filter(k => k !== 'cookie'),
+      };
+      log(`[PUSH_SUBSCRIBE_PRE] Session data: ${JSON.stringify(sessionInfo)}`);
     } else {
-      log(`[PUSH_SUBSCRIBE] NO SESSION FOUND`);
+      log(`[PUSH_SUBSCRIBE_PRE] NO SESSION OBJECT`);
     }
   }
 

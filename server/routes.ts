@@ -105,9 +105,30 @@ declare module 'express-serve-static-core' {
 
 // Middleware to check if user is authenticated
 function requireAuth(req: Request, res: Response, next: NextFunction) {
-  if (!req.session.departmentId && !req.session.adminId) {
+  const departmentId = req.session?.departmentId;
+  const adminId = req.session?.adminId;
+  
+  if (!departmentId && !adminId) {
+    console.warn('[AUTH_MIDDLEWARE] Rejected: No session or user ID', {
+      hasDepartmentId: !!departmentId,
+      hasAdminId: !!adminId,
+      sessionExists: !!req.session,
+      path: req.path,
+      method: req.method,
+    });
     return res.status(401).json({ error: 'Not authenticated' });
   }
+  
+  // Log successful auth for POST requests
+  if (req.method === 'POST' && (req.path.includes('/push/') || req.path.includes('/api/'))) {
+    console.log('[AUTH_MIDDLEWARE] Authenticated:', {
+      userType: departmentId ? 'department' : 'admin',
+      userId: departmentId || adminId,
+      path: req.path,
+      method: req.method,
+    });
+  }
+  
   next();
 }
 
@@ -2192,8 +2213,19 @@ export function registerRoutes(app: Express) {
   // Subscribe to push notifications
   app.post("/api/push/subscribe", requireAuth, async (req: Request, res: Response) => {
     try {
-      const user = (req as any).user;
-      if (!user) {
+      // Get user from session (set by requireAuth middleware)
+      const req_any = req as any;
+      const departmentId = req_any.session?.departmentId;
+      const adminId = req_any.session?.adminId;
+      
+      console.log('[PUSH_SUBSCRIBE_HANDLER] Session check:', {
+        hasDepartmentId: !!departmentId,
+        hasAdminId: !!adminId,
+        sessionKeys: req_any.session ? Object.keys(req_any.session) : 'NO_SESSION'
+      });
+
+      if (!departmentId && !adminId) {
+        console.warn('[PUSH_SUBSCRIBE_HANDLER] Failed: No department or admin ID in session');
         return res.status(401).json({ error: "Не авторизован" });
       }
 
@@ -2204,8 +2236,8 @@ export function registerRoutes(app: Express) {
       }
 
       const subscriptionData = {
-        userId: user.id,
-        userType: user.type,
+        userId: departmentId || adminId,
+        userType: departmentId ? 'department' : 'admin',
         endpoint,
         p256dh: keys.p256dh,
         auth: keys.auth,
@@ -2224,9 +2256,14 @@ export function registerRoutes(app: Express) {
         await storage.createPushSubscription(validated);
       }
 
+      console.log('[PUSH_SUBSCRIBE_HANDLER] Success: Subscription saved for user', {
+        userId: subscriptionData.userId,
+        userType: subscriptionData.userType,
+      });
+
       res.json({ success: true });
     } catch (error: any) {
-      console.error('Push subscription error:', error);
+      console.error('[PUSH_SUBSCRIBE_HANDLER] Error:', error);
       res.status(500).json({ error: error.message });
     }
   });
@@ -2234,11 +2271,17 @@ export function registerRoutes(app: Express) {
   // Unsubscribe from push notifications
   app.post("/api/push/unsubscribe", requireAuth, async (req: Request, res: Response) => {
     try {
-      const user = (req as any).user;
-      if (!user) {
+      // Get user from session (set by requireAuth middleware)
+      const req_any = req as any;
+      const departmentId = req_any.session?.departmentId;
+      const adminId = req_any.session?.adminId;
+
+      if (!departmentId && !adminId) {
         return res.status(401).json({ error: "Не авторизован" });
       }
 
+      const userId = departmentId || adminId;
+      const userType = departmentId ? 'department' : 'admin';
       const { endpoint } = req.body;
 
       if (!endpoint) {
@@ -2247,7 +2290,7 @@ export function registerRoutes(app: Express) {
 
       // Verify ownership before deleting
       const subscription = await storage.getPushSubscriptionByEndpoint(endpoint);
-      if (subscription && subscription.userId === user.id && subscription.userType === user.type) {
+      if (subscription && subscription.userId === userId && subscription.userType === userType) {
         await storage.deletePushSubscriptionByEndpoint(endpoint);
         res.json({ success: true });
       } else {
