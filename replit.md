@@ -59,6 +59,7 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Third-Party Services:** PostgreSQL server (version 13+), Google Fonts (Inter and Roboto)
 
 ### Recent Changes
+*   **2025-11-21 (Update 2):** Successfully migrated from Replit Agent to standard Replit environment. Created PostgreSQL database with complete schema migration (9 tables: departments, admins, messages, attachments, assignments, announcements, people, push_subscriptions, sessions). Seeded database with 1 admin user (admin/admin123), 49 real governmental departments from Ministry of Environmental Protection, and 46 executors. Application running on port 5000 with full database connectivity.
 *   **2025-11-21 (Update 1):** Complete Tajik-only interface (removed all Russian text from drafts, notifications, Service Worker). Save draft button redesigned as green icon-only button. Fixed offline mode - added NavigationRoute with NetworkFirst strategy in Service Worker to cache HTML pages, enabling offline login and navigation for PWA/native apps.
 *   **2025-11-20 (Update 4):** Created `FIX_PUSH_401_PRODUCTION.md` troubleshooting guide for fixing 401 errors on production server caused by missing/incorrect `ALLOWED_ORIGINS` configuration.
 *   **2025-11-20 (Update 3):** Added mobile-only "Unread Messages" block (Паёмҳои нохондашуда) displayed first when departments have unread messages. Confirmed push notification subscribe endpoints use `credentials: 'include'` for proper authentication.
