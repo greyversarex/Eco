@@ -77,16 +77,16 @@ export function useDrafts() {
       await registerBackgroundSync();
       
       toast({
-        title: 'Черновик сохранён',
-        description: 'Сообщение будет отправлено при восстановлении соединения',
+        title: 'Лоиҳа нигоҳ дошта шуд',
+        description: 'Паём ҳангоми барқарорӣ алоқа фиристода мешавад',
       });
 
       return newDraft.id;
     } catch (error) {
       console.error('Failed to save draft:', error);
       toast({
-        title: 'Ошибка',
-        description: 'Не удалось сохранить черновик',
+        title: 'Хато',
+        description: 'Лоиҳа нигоҳ дошта нашуд',
         variant: 'destructive',
       });
       throw error;
@@ -99,13 +99,13 @@ export function useDrafts() {
       await loadDrafts();
       
       toast({
-        title: 'Черновик удалён',
+        title: 'Лоиҳа нест карда шуд',
       });
     } catch (error) {
       console.error('Failed to delete draft:', error);
       toast({
-        title: 'Ошибка',
-        description: 'Не удалось удалить черновик',
+        title: 'Хато',
+        description: 'Лоиҳа нест карда нашуд',
         variant: 'destructive',
       });
     }
@@ -154,8 +154,8 @@ export function useDrafts() {
       await loadDrafts();
 
       toast({
-        title: 'Сообщение отправлено',
-        description: 'Черновик успешно отправлен',
+        title: 'Паём фиристода шуд',
+        description: 'Лоиҳа бомуваффақият фиристода шуд',
       });
 
       return true;
@@ -165,13 +165,13 @@ export function useDrafts() {
       await offlineDB.updateDraftStatus(
         draft.id,
         'failed',
-        error instanceof Error ? error.message : 'Неизвестная ошибка'
+        error instanceof Error ? error.message : 'Хатои номаълум'
       );
       await loadDrafts();
 
       toast({
-        title: 'Ошибка отправки',
-        description: 'Не удалось отправить черновик. Попробуем позже.',
+        title: 'Хатои фиристодан',
+        description: 'Лоиҳа фиристода нашуд. Баъдтар кӯшиш мекунем.',
         variant: 'destructive',
       });
 
@@ -187,8 +187,8 @@ export function useDrafts() {
     }
 
     toast({
-      title: 'Синхронизация черновиков',
-      description: `Отправка ${pendingDrafts.length} сообщений...`,
+      title: 'Ҳамоҳангсозии лоиҳаҳо',
+      description: `Фиристодани ${pendingDrafts.length} паём...`,
     });
 
     let successCount = 0;
@@ -201,8 +201,8 @@ export function useDrafts() {
 
     if (successCount > 0) {
       toast({
-        title: 'Синхронизация завершена',
-        description: `Отправлено ${successCount} из ${pendingDrafts.length} сообщений`,
+        title: 'Ҳамоҳангсозӣ ба анҷом расид',
+        description: `${successCount} аз ${pendingDrafts.length} паём фиристода шуданд`,
       });
     }
   }, [drafts, syncDraft, toast]);

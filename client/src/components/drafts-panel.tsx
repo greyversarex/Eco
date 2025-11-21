@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Send, RefreshCw, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 
@@ -15,10 +14,10 @@ export function DraftsPanel() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Черновики</CardTitle>
+          <CardTitle>Лоиҳаҳо</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Загрузка...</p>
+          <p className="text-muted-foreground">Боргирӣ...</p>
         </CardContent>
       </Card>
     );
@@ -28,13 +27,13 @@ export function DraftsPanel() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Черновики</CardTitle>
+          <CardTitle>Лоиҳаҳо</CardTitle>
           <CardDescription>
-            Сохранённые сообщения для отправки при восстановлении связи
+            Паёмҳои нигоҳдошташуда барои фиристодан ҳангоми барқарорӣ алоқа
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Нет черновиков</p>
+          <p className="text-muted-foreground">Лоиҳае нест</p>
         </CardContent>
       </Card>
     );
@@ -58,13 +57,13 @@ export function DraftsPanel() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary">Ожидает</Badge>;
+        return <Badge variant="secondary">Интизор</Badge>;
       case 'syncing':
-        return <Badge variant="default">Отправка...</Badge>;
+        return <Badge variant="default">Фиристода мешавад...</Badge>;
       case 'failed':
-        return <Badge variant="destructive">Ошибка</Badge>;
+        return <Badge variant="destructive">Хато</Badge>;
       case 'synced':
-        return <Badge variant="default">Отправлено</Badge>;
+        return <Badge variant="default">Фиристода шуд</Badge>;
       default:
         return null;
     }
@@ -75,10 +74,10 @@ export function DraftsPanel() {
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
           <div>
-            <CardTitle>Черновики</CardTitle>
+            <CardTitle>Лоиҳаҳо</CardTitle>
             <CardDescription>
-              {drafts.length} {drafts.length === 1 ? 'черновик' : 'черновиков'}
-              {pendingCount > 0 && ` • ${pendingCount} ожидают отправки`}
+              {drafts.length} лоиҳа
+              {pendingCount > 0 && ` • ${pendingCount} интизори фиристодан`}
             </CardDescription>
           </div>
           {pendingCount > 0 && (
@@ -88,7 +87,7 @@ export function DraftsPanel() {
               data-testid="button-sync-all-drafts"
             >
               <Send className="h-4 w-4 mr-2" />
-              Отправить все
+              Ҳамаро фиристодан
             </Button>
           )}
         </div>
@@ -103,7 +102,7 @@ export function DraftsPanel() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium truncate" data-testid={`text-draft-subject-${draft.id}`}>
-                        {draft.subject || 'Без темы'}
+                        {draft.subject || 'Бе мавзуъ'}
                       </h4>
                       <p className="text-sm text-muted-foreground truncate">
                         {draft.content.substring(0, 100)}
@@ -118,23 +117,23 @@ export function DraftsPanel() {
                   <div className="flex items-center gap-2 flex-wrap">
                     {getStatusBadge(draft.syncStatus)}
                     <Badge variant="outline" className="text-xs">
-                      {format(new Date(draft.createdAt), 'dd MMM, HH:mm', { locale: ru })}
+                      {format(new Date(draft.createdAt), 'dd MMM, HH:mm')}
                     </Badge>
                     {draft.recipientIds.length > 0 && (
                       <Badge variant="outline" className="text-xs">
-                        {draft.recipientIds.length} {draft.recipientIds.length === 1 ? 'получатель' : 'получателей'}
+                        {draft.recipientIds.length} гиранда
                       </Badge>
                     )}
                     {draft.attachments && draft.attachments.length > 0 && (
                       <Badge variant="outline" className="text-xs">
-                        {draft.attachments.length} файл(ов)
+                        {draft.attachments.length} файл
                       </Badge>
                     )}
                   </div>
 
                   {draft.errorMessage && (
                     <p className="text-xs text-destructive">
-                      Ошибка: {draft.errorMessage}
+                      Хато: {draft.errorMessage}
                     </p>
                   )}
 
@@ -147,7 +146,7 @@ export function DraftsPanel() {
                         data-testid={`button-send-draft-${draft.id}`}
                       >
                         <Send className="h-3 w-3 mr-1" />
-                        Отправить
+                        Фиристодан
                       </Button>
                     )}
                     {draft.syncStatus === 'failed' && (
@@ -158,7 +157,7 @@ export function DraftsPanel() {
                         data-testid={`button-retry-draft-${draft.id}`}
                       >
                         <RefreshCw className="h-3 w-3 mr-1" />
-                        Повторить
+                        Аз нав кӯшиш кардан
                       </Button>
                     )}
                     <Button
@@ -168,7 +167,7 @@ export function DraftsPanel() {
                       data-testid={`button-delete-draft-${draft.id}`}
                     >
                       <Trash2 className="h-3 w-3 mr-1" />
-                      Удалить
+                      Нест кардан
                     </Button>
                   </div>
                 </div>

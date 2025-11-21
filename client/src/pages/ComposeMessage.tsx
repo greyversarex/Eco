@@ -655,12 +655,12 @@ export default function ComposeMessage() {
                 <Button 
                   type="button"
                   onClick={handleSaveDraft}
-                  variant="outline"
+                  size="icon"
                   data-testid="button-save-draft" 
-                  className="w-full sm:w-auto"
+                  className="bg-green-600 hover:bg-green-700 text-white border-0"
+                  title="Нигоҳ доштани лоиҳа"
                 >
-                  <Save className="h-4 w-4 mr-2" />
-                  Сохранить черновик
+                  <Save className="h-4 w-4" />
                 </Button>
                 <Button 
                   type="submit" 

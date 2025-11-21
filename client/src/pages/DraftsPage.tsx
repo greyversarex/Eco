@@ -18,8 +18,8 @@ export default function DraftsPage() {
               </Button>
             </Link>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold">Черновики</h1>
-              <p className="text-sm text-green-50">Сообщения для отправки офлайн</p>
+              <h1 className="text-2xl font-bold">Лоиҳаҳо</h1>
+              <p className="text-sm text-green-50">Паёмҳо барои фиристодан офлайн</p>
             </div>
             <OfflineIndicator />
           </div>
@@ -31,35 +31,34 @@ export default function DraftsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Как работают черновики?</CardTitle>
+            <CardTitle>Лоиҳаҳо чӣ тавр кор мекунанд?</CardTitle>
             <CardDescription>
-              Черновики позволяют создавать сообщения даже без интернета
+              Лоиҳаҳо имкон медиҳанд паёмҳоро ҳатто бе интернет эҷод кунед
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="flex gap-2">
               <div className="font-medium min-w-[40px]">1.</div>
               <div>
-                При создании сообщения <strong>офлайн</strong> нажмите кнопку 
-                "Сохранить черновик"
+                Ҳангоми эҷоди паём <strong>офлайн</strong> тугмаи сабзро (нигоҳдории лоиҳа) пахш кунед
               </div>
             </div>
             <div className="flex gap-2">
               <div className="font-medium min-w-[40px]">2.</div>
               <div>
-                Черновик сохранится в устройстве и будет доступен здесь
+                Лоиҳа дар дастгоҳ нигоҳ дошта мешавад ва дар ин ҷо дастрас хоҳад буд
               </div>
             </div>
             <div className="flex gap-2">
               <div className="font-medium min-w-[40px]">3.</div>
               <div>
-                При восстановлении связи все черновики <strong>автоматически</strong> отправятся
+                Ҳангоми барқарорӣ алоқа ҳамаи лоиҳаҳо <strong>худкор</strong> фиристода мешаванд
               </div>
             </div>
             <div className="flex gap-2">
               <div className="font-medium min-w-[40px]">4.</div>
               <div>
-                Можно также отправить черновики вручную, нажав кнопку "Отправить"
+                Инчунин метавонед лоиҳаҳоро бо даст фиристед, тугмаи "Фиристодан"-ро пахш карда
               </div>
             </div>
           </CardContent>
