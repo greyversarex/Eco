@@ -745,7 +745,7 @@ export function registerRoutes(app: Express) {
             const senderName = sender?.name || 'Неизвестно';
             
             // Send notification to each recipient
-            const notificationPromises = finalRecipientIds.map(recipientId =>
+            const notificationPromises = finalRecipientIds.map((recipientId: number) =>
               sendPushNotification(recipientId, 'department', {
                 title: 'Новое сообщение',
                 body: `От: ${senderName}`,
@@ -1458,7 +1458,7 @@ export function registerRoutes(app: Express) {
         } else {
           const finalRecipientIds = createdAssignment.recipientIds || [];
           
-          if (finalRecipientIds.length > 0) {
+          if (finalRecipientIds.length > 0 && createdAssignment.senderId) {
             const sender = await storage.getDepartmentById(createdAssignment.senderId);
             const senderName = sender?.name || 'Неизвестно';
             
