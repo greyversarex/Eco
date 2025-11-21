@@ -59,7 +59,7 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Third-Party Services:** PostgreSQL server (version 13+), Google Fonts (Inter and Roboto)
 
 ### Recent Changes
+*   **2025-11-21 (Update 1):** Complete Tajik-only interface (removed all Russian text from drafts, notifications, Service Worker). Save draft button redesigned as green icon-only button. Fixed offline mode - added NavigationRoute with NetworkFirst strategy in Service Worker to cache HTML pages, enabling offline login and navigation for PWA/native apps.
 *   **2025-11-20 (Update 4):** Created `FIX_PUSH_401_PRODUCTION.md` troubleshooting guide for fixing 401 errors on production server caused by missing/incorrect `ALLOWED_ORIGINS` configuration.
 *   **2025-11-20 (Update 3):** Added mobile-only "Unread Messages" block (Паёмҳои нохондашуда) displayed first when departments have unread messages. Confirmed push notification subscribe endpoints use `credentials: 'include'` for proper authentication.
 *   **2025-11-20 (Update 2):** Added App Icon Badging (red circle with unread count) using Badging API for PWA/native apps. Implemented manual NotificationButton for permission requests (User Gesture) to avoid browser blocking. Auto-clears badge on logout.
-*   **2025-11-20 (Update 1):** Web Push Notifications fully implemented with VAPID authentication, authoritative recipient refetch pattern, resilient delivery, auto-cleanup of stale subscriptions, and comprehensive documentation (PUSH_NOTIFICATIONS_SETUP.md). Production-ready pending VAPID environment variable configuration.

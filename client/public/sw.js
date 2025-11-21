@@ -1,13 +1,27 @@
 // EcoDoc Service Worker with Background Sync support
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
-import { CacheFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
+import { registerRoute, NavigationRoute } from 'workbox-routing';
+import { CacheFirst, NetworkOnly, StaleWhileRevalidate, NetworkFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 // Precache all static assets
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
+
+// Cache navigation requests (HTML pages) - NetworkFirst strategy
+// This enables offline login and navigation
+const navigationRoute = new NavigationRoute(
+  new NetworkFirst({
+    cacheName: 'pages-cache',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+    ],
+  })
+);
+registerRoute(navigationRoute);
 
 // Cache Google Fonts (CacheFirst strategy)
 registerRoute(
@@ -125,7 +139,7 @@ async function syncDrafts() {
     // Show notification if supported
     if (successCount > 0 && self.registration.showNotification) {
       await self.registration.showNotification('EcoDoc', {
-        body: `${successCount} сообщений отправлено`,
+        body: `${successCount} паём фиристода шуд`,
         icon: '/pwa-192.png',
         badge: '/pwa-192.png',
         tag: 'draft-sync',
@@ -223,7 +237,7 @@ self.addEventListener('push', (event) => {
   
   let notificationData = {
     title: 'EcoDoc',
-    body: 'Новое уведомление',
+    body: 'Огоҳномаи нав',
     icon: '/pwa-192.png',
     badge: '/pwa-192.png',
     url: '/',

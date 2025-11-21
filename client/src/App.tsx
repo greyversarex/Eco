@@ -142,7 +142,7 @@ function OfflineSync() {
   useEffect(() => {
     if (isOnline && pendingCount > 0 && !isSyncing.current) {
       // Auto-sync drafts when connection is restored
-      console.log('📱 Связь восстановлена. Синхронизация черновиков...');
+      console.log('📱 Алоқа барқарор шуд. Ҳамоҳангсозии лоиҳаҳо...');
       isSyncing.current = true;
       
       syncAllPendingDrafts().finally(() => {

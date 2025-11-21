@@ -657,10 +657,10 @@ export default function ComposeMessage() {
                   onClick={handleSaveDraft}
                   size="icon"
                   data-testid="button-save-draft" 
-                  className="bg-green-600 hover:bg-green-700 text-white border-0"
+                  className="bg-green-600 hover:bg-green-700 text-white border-0 shrink-0"
                   title="Нигоҳ доштани лоиҳа"
                 >
-                  <Save className="h-4 w-4" />
+                  <Save className="h-5 w-5" />
                 </Button>
                 <Button 
                   type="submit" 
