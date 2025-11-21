@@ -6,6 +6,18 @@ EcoDoc is a secure, bilingual (Tajik and Russian) internal messaging and documen
 ### User Preferences
 Preferred communication style: Simple, everyday language.
 
+### Development & Deployment Workflow
+**Important:** The production site is already running on Timeweb hosting with its own PostgreSQL database. Development workflow:
+1. **Development Environment (Replit):** Code improvements and new features are developed here with a local development database
+2. **Version Control (GitHub):** Code changes are pushed to GitHub repository from Replit
+3. **Production Deployment (Timeweb):** Production server pulls code updates from GitHub
+
+**Key Constraints:**
+- Only **code** can be transferred from Replit to production (via GitHub)
+- **Environment variables** (`.env`) are managed separately on production server
+- **Database** on production is completely separate - any database changes here are for development/testing only
+- Database schema changes must be coordinated: develop migrations here, then apply them manually on production
+
 ### System Architecture
 
 **Frontend:**
