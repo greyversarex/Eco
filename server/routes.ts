@@ -671,8 +671,10 @@ export function registerRoutes(app: Express) {
             // Send notification to each recipient
             const notificationPromises = finalRecipientIds.map((recipientId: number) =>
               sendPushNotification(recipientId, 'department', {
-                title: 'Новое сообщение',
-                body: `От: ${senderName}`,
+                title: 'Паёми нав',
+                body: `Аз: ${senderName}`,
+                icon: 'https://ecodoc.cc/pwa-192.png',
+                badge: 'https://ecodoc.cc/pwa-192.png',
                 url: '/department/inbox',
               }).catch((err: any) => console.error('Push notification failed:', err))
             );
@@ -783,8 +785,10 @@ export function registerRoutes(app: Express) {
             // Send notification to each recipient
             const notificationPromises = finalRecipientIds.map((recipientId: number) =>
               sendPushNotification(recipientId, 'department', {
-                title: 'Новое сообщение',
-                body: `От: ${senderName}`,
+                title: 'Паёми нав',
+                body: `Аз: ${senderName}`,
+                icon: 'https://ecodoc.cc/pwa-192.png',
+                badge: 'https://ecodoc.cc/pwa-192.png',
                 url: '/department/inbox',
               }).catch((err: any) => console.error('Push notification failed:', err))
             );
@@ -1501,8 +1505,10 @@ export function registerRoutes(app: Express) {
             // Send notification to each recipient department
             const notificationPromises = finalRecipientIds.map(recipientId =>
               sendPushNotification(recipientId, 'department', {
-                title: 'Новое задание',
+                title: 'Супориши нав',
                 body: `${createdAssignment.topic} - ${senderName}`,
+                icon: 'https://ecodoc.cc/pwa-192.png',
+                badge: 'https://ecodoc.cc/pwa-192.png',
                 url: '/department/assignments',
               }).catch((err: any) => console.error('Push notification failed:', err))
             );
@@ -1876,8 +1882,10 @@ export function registerRoutes(app: Express) {
             // Send notification to each recipient department
             const notificationPromises = finalRecipientIds.map(recipientId =>
               sendPushNotification(recipientId, 'department', {
-                title: 'Новое объявление',
+                title: 'Эълони нав',
                 body: createdAnnouncement.content.substring(0, 100),
+                icon: 'https://ecodoc.cc/pwa-192.png',
+                badge: 'https://ecodoc.cc/pwa-192.png',
                 url: '/department/announcements',
               }).catch((err: any) => console.error('Push notification failed:', err))
             );
