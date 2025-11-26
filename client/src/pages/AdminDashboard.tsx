@@ -19,8 +19,13 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { t } from '@/lib/i18n';
-import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical, Download } from 'lucide-react';
+import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical, Download, ChevronDown, ChevronRight } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -58,10 +63,11 @@ interface SortableCardProps {
   onDelete: (id: number) => void;
   getBlockLabel: (block: string) => string;
   iconVersion?: number;
-  subdepartmentsCount?: number;
+  subdepartments?: Department[];
 }
 
-function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete, getBlockLabel, iconVersion, subdepartmentsCount = 0 }: SortableCardProps) {
+function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete, getBlockLabel, iconVersion, subdepartments = [] }: SortableCardProps) {
+  const [isSubdeptsOpen, setIsSubdeptsOpen] = useState(false);
   const { iconUrl } = useDepartmentIcon(department.id, iconVersion);
   const {
     attributes,
@@ -148,10 +154,17 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
 
           {/* Permission Badges */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {subdepartmentsCount > 0 && (
-              <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-md font-medium">
-                {subdepartmentsCount} зершуъба
-              </span>
+            {subdepartments.length > 0 && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsSubdeptsOpen(!isSubdeptsOpen);
+                }}
+                className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-md font-medium flex items-center gap-1"
+              >
+                {isSubdeptsOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                {subdepartments.length} зершуъба
+              </button>
             )}
             {department.canMonitor && (
               <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-md">
@@ -174,6 +187,61 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
               </span>
             )}
           </div>
+
+          {/* Subdepartments List */}
+          {isSubdeptsOpen && subdepartments.length > 0 && (
+            <div className="mb-4 p-3 bg-muted/50 rounded-lg border border-border">
+              <p className="text-xs text-muted-foreground mb-2 font-medium">Зершуъбаҳо:</p>
+              <div className="space-y-2">
+                {subdepartments.map((subdept) => (
+                  <div 
+                    key={subdept.id} 
+                    className="flex items-center justify-between p-2 bg-background rounded border border-border"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{subdept.name}</p>
+                      <code className="text-xs text-muted-foreground font-mono">{subdept.accessCode}</code>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onCopyCode(subdept.accessCode);
+                        }}
+                        className="h-7 w-7 p-0"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(subdept);
+                        }}
+                        className="h-7 w-7 p-0"
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(subdept.id);
+                        }}
+                        className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
@@ -299,9 +367,9 @@ export default function AdminDashboard() {
     };
   }, [allDepartments, searchQuery]);
 
-  // Get subdepartments count for each department
-  const getSubdepartmentsCount = (deptId: number) => {
-    return allDepartments.filter(d => d.parentDepartmentId === deptId).length;
+  // Get subdepartments for each department
+  const getSubdepartments = (deptId: number) => {
+    return allDepartments.filter(d => d.parentDepartmentId === deptId);
   };
 
   // Flatten for drag-and-drop
@@ -927,7 +995,7 @@ export default function AdminDashboard() {
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
                             iconVersion={dataUpdatedAt}
-                            subdepartmentsCount={getSubdepartmentsCount(dept.id)}
+                            subdepartments={getSubdepartments(dept.id)}
                           />
                         ))}
                       </div>
@@ -959,7 +1027,7 @@ export default function AdminDashboard() {
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
                             iconVersion={dataUpdatedAt}
-                            subdepartmentsCount={getSubdepartmentsCount(dept.id)}
+                            subdepartments={getSubdepartments(dept.id)}
                           />
                         ))}
                       </div>
@@ -991,7 +1059,7 @@ export default function AdminDashboard() {
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
                             iconVersion={dataUpdatedAt}
-                            subdepartmentsCount={getSubdepartmentsCount(dept.id)}
+                            subdepartments={getSubdepartments(dept.id)}
                           />
                         ))}
                       </div>
@@ -1023,7 +1091,7 @@ export default function AdminDashboard() {
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
                             iconVersion={dataUpdatedAt}
-                            subdepartmentsCount={getSubdepartmentsCount(dept.id)}
+                            subdepartments={getSubdepartments(dept.id)}
                           />
                         ))}
                       </div>
