@@ -53,7 +53,6 @@ function ParentDepartmentCard({ department, unreadCount, onClick }: {
             <h3 className="font-semibold text-foreground text-lg truncate">
               {department.name}
             </h3>
-            <p className="text-sm text-muted-foreground">Шуъбаи асосӣ</p>
           </div>
           {unreadCount > 0 && (
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white text-sm font-bold">
@@ -98,9 +97,9 @@ function SiblingSubdepartmentCard({ department, unreadCount, onClick, isSelf }: 
             <h3 className="font-medium text-foreground truncate">
               {department.name}
             </h3>
-            <p className="text-xs text-muted-foreground">
-              {isSelf ? 'Шумо' : 'Зершуъба'}
-            </p>
+            {isSelf && (
+              <p className="text-xs text-muted-foreground">Шумо</p>
+            )}
           </div>
           {unreadCount > 0 && (
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold">
@@ -334,10 +333,6 @@ export default function DepartmentMain() {
                 {/* Parent Department Section */}
                 {parentDepartment && (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 px-2">
-                      <Building2 className="h-5 w-5 text-primary" />
-                      <h2 className="text-xl font-semibold text-foreground">Шуъбаи асосӣ</h2>
-                    </div>
                     <ParentDepartmentCard
                       department={parentDepartment}
                       unreadCount={unreadCounts[parentDepartment.id] || 0}
@@ -361,12 +356,6 @@ export default function DepartmentMain() {
                 {/* Sibling Subdepartments Section */}
                 {siblingSubdepartments.length > 0 && (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 px-2">
-                      <Users className="h-5 w-5 text-primary" />
-                      <h2 className="text-xl font-semibold text-foreground">
-                        Зершуъбаҳо ({siblingSubdepartments.length})
-                      </h2>
-                    </div>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {siblingSubdepartments.map((subdept) => (
                         <SiblingSubdepartmentCard

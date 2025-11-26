@@ -38,9 +38,29 @@ export default function ComposeMessage() {
   const isOnline = useOnlineStatus();
   const { saveDraft } = useDrafts();
 
+  // Check if current user is a subdepartment
+  const isSubdepartment = user?.userType === 'department' && user.department?.isSubdepartment;
+  const parentDepartmentId = user?.userType === 'department' ? user.department?.parentDepartmentId : null;
+
   const { data: departments = [], isLoading: loadingDepartments, dataUpdatedAt } = useQuery<Omit<Department, 'accessCode'>[]>({
     queryKey: ['/api/departments/list'],
   });
+
+  // Fetch sibling subdepartments for subdepartment view
+  const { data: siblingSubdepartments = [] } = useQuery<Omit<Department, 'accessCode'>[]>({
+    queryKey: ['/api/departments', parentDepartmentId, 'subdepartments'],
+    enabled: !!isSubdepartment && !!parentDepartmentId,
+  });
+
+  // Get available recipients based on user type
+  const availableRecipients = isSubdepartment && parentDepartmentId
+    ? [
+        // Parent department
+        ...departments.filter(d => d.id === parentDepartmentId),
+        // Sibling subdepartments (excluding self)
+        ...siblingSubdepartments.filter(d => d.id !== (user?.department?.id ?? null))
+      ]
+    : departments;
 
   const { data: allPeople = [] } = useQuery<Person[]>({
     queryKey: ['/api/people'],
@@ -472,13 +492,13 @@ export default function ComposeMessage() {
                   <Label>
                     {t.recipient} <span className="text-destructive">*</span>
                   </Label>
-                  {!loadingDepartments && departments.filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined)).length > 0 && (
+                  {!loadingDepartments && availableRecipients.filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined)).length > 0 && !isSubdepartment && (
                     <Button
                       type="button"
                       variant="default"
                       size="sm"
                       onClick={() => {
-                        const allDeptIds = departments
+                        const allDeptIds = availableRecipients
                           .filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined))
                           .map(dept => dept.id);
                         if (selectedRecipients.length === allDeptIds.length) {
@@ -490,7 +510,7 @@ export default function ComposeMessage() {
                       className="bg-green-600 hover:bg-green-700 text-white h-8 text-xs"
                       data-testid="button-select-all-recipients"
                     >
-                      {selectedRecipients.length === departments.filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined)).length
+                      {selectedRecipients.length === availableRecipients.filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined)).length
                         ? 'Бекор кардан'
                         : 'Ҳамаро қайд кардан'}
                     </Button>
@@ -503,7 +523,7 @@ export default function ComposeMessage() {
                 ) : (
                   <div className="border rounded-md p-4 max-h-96 overflow-y-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {departments
+                      {availableRecipients
                         .filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined))
                         .sort((a, b) => a.sortOrder - b.sortOrder)
                         .map((dept) => (
@@ -539,43 +559,46 @@ export default function ComposeMessage() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label>Иҷрокунандагон</Label>
-                {selectedRecipients.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Аввал иҷрокунанда интихоб кунед
-                  </p>
-                ) : (
-                  <div className="border rounded-md p-4 max-h-64 overflow-y-auto">
-                    {selectedRecipients.map(recipientId => {
-                      const dept = departments.find(d => d.id === recipientId);
-                      const peopleInDept = allPeople.filter(p => p.departmentId === recipientId);
-                      
-                      if (peopleInDept.length === 0) return null;
-                      
-                      return (
-                        <div key={recipientId} className="mb-4 last:mb-0">
-                          <div className="text-sm font-semibold mb-2 text-gray-700">
-                            {dept?.name || 'Номаълум'}
+              {/* Hide executors section for subdepartments */}
+              {!isSubdepartment && (
+                <div className="space-y-2">
+                  <Label>Иҷрокунандагон</Label>
+                  {selectedRecipients.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Аввал иҷрокунанда интихоб кунед
+                    </p>
+                  ) : (
+                    <div className="border rounded-md p-4 max-h-64 overflow-y-auto">
+                      {selectedRecipients.map(recipientId => {
+                        const dept = departments.find(d => d.id === recipientId);
+                        const peopleInDept = allPeople.filter(p => p.departmentId === recipientId);
+                        
+                        if (peopleInDept.length === 0) return null;
+                        
+                        return (
+                          <div key={recipientId} className="mb-4 last:mb-0">
+                            <div className="text-sm font-semibold mb-2 text-gray-700">
+                              {dept?.name || 'Номаълум'}
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 pl-2">
+                              {peopleInDept.map(person => (
+                                <div key={person.id} className="text-sm">
+                                  • {person.name}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <div className="grid grid-cols-2 gap-2 pl-2">
-                            {peopleInDept.map(person => (
-                              <div key={person.id} className="text-sm">
-                                • {person.name}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId)).length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-4">
-                        Иҷрокунандае дар ин шуъбаҳо нест
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
+                        );
+                      })}
+                      {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId)).length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Иҷрокунандае дар ин шуъбаҳо нест
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="content">
