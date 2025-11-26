@@ -684,6 +684,36 @@ export function registerRoutes(app: Express) {
         return res.status(403).json({ error: 'Cannot send messages on behalf of other departments' });
       }
       
+      // For subdepartments: validate that all recipients are accessible (parent + siblings only)
+      if (req.session.isSubdepartment && req.session.departmentId) {
+        const accessibleDepts = await storage.getAccessibleDepartments(req.session.departmentId);
+        const accessibleIds = new Set(accessibleDepts.map(d => d.id));
+        
+        // Check recipientIds array
+        if (parsedData.recipientIds && parsedData.recipientIds.length > 0) {
+          const invalidRecipients = parsedData.recipientIds.filter((id: number) => !accessibleIds.has(id));
+          if (invalidRecipients.length > 0) {
+            return res.status(403).json({ 
+              error: 'Зершуъба метавонад танҳо ба шуъбаи асосӣ ва зершуъбаҳои ҳамсоя паём фиристад' 
+            });
+          }
+        }
+        
+        // Check legacy recipientId
+        if (parsedData.recipientId && !accessibleIds.has(parsedData.recipientId)) {
+          return res.status(403).json({ 
+            error: 'Зершуъба метавонад танҳо ба шуъбаи асосӣ ва зершуъбаҳои ҳамсоя паём фиристад' 
+          });
+        }
+        
+        // Broadcast to all is not allowed for subdepartments
+        if (!parsedData.recipientId && (!parsedData.recipientIds || parsedData.recipientIds.length === 0)) {
+          return res.status(403).json({ 
+            error: 'Зершуъба наметавонад ба ҳама шуъбаҳо паём фиристад' 
+          });
+        }
+      }
+      
       // Decode executor (document number) if present
       if (parsedData.executor) {
         parsedData.executor = decodeFilename(parsedData.executor);
@@ -770,6 +800,19 @@ export function registerRoutes(app: Express) {
       // Ensure sender is the authenticated department
       if (req.session.departmentId && messageData.senderId !== req.session.departmentId) {
         return res.status(403).json({ error: 'Cannot send messages on behalf of other departments' });
+      }
+
+      // For subdepartments: validate that all recipients are accessible (parent + siblings only)
+      if (req.session.isSubdepartment && req.session.departmentId) {
+        const accessibleDepts = await storage.getAccessibleDepartments(req.session.departmentId);
+        const accessibleIds = new Set(accessibleDepts.map(d => d.id));
+        
+        const invalidRecipients = recipientIds.filter((id: number) => !accessibleIds.has(id));
+        if (invalidRecipients.length > 0) {
+          return res.status(403).json({ 
+            error: 'Зершуъба метавонад танҳо ба шуъбаи асосӣ ва зершуъбаҳои ҳамсоя паём фиристад' 
+          });
+        }
       }
 
       // Decode executor if present
@@ -1198,6 +1241,18 @@ export function registerRoutes(app: Express) {
       const otherDeptId = parseInt(req.params.deptId);
       if (isNaN(otherDeptId)) {
         return res.status(400).json({ error: 'Invalid department ID' });
+      }
+
+      // For subdepartments: validate that target department is accessible (parent + siblings only)
+      if (req.session.isSubdepartment) {
+        const accessibleDepts = await storage.getAccessibleDepartments(req.session.departmentId);
+        const accessibleIds = new Set(accessibleDepts.map(d => d.id));
+        
+        if (!accessibleIds.has(otherDeptId)) {
+          return res.status(403).json({ 
+            error: 'Зершуъба метавонад танҳо паёмҳои шуъбаи асосӣ ва зершуъбаҳои ҳамсояро бинад' 
+          });
+        }
       }
 
       const messages = await storage.getMessagesByDepartmentPair(req.session.departmentId, otherDeptId);

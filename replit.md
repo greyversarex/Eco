@@ -71,6 +71,13 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Third-Party Services:** PostgreSQL server (version 13+), Google Fonts (Inter and Roboto)
 
 ### Recent Changes
+*   **2025-11-26 (Subdepartments Feature):** Implemented hierarchical subdepartments system for EcoDoc. Parent departments can have subdepartments with restricted messaging access (parent + sibling subdepartments only). Key changes:
+    - Database: Added `parentDepartmentId` column with self-referential FK and CASCADE delete
+    - Storage: Added `getSubdepartments`, `getAccessibleDepartments`, `getSiblingSubdepartments` methods
+    - Session: Added `isSubdepartment` and `parentDepartmentId` flags for subdepartment users
+    - API Security: Message creation and reading endpoints validate recipient accessibility for subdepartments
+    - Admin UI: Parent department selection in create/edit forms, subdepartment count badges on cards
+    - Department UI: Subdepartments section on parent department pages, special main page view for subdepartment users showing only accessible departments (parent + siblings)
 *   **2025-11-21 (Update 3):** Fixed Mobile PWA 401 Unauthorized issues through server configuration rewrite. CORS now uses `origin: true` (maximally permissive). Session cookies use environment-aware settings: HTTPS mode (`secure: true` + `sameSite: 'none'`) for production/staging PWA support, HTTP mode (`secure: false` + `sameSite: 'lax'`) for local development. Added `FORCE_HTTPS=true` env flag for staging testing. Push notifications now trigger on `/api/messages` endpoint with fallback support for both legacy `recipientId` and new `recipientIds` array formats.
 *   **2025-11-21 (Update 2):** Successfully migrated from Replit Agent to standard Replit environment. Created PostgreSQL database with complete schema migration (9 tables: departments, admins, messages, attachments, assignments, announcements, people, push_subscriptions, sessions). Seeded database with 1 admin user (admin/admin123), 49 real governmental departments from Ministry of Environmental Protection, and 46 executors. Application running on port 5000 with full database connectivity.
 *   **2025-11-21 (Update 1):** Complete Tajik-only interface (removed all Russian text from drafts, notifications, Service Worker). Save draft button redesigned as green icon-only button. Fixed offline mode - added NavigationRoute with NetworkFirst strategy in Service Worker to cache HTML pages, enabling offline login and navigation for PWA/native apps.

@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 import MobileNav from '@/components/MobileNav';
 import DepartmentCard from '@/components/DepartmentCard';
 import { t } from '@/lib/i18n';
-import { Inbox, Send, PenSquare, LogOut, Search, Eye, Trash2 } from 'lucide-react';
+import { Inbox, Send, PenSquare, LogOut, Search, Eye, Trash2, Building2, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import type { Department } from '@shared/schema';
@@ -14,14 +15,122 @@ import logoImage from '@assets/logo-optimized.webp';
 import { Footer } from '@/components/Footer';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
 import NotificationButton from '@/components/NotificationButton';
+import { useDepartmentIcon } from '@/hooks/use-department-icon';
+
+// Parent Department Card for Subdepartments view
+function ParentDepartmentCard({ department, unreadCount, onClick }: { 
+  department: Omit<Department, 'accessCode'>; 
+  unreadCount: number;
+  onClick: () => void;
+}) {
+  const { iconUrl } = useDepartmentIcon(department.id);
+  
+  return (
+    <Card 
+      className="hover-elevate cursor-pointer transition-all border-2 border-primary/30 bg-primary/5"
+      onClick={onClick}
+      data-testid={`card-parent-department-${department.id}`}
+    >
+      <CardContent className="p-6">
+        <div className="flex items-center gap-4">
+          {iconUrl ? (
+            <img
+              src={iconUrl}
+              alt=""
+              className="h-16 w-16 rounded-lg object-cover shrink-0"
+            />
+          ) : (
+            <div className="h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Building2 className="h-8 w-8 text-primary" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs rounded-md font-medium">
+                Сарвазирӣ
+              </span>
+            </div>
+            <h3 className="font-semibold text-foreground text-lg truncate">
+              {department.name}
+            </h3>
+            <p className="text-sm text-muted-foreground">Шуъбаи асосӣ</p>
+          </div>
+          {unreadCount > 0 && (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white text-sm font-bold">
+              {unreadCount}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Sibling Subdepartment Card
+function SiblingSubdepartmentCard({ department, unreadCount, onClick, isSelf }: { 
+  department: Omit<Department, 'accessCode'>; 
+  unreadCount: number;
+  onClick: () => void;
+  isSelf?: boolean;
+}) {
+  const { iconUrl } = useDepartmentIcon(department.id);
+  
+  return (
+    <Card 
+      className={`hover-elevate cursor-pointer transition-all ${isSelf ? 'border-2 border-primary/50 bg-primary/5' : ''}`}
+      onClick={onClick}
+      data-testid={`card-sibling-subdepartment-${department.id}`}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center gap-3">
+          {iconUrl ? (
+            <img
+              src={iconUrl}
+              alt=""
+              className="h-12 w-12 rounded-md object-cover shrink-0"
+            />
+          ) : (
+            <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+              <Users className="h-6 w-6 text-primary" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-foreground truncate">
+              {department.name}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {isSelf ? 'Шумо' : 'Зершуъба'}
+            </p>
+          </div>
+          {unreadCount > 0 && (
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold">
+              {unreadCount}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function DepartmentMain() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const { user, logout } = useAuth();
 
+  // Check if current user is a subdepartment
+  const isSubdepartment = user?.userType === 'department' && user.department?.isSubdepartment;
+  const parentDepartmentId = user?.userType === 'department' ? user.department?.parentDepartmentId : null;
+  const currentDepartmentId = user?.userType === 'department' ? user.department?.id : null;
+
   const { data: departments = [], isLoading, dataUpdatedAt } = useQuery<Omit<Department, 'accessCode'>[]>({
     queryKey: ['/api/departments/list'],
+  });
+
+  // Fetch sibling subdepartments for subdepartment view
+  const { data: siblingSubdepartments = [] } = useQuery<Omit<Department, 'accessCode'>[]>({
+    queryKey: ['/api/departments', parentDepartmentId, 'subdepartments'],
+    enabled: !!isSubdepartment && !!parentDepartmentId,
   });
 
   const { data: unreadCounts = {} } = useQuery<Record<number, number>>({
@@ -31,6 +140,9 @@ export default function DepartmentMain() {
   const { data: counters } = useQuery<{ unreadAnnouncements: number; uncompletedAssignments: number }>({
     queryKey: ['/api/counters'],
   });
+
+  // Find parent department for subdepartment view
+  const parentDepartment = parentDepartmentId ? departments.find(d => d.id === parentDepartmentId) : null;
 
   // Filter departments by search query
   const filteredDepartments = departments.filter((dept) =>
@@ -216,6 +328,72 @@ export default function DepartmentMain() {
               )}
             </div>
 
+            {/* Subdepartment View - Show only parent and sibling subdepartments */}
+            {isSubdepartment && (
+              <div className="space-y-8">
+                {/* Parent Department Section */}
+                {parentDepartment && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 px-2">
+                      <Building2 className="h-5 w-5 text-primary" />
+                      <h2 className="text-xl font-semibold text-foreground">Шуъбаи асосӣ</h2>
+                    </div>
+                    <ParentDepartmentCard
+                      department={parentDepartment}
+                      unreadCount={unreadCounts[parentDepartment.id] || 0}
+                      onClick={() => handleDepartmentClick(parentDepartment.id)}
+                    />
+                  </div>
+                )}
+
+                {/* Separator */}
+                {parentDepartment && siblingSubdepartments.length > 0 && (
+                  <div className="relative py-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t-4 border-primary/20"></div>
+                    </div>
+                    <div className="relative flex justify-center">
+                      <div className="h-3 w-3 rounded-full bg-primary"></div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sibling Subdepartments Section */}
+                {siblingSubdepartments.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 px-2">
+                      <Users className="h-5 w-5 text-primary" />
+                      <h2 className="text-xl font-semibold text-foreground">
+                        Зершуъбаҳо ({siblingSubdepartments.length})
+                      </h2>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {siblingSubdepartments.map((subdept) => (
+                        <SiblingSubdepartmentCard
+                          key={subdept.id}
+                          department={subdept}
+                          unreadCount={unreadCounts[subdept.id] || 0}
+                          onClick={() => handleDepartmentClick(subdept.id)}
+                          isSelf={subdept.id === currentDepartmentId}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!parentDepartment && siblingSubdepartments.length === 0 && (
+                  <div className="text-center p-12">
+                    <p className="text-muted-foreground">
+                      Ҳоло шуъбае нест
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Regular Department View - Show all department blocks */}
+            {!isSubdepartment && (
+              <>
             {/* Unread messages block - only show on mobile/small screens */}
             {departmentsByBlock.unread.length > 0 && (
               <div className="space-y-4 md:hidden">
@@ -363,6 +541,8 @@ export default function DepartmentMain() {
                   Ҳоло шуъбае нест
                 </p>
               </div>
+            )}
+              </>
             )}
           </div>
         )}

@@ -13,6 +13,8 @@ interface Department {
   canMonitor: boolean;
   canCreateAssignmentFromMessage: boolean;
   canCreateAssignment: boolean;
+  isSubdepartment?: boolean;
+  parentDepartmentId?: number | null;
 }
 
 interface AuthContextType {

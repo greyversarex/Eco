@@ -1,15 +1,53 @@
 import { useState } from 'react';
 import { useLocation, useRoute } from 'wouter';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MessageListItem from '@/components/MessageListItem';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, PenSquare } from 'lucide-react';
+import { ArrowLeft, PenSquare, Building2, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { Message, Department } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
+import { useDepartmentIcon } from '@/hooks/use-department-icon';
+
+// Subdepartment Card Component
+function SubdepartmentCard({ department, onClick }: { department: Omit<Department, 'accessCode'>; onClick: () => void }) {
+  const { iconUrl } = useDepartmentIcon(department.id);
+  
+  return (
+    <Card 
+      className="hover-elevate cursor-pointer transition-all"
+      onClick={onClick}
+      data-testid={`card-subdepartment-${department.id}`}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center gap-3">
+          {iconUrl ? (
+            <img
+              src={iconUrl}
+              alt=""
+              className="h-10 w-10 rounded-md object-cover shrink-0"
+            />
+          ) : (
+            <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+              <Building2 className="h-5 w-5 text-primary" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-foreground truncate text-sm">
+              {department.name}
+            </h3>
+            <p className="text-xs text-muted-foreground">Зершуъба</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function DepartmentMessages() {
   const [, setLocation] = useLocation();
@@ -28,6 +66,12 @@ export default function DepartmentMessages() {
 
   const { data: messages, isLoading } = useQuery<{ received: Message[]; sent: Message[] }>({
     queryKey: ['/api/messages/department', departmentId],
+    enabled: !!departmentId,
+  });
+
+  // Fetch subdepartments for this department
+  const { data: subdepartments = [] } = useQuery<Omit<Department, 'accessCode'>[]>({
+    queryKey: ['/api/departments', departmentId, 'subdepartments'],
     enabled: !!departmentId,
   });
 
@@ -266,6 +310,27 @@ export default function DepartmentMessages() {
               </div>
             </TabsContent>
           </Tabs>
+        )}
+
+        {/* Subdepartments Section */}
+        {subdepartments.length > 0 && (
+          <div className="mt-8 px-4 sm:px-0">
+            <div className="flex items-center gap-2 mb-4">
+              <Building2 className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold text-foreground">
+                Зершуъбаҳо ({subdepartments.length})
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {subdepartments.map((subdept) => (
+                <SubdepartmentCard
+                  key={subdept.id}
+                  department={subdept}
+                  onClick={() => setLocation(`/department/messages/${subdept.id}`)}
+                />
+              ))}
+            </div>
+          </div>
         )}
       </main>
     </div>
