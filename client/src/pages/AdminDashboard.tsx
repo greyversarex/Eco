@@ -442,10 +442,11 @@ export default function AdminDashboard() {
   };
 
   const handleAddDepartment = () => {
-    if (newDeptName && newDeptBlock) {
+    const canCreate = newDeptName && (newParentDepartmentId || newDeptBlock);
+    if (canCreate) {
       createMutation.mutate({ 
         name: newDeptName, 
-        block: newDeptBlock,
+        block: newDeptBlock || '',
         canMonitor: newCanMonitor,
         canCreateAssignmentFromMessage: newCanCreateAssignmentFromMessage,
         canCreateAssignment: newCanCreateAssignment,
