@@ -335,18 +335,12 @@ export function registerRoutes(app: Express) {
   });
 
   // Departments list (for authenticated departments to see other departments)
-  // For subdepartments: returns only parent + sibling subdepartments
-  // For top-level departments: returns all departments
+  // Always returns all parent departments (no subdepartments) for navigation
+  // Subdepartment recipient restrictions are handled in ComposeMessage frontend
   app.get("/api/departments/list", requireAuth, async (req: Request, res: Response) => {
     try {
-      let departments;
-      
-      // If the authenticated user is a subdepartment, restrict to accessible departments
-      if (req.session.departmentId && req.session.isSubdepartment) {
-        departments = await storage.getAccessibleDepartments(req.session.departmentId);
-      } else {
-        departments = await storage.getDepartments();
-      }
+      // Always return parent departments for navigation/directory view
+      const departments = await storage.getParentDepartments();
       
       // Return departments without access codes for security
       const sanitizedDepartments = departments.map(({ accessCode, ...dept }) => dept);
