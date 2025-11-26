@@ -188,6 +188,8 @@ export function registerRoutes(app: Express) {
 
         req.session.departmentId = department.id;
         req.session.userType = 'department';
+        req.session.parentDepartmentId = department.parentDepartmentId || null; // For subdepartments
+        req.session.isSubdepartment = !!department.parentDepartmentId; // Flag to identify subdepartments
         
         // Save the new session
         req.session.save((saveErr: any) => {
@@ -207,6 +209,8 @@ export function registerRoutes(app: Express) {
               canCreateAssignmentFromMessage: department.canCreateAssignmentFromMessage,
               canCreateAssignment: department.canCreateAssignment,
               canCreateAnnouncement: department.canCreateAnnouncement,
+              parentDepartmentId: department.parentDepartmentId || null,
+              isSubdepartment: !!department.parentDepartmentId,
             }
           });
         });
@@ -297,6 +301,8 @@ export function registerRoutes(app: Express) {
               canCreateAssignmentFromMessage: department.canCreateAssignmentFromMessage,
               canCreateAssignment: department.canCreateAssignment,
               canCreateAnnouncement: department.canCreateAnnouncement,
+              parentDepartmentId: department.parentDepartmentId || null,
+              isSubdepartment: !!department.parentDepartmentId,
             }
           });
         }
@@ -329,14 +335,51 @@ export function registerRoutes(app: Express) {
   });
 
   // Departments list (for authenticated departments to see other departments)
+  // For subdepartments: returns only parent + sibling subdepartments
+  // For top-level departments: returns all departments
   app.get("/api/departments/list", requireAuth, async (req: Request, res: Response) => {
     try {
-      const departments = await storage.getDepartments();
+      let departments;
+      
+      // If the authenticated user is a subdepartment, restrict to accessible departments
+      if (req.session.departmentId && req.session.isSubdepartment) {
+        departments = await storage.getAccessibleDepartments(req.session.departmentId);
+      } else {
+        departments = await storage.getDepartments();
+      }
+      
       // Return departments without access codes for security
       const sanitizedDepartments = departments.map(({ accessCode, ...dept }) => dept);
       // Cache for 5 minutes since departments rarely change
       res.setHeader('Cache-Control', 'private, max-age=300');
       res.json(sanitizedDepartments);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get subdepartments of a parent department
+  app.get("/api/departments/:id/subdepartments", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const parentId = parseInt(req.params.id);
+      if (isNaN(parentId)) {
+        return res.status(400).json({ error: 'Invalid department ID' });
+      }
+      
+      const subdepartments = await storage.getSubdepartments(parentId);
+      // Return without access codes for security
+      const sanitizedSubdepartments = subdepartments.map(({ accessCode, ...dept }) => dept);
+      res.json(sanitizedSubdepartments);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get parent departments only (top-level, no parent)
+  app.get("/api/departments/parents", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const departments = await storage.getParentDepartments();
+      res.json(departments);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
