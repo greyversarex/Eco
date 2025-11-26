@@ -632,42 +632,49 @@ export default function AdminDashboard() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="dept-block">{t.block}</Label>
-                    <Select value={newDeptBlock} onValueChange={setNewDeptBlock}>
-                      <SelectTrigger id="dept-block" data-testid="select-dept-block">
-                        <SelectValue placeholder="Блокро интихоб кунед" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="upper">{t.upperBlock}</SelectItem>
-                        <SelectItem value="middle">{t.middleBlock}</SelectItem>
-                        <SelectItem value="lower">{t.lowerBlock}</SelectItem>
-                        <SelectItem value="district">{t.districtBlock}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="parent-dept">Шуъбаи асосӣ (агар ин зершуъба бошад)</Label>
+                    <Label htmlFor="parent-dept">Зершуъба ё шуъбаи мустақил?</Label>
                     <Select 
                       value={newParentDepartmentId ? String(newParentDepartmentId) : "none"} 
-                      onValueChange={(v) => setNewParentDepartmentId(v === "none" ? null : Number(v))}
+                      onValueChange={(v) => {
+                        setNewParentDepartmentId(v === "none" ? null : Number(v));
+                        if (v !== "none") {
+                          setNewDeptBlock("");
+                        }
+                      }}
                     >
                       <SelectTrigger id="parent-dept" data-testid="select-parent-dept">
-                        <SelectValue placeholder="Интихоб кунед (ихтиёрӣ)" />
+                        <SelectValue placeholder="Интихоб кунед" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Шуъбаи мустақил (асосӣ)</SelectItem>
                         {parentDepartments.map((dept) => (
                           <SelectItem key={dept.id} value={String(dept.id)}>
-                            {dept.name}
+                            Зершуъбаи: {dept.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
-                      Агар ин зершуъба бошад, шуъбаи асосиро интихоб кунед
+                      Барои зершуъба, шуъбаи асосиро интихоб кунед
                     </p>
                   </div>
+                  
+                  {!newParentDepartmentId && (
+                    <div className="space-y-2">
+                      <Label htmlFor="dept-block">{t.block}</Label>
+                      <Select value={newDeptBlock} onValueChange={setNewDeptBlock}>
+                        <SelectTrigger id="dept-block" data-testid="select-dept-block">
+                          <SelectValue placeholder="Блокро интихоб кунед" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="upper">{t.upperBlock}</SelectItem>
+                          <SelectItem value="middle">{t.middleBlock}</SelectItem>
+                          <SelectItem value="lower">{t.lowerBlock}</SelectItem>
+                          <SelectItem value="district">{t.districtBlock}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   
                   <div className="space-y-3 border-t pt-3">
                     <Label className="text-base font-semibold">Салоҳиятҳо</Label>
@@ -721,7 +728,7 @@ export default function AdminDashboard() {
                     onClick={handleAddDepartment} 
                     className="w-full" 
                     data-testid="button-save-department"
-                    disabled={createMutation.isPending || !newDeptName || !newDeptBlock}
+                    disabled={createMutation.isPending || !newDeptName || (!newParentDepartmentId && !newDeptBlock)}
                   >
                     {createMutation.isPending ? 'Лутфан интизор шавед...' : t.addDepartment}
                   </Button>
@@ -749,20 +756,6 @@ export default function AdminDashboard() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-dept-block">{t.block}</Label>
-                    <Select value={editDeptBlock} onValueChange={setEditDeptBlock}>
-                      <SelectTrigger id="edit-dept-block" data-testid="select-edit-dept-block">
-                        <SelectValue placeholder="Блокро интихоб кунед" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="upper">{t.upperBlock}</SelectItem>
-                        <SelectItem value="middle">{t.middleBlock}</SelectItem>
-                        <SelectItem value="lower">{t.lowerBlock}</SelectItem>
-                        <SelectItem value="district">{t.districtBlock}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
                     <Label htmlFor="edit-dept-code">{t.accessCode}</Label>
                     <Input
                       id="edit-dept-code"
@@ -775,29 +768,51 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="edit-parent-dept">Шуъбаи асосӣ (агар ин зершуъба бошад)</Label>
+                    <Label htmlFor="edit-parent-dept">Зершуъба ё шуъбаи мустақил?</Label>
                     <Select 
                       value={editParentDepartmentId ? String(editParentDepartmentId) : "none"} 
-                      onValueChange={(v) => setEditParentDepartmentId(v === "none" ? null : Number(v))}
+                      onValueChange={(v) => {
+                        setEditParentDepartmentId(v === "none" ? null : Number(v));
+                        if (v !== "none") {
+                          setEditDeptBlock("");
+                        }
+                      }}
                     >
                       <SelectTrigger id="edit-parent-dept" data-testid="select-edit-parent-dept">
-                        <SelectValue placeholder="Интихоб кунед (ихтиёрӣ)" />
+                        <SelectValue placeholder="Интихоб кунед" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Шуъбаи мустақил (асосӣ)</SelectItem>
                         {parentDepartments
-                          .filter(dept => dept.id !== editingDept?.id) // Don't allow self-reference
+                          .filter(dept => dept.id !== editingDept?.id)
                           .map((dept) => (
                             <SelectItem key={dept.id} value={String(dept.id)}>
-                              {dept.name}
+                              Зершуъбаи: {dept.name}
                             </SelectItem>
                           ))}
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
-                      Агар ин зершуъба бошад, шуъбаи асосиро интихоб кунед
+                      Барои зершуъба, шуъбаи асосиро интихоб кунед
                     </p>
                   </div>
+                  
+                  {!editParentDepartmentId && (
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-dept-block">{t.block}</Label>
+                      <Select value={editDeptBlock} onValueChange={setEditDeptBlock}>
+                        <SelectTrigger id="edit-dept-block" data-testid="select-edit-dept-block">
+                          <SelectValue placeholder="Блокро интихоб кунед" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="upper">{t.upperBlock}</SelectItem>
+                          <SelectItem value="middle">{t.middleBlock}</SelectItem>
+                          <SelectItem value="lower">{t.lowerBlock}</SelectItem>
+                          <SelectItem value="district">{t.districtBlock}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   
                   <div className="space-y-2">
                     <Label>Иконкаи департамент</Label>
@@ -865,7 +880,7 @@ export default function AdminDashboard() {
                     onClick={handleSaveEdit} 
                     className="w-full" 
                     data-testid="button-save-edit-department"
-                    disabled={updateMutation.isPending || !editDeptName || !editDeptBlock || !editDeptCode}
+                    disabled={updateMutation.isPending || !editDeptName || (!editParentDepartmentId && !editDeptBlock) || !editDeptCode}
                   >
                     {updateMutation.isPending ? 'Лутфан интизор шавед...' : 'Захира кардан'}
                   </Button>
