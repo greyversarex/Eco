@@ -58,9 +58,10 @@ interface SortableCardProps {
   onDelete: (id: number) => void;
   getBlockLabel: (block: string) => string;
   iconVersion?: number;
+  subdepartmentsCount?: number;
 }
 
-function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete, getBlockLabel, iconVersion }: SortableCardProps) {
+function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete, getBlockLabel, iconVersion, subdepartmentsCount = 0 }: SortableCardProps) {
   const { iconUrl } = useDepartmentIcon(department.id, iconVersion);
   const {
     attributes,
@@ -147,6 +148,11 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
 
           {/* Permission Badges */}
           <div className="flex flex-wrap gap-2 mb-4">
+            {subdepartmentsCount > 0 && (
+              <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-md font-medium">
+                {subdepartmentsCount} зершуъба
+              </span>
+            )}
             {department.canMonitor && (
               <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-md">
                 Назорат
@@ -263,6 +269,9 @@ export default function AdminDashboard() {
   const [editCanCreateAssignmentFromMessage, setEditCanCreateAssignmentFromMessage] = useState(false);
   const [editCanCreateAssignment, setEditCanCreateAssignment] = useState(false);
   const [editCanCreateAnnouncement, setEditCanCreateAnnouncement] = useState(false);
+  // Subdepartment support
+  const [newParentDepartmentId, setNewParentDepartmentId] = useState<number | null>(null);
+  const [editParentDepartmentId, setEditParentDepartmentId] = useState<number | null>(null);
   const { logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -271,10 +280,15 @@ export default function AdminDashboard() {
     queryKey: ['/api/departments'],
   });
 
-  // Filter and group departments by search query and block
+  // Get only parent departments (for dropdown selection)
+  const parentDepartments = useMemo(() => {
+    return allDepartments.filter((dept) => !dept.parentDepartmentId);
+  }, [allDepartments]);
+
+  // Filter and group departments by search query and block (only show parent departments)
   const departmentsByBlock = useMemo(() => {
     const filtered = allDepartments.filter((dept) =>
-      dept.name.toLowerCase().includes(searchQuery.toLowerCase())
+      dept.name.toLowerCase().includes(searchQuery.toLowerCase()) && !dept.parentDepartmentId
     );
     
     return {
@@ -284,6 +298,11 @@ export default function AdminDashboard() {
       district: filtered.filter((d) => d.block === 'district').sort((a, b) => a.sortOrder - b.sortOrder),
     };
   }, [allDepartments, searchQuery]);
+
+  // Get subdepartments count for each department
+  const getSubdepartmentsCount = (deptId: number) => {
+    return allDepartments.filter(d => d.parentDepartmentId === deptId).length;
+  };
 
   // Flatten for drag-and-drop
   const departments = useMemo(() => {
@@ -296,7 +315,7 @@ export default function AdminDashboard() {
   }, [departmentsByBlock]);
 
   const createMutation = useMutation({
-    mutationFn: async (data: { name: string; block: string; canMonitor: boolean; canCreateAssignmentFromMessage: boolean; canCreateAssignment: boolean; canCreateAnnouncement: boolean }) => {
+    mutationFn: async (data: { name: string; block: string; canMonitor: boolean; canCreateAssignmentFromMessage: boolean; canCreateAssignment: boolean; canCreateAnnouncement: boolean; parentDepartmentId?: number | null }) => {
       const code = Math.random().toString(36).substring(2, 10).toUpperCase();
       return await apiRequest('POST', '/api/departments', { ...data, accessCode: code });
     },
@@ -308,10 +327,14 @@ export default function AdminDashboard() {
       setNewCanCreateAssignmentFromMessage(false);
       setNewCanCreateAssignment(false);
       setNewCanCreateAnnouncement(false);
+      setNewParentDepartmentId(null);
       setIsAddDialogOpen(false);
+      const isSubdept = !!newDept.parentDepartmentId;
       toast({
         title: 'Муваффақият',
-        description: `Шуъба илова шуд. Рамз: ${newDept.accessCode}`,
+        description: isSubdept 
+          ? `Зершуъба илова шуд. Рамз: ${newDept.accessCode}`
+          : `Шуъба илова шуд. Рамз: ${newDept.accessCode}`,
       });
     },
     onError: (error: any) => {
@@ -427,6 +450,7 @@ export default function AdminDashboard() {
         canCreateAssignmentFromMessage: newCanCreateAssignmentFromMessage,
         canCreateAssignment: newCanCreateAssignment,
         canCreateAnnouncement: newCanCreateAnnouncement,
+        parentDepartmentId: newParentDepartmentId,
       });
     }
   };
@@ -451,6 +475,7 @@ export default function AdminDashboard() {
     setEditCanCreateAssignmentFromMessage(dept.canCreateAssignmentFromMessage);
     setEditCanCreateAssignment(dept.canCreateAssignment);
     setEditCanCreateAnnouncement(dept.canCreateAnnouncement);
+    setEditParentDepartmentId(dept.parentDepartmentId || null);
     setIsEditDialogOpen(true);
   };
 
@@ -466,6 +491,7 @@ export default function AdminDashboard() {
           canCreateAssignmentFromMessage: editCanCreateAssignmentFromMessage,
           canCreateAssignment: editCanCreateAssignment,
           canCreateAnnouncement: editCanCreateAnnouncement,
+          parentDepartmentId: editParentDepartmentId,
         } 
       });
       setIsEditDialogOpen(false);
@@ -477,6 +503,7 @@ export default function AdminDashboard() {
       setEditCanCreateAssignmentFromMessage(false);
       setEditCanCreateAssignment(false);
       setEditCanCreateAnnouncement(false);
+      setEditParentDepartmentId(null);
     }
   };
 
@@ -618,6 +645,29 @@ export default function AdminDashboard() {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="parent-dept">Шуъбаи асосӣ (агар ин зершуъба бошад)</Label>
+                    <Select 
+                      value={newParentDepartmentId ? String(newParentDepartmentId) : "none"} 
+                      onValueChange={(v) => setNewParentDepartmentId(v === "none" ? null : Number(v))}
+                    >
+                      <SelectTrigger id="parent-dept" data-testid="select-parent-dept">
+                        <SelectValue placeholder="Интихоб кунед (ихтиёрӣ)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Шуъбаи мустақил (асосӣ)</SelectItem>
+                        {parentDepartments.map((dept) => (
+                          <SelectItem key={dept.id} value={String(dept.id)}>
+                            {dept.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Агар ин зершуъба бошад, шуъбаи асосиро интихоб кунед
+                    </p>
+                  </div>
                   
                   <div className="space-y-3 border-t pt-3">
                     <Label className="text-base font-semibold">Салоҳиятҳо</Label>
@@ -722,6 +772,31 @@ export default function AdminDashboard() {
                       placeholder="Рамзи воридшавиро ворид кунед"
                       className="font-mono"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-parent-dept">Шуъбаи асосӣ (агар ин зершуъба бошад)</Label>
+                    <Select 
+                      value={editParentDepartmentId ? String(editParentDepartmentId) : "none"} 
+                      onValueChange={(v) => setEditParentDepartmentId(v === "none" ? null : Number(v))}
+                    >
+                      <SelectTrigger id="edit-parent-dept" data-testid="select-edit-parent-dept">
+                        <SelectValue placeholder="Интихоб кунед (ихтиёрӣ)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Шуъбаи мустақил (асосӣ)</SelectItem>
+                        {parentDepartments
+                          .filter(dept => dept.id !== editingDept?.id) // Don't allow self-reference
+                          .map((dept) => (
+                            <SelectItem key={dept.id} value={String(dept.id)}>
+                              {dept.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Агар ин зершуъба бошад, шуъбаи асосиро интихоб кунед
+                    </p>
                   </div>
                   
                   <div className="space-y-2">
@@ -836,6 +911,7 @@ export default function AdminDashboard() {
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
                             iconVersion={dataUpdatedAt}
+                            subdepartmentsCount={getSubdepartmentsCount(dept.id)}
                           />
                         ))}
                       </div>
@@ -867,6 +943,7 @@ export default function AdminDashboard() {
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
                             iconVersion={dataUpdatedAt}
+                            subdepartmentsCount={getSubdepartmentsCount(dept.id)}
                           />
                         ))}
                       </div>
@@ -898,6 +975,7 @@ export default function AdminDashboard() {
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
                             iconVersion={dataUpdatedAt}
+                            subdepartmentsCount={getSubdepartmentsCount(dept.id)}
                           />
                         ))}
                       </div>
@@ -929,6 +1007,7 @@ export default function AdminDashboard() {
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
                             iconVersion={dataUpdatedAt}
+                            subdepartmentsCount={getSubdepartmentsCount(dept.id)}
                           />
                         ))}
                       </div>
