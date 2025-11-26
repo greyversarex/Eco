@@ -40,7 +40,6 @@ function SubdepartmentCard({ department, onClick }: { department: Omit<Departmen
             <h3 className="font-medium text-foreground truncate text-sm">
               {department.name}
             </h3>
-            <p className="text-xs text-muted-foreground">Зершуъба</p>
           </div>
           <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
         </div>
