@@ -497,12 +497,17 @@ export default function AdminDashboard() {
   };
 
   const handleSaveEdit = () => {
-    if (editingDept && editDeptName && editDeptBlock && editDeptCode) {
+    // For subdepartments (with parentDepartmentId), block is not required
+    // For top-level departments, block is required
+    const isSubdepartment = editParentDepartmentId !== null;
+    const blockValid = isSubdepartment || editDeptBlock;
+    
+    if (editingDept && editDeptName && blockValid && editDeptCode) {
       updateMutation.mutate({ 
         id: editingDept.id, 
         data: { 
           name: editDeptName, 
-          block: editDeptBlock, 
+          block: isSubdepartment ? '' : editDeptBlock, 
           accessCode: editDeptCode,
           canMonitor: editCanMonitor,
           canCreateAssignmentFromMessage: editCanCreateAssignmentFromMessage,
