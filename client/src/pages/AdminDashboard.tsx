@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -63,11 +64,11 @@ interface SortableCardProps {
   onDelete: (id: number) => void;
   getBlockLabel: (block: string) => string;
   iconVersion?: number;
-  subdepartments?: Department[];
+  subdepartmentsCount?: number;
+  onViewSubdepartments?: (dept: Department) => void;
 }
 
-function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete, getBlockLabel, iconVersion, subdepartments = [] }: SortableCardProps) {
-  const [isSubdeptsOpen, setIsSubdeptsOpen] = useState(false);
+function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete, getBlockLabel, iconVersion, subdepartmentsCount = 0, onViewSubdepartments }: SortableCardProps) {
   const { iconUrl } = useDepartmentIcon(department.id, iconVersion);
   const {
     attributes,
@@ -154,16 +155,16 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
 
           {/* Permission Badges */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {subdepartments.length > 0 && (
+            {subdepartmentsCount > 0 && (
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsSubdeptsOpen(!isSubdeptsOpen);
+                  onViewSubdepartments?.(department);
                 }}
                 className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-md font-medium flex items-center gap-1"
               >
-                {isSubdeptsOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                {subdepartments.length} зершуъба
+                <ChevronRight className="h-3 w-3" />
+                {subdepartmentsCount} зершуъба
               </button>
             )}
             {department.canMonitor && (
@@ -187,61 +188,6 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
               </span>
             )}
           </div>
-
-          {/* Subdepartments List */}
-          {isSubdeptsOpen && subdepartments.length > 0 && (
-            <div className="mb-4 p-3 bg-muted/50 rounded-lg border border-border">
-              <p className="text-xs text-muted-foreground mb-2 font-medium">Зершуъбаҳо:</p>
-              <div className="space-y-2">
-                {subdepartments.map((subdept) => (
-                  <div 
-                    key={subdept.id} 
-                    className="flex items-center justify-between p-2 bg-background rounded border border-border"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{subdept.name}</p>
-                      <code className="text-xs text-muted-foreground font-mono">{subdept.accessCode}</code>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onCopyCode(subdept.accessCode);
-                        }}
-                        className="h-7 w-7 p-0"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit(subdept);
-                        }}
-                        className="h-7 w-7 p-0"
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete(subdept.id);
-                        }}
-                        className="h-7 w-7 p-0 text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
@@ -340,6 +286,8 @@ export default function AdminDashboard() {
   // Subdepartment support
   const [newParentDepartmentId, setNewParentDepartmentId] = useState<number | null>(null);
   const [editParentDepartmentId, setEditParentDepartmentId] = useState<number | null>(null);
+  // Subdepartments modal
+  const [subdeptsModalDept, setSubdeptsModalDept] = useState<Department | null>(null);
   const { logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -995,7 +943,8 @@ export default function AdminDashboard() {
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
                             iconVersion={dataUpdatedAt}
-                            subdepartments={getSubdepartments(dept.id)}
+                            subdepartmentsCount={getSubdepartments(dept.id).length}
+                            onViewSubdepartments={setSubdeptsModalDept}
                           />
                         ))}
                       </div>
@@ -1027,7 +976,8 @@ export default function AdminDashboard() {
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
                             iconVersion={dataUpdatedAt}
-                            subdepartments={getSubdepartments(dept.id)}
+                            subdepartmentsCount={getSubdepartments(dept.id).length}
+                            onViewSubdepartments={setSubdeptsModalDept}
                           />
                         ))}
                       </div>
@@ -1059,7 +1009,8 @@ export default function AdminDashboard() {
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
                             iconVersion={dataUpdatedAt}
-                            subdepartments={getSubdepartments(dept.id)}
+                            subdepartmentsCount={getSubdepartments(dept.id).length}
+                            onViewSubdepartments={setSubdeptsModalDept}
                           />
                         ))}
                       </div>
@@ -1091,7 +1042,8 @@ export default function AdminDashboard() {
                             onDelete={handleDeleteDepartment}
                             getBlockLabel={getBlockLabel}
                             iconVersion={dataUpdatedAt}
-                            subdepartments={getSubdepartments(dept.id)}
+                            subdepartmentsCount={getSubdepartments(dept.id).length}
+                            onViewSubdepartments={setSubdeptsModalDept}
                           />
                         ))}
                       </div>
@@ -1104,6 +1056,97 @@ export default function AdminDashboard() {
         </div>
       </div>
       <Footer />
+
+      {/* Subdepartments Modal */}
+      <Dialog open={!!subdeptsModalDept} onOpenChange={() => setSubdeptsModalDept(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-primary" />
+              Зершуъбаҳои {subdeptsModalDept?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="overflow-y-auto flex-1 pr-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+              {subdeptsModalDept && getSubdepartments(subdeptsModalDept.id).map((subdept) => (
+                <div
+                  key={subdept.id}
+                  className="rounded-lg border border-border bg-card p-4 shadow-sm"
+                >
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-md bg-muted flex-shrink-0 flex items-center justify-center overflow-hidden">
+                      <div className="flex h-full w-full items-center justify-center bg-indigo-100 text-indigo-700 rounded-md">
+                        <Building2 className="h-5 w-5" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground truncate">
+                        {subdept.name}
+                      </h3>
+                      <span className="text-xs text-muted-foreground">Зершуъба</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-3">
+                    <code className="flex-1 rounded bg-muted px-2 py-1.5 text-sm font-mono">
+                      {subdept.accessCode}
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCopyCode(subdept.accessCode)}
+                      className="shrink-0"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSubdeptsModalDept(null);
+                        handleEditDepartment(subdept);
+                      }}
+                      className="flex-1"
+                    >
+                      <Pencil className="h-4 w-4 mr-1" />
+                      Таҳрир
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleGenerateCode(subdept.id)}
+                      className="shrink-0"
+                      title="Таҷдиди рамз"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSubdeptsModalDept(null);
+                        handleDeleteDepartment(subdept.id);
+                      }}
+                      className="shrink-0 text-destructive hover:text-destructive"
+                      title="Нобуд кардан"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSubdeptsModalDept(null)}>
+              Пӯшидан
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
