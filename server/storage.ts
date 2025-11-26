@@ -15,12 +15,18 @@ import type {
 export interface IStorage {
   // Departments
   getDepartments(): Promise<Department[]>;
+  getParentDepartments(): Promise<Department[]>; // Only top-level departments (no parent)
   getDepartmentById(id: number): Promise<Department | undefined>;
   getDepartmentByAccessCode(accessCode: string): Promise<Department | undefined>;
   createDepartment(department: InsertDepartment): Promise<Department>;
   updateDepartment(id: number, department: Partial<InsertDepartment>): Promise<Department | undefined>;
   deleteDepartment(id: number): Promise<boolean>;
   reorderDepartments(updates: Array<{ id: number; sortOrder: number }>): Promise<void>;
+  
+  // Subdepartments
+  getSubdepartments(parentId: number): Promise<Department[]>; // Get subdepartments of a parent
+  getSiblingSubdepartments(departmentId: number): Promise<Department[]>; // Get siblings (same parent)
+  getAccessibleDepartments(departmentId: number): Promise<Department[]>; // For messaging: parent + siblings for subdepts, all for depts
   
   // Department Icons
   getDepartmentIcon(departmentId: number): Promise<DepartmentIcon | undefined>;
@@ -147,6 +153,65 @@ export class DbStorage implements IStorage {
         .set({ sortOrder: update.sortOrder })
         .where(eq(departments.id, update.id));
     }
+  }
+
+  // Get only top-level departments (no parent)
+  async getParentDepartments(): Promise<Department[]> {
+    return await db.select().from(departments)
+      .where(sql`${departments.parentDepartmentId} IS NULL`)
+      .orderBy(asc(departments.sortOrder), asc(departments.id));
+  }
+
+  // Get subdepartments of a parent department
+  async getSubdepartments(parentId: number): Promise<Department[]> {
+    return await db.select().from(departments)
+      .where(eq(departments.parentDepartmentId, parentId))
+      .orderBy(asc(departments.sortOrder), asc(departments.id));
+  }
+
+  // Get sibling subdepartments (same parent) excluding self
+  async getSiblingSubdepartments(departmentId: number): Promise<Department[]> {
+    // First get the department to find its parent
+    const dept = await this.getDepartmentById(departmentId);
+    if (!dept || !dept.parentDepartmentId) {
+      return []; // Not a subdepartment or not found
+    }
+    
+    // Get all subdepartments of the same parent, excluding self
+    return await db.select().from(departments)
+      .where(and(
+        eq(departments.parentDepartmentId, dept.parentDepartmentId),
+        sql`${departments.id} != ${departmentId}`
+      ))
+      .orderBy(asc(departments.sortOrder), asc(departments.id));
+  }
+
+  // Get departments accessible for messaging
+  // For subdepartments: only parent + sibling subdepartments
+  // For departments: all departments (existing behavior)
+  async getAccessibleDepartments(departmentId: number): Promise<Department[]> {
+    const dept = await this.getDepartmentById(departmentId);
+    if (!dept) return [];
+    
+    // If it's a subdepartment (has parent)
+    if (dept.parentDepartmentId) {
+      // Get parent department
+      const parent = await this.getDepartmentById(dept.parentDepartmentId);
+      // Get sibling subdepartments
+      const siblings = await db.select().from(departments)
+        .where(and(
+          eq(departments.parentDepartmentId, dept.parentDepartmentId),
+          sql`${departments.id} != ${departmentId}` // exclude self
+        ))
+        .orderBy(asc(departments.sortOrder), asc(departments.id));
+      
+      // Return parent + siblings
+      return parent ? [parent, ...siblings] : siblings;
+    }
+    
+    // If it's a top-level department, return all departments (excluding subdepartments of other departments)
+    // For now, return all departments - this maintains existing behavior
+    return await this.getDepartments();
   }
 
   // Department Icons

@@ -39,8 +39,8 @@ export const insertDepartmentIconSchema = z.object({
 export type InsertDepartmentIcon = z.infer<typeof insertDepartmentIconSchema>;
 export type DepartmentIcon = typeof departmentIcons.$inferSelect;
 
-// Departments table
-export const departments = pgTable("departments", {
+// Departments table (supports both departments and subdepartments via parentDepartmentId)
+export const departments: any = pgTable("departments", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   block: text("block").notNull(), // 'upper', 'middle', 'lower', 'district'
@@ -51,17 +51,23 @@ export const departments = pgTable("departments", {
   canCreateAssignment: boolean("can_create_assignment").default(false).notNull(), // Право создавать супориши
   canCreateAnnouncement: boolean("can_create_announcement").default(false).notNull(), // Право создавать эълонҳо
   icon: text("icon").default('building-2').notNull(), // Legacy field for backward compatibility, new icons use department_icons table
+  parentDepartmentId: integer("parent_department_id").references((): any => departments.id, { onDelete: 'cascade' }), // Поддепартаменты - ссылка на родительский департамент
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  parentIdx: index("departments_parent_id_idx").on(table.parentDepartmentId),
+}));
 
 export const insertDepartmentSchema = createInsertSchema(departments).omit({
   id: true,
   createdAt: true,
 }).extend({
   icon: z.string().optional(), // Optional - database default handles it
+  parentDepartmentId: z.number().int().positive().nullable().optional(), // Nullable - null for top-level departments
 });
 export type InsertDepartment = z.infer<typeof insertDepartmentSchema>;
-export type Department = typeof departments.$inferSelect;
+export type Department = typeof departments.$inferSelect & {
+  parentDepartmentId?: number | null;
+};
 
 // Admin users table
 export const admins = pgTable("admins", {
