@@ -179,40 +179,39 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: 'Invalid access code' });
       }
 
-      // Regenerate session to clear any previous data
-      req.session.regenerate((err: any) => {
-        if (err) {
-          console.error('Session regenerate error:', err);
-          return res.status(500).json({ error: 'Failed to create session' });
+      // Clear previous session data without regenerating session ID
+      // This avoids cookie issues in iframe/proxy environments
+      delete req.session.adminId;
+      
+      // Set department session data
+      req.session.departmentId = department.id;
+      req.session.userType = 'department';
+      req.session.parentDepartmentId = department.parentDepartmentId || null;
+      req.session.isSubdepartment = !!department.parentDepartmentId;
+      
+      // Save the session
+      req.session.save((saveErr: any) => {
+        if (saveErr) {
+          console.error('Session save error:', saveErr);
+          return res.status(500).json({ error: 'Failed to save session' });
         }
-
-        req.session.departmentId = department.id;
-        req.session.userType = 'department';
-        req.session.parentDepartmentId = department.parentDepartmentId || null; // For subdepartments
-        req.session.isSubdepartment = !!department.parentDepartmentId; // Flag to identify subdepartments
         
-        // Save the new session
-        req.session.save((saveErr: any) => {
-          if (saveErr) {
-            console.error('Session save error:', saveErr);
-            return res.status(500).json({ error: 'Failed to save session' });
+        console.log('[AUTH] Department login successful:', { departmentId: department.id, sessionId: req.session.id });
+        
+        res.json({ 
+          success: true, 
+          department: {
+            id: department.id,
+            name: department.name,
+            block: department.block,
+            code: department.accessCode,
+            canMonitor: department.canMonitor,
+            canCreateAssignmentFromMessage: department.canCreateAssignmentFromMessage,
+            canCreateAssignment: department.canCreateAssignment,
+            canCreateAnnouncement: department.canCreateAnnouncement,
+            parentDepartmentId: department.parentDepartmentId || null,
+            isSubdepartment: !!department.parentDepartmentId,
           }
-          
-          res.json({ 
-            success: true, 
-            department: {
-              id: department.id,
-              name: department.name,
-              block: department.block,
-              code: department.accessCode,
-              canMonitor: department.canMonitor,
-              canCreateAssignmentFromMessage: department.canCreateAssignmentFromMessage,
-              canCreateAssignment: department.canCreateAssignment,
-              canCreateAnnouncement: department.canCreateAnnouncement,
-              parentDepartmentId: department.parentDepartmentId || null,
-              isSubdepartment: !!department.parentDepartmentId,
-            }
-          });
         });
       });
     } catch (error: any) {
@@ -242,30 +241,31 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      // Regenerate session to clear any previous data
-      req.session.regenerate((err: any) => {
-        if (err) {
-          console.error('Session regenerate error:', err);
-          return res.status(500).json({ error: 'Failed to create session' });
+      // Clear previous session data without regenerating session ID
+      // This avoids cookie issues in iframe/proxy environments
+      delete req.session.departmentId;
+      delete req.session.parentDepartmentId;
+      delete req.session.isSubdepartment;
+      
+      // Set admin session data
+      req.session.adminId = admin.id;
+      req.session.userType = 'admin';
+      
+      // Save the session
+      req.session.save((saveErr: any) => {
+        if (saveErr) {
+          console.error('Session save error:', saveErr);
+          return res.status(500).json({ error: 'Failed to save session' });
         }
-
-        req.session.adminId = admin.id;
-        req.session.userType = 'admin';
         
-        // Save the new session
-        req.session.save((saveErr: any) => {
-          if (saveErr) {
-            console.error('Session save error:', saveErr);
-            return res.status(500).json({ error: 'Failed to save session' });
+        console.log('[AUTH] Admin login successful:', { adminId: admin.id, sessionId: req.session.id });
+        
+        res.json({ 
+          success: true,
+          admin: {
+            id: admin.id,
+            username: admin.username,
           }
-          
-          res.json({ 
-            success: true,
-            admin: {
-              id: admin.id,
-              username: admin.username,
-            }
-          });
         });
       });
     } catch (error: any) {

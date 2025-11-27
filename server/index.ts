@@ -96,6 +96,8 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    // Rolling sessions - обновлять cookie при каждом запросе
+    rolling: true,
     // КРИТИЧНО: proxy: true для работы за Nginx
     proxy: true,
     cookie: {
