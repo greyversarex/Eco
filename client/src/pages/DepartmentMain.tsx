@@ -14,10 +14,9 @@ import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { Footer } from '@/components/Footer';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
-import NotificationButton from '@/components/NotificationButton';
 import { useDepartmentIcon } from '@/hooks/use-department-icon';
 
-// Parent Department Card for Subdepartments view
+// Parent Department Card for Subdepartments view - styled to match DepartmentCard
 function ParentDepartmentCard({ department, unreadCount, onClick }: { 
   department: Omit<Department, 'accessCode'>; 
   unreadCount: number;
@@ -25,47 +24,57 @@ function ParentDepartmentCard({ department, unreadCount, onClick }: {
 }) {
   const { iconUrl } = useDepartmentIcon(department.id);
   
+  const words = department.name.split(' ');
+  const firstWord = words[0];
+  const restOfWords = words.slice(1).join(' ');
+  
   return (
     <Card 
-      className="hover-elevate cursor-pointer transition-all border-2 border-primary/30 bg-primary/5"
+      className="relative cursor-pointer p-6 transition-all duration-200 hover:border-primary hover:shadow-md hover:bg-primary/5 bg-white border-2 border-primary/30"
       onClick={onClick}
       data-testid={`card-parent-department-${department.id}`}
     >
-      <CardContent className="p-6">
-        <div className="flex items-center gap-4">
+      {unreadCount > 0 && (
+        <div 
+          className="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white text-xs font-semibold shadow-md"
+        >
+          {unreadCount}
+        </div>
+      )}
+      <div className="flex items-start gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-white shrink-0 mt-0.5 overflow-hidden">
           {iconUrl ? (
-            <img
+            <img 
               src={iconUrl}
               alt=""
-              className="h-16 w-16 rounded-lg object-cover shrink-0"
+              className="w-full h-full object-cover"
             />
           ) : (
-            <div className="h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <Building2 className="h-8 w-8 text-primary" />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs rounded-md font-medium">
-                Сарвазирӣ
-              </span>
-            </div>
-            <h3 className="font-semibold text-foreground text-lg truncate">
-              {department.name}
-            </h3>
-          </div>
-          {unreadCount > 0 && (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white text-sm font-bold">
-              {unreadCount}
+            <div className="flex h-full w-full items-center justify-center bg-primary text-primary-foreground rounded-md">
+              <Building2 className="h-5 w-5" />
             </div>
           )}
         </div>
-      </CardContent>
+        <div className="flex-1">
+          <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs rounded-md font-medium inline-block mb-1">
+            Сарвазирӣ
+          </span>
+          <h3 className="text-base font-medium text-foreground leading-snug">
+            {firstWord}
+            {restOfWords && (
+              <>
+                <br />
+                {restOfWords}
+              </>
+            )}
+          </h3>
+        </div>
+      </div>
     </Card>
   );
 }
 
-// Sibling Subdepartment Card
+// Sibling Subdepartment Card - styled to match DepartmentCard
 function SiblingSubdepartmentCard({ department, unreadCount, onClick, isSelf }: { 
   department: Omit<Department, 'accessCode'>; 
   unreadCount: number;
@@ -74,40 +83,52 @@ function SiblingSubdepartmentCard({ department, unreadCount, onClick, isSelf }: 
 }) {
   const { iconUrl } = useDepartmentIcon(department.id);
   
+  const words = department.name.split(' ');
+  const firstWord = words[0];
+  const restOfWords = words.slice(1).join(' ');
+  
   return (
     <Card 
-      className={`hover-elevate cursor-pointer transition-all ${isSelf ? 'border-2 border-primary/50 bg-primary/5' : ''}`}
+      className={`relative cursor-pointer p-6 transition-all duration-200 hover:border-primary hover:shadow-md hover:bg-primary/5 bg-white ${isSelf ? 'border-2 border-primary/50 bg-primary/5' : ''}`}
       onClick={onClick}
       data-testid={`card-sibling-subdepartment-${department.id}`}
     >
-      <CardContent className="p-4">
-        <div className="flex items-center gap-3">
+      {unreadCount > 0 && (
+        <div 
+          className="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white text-xs font-semibold shadow-md"
+        >
+          {unreadCount}
+        </div>
+      )}
+      <div className="flex items-start gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-white shrink-0 mt-0.5 overflow-hidden">
           {iconUrl ? (
-            <img
+            <img 
               src={iconUrl}
               alt=""
-              className="h-12 w-12 rounded-md object-cover shrink-0"
+              className="w-full h-full object-cover"
             />
           ) : (
-            <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
-              <Users className="h-6 w-6 text-primary" />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-foreground truncate">
-              {department.name}
-            </h3>
-            {isSelf && (
-              <p className="text-xs text-muted-foreground">Шумо</p>
-            )}
-          </div>
-          {unreadCount > 0 && (
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold">
-              {unreadCount}
+            <div className="flex h-full w-full items-center justify-center bg-primary text-primary-foreground rounded-md">
+              <Users className="h-5 w-5" />
             </div>
           )}
         </div>
-      </CardContent>
+        <div className="flex-1">
+          <h3 className="text-base font-medium text-foreground leading-snug">
+            {firstWord}
+            {restOfWords && (
+              <>
+                <br />
+                {restOfWords}
+              </>
+            )}
+          </h3>
+          {isSelf && (
+            <p className="text-xs text-muted-foreground mt-1">Шумо</p>
+          )}
+        </div>
+      </div>
     </Card>
   );
 }
@@ -237,7 +258,6 @@ export default function DepartmentMain() {
               >
                 <Trash2 className="h-5 w-5" />
               </Button>
-              <NotificationButton variant="desktop" />
             </nav>
             <MobileNav 
               translations={{

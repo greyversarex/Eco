@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
-// Convert base64 VAPID key to Uint8Array
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding)
@@ -22,17 +21,15 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 export function usePushNotifications() {
   const isSubscribed = useRef(false);
   const currentSubscription = useRef<PushSubscription | null>(null);
+  const permissionRequested = useRef(false);
   
-  // Check if user is authenticated
   const { data: user, isSuccess: isAuthReady } = useQuery({
     queryKey: ['/api/auth/me'],
   });
 
   useEffect(() => {
-    // Wait until auth query has completed
     if (!isAuthReady) return;
     
-    // If user logged out, clean up subscription
     if (!user && currentSubscription.current) {
       unsubscribeFromPush().catch(err => 
         console.error('Failed to unsubscribe on logout:', err)
@@ -40,47 +37,42 @@ export function usePushNotifications() {
       return;
     }
     
-    // Wait until user is authenticated
     if (!user) return;
-    
-    // Only run once per session
     if (isSubscribed.current) return;
     
     const setupPushNotifications = async () => {
       try {
-        // Check if browser supports notifications and service workers
         if (!('Notification' in window) || !('serviceWorker' in navigator)) {
           console.log('Push notifications not supported');
           return;
         }
 
-        // Check if VAPID key is configured
         if (!VAPID_PUBLIC_KEY) {
           console.warn('VAPID public key not configured');
           return;
         }
 
-        // Wait for service worker to be ready
         const registration = await navigator.serviceWorker.ready;
+        let permission = Notification.permission;
 
-        // Check current permission
-        const permission = Notification.permission;
+        if (permission === 'default' && !permissionRequested.current) {
+          permissionRequested.current = true;
+          try {
+            permission = await Notification.requestPermission();
+          } catch (e) {
+            console.log('Notification permission request failed:', e);
+          }
+        }
 
-        // Only auto-subscribe if permission is already granted
-        // Don't automatically request permission (browser blocks it)
-        // User should use NotificationButton to grant permission
-        if (permission !== 'granted') {
-          console.log('Notification permission not granted. Use the notification button to enable.');
+        if (permission === 'denied') {
+          console.log('Notifications denied by user');
           return;
         }
 
-        // If permission granted, subscribe to push
         if (permission === 'granted') {
           try {
-            // Get existing subscription
             let subscription = await registration.pushManager.getSubscription();
 
-            // If no subscription exists, create one
             if (!subscription) {
               subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
@@ -88,7 +80,6 @@ export function usePushNotifications() {
               });
             }
 
-            // Send subscription to server
             if (subscription) {
               const p256dhKey = subscription.getKey('p256dh');
               const authKey = subscription.getKey('auth');
@@ -134,17 +125,14 @@ export function usePushNotifications() {
     setupPushNotifications();
   }, [user, isAuthReady]);
   
-  // Helper function to unsubscribe
   async function unsubscribeFromPush() {
     try {
       if (!currentSubscription.current) return;
 
       const endpoint = currentSubscription.current.endpoint;
       
-      // Unsubscribe from browser
       await currentSubscription.current.unsubscribe();
       
-      // Notify server
       await fetch('/api/push/unsubscribe', {
         method: 'POST',
         headers: {

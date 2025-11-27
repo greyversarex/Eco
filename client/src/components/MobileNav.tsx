@@ -10,7 +10,6 @@ import {
 import { Menu, Inbox, Send, PenSquare, LogOut, Trash2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/lib/auth';
-import NotificationButton from './NotificationButton';
 
 interface MobileNavProps {
   translations: {
@@ -102,7 +101,6 @@ export default function MobileNav({ translations }: MobileNavProps) {
               </div>
               <span>{translations.trash}</span>
             </Button>
-            <NotificationButton variant="mobile" />
           </div>
           <Button
             variant="outline"
