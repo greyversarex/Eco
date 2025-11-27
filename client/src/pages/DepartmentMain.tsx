@@ -376,7 +376,7 @@ export default function DepartmentMain() {
                 {/* Sibling Subdepartments Section */}
                 {siblingSubdepartments.length > 0 && (
                   <div className="space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                       {siblingSubdepartments.map((subdept) => (
                         <SiblingSubdepartmentCard
                           key={subdept.id}

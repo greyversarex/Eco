@@ -47,27 +47,7 @@ app.use(cors({
 }));
 
 // ============================================================================
-// COMPRESSION
-// ============================================================================
-app.use(compression({
-  filter: (req: Request, res: Response) => {
-    if (req.headers['x-no-compression']) {
-      return false;
-    }
-    return compression.filter(req, res);
-  },
-  threshold: 1024,
-  level: 6,
-}));
-
-// ============================================================================
-// BODY PARSERS
-// ============================================================================
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-// ============================================================================
-// SESSION - Mobile-First конфигурация для PWA/WebView
+// SESSION - КРИТИЧНО: Должен быть ДО body parsers!
 // ============================================================================
 const PgSession = connectPgSimple(session);
 
@@ -116,6 +96,26 @@ app.use(
     },
   })
 );
+
+// ============================================================================
+// COMPRESSION
+// ============================================================================
+app.use(compression({
+  filter: (req: Request, res: Response) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  },
+  threshold: 1024,
+  level: 6,
+}));
+
+// ============================================================================
+// BODY PARSERS - ПОСЛЕ session middleware
+// ============================================================================
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // ============================================================================
 // REQUEST LOGGING
