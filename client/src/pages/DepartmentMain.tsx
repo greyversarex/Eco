@@ -144,7 +144,7 @@ export default function DepartmentMain() {
   const currentDepartmentId = user?.userType === 'department' ? user.department?.id : null;
 
   const { data: departments = [], isLoading, dataUpdatedAt } = useQuery<Omit<Department, 'accessCode'>[]>({
-    queryKey: ['/api/departments/list'],
+    queryKey: ['/api/departments/all'],
   });
 
   // Fetch sibling subdepartments for subdepartment view
@@ -157,6 +157,11 @@ export default function DepartmentMain() {
     queryKey: ['/api/messages/unread/by-department'],
   });
 
+  // Total unread count for current department (for inbox badge)
+  const { data: totalUnread } = useQuery<{ count: number }>({
+    queryKey: ['/api/messages/unread/count'],
+  });
+
   const { data: counters } = useQuery<{ unreadAnnouncements: number; uncompletedAssignments: number }>({
     queryKey: ['/api/counters'],
   });
@@ -165,9 +170,11 @@ export default function DepartmentMain() {
   const parentDepartment = parentDepartmentId ? departments.find(d => d.id === parentDepartmentId) : null;
 
   // Filter departments by search query
-  const filteredDepartments = departments.filter((dept) =>
-    dept.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Regular departments only see parent departments (not subdepartments)
+  // Subdepartments see parent and siblings, but that's handled separately
+  const filteredDepartments = departments
+    .filter((dept) => !dept.isSubdepartment) // Only show parent departments in navigation
+    .filter((dept) => dept.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   // Group departments by block and sort by sortOrder
   const departmentsByBlock = {
@@ -221,12 +228,17 @@ export default function DepartmentMain() {
                 size="default"
                 onClick={() => setLocation('/department/inbox')}
                 data-testid="button-inbox"
-                className="gap-2.5 bg-white text-green-700 hover:bg-white/90 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-green-100"
+                className="gap-2.5 bg-white text-green-700 hover:bg-white/90 font-medium px-5 h-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-green-100 relative"
               >
                 <div className="flex h-7 w-7 items-center justify-center rounded-md bg-green-100">
                   <Inbox className="h-4 w-4 text-green-700" />
                 </div>
                 <span className="font-semibold">{t.inbox}</span>
+                {totalUnread && totalUnread.count > 0 && (
+                  <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold shadow-md">
+                    {totalUnread.count > 99 ? '99+' : totalUnread.count}
+                  </span>
+                )}
               </Button>
               <Button
                 size="default"
@@ -267,6 +279,7 @@ export default function DepartmentMain() {
                 trash: t.trash,
                 menu: t.menu,
               }}
+              unreadCount={totalUnread?.count || 0}
             />
             <div className="hidden sm:flex items-center gap-2">
               <Button

@@ -22,7 +22,7 @@ export default function MonitoringPage() {
   const isAuthorized = user?.userType === 'department' && user.department?.code === 'ROHBAR001';
 
   const { data: departments = [], isLoading: deptLoading } = useQuery<Omit<Department, 'accessCode'>[]>({
-    queryKey: ['/api/departments/list'],
+    queryKey: ['/api/departments/all'],
     enabled: isAuthorized,
   });
 

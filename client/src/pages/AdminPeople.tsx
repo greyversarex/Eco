@@ -55,7 +55,7 @@ export default function AdminPeople() {
   });
 
   const { data: departments = [], isLoading: isLoadingDepts } = useQuery<Department[]>({
-    queryKey: ['/api/departments/list'],
+    queryKey: ['/api/departments/all'],
   });
 
   const people = allPeople.filter((person) =>

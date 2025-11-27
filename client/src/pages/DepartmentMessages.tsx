@@ -60,7 +60,7 @@ export default function DepartmentMessages() {
   const backUrl = fromMonitoring ? '/department/monitoring' : '/department/main';
 
   const { data: departments = [] } = useQuery<Omit<Department, 'accessCode'>[]>({
-    queryKey: ['/api/departments/list'],
+    queryKey: ['/api/departments/all'],
   });
 
   const { data: messages, isLoading } = useQuery<{ received: Message[]; sent: Message[] }>({

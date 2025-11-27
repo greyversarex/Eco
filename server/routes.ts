@@ -352,6 +352,21 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Get ALL departments (parents + subdepartments) for lookups
+  // Used to resolve sender/recipient names in messages
+  app.get("/api/departments/all", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const allDepartments = await storage.getDepartments();
+      // Return departments without access codes for security
+      const sanitizedDepartments = allDepartments.map(({ accessCode, ...dept }) => dept);
+      // Cache for 5 minutes since departments rarely change
+      res.setHeader('Cache-Control', 'private, max-age=300');
+      res.json(sanitizedDepartments);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Get subdepartments of a parent department
   app.get("/api/departments/:id/subdepartments", requireAuth, async (req: Request, res: Response) => {
     try {

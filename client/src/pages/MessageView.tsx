@@ -76,9 +76,9 @@ export default function MessageView() {
     enabled: !!id,
   });
 
-  // Load department list for all purposes (sender name, recipients, etc.)
+  // Load ALL departments (including subdepartments) for lookups (sender name, recipients, etc.)
   const { data: departments = [], isLoading: loadingDepartments } = useQuery<any[]>({
-    queryKey: ['/api/departments/list'],
+    queryKey: ['/api/departments/all'],
   });
 
   const { data: allPeople = [] } = useQuery<Person[]>({

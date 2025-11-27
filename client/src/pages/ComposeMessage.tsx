@@ -43,7 +43,7 @@ export default function ComposeMessage() {
   const parentDepartmentId = user?.userType === 'department' ? user.department?.parentDepartmentId : null;
 
   const { data: departments = [], isLoading: loadingDepartments, dataUpdatedAt } = useQuery<Omit<Department, 'accessCode'>[]>({
-    queryKey: ['/api/departments/list'],
+    queryKey: ['/api/departments/all'],
   });
 
   // Fetch sibling subdepartments for subdepartment view
@@ -53,6 +53,8 @@ export default function ComposeMessage() {
   });
 
   // Get available recipients based on user type
+  // Subdepartments can only message parent and sibling subdepartments
+  // Regular departments only see other parent departments (no subdepartments)
   const availableRecipients = isSubdepartment && parentDepartmentId
     ? [
         // Parent department
@@ -60,7 +62,7 @@ export default function ComposeMessage() {
         // Sibling subdepartments (excluding self)
         ...siblingSubdepartments.filter(d => d.id !== (user?.department?.id ?? null))
       ]
-    : departments;
+    : departments.filter(d => !d.isSubdepartment);
 
   const { data: allPeople = [] } = useQuery<Person[]>({
     queryKey: ['/api/people'],

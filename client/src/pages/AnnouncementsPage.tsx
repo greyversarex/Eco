@@ -37,7 +37,7 @@ export default function AnnouncementsPage() {
   });
 
   const { data: departments = [] } = useQuery<Omit<Department, 'accessCode'>[]>({
-    queryKey: ['/api/departments/list'],
+    queryKey: ['/api/departments/all'],
   });
 
   // Mark announcements as read when page loads

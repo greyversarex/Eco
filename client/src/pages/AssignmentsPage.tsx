@@ -208,7 +208,7 @@ export default function AssignmentsPage() {
   });
 
   const { data: departments = [], isLoading: loadingDepartments, dataUpdatedAt } = useQuery<Department[]>({
-    queryKey: ['/api/departments/list'],
+    queryKey: ['/api/departments/all'],
   });
 
   const { data: allPeople = [] } = useQuery<Person[]>({

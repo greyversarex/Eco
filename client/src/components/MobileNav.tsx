@@ -19,9 +19,10 @@ interface MobileNavProps {
     trash: string;
     menu: string;
   };
+  unreadCount?: number;
 }
 
-export default function MobileNav({ translations }: MobileNavProps) {
+export default function MobileNav({ translations, unreadCount = 0 }: MobileNavProps) {
   const [, setLocation] = useLocation();
   const [open, setOpen] = useState(false);
   const { logout } = useAuth();
@@ -62,7 +63,7 @@ export default function MobileNav({ translations }: MobileNavProps) {
         <div className="flex flex-col gap-2.5 mt-5 flex-1 justify-between">
           <div className="flex flex-col gap-2.5">
             <Button
-              className="justify-start gap-2.5 h-12 text-sm font-medium bg-primary hover:bg-primary/90 shadow-md"
+              className="justify-start gap-2.5 h-12 text-sm font-medium bg-primary hover:bg-primary/90 shadow-md relative"
               onClick={() => navigateTo('/department/inbox')}
               data-testid="mobile-nav-inbox"
             >
@@ -70,6 +71,11 @@ export default function MobileNav({ translations }: MobileNavProps) {
                 <Inbox className="h-4 w-4 text-white" />
               </div>
               <span>{translations.inbox}</span>
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold shadow-md">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </Button>
             <Button
               className="justify-start gap-2.5 h-12 text-sm font-medium bg-primary hover:bg-primary/90 shadow-md"

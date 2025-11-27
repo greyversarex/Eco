@@ -33,7 +33,7 @@ export default function Inbox() {
   });
 
   const { data: departments = [], isLoading: loadingDepartments } = useQuery<Omit<Department, 'accessCode'>[]>({
-    queryKey: ['/api/departments/list'],
+    queryKey: ['/api/departments/all'],
   });
 
   const getDepartmentName = (deptId: number) => {

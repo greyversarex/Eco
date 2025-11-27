@@ -89,9 +89,9 @@ export default function TrashPage() {
     queryKey: ['/api/trash/announcements'],
   });
 
-  // Fetch departments for display names
+  // Fetch departments for display names (including subdepartments)
   const { data: departments = [] } = useQuery<Omit<Department, 'accessCode'>[]>({
-    queryKey: ['/api/departments/list'],
+    queryKey: ['/api/departments/all'],
   });
 
   const getDepartmentName = (deptId: number) => {
