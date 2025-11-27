@@ -107,3 +107,8 @@ expertMode = true
 
 [objectStorage]
 defaultBucketID = "replit-objstore-dd97d272-777b-4338-bf8c-2e0918ffb888"
+
+[userenv]
+
+[userenv.shared]
+FORCE_HTTPS = "true"
