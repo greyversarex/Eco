@@ -71,6 +71,12 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Third-Party Services:** PostgreSQL server (version 13+), Google Fonts (Inter and Roboto)
 
 ### Recent Changes
+*   **2025-11-27 (Session & Department Fixes):** Critical session persistence fix and improved department lookups:
+    - Session Fix: Moved session middleware BEFORE body parsers (`express.json()`) in server/index.ts to prevent logout issues
+    - New Endpoint: Added `/api/departments/all` to return ALL departments including subdepartments (for sender/recipient lookups)
+    - Navigation Filtering: DepartmentMain and ComposeMessage now filter out subdepartments for regular department users
+    - Unread Badge: Added unread message counter badge to inbox button ("Хуҷҷатҳои воридшуда") on both desktop and mobile
+    - All pages using department lists now use `/api/departments/all` with appropriate filtering
 *   **2025-11-26 (Subdepartments Feature):** Implemented hierarchical subdepartments system for EcoDoc. Parent departments can have subdepartments with restricted messaging access (parent + sibling subdepartments only). Key changes:
     - Database: Added `parentDepartmentId` column with self-referential FK and CASCADE delete
     - Storage: Added `getSubdepartments`, `getAccessibleDepartments`, `getSiblingSubdepartments` methods
