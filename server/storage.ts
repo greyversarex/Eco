@@ -727,8 +727,23 @@ export class DbStorage implements IStorage {
   }
 
   async getUnreadAnnouncementsCount(departmentId: number): Promise<number> {
-    const allAnnouncements = await db.select().from(announcements);
-    return allAnnouncements.filter(a => !a.readBy.includes(departmentId)).length;
+    // IMPORTANT: Must use same filtering logic as getAnnouncements()
+    // Only count announcements that are:
+    // 1. Not deleted
+    // 2. Either targeted to this department OR for everyone (recipientIds is NULL)
+    // 3. Not yet read by this department
+    const visibleAnnouncements = await db.select().from(announcements)
+      .where(
+        and(
+          eq(announcements.isDeleted, false),
+          or(
+            sql`${announcements.recipientIds} IS NULL`,
+            sql`${announcements.recipientIds} @> ARRAY[${departmentId}]::integer[]`
+          )
+        )
+      );
+    
+    return visibleAnnouncements.filter(a => !a.readBy.includes(departmentId)).length;
   }
 
   async listDeletedAnnouncements(): Promise<Announcement[]> {
