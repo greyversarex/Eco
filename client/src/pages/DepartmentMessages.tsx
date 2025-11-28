@@ -57,11 +57,19 @@ export default function DepartmentMessages() {
   // Check if coming from monitoring page
   const urlParams = new URLSearchParams(window.location.search);
   const fromMonitoring = urlParams.get('from') === 'monitoring';
-  const backUrl = fromMonitoring ? '/department/monitoring' : '/department/main';
 
   const { data: departments = [] } = useQuery<Omit<Department, 'accessCode'>[]>({
     queryKey: ['/api/departments/all'],
   });
+  
+  const department = departments.find((d) => d.id === departmentId);
+  
+  // Determine back URL: subdepartment → parent department, otherwise → main or monitoring
+  const backUrl = department?.parentDepartmentId 
+    ? `/department/messages/${department.parentDepartmentId}`
+    : fromMonitoring 
+      ? '/department/monitoring' 
+      : '/department/main';
 
   const { data: messages, isLoading } = useQuery<{ received: Message[]; sent: Message[] }>({
     queryKey: ['/api/messages/department', departmentId],
@@ -73,8 +81,6 @@ export default function DepartmentMessages() {
     queryKey: ['/api/departments', departmentId, 'subdepartments'],
     enabled: !!departmentId,
   });
-
-  const department = departments.find((d) => d.id === departmentId);
 
   const handleMessageClick = (messageId: number) => {
     console.log('Opening message:', messageId);
