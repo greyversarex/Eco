@@ -286,6 +286,12 @@ export function registerRoutes(app: Express) {
 
   // Get current user
   app.get("/api/auth/me", async (req: Request, res: Response) => {
+    // CRITICAL: Prevent browser caching of auth status
+    // Without this, browser returns 304 with old session data after login
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
     try {
       if (req.session.departmentId) {
         const department = await storage.getDepartmentById(req.session.departmentId);
