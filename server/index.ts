@@ -112,6 +112,16 @@ app.use(compression({
 }));
 
 // ============================================================================
+// DISABLE ETAG FOR AUTH ROUTES - Prevent 304 caching issues
+// ============================================================================
+app.use('/api/auth', (req, res, next) => {
+  // Disable ETag for all auth routes to prevent stale cache responses
+  app.set('etag', false);
+  res.removeHeader('ETag');
+  next();
+});
+
+// ============================================================================
 // BODY PARSERS - ПОСЛЕ session middleware
 // ============================================================================
 app.use(express.json());

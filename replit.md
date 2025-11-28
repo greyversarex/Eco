@@ -71,6 +71,12 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Third-Party Services:** PostgreSQL server (version 13+), Google Fonts (Inter and Roboto)
 
 ### Recent Changes
+*   **2025-11-28 (Critical Session Fixation Fix):**
+    - **Session Regeneration:** Fixed critical session fixation vulnerability - now calls `req.session.regenerate()` on every login to create a fresh session ID, preventing old session data from leaking between logins
+    - **ETag Disabled for Auth Routes:** Added middleware to disable ETag generation for `/api/auth/*` routes, preventing 304 responses with stale cached data
+    - **Complete No-Cache Headers:** `/api/auth/me` now includes `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0`, `Pragma: no-cache`, `Expires: 0`, `Surrogate-Control: no-store`, and `Last-Modified` header
+    - **Frontend Cache Bypass:** Added `cache: 'no-store'` to all fetch requests for auth routes to prevent browser HTTP cache from returning stale data
+    - **Environment Fix:** Removed `FORCE_HTTPS` env variable that was causing cookie issues in development mode
 *   **2025-11-28 (Authentication & Real-time Updates):** 
     - **Double Login Fix:** Replaced `invalidateQueries` with `fetchQuery` + exponential backoff retry (3 attempts) to ensure session is fully persisted before navigation
     - **Real-time Data Updates:** Push notifications now broadcast cache invalidation messages to all open tabs/windows via Service Worker

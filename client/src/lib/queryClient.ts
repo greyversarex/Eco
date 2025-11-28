@@ -65,10 +65,15 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const fullUrl = buildApiUrl(queryKey.join("/") as string);
     
+    // CRITICAL: Disable browser cache for auth routes to prevent 304 responses with stale data
+    const isAuthRoute = fullUrl.includes('/api/auth/');
+    
     // Try to fetch from network first
     try {
       const res = await fetch(fullUrl, {
         credentials: "include",
+        // Force fresh request for auth routes - prevents browser caching issues
+        cache: isAuthRoute ? "no-store" : "default",
       });
 
       if (unauthorizedBehavior === "returnNull" && res.status === 401) {

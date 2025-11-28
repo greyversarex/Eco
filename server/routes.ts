@@ -179,39 +179,48 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: 'Invalid access code' });
       }
 
-      // Clear previous session data without regenerating session ID
-      // This avoids cookie issues in iframe/proxy environments
-      delete req.session.adminId;
-      
-      // Set department session data
-      req.session.departmentId = department.id;
-      req.session.userType = 'department';
-      req.session.parentDepartmentId = department.parentDepartmentId || null;
-      req.session.isSubdepartment = !!department.parentDepartmentId;
-      
-      // Save the session
-      req.session.save((saveErr: any) => {
-        if (saveErr) {
-          console.error('Session save error:', saveErr);
-          return res.status(500).json({ error: 'Failed to save session' });
+      // CRITICAL: Regenerate session ID to prevent session fixation attacks
+      // This creates a new session ID while preserving the session store
+      req.session.regenerate((regenErr: any) => {
+        if (regenErr) {
+          console.error('Session regenerate error:', regenErr);
+          return res.status(500).json({ error: 'Failed to create session' });
         }
         
-        console.log('[AUTH] Department login successful:', { departmentId: department.id, sessionId: req.session.id });
+        // Set department session data on the NEW session
+        req.session.departmentId = department.id;
+        req.session.userType = 'department';
+        req.session.parentDepartmentId = department.parentDepartmentId || null;
+        req.session.isSubdepartment = !!department.parentDepartmentId;
         
-        res.json({ 
-          success: true, 
-          department: {
-            id: department.id,
-            name: department.name,
-            block: department.block,
-            code: department.accessCode,
-            canMonitor: department.canMonitor,
-            canCreateAssignmentFromMessage: department.canCreateAssignmentFromMessage,
-            canCreateAssignment: department.canCreateAssignment,
-            canCreateAnnouncement: department.canCreateAnnouncement,
-            parentDepartmentId: department.parentDepartmentId || null,
-            isSubdepartment: !!department.parentDepartmentId,
+        // Save the session
+        req.session.save((saveErr: any) => {
+          if (saveErr) {
+            console.error('Session save error:', saveErr);
+            return res.status(500).json({ error: 'Failed to save session' });
           }
+          
+          console.log('[AUTH] Department login successful:', { 
+            departmentId: department.id, 
+            sessionId: req.session.id,
+            accessCode: accessCode 
+          });
+          
+          res.json({ 
+            success: true, 
+            department: {
+              id: department.id,
+              name: department.name,
+              block: department.block,
+              code: department.accessCode,
+              canMonitor: department.canMonitor,
+              canCreateAssignmentFromMessage: department.canCreateAssignmentFromMessage,
+              canCreateAssignment: department.canCreateAssignment,
+              canCreateAnnouncement: department.canCreateAnnouncement,
+              parentDepartmentId: department.parentDepartmentId || null,
+              isSubdepartment: !!department.parentDepartmentId,
+            }
+          });
         });
       });
     } catch (error: any) {
@@ -241,31 +250,33 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      // Clear previous session data without regenerating session ID
-      // This avoids cookie issues in iframe/proxy environments
-      delete req.session.departmentId;
-      delete req.session.parentDepartmentId;
-      delete req.session.isSubdepartment;
-      
-      // Set admin session data
-      req.session.adminId = admin.id;
-      req.session.userType = 'admin';
-      
-      // Save the session
-      req.session.save((saveErr: any) => {
-        if (saveErr) {
-          console.error('Session save error:', saveErr);
-          return res.status(500).json({ error: 'Failed to save session' });
+      // CRITICAL: Regenerate session ID to prevent session fixation attacks
+      req.session.regenerate((regenErr: any) => {
+        if (regenErr) {
+          console.error('Session regenerate error:', regenErr);
+          return res.status(500).json({ error: 'Failed to create session' });
         }
         
-        console.log('[AUTH] Admin login successful:', { adminId: admin.id, sessionId: req.session.id });
+        // Set admin session data on the NEW session
+        req.session.adminId = admin.id;
+        req.session.userType = 'admin';
         
-        res.json({ 
-          success: true,
-          admin: {
-            id: admin.id,
-            username: admin.username,
+        // Save the session
+        req.session.save((saveErr: any) => {
+          if (saveErr) {
+            console.error('Session save error:', saveErr);
+            return res.status(500).json({ error: 'Failed to save session' });
           }
+          
+          console.log('[AUTH] Admin login successful:', { adminId: admin.id, sessionId: req.session.id });
+          
+          res.json({ 
+            success: true,
+            admin: {
+              id: admin.id,
+              username: admin.username,
+            }
+          });
         });
       });
     } catch (error: any) {
@@ -286,11 +297,15 @@ export function registerRoutes(app: Express) {
 
   // Get current user
   app.get("/api/auth/me", async (req: Request, res: Response) => {
-    // CRITICAL: Prevent browser caching of auth status
-    // Without this, browser returns 304 with old session data after login
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    // CRITICAL: Prevent ALL caching of auth status
+    // Without these headers, browser returns 304 with stale session data after login
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    // Disable ETag to prevent 304 responses entirely
+    res.removeHeader('ETag');
+    res.setHeader('Last-Modified', new Date().toUTCString());
     
     try {
       if (req.session.departmentId) {
