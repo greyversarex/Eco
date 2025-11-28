@@ -120,6 +120,9 @@ export default function Inbox() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/by-department'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       setSelectedIds(new Set());
       setIsDeleteMode(false);
       toast({

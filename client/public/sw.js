@@ -241,6 +241,7 @@ self.addEventListener('push', (event) => {
     icon: '/pwa-192.png',
     badge: '/pwa-192.png',
     url: '/',
+    type: 'message', // Default type
   };
 
   try {
@@ -251,7 +252,22 @@ self.addEventListener('push', (event) => {
     console.error('[SW] Failed to parse push notification data:', error);
   }
 
-  const promiseChain = self.registration.showNotification(
+  // Broadcast cache invalidation message to all open tabs/windows
+  const broadcastInvalidation = clients
+    .matchAll({ type: 'window', includeUncontrolled: true })
+    .then((windowClients) => {
+      console.log('[SW] 📢 Broadcasting cache invalidation to', windowClients.length, 'clients');
+      windowClients.forEach((client) => {
+        client.postMessage({
+          type: 'INVALIDATE_CACHE',
+          payload: {
+            notificationType: notificationData.type || 'message',
+          },
+        });
+      });
+    });
+
+  const showNotification = self.registration.showNotification(
     notificationData.title,
     {
       body: notificationData.body,
@@ -265,7 +281,7 @@ self.addEventListener('push', (event) => {
     }
   );
 
-  event.waitUntil(promiseChain);
+  event.waitUntil(Promise.all([broadcastInvalidation, showNotification]));
 });
 
 // Notification Click Event Handler

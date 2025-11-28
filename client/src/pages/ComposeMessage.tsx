@@ -107,6 +107,9 @@ export default function ComposeMessage() {
         if (!uploadSuccess) {
           // Redirect to message view where user can upload files via ObjectUploader
           queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/by-department'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
           toast({
             title: 'Огоҳӣ',
             description: failedFiles.length > 0 
@@ -122,6 +125,9 @@ export default function ComposeMessage() {
       
       // Success - clear state and redirect
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/by-department'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       setSelectedFiles([]); // Clear files only on success
       toast({
         title: 'Муваффақият',

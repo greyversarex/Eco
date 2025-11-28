@@ -155,15 +155,18 @@ export default function DepartmentMain() {
 
   const { data: unreadCounts = {} } = useQuery<Record<number, number>>({
     queryKey: ['/api/messages/unread/by-department'],
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
   });
 
   // Total unread count for current department (for inbox badge)
   const { data: totalUnread } = useQuery<{ count: number }>({
     queryKey: ['/api/messages/unread/count'],
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
   });
 
   const { data: counters } = useQuery<{ unreadAnnouncements: number; uncompletedAssignments: number }>({
     queryKey: ['/api/counters'],
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
   });
 
   // Find parent department for subdepartment view

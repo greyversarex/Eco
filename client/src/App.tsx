@@ -9,6 +9,7 @@ import { useOfflineDB, useOnlineStatus } from "@/hooks/use-offline";
 import { useDrafts } from "@/hooks/use-drafts";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useAppBadge } from "@/hooks/useAppBadge";
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";
 
 // Eager load critical pages
 import DepartmentLogin from "@/pages/DepartmentLogin";
@@ -166,6 +167,11 @@ function AppBadgeManager() {
   return null;
 }
 
+function CacheInvalidationManager() {
+  useCacheInvalidation();
+  return null;
+}
+
 function App() {
   // Initialize IndexedDB
   const { isReady, error } = useOfflineDB();
@@ -192,6 +198,7 @@ function App() {
           )}
           <PushNotificationsManager />
           <AppBadgeManager />
+          <CacheInvalidationManager />
           <Router />
         </TooltipProvider>
       </AuthProvider>
