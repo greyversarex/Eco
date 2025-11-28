@@ -71,11 +71,12 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Third-Party Services:** PostgreSQL server (version 13+), Google Fonts (Inter and Roboto)
 
 ### Recent Changes
-*   **2025-11-28 (Real-time Data Updates):** Implemented automatic data refresh without manual page reload:
-    - Service Worker Broadcasting: Push notifications now broadcast cache invalidation messages to all open tabs/windows
-    - React Cache Invalidation: New `useCacheInvalidation` hook listens for SW messages and invalidates TanStack Query caches
-    - Mutation Improvements: Send/delete operations now invalidate all related caches (messages, unread counts, counters)
-    - Fallback Polling: Added 30-second auto-refresh interval for unread counts and counters on main page
+*   **2025-11-28 (Authentication & Real-time Updates):** 
+    - **Double Login Fix:** Replaced `invalidateQueries` with `fetchQuery` + exponential backoff retry (3 attempts) to ensure session is fully persisted before navigation
+    - **Real-time Data Updates:** Push notifications now broadcast cache invalidation messages to all open tabs/windows via Service Worker
+    - **Cache Invalidation Hook:** New `useCacheInvalidation` hook listens for SW messages and invalidates TanStack Query caches
+    - **Mutation Improvements:** Send/delete operations now invalidate all related caches (messages, unread counts, counters)
+    - **Fallback Polling:** Added 30-second auto-refresh interval for unread counts and counters on main page
 *   **2025-11-27 (Session & Department Fixes):** Critical session persistence fix and improved department lookups:
     - Session Fix: Moved session middleware BEFORE body parsers (`express.json()`) in server/index.ts to prevent logout issues
     - New Endpoint: Added `/api/departments/all` to return ALL departments including subdepartments (for sender/recipient lookups)
