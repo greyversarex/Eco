@@ -26,11 +26,17 @@ export default function AdminLogin() {
     },
     onSuccess: async (data: any) => {
       setIsSuccess(true);
-      // Clear all cache and force fresh fetch
+      // Clear all cache except auth
       queryClient.clear();
-      // Then invalidate auth to force refetch
-      await queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Refetch auth and wait for it to complete before navigating
+      try {
+        await queryClient.fetchQuery({ 
+          queryKey: ['/api/auth/me'],
+          staleTime: 0,
+        });
+      } catch (e) {
+        // Ignore fetch errors, proceed with navigation
+      }
       setLocation('/admin/dashboard');
     },
     onError: (error) => {
