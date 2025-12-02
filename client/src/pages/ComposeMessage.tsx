@@ -52,6 +52,15 @@ export default function ComposeMessage() {
     enabled: !!isSubdepartment && !!parentDepartmentId,
   });
 
+  // Get current department ID for fetching own subdepartments
+  const currentDepartmentId = user?.userType === 'department' ? user.department?.id : null;
+
+  // Fetch subdepartments of current department (for regular departments only)
+  const { data: ownSubdepartments = [] } = useQuery<Omit<Department, 'accessCode'>[]>({
+    queryKey: ['/api/departments', currentDepartmentId, 'subdepartments'],
+    enabled: !isSubdepartment && !!currentDepartmentId,
+  });
+
   // Get available recipients based on user type
   // Subdepartments can only message parent and sibling subdepartments
   // Regular departments only see other parent departments (no subdepartments)
@@ -62,7 +71,7 @@ export default function ComposeMessage() {
         // Sibling subdepartments (excluding self)
         ...siblingSubdepartments.filter(d => d.id !== (user?.department?.id ?? null))
       ]
-    : departments.filter(d => !d.isSubdepartment);
+    : departments.filter(d => !d.parentDepartmentId); // Filter out subdepartments (those with parentDepartmentId)
 
   const { data: allPeople = [] } = useQuery<Person[]>({
     queryKey: ['/api/people'],
@@ -566,6 +575,72 @@ export default function ComposeMessage() {
                   </p>
                 )}
               </div>
+
+              {/* Subdepartments section - only show for departments that have subdepartments */}
+              {!isSubdepartment && ownSubdepartments.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>
+                      Зершуъбаҳо
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      onClick={() => {
+                        const allSubdeptIds = ownSubdepartments.map(dept => dept.id);
+                        const allSelected = allSubdeptIds.every(id => selectedRecipients.includes(id));
+                        if (allSelected) {
+                          setSelectedRecipients(selectedRecipients.filter(id => !allSubdeptIds.includes(id)));
+                        } else {
+                          const newRecipients = [...selectedRecipients];
+                          allSubdeptIds.forEach(id => {
+                            if (!newRecipients.includes(id)) {
+                              newRecipients.push(id);
+                            }
+                          });
+                          setSelectedRecipients(newRecipients);
+                        }
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white h-8 text-xs"
+                      data-testid="button-select-all-subdepartments"
+                    >
+                      {ownSubdepartments.every(dept => selectedRecipients.includes(dept.id))
+                        ? 'Бекор кардан'
+                        : 'Ҳамаро қайд кардан'}
+                    </Button>
+                  </div>
+                  <div className="border rounded-md p-4 max-h-64 overflow-y-auto bg-muted/30">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {ownSubdepartments
+                        .sort((a, b) => a.sortOrder - b.sortOrder)
+                        .map((dept) => (
+                          <div key={dept.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`subdept-${dept.id}`}
+                              checked={selectedRecipients.includes(dept.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedRecipients([...selectedRecipients, dept.id]);
+                                } else {
+                                  setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
+                                }
+                              }}
+                              data-testid={`checkbox-subdept-${dept.id}`}
+                            />
+                            <label
+                              htmlFor={`subdept-${dept.id}`}
+                              className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            >
+                              {dept.name}
+                            </label>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Hide executors section for subdepartments */}
               {!isSubdepartment && (
