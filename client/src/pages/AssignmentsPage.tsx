@@ -207,9 +207,12 @@ export default function AssignmentsPage() {
     queryKey: ['/api/assignments'],
   });
 
-  const { data: departments = [], isLoading: loadingDepartments, dataUpdatedAt } = useQuery<Department[]>({
+  const { data: allDepartments = [], isLoading: loadingDepartments, dataUpdatedAt } = useQuery<Department[]>({
     queryKey: ['/api/departments/all'],
   });
+
+  // Filter out subdepartments - only show main departments for recipient selection
+  const departments = allDepartments.filter(d => !d.parentDepartmentId);
 
   const { data: allPeople = [] } = useQuery<Person[]>({
     queryKey: ['/api/people'],

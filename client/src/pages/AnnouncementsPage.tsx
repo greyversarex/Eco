@@ -36,9 +36,12 @@ export default function AnnouncementsPage() {
     queryKey: ['/api/announcements'],
   });
 
-  const { data: departments = [] } = useQuery<Omit<Department, 'accessCode'>[]>({
+  const { data: allDepartments = [] } = useQuery<Omit<Department, 'accessCode'>[]>({
     queryKey: ['/api/departments/all'],
   });
+
+  // Filter out subdepartments - only show main departments for recipient selection
+  const departments = allDepartments.filter(d => !d.parentDepartmentId);
 
   // Mark announcements as read when page loads
   useEffect(() => {
@@ -353,8 +356,9 @@ export default function AnnouncementsPage() {
                         {announcement.recipientIds && announcement.recipientIds.length > 0 ? (
                           (() => {
                             const isExpanded = expandedAnnouncements.has(announcement.id);
+                            // Use allDepartments for display to include subdepartments if they were recipients
                             const recipientDepts = announcement.recipientIds
-                              .map(deptId => departments.find(d => d.id === deptId))
+                              .map(deptId => allDepartments.find(d => d.id === deptId))
                               .filter(dept => dept !== undefined);
                             const displayedDepts = isExpanded ? recipientDepts : recipientDepts.slice(0, 5);
                             
