@@ -92,7 +92,7 @@ export function ChangeAccessCodeDialog({ currentCode, onSuccess }: ChangeAccessC
         <Button
           size="icon"
           data-testid="button-change-access-code"
-          className="bg-amber-500 text-white hover:bg-amber-600 h-11 w-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+          className="bg-red-500 text-white hover:bg-red-600 h-11 w-11 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
         >
           <Key className="h-5 w-5" />
         </Button>
