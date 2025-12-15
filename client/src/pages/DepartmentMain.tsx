@@ -15,6 +15,7 @@ import logoImage from '@assets/logo-optimized.webp';
 import { Footer } from '@/components/Footer';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
 import { useDepartmentIcon } from '@/hooks/use-department-icon';
+import { ChangeAccessCodeDialog } from '@/components/ChangeAccessCodeDialog';
 
 // Parent Department Card for Subdepartments view - styled to match DepartmentCard
 function ParentDepartmentCard({ department, unreadCount, onClick }: { 
@@ -285,6 +286,13 @@ export default function DepartmentMain() {
               unreadCount={totalUnread?.count || 0}
             />
             <div className="hidden sm:flex items-center gap-2">
+              <ChangeAccessCodeDialog 
+                currentCode={user?.userType === 'department' ? user.department?.code : undefined}
+                onSuccess={() => {
+                  // Refresh user data after code change
+                  window.location.reload();
+                }}
+              />
               <Button
                 size="default"
                 onClick={logout}

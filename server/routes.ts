@@ -405,6 +405,45 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Department can update their own access code
+  app.patch("/api/departments/self/access-code", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const departmentId = req.session.departmentId;
+      
+      if (!departmentId) {
+        return res.status(403).json({ error: 'Only departments can update their access code' });
+      }
+      
+      const { newAccessCode } = req.body;
+      
+      if (!newAccessCode || typeof newAccessCode !== 'string') {
+        return res.status(400).json({ error: 'New access code is required' });
+      }
+      
+      // Check if access code is unique
+      const existing = await storage.getDepartmentByAccessCode(newAccessCode);
+      if (existing && existing.id !== departmentId) {
+        return res.status(400).json({ error: 'Ин рамз аллакай истифода мешавад' });
+      }
+      
+      const updated = await storage.updateDepartment(departmentId, { accessCode: newAccessCode } as any);
+      
+      if (!updated) {
+        return res.status(404).json({ error: 'Department not found' });
+      }
+      
+      console.log('[DEPARTMENT] Access code updated:', { departmentId, newAccessCode });
+      
+      res.json({ 
+        success: true, 
+        accessCode: updated.accessCode 
+      });
+    } catch (error: any) {
+      console.error('Update access code error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Get parent departments only (top-level, no parent)
   app.get("/api/departments/parents", requireAdmin, async (req: Request, res: Response) => {
     try {
