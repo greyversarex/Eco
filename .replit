@@ -4,6 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-25_05"
+packages = ["jdk17", "gradle"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -51,3 +52,4 @@ defaultBucketID = "replit-objstore-dd97d272-777b-4338-bf8c-2e0918ffb888"
 [userenv]
 
 [userenv.shared]
+JAVA_HOME = "/nix/store/xad649j61kwkh0id5wvyiab5rliprp4d-openjdk-17.0.15+6"
