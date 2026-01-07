@@ -8,7 +8,8 @@ const config: CapacitorConfig = {
     // Production server URL (Timeweb)
     url: 'http://176.98.176.158:5000',
     cleartext: true,
-    androidScheme: 'https',
+    // Используем http для WebView (не TWA/Chrome Custom Tabs)
+    androidScheme: 'http',
     iosScheme: 'https',
   },
   plugins: {
@@ -23,6 +24,10 @@ const config: CapacitorConfig = {
     },
   },
   android: {
+    // Отключаем features TWA для использования обычного WebView
+    useLegacyBridge: true,
+    appendUserAgent: 'EcoDoc-Android-App',
+    allowMixedContent: true,
     buildOptions: {
       keystorePath: undefined,
       keystorePassword: undefined,
