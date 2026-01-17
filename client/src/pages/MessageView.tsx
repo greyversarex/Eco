@@ -795,7 +795,14 @@ export default function MessageView() {
                                     type="button"
                                     size="sm"
                                     onClick={() => {
-                                      const allDeptIds = departments.map(dept => dept.id);
+                                      const myDeptId = user?.department?.id;
+                                      const myParentId = user?.department?.parentDepartmentId;
+                                      const filteredDepts = departments.filter((dept: any) => {
+                                        if (!dept.parentDepartmentId) return true;
+                                        return dept.parentDepartmentId === myDeptId || 
+                                               (myParentId && dept.parentDepartmentId === myParentId);
+                                      });
+                                      const allDeptIds = filteredDepts.map((dept: any) => dept.id);
                                       if (selectedRecipients.length === allDeptIds.length) {
                                         setSelectedRecipients([]);
                                       } else {
@@ -805,9 +812,18 @@ export default function MessageView() {
                                     className="bg-green-600 hover:bg-green-700 text-white"
                                     data-testid="button-select-all-recipients"
                                   >
-                                    {selectedRecipients.length === departments.length
-                                      ? 'Бекор кардан'
-                                      : 'Ҳамаро қайд кардан'}
+                                    {(() => {
+                                      const myDeptId = user?.department?.id;
+                                      const myParentId = user?.department?.parentDepartmentId;
+                                      const filteredDepts = departments.filter((dept: any) => {
+                                        if (!dept.parentDepartmentId) return true;
+                                        return dept.parentDepartmentId === myDeptId || 
+                                               (myParentId && dept.parentDepartmentId === myParentId);
+                                      });
+                                      return selectedRecipients.length === filteredDepts.length
+                                        ? 'Бекор кардан'
+                                        : 'Ҳамаро қайд кардан';
+                                    })()}
                                   </Button>
                                 )}
                               </div>
@@ -818,6 +834,13 @@ export default function MessageView() {
                                   <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                       {departments
+                                        .filter((dept: any) => {
+                                          const myDeptId = user?.department?.id;
+                                          const myParentId = user?.department?.parentDepartmentId;
+                                          if (!dept.parentDepartmentId) return true;
+                                          return dept.parentDepartmentId === myDeptId || 
+                                                 (myParentId && dept.parentDepartmentId === myParentId);
+                                        })
                                         .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
                                         .map((dept: any) => (
                                           <div key={dept.id} className="flex items-center space-x-2">
