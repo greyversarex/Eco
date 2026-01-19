@@ -27,6 +27,7 @@ const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const AdminDepartments = lazy(() => import("@/pages/AdminDepartments"));
 const AdminDepartmentMessages = lazy(() => import("@/pages/AdminDepartmentMessages"));
 const AdminPeople = lazy(() => import("@/pages/AdminPeople"));
+const AdminDocumentTypes = lazy(() => import("@/pages/AdminDocumentTypes"));
 const AssignmentsPage = lazy(() => import("@/pages/AssignmentsPage"));
 const AnnouncementsPage = lazy(() => import("@/pages/AnnouncementsPage"));
 const MonitoringPage = lazy(() => import("@/pages/MonitoringPage"));
@@ -74,6 +75,11 @@ function Router() {
         <Route path="/admin/people">
           <AdminRoute>
             <AdminPeople />
+          </AdminRoute>
+        </Route>
+        <Route path="/admin/document-types">
+          <AdminRoute>
+            <AdminDocumentTypes />
           </AdminRoute>
         </Route>
         <Route path="/department/main">

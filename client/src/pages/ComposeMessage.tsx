@@ -16,7 +16,14 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { apiFetch } from '@/lib/api-config';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import type { Department, Person } from '@shared/schema';
+import type { Department, Person, DocumentType } from '@shared/schema';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Footer } from '@/components/Footer';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
 import { useOnlineStatus } from '@/hooks/use-offline';
@@ -29,6 +36,7 @@ export default function ComposeMessage() {
   const [subject, setSubject] = useState('');
   const [date, setDate] = useState('');
   const [documentNumber, setDocumentNumber] = useState('');
+  const [documentTypeId, setDocumentTypeId] = useState<string>('');
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
   const [content, setContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -75,6 +83,10 @@ export default function ComposeMessage() {
 
   const { data: allPeople = [] } = useQuery<Person[]>({
     queryKey: ['/api/people'],
+  });
+
+  const { data: documentTypes = [] } = useQuery<DocumentType[]>({
+    queryKey: ['/api/document-types'],
   });
 
   const sendMessageMutation = useMutation({
@@ -205,6 +217,7 @@ export default function ComposeMessage() {
         formData.append('subject', subject);
         formData.append('content', content);
         formData.append('documentNumber', documentNumber || '');
+        formData.append('documentTypeId', documentTypeId || '');
         formData.append('senderId', user.department.id.toString());
         formData.append('documentDate', new Date(date).toISOString());
         
@@ -235,6 +248,7 @@ export default function ComposeMessage() {
           subject,
           content,
           documentNumber: documentNumber || null,
+          documentTypeId: documentTypeId ? parseInt(documentTypeId) : null,
           senderId: user.department.id,
           recipientId: selectedRecipients[0],
           documentDate: new Date(date).toISOString(),
@@ -288,6 +302,7 @@ export default function ComposeMessage() {
       setSubject('');
       setContent('');
       setDocumentNumber('');
+      setDocumentTypeId('');
       setSelectedRecipients([]);
       setDate('');
       setSelectedFiles([]);
@@ -375,6 +390,7 @@ export default function ComposeMessage() {
       setSubject('');
       setContent('');
       setDocumentNumber('');
+      setDocumentTypeId('');
       setSelectedRecipients([]);
       setDate('');
       setSelectedFiles([]);
@@ -502,6 +518,30 @@ export default function ComposeMessage() {
                     </Button>
                   </div>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="documentType">
+                  Намуди ҳуҷҷат
+                </Label>
+                <Select 
+                  value={documentTypeId} 
+                  onValueChange={setDocumentTypeId}
+                >
+                  <SelectTrigger id="documentType" data-testid="select-document-type">
+                    <SelectValue placeholder="Намуди ҳуҷҷатро интихоб кунед" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {documentTypes.map((docType) => (
+                      <SelectItem 
+                        key={docType.id} 
+                        value={docType.id.toString()}
+                      >
+                        {docType.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

@@ -26,7 +26,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { t } from '@/lib/i18n';
-import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical, Download, ChevronDown, ChevronRight } from 'lucide-react';
+import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical, Download, ChevronDown, ChevronRight, FileText } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -283,6 +283,7 @@ export default function AdminDashboard() {
   const [editCanCreateAssignmentFromMessage, setEditCanCreateAssignmentFromMessage] = useState(false);
   const [editCanCreateAssignment, setEditCanCreateAssignment] = useState(false);
   const [editCanCreateAnnouncement, setEditCanCreateAnnouncement] = useState(false);
+  const [editCanApprove, setEditCanApprove] = useState(false);
   // Subdepartment support
   const [newParentDepartmentId, setNewParentDepartmentId] = useState<number | null>(null);
   const [editParentDepartmentId, setEditParentDepartmentId] = useState<number | null>(null);
@@ -492,6 +493,7 @@ export default function AdminDashboard() {
     setEditCanCreateAssignmentFromMessage(dept.canCreateAssignmentFromMessage);
     setEditCanCreateAssignment(dept.canCreateAssignment);
     setEditCanCreateAnnouncement(dept.canCreateAnnouncement);
+    setEditCanApprove(dept.canApprove || false);
     setEditParentDepartmentId(dept.parentDepartmentId || null);
     setIsEditDialogOpen(true);
   };
@@ -513,6 +515,7 @@ export default function AdminDashboard() {
           canCreateAssignmentFromMessage: editCanCreateAssignmentFromMessage,
           canCreateAssignment: editCanCreateAssignment,
           canCreateAnnouncement: editCanCreateAnnouncement,
+          canApprove: editCanApprove,
           parentDepartmentId: editParentDepartmentId,
         } 
       });
@@ -525,6 +528,7 @@ export default function AdminDashboard() {
       setEditCanCreateAssignmentFromMessage(false);
       setEditCanCreateAssignment(false);
       setEditCanCreateAnnouncement(false);
+      setEditCanApprove(false);
       setEditParentDepartmentId(null);
     }
   };
@@ -586,6 +590,16 @@ export default function AdminDashboard() {
             >
               <Users className="h-4 w-4" />
               <span className="hidden md:inline">Иҷрокунандагон</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.location.href = '/admin/document-types'}
+              data-testid="button-document-types"
+              className="gap-2 hidden sm:flex"
+            >
+              <FileText className="h-4 w-4" />
+              <span className="hidden md:inline">Намудҳо</span>
             </Button>
             <Button
               variant="ghost"
@@ -894,6 +908,17 @@ export default function AdminDashboard() {
                       />
                       <label htmlFor="edit-can-create-announcement" className="text-sm cursor-pointer">
                         Эълонҳо (эҷоди эълон дар саҳифаи супоришҳо)
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="edit-can-approve"
+                        checked={editCanApprove}
+                        onCheckedChange={(checked) => setEditCanApprove(checked as boolean)}
+                        data-testid="checkbox-edit-can-approve"
+                      />
+                      <label htmlFor="edit-can-approve" className="text-sm cursor-pointer">
+                        Иҷозат (тасдиқ ё радкунии паёмҳо)
                       </label>
                     </div>
                   </div>
