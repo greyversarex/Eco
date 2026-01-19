@@ -217,6 +217,7 @@ export function registerRoutes(app: Express) {
               canCreateAssignmentFromMessage: department.canCreateAssignmentFromMessage,
               canCreateAssignment: department.canCreateAssignment,
               canCreateAnnouncement: department.canCreateAnnouncement,
+              canApprove: department.canApprove,
               parentDepartmentId: department.parentDepartmentId || null,
               isSubdepartment: !!department.parentDepartmentId,
             }
@@ -322,6 +323,7 @@ export function registerRoutes(app: Express) {
               canCreateAssignmentFromMessage: department.canCreateAssignmentFromMessage,
               canCreateAssignment: department.canCreateAssignment,
               canCreateAnnouncement: department.canCreateAnnouncement,
+              canApprove: department.canApprove,
               parentDepartmentId: department.parentDepartmentId || null,
               isSubdepartment: !!department.parentDepartmentId,
             }

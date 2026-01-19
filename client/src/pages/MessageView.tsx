@@ -14,7 +14,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { apiFetch, buildApiUrl } from '@/lib/api-config';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import type { Message, Department, Person } from '@shared/schema';
+import type { Message, Department, Person, DocumentType } from '@shared/schema';
 import { format } from 'date-fns';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
@@ -83,6 +83,10 @@ export default function MessageView() {
 
   const { data: allPeople = [] } = useQuery<Person[]>({
     queryKey: ['/api/people'],
+  });
+
+  const { data: documentTypes = [] } = useQuery<DocumentType[]>({
+    queryKey: ['/api/document-types'],
   });
 
   // Load attachments from database
@@ -618,6 +622,14 @@ export default function MessageView() {
                 </div>
 
                 <div className="space-y-3 text-base border-t pt-6 px-6">
+                  {message.documentTypeId && (
+                    <div data-testid="text-document-type">
+                      <span className="font-medium text-[#050505]">Намуди ҳуҷҷат:</span>
+                      <span className="ml-2 text-foreground">
+                        {documentTypes.find(dt => dt.id === message.documentTypeId)?.name || 'Номаълум'}
+                      </span>
+                    </div>
+                  )}
                   {message.documentNumber && (
                     <div data-testid="text-document-number">
                       <span className="font-medium text-[#050505]">Рақами ҳуҷҷат:</span>
