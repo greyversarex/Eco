@@ -26,30 +26,15 @@ export default function AdminLogin() {
     },
     onSuccess: async (data: any) => {
       setIsSuccess(true);
-      // Clear all cache except auth
+      // Clear all cache
       queryClient.clear();
       
-      // Retry fetching auth data with exponential backoff
-      // This handles race conditions when session isn't fully persisted yet
-      let attempts = 0;
-      const maxAttempts = 3;
-      
-      while (attempts < maxAttempts) {
-        try {
-          const result = await queryClient.fetchQuery({ 
-            queryKey: ['/api/auth/me'],
-            staleTime: 0,
-          });
-          if (result) {
-            break; // Success, exit retry loop
-          }
-        } catch (e) {
-          attempts++;
-          if (attempts < maxAttempts) {
-            // Wait before retrying (100ms, 200ms, 400ms)
-            await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, attempts - 1)));
-          }
-        }
+      // Set auth data directly in cache from login response
+      if (data.admin) {
+        queryClient.setQueryData(['/api/auth/me'], {
+          userType: 'admin',
+          admin: data.admin
+        });
       }
       
       setLocation('/admin/dashboard');

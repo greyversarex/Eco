@@ -13,6 +13,7 @@ interface Department {
   canMonitor: boolean;
   canCreateAssignmentFromMessage: boolean;
   canCreateAssignment: boolean;
+  canApprove: boolean;
   isSubdepartment?: boolean;
   parentDepartmentId?: number | null;
 }
