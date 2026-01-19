@@ -983,6 +983,7 @@ export function registerRoutes(app: Express) {
         executor: req.body.executor || null,
         documentDate: new Date(req.body.documentDate),
         documentNumber: req.body.documentNumber || null,
+        documentTypeId: req.body.documentTypeId ? parseInt(req.body.documentTypeId) : null,
         replyToId: null,
       };
 

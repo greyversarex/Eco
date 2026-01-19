@@ -1,4 +1,4 @@
-import { Paperclip, CheckCheck } from 'lucide-react';
+import { Paperclip, CheckCheck, Check, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -22,6 +22,7 @@ interface MessageListItemProps {
   onToggleSelect?: () => void;
   documentNumber?: string;
   content?: string;
+  approvalStatus?: 'approved' | 'rejected' | null;
 }
 
 export default function MessageListItem({
@@ -39,6 +40,7 @@ export default function MessageListItem({
   onToggleSelect,
   documentNumber,
   content,
+  approvalStatus,
 }: MessageListItemProps) {
   // Render recipient names as badges for broadcast messages
   const renderRecipients = () => {
@@ -133,7 +135,21 @@ export default function MessageListItem({
           )}
           <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
             <span>{documentNumber || '—'}</span>
-            <span>{date}</span>
+            <div className="flex items-center gap-2">
+              {approvalStatus === 'approved' && (
+                <Badge variant="outline" className="gap-1 bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-600 text-xs py-0">
+                  <Check className="h-3 w-3" />
+                  Тасдиқ
+                </Badge>
+              )}
+              {approvalStatus === 'rejected' && (
+                <Badge variant="outline" className="gap-1 bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-400 dark:border-red-600 text-xs py-0">
+                  <XCircle className="h-3 w-3" />
+                  Рад
+                </Badge>
+              )}
+              <span>{date}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -190,6 +206,18 @@ export default function MessageListItem({
         
         {/* Icons */}
         <div className="flex items-center gap-2 justify-end">
+          {approvalStatus === 'approved' && (
+            <Badge variant="outline" className="gap-1 bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-600" data-testid={`badge-approved-${id}`}>
+              <Check className="h-3 w-3" />
+              <span className="text-xs">Тасдиқ</span>
+            </Badge>
+          )}
+          {approvalStatus === 'rejected' && (
+            <Badge variant="outline" className="gap-1 bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-400 dark:border-red-600" data-testid={`badge-rejected-${id}`}>
+              <XCircle className="h-3 w-3" />
+              <span className="text-xs">Рад</span>
+            </Badge>
+          )}
           {isSentMessage && isRead && (
             <Badge variant="outline" className="gap-1 bg-primary/10 text-primary border-primary/20" data-testid={`badge-read-${id}`}>
               <CheckCheck className="h-3 w-3" />

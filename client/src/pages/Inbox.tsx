@@ -98,6 +98,7 @@ export default function Inbox() {
         isSentMessage: isOutbox,
         documentNumber: msg.documentNumber || '',
         content: msg.content || '',
+        approvalStatus: msg.approvalStatus as 'approved' | 'rejected' | null,
       };
     });
   }, [filteredMessages, isOutbox, departments]);

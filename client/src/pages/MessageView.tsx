@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X, Forward } from 'lucide-react';
+import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X, Forward, Check, XCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { apiFetch, buildApiUrl } from '@/lib/api-config';
@@ -267,6 +267,37 @@ export default function MessageView() {
       });
     },
   });
+
+  const approvalMutation = useMutation({
+    mutationFn: async ({ status }: { status: 'approved' | 'rejected' }) => {
+      return await apiRequest('PATCH', `/api/messages/${id}/approve`, { status });
+    },
+    onSuccess: (_, { status }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/messages', id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      toast({
+        title: status === 'approved' ? 'Тасдиқ шуд' : 'Рад карда шуд',
+        description: status === 'approved' 
+          ? 'Паём бомуваффақият тасдиқ карда шуд' 
+          : 'Паём рад карда шуд',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Хато',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleApprove = () => {
+    approvalMutation.mutate({ status: 'approved' });
+  };
+
+  const handleReject = () => {
+    approvalMutation.mutate({ status: 'rejected' });
+  };
 
   const handleDelete = () => {
     if (!id) return;
@@ -1077,6 +1108,55 @@ export default function MessageView() {
                           </div>
                         </DialogContent>
                       </Dialog>
+                    )}
+                    
+                    {/* Approval buttons - only for recipients with canApprove permission */}
+                    {user.department?.canApprove && 
+                     !message.approvalStatus &&
+                     (message.recipientId === user.department.id || 
+                      (message.recipientIds && message.recipientIds.includes(user.department.id))) && (
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={handleApprove} 
+                          disabled={approvalMutation.isPending}
+                          className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+                          data-testid="button-approve"
+                        >
+                          <Check className="h-4 w-4" />
+                          Тасдиқ кардан
+                        </Button>
+                        <Button 
+                          onClick={handleReject} 
+                          disabled={approvalMutation.isPending}
+                          variant="destructive"
+                          className="gap-2"
+                          data-testid="button-reject"
+                        >
+                          <XCircle className="h-4 w-4" />
+                          Рад кардан
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {/* Show approval status if already approved/rejected */}
+                    {message.approvalStatus && (
+                      <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
+                        message.approvalStatus === 'approved' 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                      }`}>
+                        {message.approvalStatus === 'approved' ? (
+                          <>
+                            <Check className="h-4 w-4" />
+                            Тасдиқ шудааст
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="h-4 w-4" />
+                            Рад карда шудааст
+                          </>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}

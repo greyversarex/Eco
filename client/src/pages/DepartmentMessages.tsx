@@ -227,6 +227,7 @@ export default function DepartmentMessages() {
                         hasAttachment={!!message.attachmentUrl}
                         onClick={() => handleMessageClick(message.id)}
                         documentNumber={message.documentNumber}
+                        approvalStatus={message.approvalStatus as 'approved' | 'rejected' | null}
                       />
                     );
                   })}
@@ -307,6 +308,7 @@ export default function DepartmentMessages() {
                         onClick={() => handleMessageClick(message.id)}
                         isSentMessage={true}
                         documentNumber={message.documentNumber}
+                        approvalStatus={message.approvalStatus as 'approved' | 'rejected' | null}
                       />
                     );
                   })}
