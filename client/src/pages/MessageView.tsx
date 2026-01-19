@@ -1151,7 +1151,7 @@ export default function MessageView() {
                     )}
                     
                     {/* Show approval status if already approved/rejected */}
-                    {message.approvalStatus && (
+                    {(message.approvalStatus === 'approved' || message.approvalStatus === 'rejected') && (
                       <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
                         message.approvalStatus === 'approved' 
                           ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
