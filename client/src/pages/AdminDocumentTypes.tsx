@@ -3,8 +3,6 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -278,35 +276,6 @@ export default function AdminDocumentTypes() {
                 placeholder="Масалан: Мактуби расмӣ"
                 data-testid="input-name"
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Тавсиф</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Тавсифи намуди ҳуҷҷат"
-                data-testid="input-description"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="sortOrder">Тартиб</Label>
-              <Input
-                id="sortOrder"
-                type="number"
-                value={formData.sortOrder}
-                onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) || 0 })}
-                data-testid="input-sort-order"
-              />
-            </div>
-            <div className="flex items-center gap-3">
-              <Switch
-                id="isActive"
-                checked={formData.isActive}
-                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                data-testid="switch-active"
-              />
-              <Label htmlFor="isActive">Фаъол</Label>
             </div>
           </div>
           <DialogFooter>
