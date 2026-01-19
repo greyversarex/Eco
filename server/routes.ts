@@ -694,6 +694,126 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Document Types routes (Намуди ҳуҷҷат)
+  app.get("/api/document-types", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const types = await storage.getActiveDocumentTypes();
+      res.json(types);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/document-types/all", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const types = await storage.getDocumentTypes();
+      res.json(types);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/document-types", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { name, description, sortOrder, isActive } = req.body;
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        return res.status(400).json({ error: "Номи намуди ҳуҷҷат ҳатмист" });
+      }
+      const documentType = await storage.createDocumentType({
+        name: name.trim(),
+        description: description || null,
+        sortOrder: sortOrder || 0,
+        isActive: isActive !== false,
+      });
+      res.status(201).json(documentType);
+    } catch (error: any) {
+      if (error.code === '23505') { // Unique constraint violation
+        return res.status(400).json({ error: "Ин намуди ҳуҷҷат аллакай мавҷуд аст" });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/document-types/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, sortOrder, isActive } = req.body;
+      const updates: any = {};
+      if (name !== undefined) updates.name = name.trim();
+      if (description !== undefined) updates.description = description;
+      if (sortOrder !== undefined) updates.sortOrder = sortOrder;
+      if (isActive !== undefined) updates.isActive = isActive;
+      
+      const documentType = await storage.updateDocumentType(id, updates);
+      if (!documentType) {
+        return res.status(404).json({ error: "Намуди ҳуҷҷат ёфт нашуд" });
+      }
+      res.json(documentType);
+    } catch (error: any) {
+      if (error.code === '23505') {
+        return res.status(400).json({ error: "Ин намуди ҳуҷҷат аллакай мавҷуд аст" });
+      }
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/document-types/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteDocumentType(id);
+      if (!success) {
+        return res.status(404).json({ error: "Намуди ҳуҷҷат ёфт нашуд" });
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Message Approval routes (Иҷозат)
+  app.patch("/api/messages/:id/approve", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body; // 'approved' or 'rejected'
+      
+      if (!['approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ error: "Статуси нодуруст. 'approved' ё 'rejected' интихоб кунед" });
+      }
+      
+      // Only departments with canApprove permission can approve/reject
+      if (!req.session.departmentId) {
+        return res.status(403).json({ error: "Танҳо шӯъбаҳо метавонанд иҷозат диҳанд" });
+      }
+      
+      const department = await storage.getDepartmentById(req.session.departmentId);
+      if (!department || !department.canApprove) {
+        return res.status(403).json({ error: "Шумо ҳуқуқи додани иҷозат надоред" });
+      }
+      
+      // Check if department is recipient of this message
+      const message = await storage.getMessageById(id);
+      if (!message) {
+        return res.status(404).json({ error: "Паём ёфт нашуд" });
+      }
+      
+      const isRecipient = message.recipientId === req.session.departmentId || 
+                         (message.recipientIds && message.recipientIds.includes(req.session.departmentId));
+      if (!isRecipient) {
+        return res.status(403).json({ error: "Шумо гирандаи ин паём нестед" });
+      }
+      
+      // Check if already approved/rejected
+      if (message.approvalStatus) {
+        return res.status(400).json({ error: "Ин паём аллакай баррасӣ шудааст" });
+      }
+      
+      const updatedMessage = await storage.updateMessageApproval(id, status, req.session.departmentId);
+      res.json(updatedMessage);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Message routes
   app.get("/api/messages", requireAuth, async (req: Request, res: Response) => {
     try {

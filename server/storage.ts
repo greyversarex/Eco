@@ -9,7 +9,8 @@ import type {
   AnnouncementAttachment, InsertAnnouncementAttachment,
   Person, InsertPerson,
   DepartmentIcon, InsertDepartmentIcon,
-  PushSubscription, InsertPushSubscription
+  PushSubscription, InsertPushSubscription,
+  DocumentType, InsertDocumentType
 } from "@shared/schema";
 
 export interface IStorage {
@@ -108,11 +109,22 @@ export interface IStorage {
   createPushSubscription(subscription: InsertPushSubscription): Promise<PushSubscription>;
   updatePushSubscription(id: number, subscription: Partial<InsertPushSubscription>): Promise<PushSubscription | undefined>;
   deletePushSubscriptionByEndpoint(endpoint: string): Promise<boolean>;
+  
+  // Document Types (Намуди ҳуҷҷат)
+  getDocumentTypes(): Promise<DocumentType[]>;
+  getActiveDocumentTypes(): Promise<DocumentType[]>;
+  getDocumentTypeById(id: number): Promise<DocumentType | undefined>;
+  createDocumentType(documentType: InsertDocumentType): Promise<DocumentType>;
+  updateDocumentType(id: number, documentType: Partial<InsertDocumentType>): Promise<DocumentType | undefined>;
+  deleteDocumentType(id: number): Promise<boolean>;
+  
+  // Message Approval (Иҷозат)
+  updateMessageApproval(id: number, status: 'approved' | 'rejected', approvedById: number): Promise<Message | undefined>;
 }
 
 // Database storage implementation
 import { db } from './db';
-import { departments, admins, messages, attachments, assignments, assignmentAttachments, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions } from '@shared/schema';
+import { departments, admins, messages, attachments, assignments, assignmentAttachments, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes } from '@shared/schema';
 import { eq, or, and, desc, asc, sql } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
@@ -870,6 +882,50 @@ export class DbStorage implements IStorage {
       .where(eq(pushSubscriptions.endpoint, endpoint))
       .returning();
     return result.length > 0;
+  }
+
+  // Document Types (Намуди ҳуҷҷат)
+  async getDocumentTypes(): Promise<DocumentType[]> {
+    return await db.select().from(documentTypes).orderBy(asc(documentTypes.sortOrder), asc(documentTypes.id));
+  }
+
+  async getActiveDocumentTypes(): Promise<DocumentType[]> {
+    return await db.select().from(documentTypes)
+      .where(eq(documentTypes.isActive, true))
+      .orderBy(asc(documentTypes.sortOrder), asc(documentTypes.id));
+  }
+
+  async getDocumentTypeById(id: number): Promise<DocumentType | undefined> {
+    const result = await db.select().from(documentTypes).where(eq(documentTypes.id, id));
+    return result[0];
+  }
+
+  async createDocumentType(documentType: InsertDocumentType): Promise<DocumentType> {
+    const result = await db.insert(documentTypes).values(documentType).returning();
+    return result[0];
+  }
+
+  async updateDocumentType(id: number, documentType: Partial<InsertDocumentType>): Promise<DocumentType | undefined> {
+    const result = await db.update(documentTypes).set(documentType).where(eq(documentTypes.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteDocumentType(id: number): Promise<boolean> {
+    const result = await db.delete(documentTypes).where(eq(documentTypes.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Message Approval (Иҷозат)
+  async updateMessageApproval(id: number, status: 'approved' | 'rejected', approvedById: number): Promise<Message | undefined> {
+    const result = await db.update(messages)
+      .set({
+        approvalStatus: status,
+        approvedById: approvedById,
+        approvedAt: new Date(),
+      })
+      .where(eq(messages.id, id))
+      .returning();
+    return result[0];
   }
 }
 

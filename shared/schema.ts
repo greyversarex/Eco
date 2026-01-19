@@ -16,6 +16,23 @@ const bytea = customType<{ data: Buffer; notNull: false; default: false }>({
   },
 });
 
+// Document Types table (Намуди ҳуҷҷат) - types of documents managed by admin
+export const documentTypes = pgTable("document_types", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertDocumentTypeSchema = createInsertSchema(documentTypes).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertDocumentType = z.infer<typeof insertDocumentTypeSchema>;
+export type DocumentType = typeof documentTypes.$inferSelect;
+
 // Department icons table - stores department icon images
 export const departmentIcons = pgTable("department_icons", {
   id: serial("id").primaryKey(),
@@ -50,6 +67,7 @@ export const departments: any = pgTable("departments", {
   canCreateAssignmentFromMessage: boolean("can_create_assignment_from_message").default(false).notNull(), // Право создавать вазифа из сообщений
   canCreateAssignment: boolean("can_create_assignment").default(false).notNull(), // Право создавать супориши
   canCreateAnnouncement: boolean("can_create_announcement").default(false).notNull(), // Право создавать эълонҳо
+  canApprove: boolean("can_approve").default(false).notNull(), // Право давать иҷозат/рад на сообщения
   icon: text("icon").default('building-2').notNull(), // Legacy field for backward compatibility, new icons use department_icons table
   parentDepartmentId: integer("parent_department_id").references((): any => departments.id, { onDelete: 'cascade' }), // Поддепартаменты - ссылка на родительский департамент
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -97,6 +115,7 @@ export const messages: any = pgTable("messages", {
   subject: text("subject").notNull(),
   content: text("content").notNull(),
   documentNumber: text("document_number"),
+  documentTypeId: integer("document_type_id").references(() => documentTypes.id, { onDelete: 'set null' }), // Намуди ҳуҷҷат - optional
   senderId: integer("sender_id").notNull().references(() => departments.id, { onDelete: 'cascade' }),
   recipientId: integer("recipient_id").references(() => departments.id, { onDelete: 'cascade' }), // Legacy field, kept for backward compatibility
   recipientIds: integer("recipient_ids").array().default(sql`ARRAY[]::integer[]`).notNull(), // New field for broadcast messages
@@ -105,6 +124,9 @@ export const messages: any = pgTable("messages", {
   replyToId: integer("reply_to_id").references((): any => messages.id, { onDelete: 'cascade' }),
   originalSenderId: integer("original_sender_id").references(() => departments.id, { onDelete: 'cascade' }), // Original sender if forwarded
   forwardedById: integer("forwarded_by_id").references(() => departments.id, { onDelete: 'cascade' }), // Who forwarded the message
+  approvalStatus: text("approval_status"), // 'approved' | 'rejected' | null (pending)
+  approvedById: integer("approved_by_id").references(() => departments.id, { onDelete: 'set null' }), // Department that approved/rejected
+  approvedAt: timestamp("approved_at"), // When approval decision was made
   isRead: boolean("is_read").default(false).notNull(),
   isDeleted: boolean("is_deleted").default(false).notNull(),
   deletedAt: timestamp("deleted_at"),
@@ -115,6 +137,7 @@ export const messages: any = pgTable("messages", {
   // GIN index for array membership queries (WHERE x = ANY(recipient_ids))
   recipientIdsIdx: index("messages_recipient_ids_idx").using("gin", table.recipientIds),
   deletedIdx: index("messages_is_deleted_idx").on(table.isDeleted),
+  approvalIdx: index("messages_approval_status_idx").on(table.approvalStatus),
 }));
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
@@ -126,9 +149,13 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   originalSenderId: true, // Populated by forwarding logic
   forwardedById: true, // Populated by forwarding logic
   recipientIds: true, // Optional during migration, will be populated from recipientId or explicit array
+  approvalStatus: true, // Populated by approval logic
+  approvedById: true, // Populated by approval logic
+  approvedAt: true, // Populated by approval logic
 }).extend({
   documentDate: z.coerce.date(),
   recipientIds: z.array(z.number()).min(1).optional(), // Optional during migration
+  documentTypeId: z.number().int().positive().nullable().optional(), // Optional type of document
 });
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
