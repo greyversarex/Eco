@@ -1,0 +1,67 @@
+root@5862137-le73231:~/Eco# pm2 logs --lines 20
+[TAILING] Tailing last 20 lines for [all] processes (change the value with --lines option)
+/root/.pm2/pm2.log last 20 lines:
+PM2        | 2026-01-17T22:46:43: PM2 log: App [ecotajikistan:0] online
+PM2        | 2026-01-17T22:54:06: PM2 log: Stopping app:ecotajikistan id:0
+PM2        | 2026-01-17T22:54:06: PM2 log: App [ecotajikistan:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-01-17T22:54:06: PM2 log: pid=944606 msg=process killed
+PM2        | 2026-01-17T22:54:06: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-01-17T22:54:06: PM2 log: App [ecotajikistan:0] online
+PM2        | 2026-01-18T09:41:59: PM2 log: [PM2] This PM2 is not UP TO DATE
+PM2        | 2026-01-18T09:41:59: PM2 log: [PM2] Upgrade to version 6.0.14
+PM2        | 2026-01-19T09:41:59: PM2 log: [PM2] This PM2 is not UP TO DATE
+PM2        | 2026-01-19T09:41:59: PM2 log: [PM2] Upgrade to version 6.0.14
+PM2        | 2026-01-19T21:55:08: PM2 log: Stopping app:ecotajikistan id:0
+PM2        | 2026-01-19T21:55:08: PM2 log: App [ecotajikistan:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-01-19T21:55:08: PM2 log: pid=944789 msg=process killed
+PM2        | 2026-01-19T21:55:08: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-01-19T21:55:08: PM2 log: App [ecotajikistan:0] online
+PM2        | 2026-01-19T22:19:27: PM2 log: Stopping app:ecotajikistan id:0
+PM2        | 2026-01-19T22:19:27: PM2 log: App [ecotajikistan:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-01-19T22:19:27: PM2 log: pid=1018998 msg=process killed
+PM2        | 2026-01-19T22:19:27: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-01-19T22:19:27: PM2 log: App [ecotajikistan:0] online
+
+/root/.pm2/logs/ecotajikistan-error.log last 20 lines:
+0|ecotajik |   hasDepartmentId: false,
+0|ecotajik |   hasAdminId: false,
+0|ecotajik |   sessionExists: true,
+0|ecotajik |   path: '/api/counters',
+0|ecotajik |   method: 'GET'
+0|ecotajik | }
+0|ecotajik | [AUTH_MIDDLEWARE] Rejected: No session or user ID {
+0|ecotajik |   hasDepartmentId: false,
+0|ecotajik |   hasAdminId: false,
+0|ecotajik |   sessionExists: true,
+0|ecotajik |   path: '/api/counters',
+0|ecotajik |   method: 'GET'
+0|ecotajik | }
+0|ecotajik | [AUTH_MIDDLEWARE] Rejected: No session or user ID {
+0|ecotajik |   hasDepartmentId: false,
+0|ecotajik |   hasAdminId: false,
+0|ecotajik |   sessionExists: true,
+0|ecotajik |   path: '/api/messages/unread/by-department',
+0|ecotajik |   method: 'GET'
+0|ecotajik | }
+
+/root/.pm2/logs/ecotajikistan-out.log last 20 lines:
+0|ecotajik | 12:35:57 AM [express] GET /api/counters 200 in 7ms :: {"unreadAnnouncements":0,"uncompletedAssignment…
+0|ecotajik | 12:35:57 AM [express] GET /api/messages/unread/by-department 500 in 12ms :: {"error":"column \"approv…
+0|ecotajik | 12:36:27 AM [express] GET /api/counters 200 in 11ms :: {"unreadAnnouncements":0,"uncompletedAssignmen…
+0|ecotajik | 12:36:27 AM [express] GET /api/messages/unread/by-department 500 in 15ms :: {"error":"column \"approv…
+0|ecotajik | [AUTH_MIDDLEWARE] Authenticated: {
+0|ecotajik |   userType: 'department',
+0|ecotajik |   userId: 53,
+0|ecotajik |   path: '/api/messages',
+0|ecotajik |   method: 'POST'
+0|ecotajik | }
+0|ecotajik | 12:36:57 AM [express] POST /api/messages 500 in 23ms :: {"error":"column \"approved_by_id\" of relati…
+0|ecotajik | 12:36:57 AM [express] GET /api/messages/unread/by-department 500 in 21ms :: {"error":"column \"approv…
+0|ecotajik | 12:36:57 AM [express] GET /api/counters 200 in 3ms :: {"unreadAnnouncements":0,"uncompletedAssignment…
+0|ecotajik | [AUTH_MIDDLEWARE] Authenticated: {
+0|ecotajik |   userType: 'department',
+0|ecotajik |   userId: 53,
+0|ecotajik |   path: '/api/messages',
+0|ecotajik |   method: 'POST'
+0|ecotajik | }
+0|ecotajik | 12:37:13 AM [express] POST /api/messages 500 in 18ms :: {"error":"column \"approved_by_id\" of relati…
