@@ -87,6 +87,8 @@ export default function ComposeMessage() {
 
   const { data: documentTypes = [] } = useQuery<DocumentType[]>({
     queryKey: ['/api/document-types'],
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const sendMessageMutation = useMutation({
