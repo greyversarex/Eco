@@ -622,12 +622,15 @@ export default function MessageView() {
                 </div>
 
                 <div className="space-y-3 text-base border-t pt-6 px-6">
-                  {message.documentTypeId && (
-                    <div data-testid="text-document-type">
-                      <span className="font-medium text-[#050505]">Намуди ҳуҷҷат:</span>
-                      <span className="ml-2 text-foreground">
-                        {documentTypes.find(dt => dt.id === message.documentTypeId)?.name || 'Номаълум'}
-                      </span>
+                  {(message as any).svNumber && (
+                    <div data-testid="text-sv-number">
+                      <span className="font-medium text-[#050505]">Рақами С/В:</span>
+                      <span className="ml-2 text-foreground">{(message as any).svNumber}</span>
+                      {(message as any).svDirection && (
+                        <span className={`ml-2 ${(message as any).svDirection === 'outgoing' ? 'text-green-600' : 'text-blue-600'}`}>
+                          ({(message as any).svDirection === 'outgoing' ? 'Содиротӣ' : 'Воридотӣ'})
+                        </span>
+                      )}
                     </div>
                   )}
                   {message.documentNumber && (

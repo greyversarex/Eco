@@ -185,9 +185,14 @@ export default function DepartmentMessages() {
                     <div 
                       className="hidden sm:grid border-b border-border px-6 py-3 bg-muted/30 font-semibold text-sm text-muted-foreground items-center gap-x-4"
                       style={{
-                        gridTemplateColumns: '120px 1fr 180px 130px 80px'
+                        gridTemplateColumns: '80px 120px 1fr 180px 130px 80px'
                       }}
                     >
+                      {/* S/V Number Header */}
+                      <div className="text-center">
+                        Рақами С/В
+                      </div>
+                      
                       {/* Document Number Header */}
                       <div className="text-center">
                         Рақами ҳуҷҷат
@@ -227,6 +232,8 @@ export default function DepartmentMessages() {
                         hasAttachment={!!message.attachmentUrl}
                         onClick={() => handleMessageClick(message.id)}
                         documentNumber={message.documentNumber}
+                        svNumber={(message as any).svNumber}
+                        svDirection={(message as any).svDirection}
                         approvalStatus={message.approvalStatus as 'approved' | 'rejected' | null}
                       />
                     );
@@ -250,9 +257,14 @@ export default function DepartmentMessages() {
                     <div 
                       className="hidden sm:grid border-b border-border px-6 py-3 bg-muted/30 font-semibold text-sm text-muted-foreground items-center gap-x-4"
                       style={{
-                        gridTemplateColumns: '120px 1fr 180px 130px 80px'
+                        gridTemplateColumns: '80px 120px 1fr 180px 130px 80px'
                       }}
                     >
+                      {/* S/V Number Header */}
+                      <div className="text-center">
+                        Рақами С/В
+                      </div>
+                      
                       {/* Document Number Header */}
                       <div className="text-center">
                         Рақами ҳуҷҷат
@@ -308,6 +320,8 @@ export default function DepartmentMessages() {
                         onClick={() => handleMessageClick(message.id)}
                         isSentMessage={true}
                         documentNumber={message.documentNumber}
+                        svNumber={(message as any).svNumber}
+                        svDirection={(message as any).svDirection}
                         approvalStatus={message.approvalStatus as 'approved' | 'rejected' | null}
                       />
                     );

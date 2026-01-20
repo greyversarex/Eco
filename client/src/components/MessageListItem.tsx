@@ -21,6 +21,8 @@ interface MessageListItemProps {
   isSelected?: boolean;
   onToggleSelect?: () => void;
   documentNumber?: string;
+  svNumber?: string;
+  svDirection?: 'outgoing' | 'incoming' | null;
   content?: string;
   approvalStatus?: 'approved' | 'rejected' | null;
 }
@@ -39,6 +41,8 @@ export default function MessageListItem({
   isSelected = false,
   onToggleSelect,
   documentNumber,
+  svNumber,
+  svDirection,
   content,
   approvalStatus,
 }: MessageListItemProps) {
@@ -134,7 +138,19 @@ export default function MessageListItem({
             <p className="text-xs text-muted-foreground line-clamp-2">{content}</p>
           )}
           <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-            <span>{documentNumber || '—'}</span>
+            <div className="flex items-center gap-3">
+              {svNumber && (
+                <div className="flex items-center gap-1" data-testid={`mobile-sv-number-${id}`}>
+                  <span>{svNumber}</span>
+                  {svDirection && (
+                    <span className={svDirection === 'outgoing' ? 'text-green-600' : 'text-blue-600'} data-testid={`mobile-sv-direction-${id}`}>
+                      ({svDirection === 'outgoing' ? 'С' : 'В'})
+                    </span>
+                  )}
+                </div>
+              )}
+              <span>{documentNumber || '—'}</span>
+            </div>
             <div className="flex items-center gap-2">
               {approvalStatus === 'approved' && (
                 <Badge variant="outline" className="gap-1 bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-600 text-xs py-0">
@@ -163,8 +179,8 @@ export default function MessageListItem({
         } ${isSelected ? 'bg-primary/10' : ''}`}
         style={{
           gridTemplateColumns: selectable 
-            ? 'auto 120px 1fr 180px 130px 80px'
-            : '120px 1fr 180px 130px 80px'
+            ? 'auto 80px 120px 1fr 180px 130px 80px'
+            : '80px 120px 1fr 180px 130px 80px'
         }}
         onClick={handleItemClick}
         data-testid={`message-item-${id}`}
@@ -174,6 +190,24 @@ export default function MessageListItem({
             <Checkbox checked={isSelected} data-testid={`checkbox-message-${id}`} />
           </div>
         )}
+        
+        {/* S/V Number (Рақами С/В) */}
+        <div className="text-center" data-testid={`sv-number-${id}`}>
+          {svNumber ? (
+            <div className="space-y-0.5">
+              <p className={`text-sm ${!isRead && !isSentMessage ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+                {svNumber}
+              </p>
+              {svDirection && (
+                <p className={`text-xs ${svDirection === 'outgoing' ? 'text-green-600' : 'text-blue-600'}`} data-testid={`sv-direction-${id}`}>
+                  {svDirection === 'outgoing' ? 'Содиротӣ' : 'Воридотӣ'}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">—</p>
+          )}
+        </div>
         
         {/* Document Number */}
         <div className="text-center">

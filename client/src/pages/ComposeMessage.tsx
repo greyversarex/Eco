@@ -33,6 +33,8 @@ export default function ComposeMessage() {
   
   const [, setLocation] = useLocation();
   const [documentNumber, setDocumentNumber] = useState('');
+  const [svNumber, setSvNumber] = useState('');
+  const [svDirection, setSvDirection] = useState<'outgoing' | 'incoming' | null>(null);
   const [documentTypeId, setDocumentTypeId] = useState<string>('');
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
   const [content, setContent] = useState('');
@@ -212,6 +214,8 @@ export default function ComposeMessage() {
         formData.append('content', content);
         formData.append('documentNumber', documentNumber || '');
         formData.append('documentTypeId', documentTypeId || '');
+        if (svNumber) formData.append('svNumber', svNumber);
+        if (svDirection) formData.append('svDirection', svDirection);
         formData.append('senderId', user.department.id.toString());
         formData.append('documentDate', new Date().toISOString());
         
@@ -243,6 +247,8 @@ export default function ComposeMessage() {
           content,
           documentNumber: documentNumber || null,
           documentTypeId: documentTypeId ? parseInt(documentTypeId) : null,
+          svNumber: svNumber || null,
+          svDirection: svDirection || null,
           senderId: user.department.id,
           recipientId: selectedRecipients[0],
           documentDate: new Date().toISOString(),
@@ -295,6 +301,8 @@ export default function ComposeMessage() {
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
       setContent('');
       setDocumentNumber('');
+      setSvNumber('');
+      setSvDirection(null);
       setDocumentTypeId('');
       setSelectedRecipients([]);
       setSelectedFiles([]);
@@ -385,6 +393,8 @@ export default function ComposeMessage() {
       // Clear form
       setContent('');
       setDocumentNumber('');
+      setSvNumber('');
+      setSvDirection(null);
       setDocumentTypeId('');
       setSelectedRecipients([]);
       setSelectedFiles([]);
@@ -480,17 +490,58 @@ export default function ComposeMessage() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="documentNumber">
-                  Рақами ҳуҷҷат
-                </Label>
-                <Input
-                  id="documentNumber"
-                  value={documentNumber}
-                  onChange={(e) => setDocumentNumber(e.target.value)}
-                  placeholder="Рақами ҳуҷҷат"
-                  data-testid="input-document-number"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>
+                    Рақами С/В
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={svNumber}
+                      onChange={(e) => setSvNumber(e.target.value)}
+                      placeholder="Рақам"
+                      className="flex-1"
+                      data-testid="input-sv-number"
+                    />
+                    <Button
+                      type="button"
+                      variant={svDirection === 'outgoing' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSvDirection(svDirection === 'outgoing' ? null : 'outgoing')}
+                      className={svDirection === 'outgoing' ? 'bg-green-600 hover:bg-green-700' : ''}
+                      data-testid="button-sv-outgoing"
+                    >
+                      С
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={svDirection === 'incoming' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSvDirection(svDirection === 'incoming' ? null : 'incoming')}
+                      className={svDirection === 'incoming' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                      data-testid="button-sv-incoming"
+                    >
+                      В
+                    </Button>
+                  </div>
+                  {svDirection && (
+                    <p className="text-xs text-muted-foreground">
+                      {svDirection === 'outgoing' ? 'Содиротӣ' : 'Воридотӣ'}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="documentNumber">
+                    Рақами ҳуҷҷат
+                  </Label>
+                  <Input
+                    id="documentNumber"
+                    value={documentNumber}
+                    onChange={(e) => setDocumentNumber(e.target.value)}
+                    placeholder="Рақами ҳуҷҷат"
+                    data-testid="input-document-number"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">

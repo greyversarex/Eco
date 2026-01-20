@@ -986,6 +986,8 @@ export function registerRoutes(app: Express) {
         documentDate: new Date(req.body.documentDate),
         documentNumber: req.body.documentNumber || null,
         documentTypeId: req.body.documentTypeId ? parseInt(req.body.documentTypeId) : null,
+        svNumber: req.body.svNumber || null,
+        svDirection: req.body.svDirection || null,
         replyToId: null,
       };
 

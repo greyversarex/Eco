@@ -97,6 +97,8 @@ export default function Inbox() {
         hasAttachment: !!msg.attachmentUrl,
         isSentMessage: isOutbox,
         documentNumber: msg.documentNumber || '',
+        svNumber: (msg as any).svNumber || undefined,
+        svDirection: (msg as any).svDirection || undefined,
         content: msg.content || '',
         approvalStatus: msg.approvalStatus as 'approved' | 'rejected' | null,
       };
@@ -324,11 +326,16 @@ export default function Inbox() {
                 className="hidden sm:grid border-b border-border px-6 py-3 bg-muted/30 font-semibold text-sm text-muted-foreground items-center gap-x-4"
                 style={{
                   gridTemplateColumns: isDeleteMode 
-                    ? 'auto 120px 1fr 150px 130px 80px'
-                    : '120px 1fr 150px 130px 80px'
+                    ? 'auto 80px 120px 1fr 150px 130px 80px'
+                    : '80px 120px 1fr 150px 130px 80px'
                 }}
               >
                 {isDeleteMode && <div />}
+                
+                {/* S/V Number Header */}
+                <div className="text-center">
+                  Рақами С/В
+                </div>
                 
                 {/* Document Number Header */}
                 <div className="text-center">
