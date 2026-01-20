@@ -333,7 +333,7 @@ export default function Inbox() {
                 {isDeleteMode && <div />}
                 
                 {/* S/V Number Header */}
-                <div className="text-center">
+                <div className="text-center ml-[-1px] mr-[-1px]">
                   Рақами С/В
                 </div>
                 
