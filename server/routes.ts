@@ -1703,27 +1703,28 @@ export function registerRoutes(app: Express) {
         }
       }
       
-      // Get ALL people from recipient departments (Иҷрокунандагон - все исполнители)
-      const allDepartmentPeople = allPeople.filter((p: any) => 
-        p.departmentId && recipientIds.includes(p.departmentId)
-      );
+      // Get all departments for fallback
+      const allDepartments = await storage.getDepartments();
+      const recipientDepts = allDepartments.filter((d: any) => recipientIds.includes(d.id));
       
       let allDepartmentExecutorIds: number[] = [];
       let allDepartmentExecutors: string[] = [];
       let finalExecutors = executors;
       let finalExecutorIds = executorIds;
       
-      if (allDepartmentPeople.length > 0) {
-        // If people exist in departments, use people names
-        allDepartmentExecutorIds = allDepartmentPeople.map((p: any) => p.id);
-        allDepartmentExecutors = allDepartmentPeople.map((p: any) => p.name);
+      if (executorIds.length > 0) {
+        // User selected specific people - use their names for Даъват
+        // For Иҷрокунандагон - show remaining departments (excluding those with selected people)
+        const selectedPeopleDeptIds = new Set(
+          allPeople.filter((p: any) => executorIds.includes(p.id)).map((p: any) => p.departmentId)
+        );
+        const remainingDepts = recipientDepts.filter((d: any) => !selectedPeopleDeptIds.has(d.id));
+        allDepartmentExecutors = remainingDepts.map((d: any) => d.name);
+        allDepartmentExecutorIds = remainingDepts.map((d: any) => d.id);
       } else {
-        // If no people in departments, use department names instead
-        // First department goes to Даъват (executors), rest go to Иҷрокунандагон (allDepartmentExecutors)
-        const allDepartments = await storage.getDepartments();
-        const recipientDepts = allDepartments.filter((d: any) => recipientIds.includes(d.id));
-        
-        if (recipientDepts.length > 0 && finalExecutors.length === 0) {
+        // No people selected - use department names
+        // First department goes to Даъват, rest go to Иҷрокунандагон
+        if (recipientDepts.length > 0) {
           // First department as Даъват
           finalExecutors = [recipientDepts[0].name];
           finalExecutorIds = [recipientDepts[0].id];

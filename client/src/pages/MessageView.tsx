@@ -69,6 +69,7 @@ export default function MessageView() {
   const [assignmentDeadline, setAssignmentDeadline] = useState('');
   const [assignmentFiles, setAssignmentFiles] = useState<File[]>([]);
   const [showAllInvited, setShowAllInvited] = useState(false);
+  const [recipientSearch, setRecipientSearch] = useState('');
   
   // Forward modal state
   const [isForwardDialogOpen, setIsForwardDialogOpen] = useState(false);
@@ -889,6 +890,13 @@ export default function MessageView() {
                                 <div className="text-sm text-muted-foreground">Боргирӣ...</div>
                               ) : (
                                 <div>
+                                  <Input
+                                    placeholder="Ҷустуҷӯ..."
+                                    value={recipientSearch}
+                                    onChange={(e) => setRecipientSearch(e.target.value)}
+                                    className="mb-2"
+                                    data-testid="input-recipient-search"
+                                  />
                                   <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                       {departments
@@ -899,6 +907,9 @@ export default function MessageView() {
                                           return dept.parentDepartmentId === myDeptId || 
                                                  (myParentId && dept.parentDepartmentId === myParentId);
                                         })
+                                        .filter((dept: any) => 
+                                          !recipientSearch || dept.name.toLowerCase().includes(recipientSearch.toLowerCase())
+                                        )
                                         .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
                                         .map((dept: any) => (
                                           <div key={dept.id} className="flex items-center space-x-2">
