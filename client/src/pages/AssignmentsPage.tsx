@@ -209,6 +209,7 @@ export default function AssignmentsPage() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showAllInvited, setShowAllInvited] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'overdue' | 'completed'>('all');
+  const [documentTypeFilterId, setDocumentTypeFilterId] = useState<string>('');
 
   const { data: assignments = [], isLoading } = useQuery<Assignment[]>({
     queryKey: ['/api/assignments'],
@@ -230,6 +231,11 @@ export default function AssignmentsPage() {
     staleTime: 0,
     refetchOnMount: 'always',
   });
+
+  // Filter assignments by document type
+  const filteredAssignments = documentTypeFilterId && documentTypeFilterId !== 'all'
+    ? assignments.filter(a => a.documentTypeId?.toString() === documentTypeFilterId)
+    : assignments;
 
   const createAssignmentMutation = useMutation({
     mutationFn: async (formData: FormData) => {
@@ -759,14 +765,14 @@ export default function AssignmentsPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex gap-3 flex-wrap items-center">
             <Button
               variant={activeFilter === 'all' ? 'default' : 'outline'}
               onClick={() => setActiveFilter('all')}
               data-testid="tab-all-assignments"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
             >
-              Ҳама ({assignments.filter(a => !a.isCompleted && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length})
+              Ҳама ({filteredAssignments.filter(a => !a.isCompleted && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length})
             </Button>
             <Button
               variant={activeFilter === 'overdue' ? 'default' : 'outline'}
@@ -774,7 +780,7 @@ export default function AssignmentsPage() {
               data-testid="tab-overdue-assignments"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
             >
-              Иҷронашуда ({assignments.filter(a => !a.isCompleted && new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0))).length})
+              Иҷронашуда ({filteredAssignments.filter(a => !a.isCompleted && new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0))).length})
             </Button>
             <Button
               variant={activeFilter === 'completed' ? 'default' : 'outline'}
@@ -782,8 +788,26 @@ export default function AssignmentsPage() {
               data-testid="tab-completed-assignments"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
             >
-              Иҷрошуда ({assignments.filter(a => a.isCompleted).length})
+              Иҷрошуда ({filteredAssignments.filter(a => a.isCompleted).length})
             </Button>
+            <div className="ml-auto">
+              <Select
+                value={documentTypeFilterId}
+                onValueChange={setDocumentTypeFilterId}
+              >
+                <SelectTrigger className="w-48" data-testid="select-assignment-document-type-filter">
+                  <SelectValue placeholder="Намуди ҳуҷҷат" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Ҳама</SelectItem>
+                  {documentTypes.map((dt) => (
+                    <SelectItem key={dt.id} value={dt.id.toString()}>
+                      {dt.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {activeFilter === 'all' && (
@@ -795,7 +819,7 @@ export default function AssignmentsPage() {
                   <p className="text-muted-foreground">Боргирӣ...</p>
                 </div>
               </div>
-            ) : assignments.filter(a => !a.isCompleted && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length === 0 ? (
+            ) : filteredAssignments.filter(a => !a.isCompleted && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length === 0 ? (
               <Card className="p-12 text-center bg-white">
                 <p className="text-muted-foreground">
                   Ҳанӯз супоришҳо нестанд
@@ -803,7 +827,7 @@ export default function AssignmentsPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {assignments.filter(a => !a.isCompleted && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).map((assignment) => (
+                {filteredAssignments.filter(a => !a.isCompleted && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).map((assignment) => (
               <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
@@ -918,7 +942,7 @@ export default function AssignmentsPage() {
                   <p className="text-muted-foreground">Боргирӣ...</p>
                 </div>
               </div>
-            ) : assignments.filter(a => !a.isCompleted && new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0))).length === 0 ? (
+            ) : filteredAssignments.filter(a => !a.isCompleted && new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0))).length === 0 ? (
               <Card className="p-12 text-center bg-white">
                 <p className="text-muted-foreground">
                   Супоришҳои иҷронашуда нестанд
@@ -926,7 +950,7 @@ export default function AssignmentsPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {assignments.filter(a => !a.isCompleted && new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0))).map((assignment) => (
+                {filteredAssignments.filter(a => !a.isCompleted && new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0))).map((assignment) => (
               <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
@@ -1029,7 +1053,7 @@ export default function AssignmentsPage() {
                   <p className="text-muted-foreground">Боргирӣ...</p>
                 </div>
               </div>
-            ) : assignments.filter(a => a.isCompleted).length === 0 ? (
+            ) : filteredAssignments.filter(a => a.isCompleted).length === 0 ? (
               <Card className="p-12 text-center bg-white">
                 <p className="text-muted-foreground">
                   Супоришҳои иҷрошуда нестанд
@@ -1037,7 +1061,7 @@ export default function AssignmentsPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {assignments.filter(a => a.isCompleted).map((assignment) => (
+                {filteredAssignments.filter(a => a.isCompleted).map((assignment) => (
                   <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between gap-4">
