@@ -915,7 +915,7 @@ export default function AssignmentsPage() {
                     </div>
                   )}
                   
-                  {!assignment.isCompleted && new Date() <= new Date(assignment.deadline) && (
+                  {!assignment.isCompleted && new Date() <= new Date(assignment.deadline) && user?.userType === 'department' && user.department?.id === assignment.senderId && (
                     <Button
                       onClick={() => completeAssignmentMutation.mutate(assignment.id)}
                       disabled={completeAssignmentMutation.isPending}
