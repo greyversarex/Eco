@@ -497,35 +497,22 @@ export default function ComposeMessage() {
                       value={svNumber}
                       onChange={(e) => setSvNumber(e.target.value)}
                       placeholder="Рақам"
-                      className="flex-1"
+                      className="w-24"
                       data-testid="input-sv-number"
                     />
-                    <Button
-                      type="button"
-                      variant={svDirection === 'outgoing' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setSvDirection(svDirection === 'outgoing' ? null : 'outgoing')}
-                      className={svDirection === 'outgoing' ? 'bg-green-600 hover:bg-green-700' : ''}
-                      data-testid="button-sv-outgoing"
+                    <Select
+                      value={svDirection || ''}
+                      onValueChange={(value) => setSvDirection(value as 'outgoing' | 'incoming' | null)}
                     >
-                      С
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={svDirection === 'incoming' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setSvDirection(svDirection === 'incoming' ? null : 'incoming')}
-                      className={svDirection === 'incoming' ? 'bg-blue-600 hover:bg-blue-700' : ''}
-                      data-testid="button-sv-incoming"
-                    >
-                      В
-                    </Button>
+                      <SelectTrigger className="w-32" data-testid="select-sv-direction">
+                        <SelectValue placeholder="Намуд" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="outgoing">Содиротӣ</SelectItem>
+                        <SelectItem value="incoming">Воридотӣ</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  {svDirection && (
-                    <p className="text-xs text-muted-foreground">
-                      {svDirection === 'outgoing' ? 'Содиротӣ' : 'Воридотӣ'}
-                    </p>
-                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="documentNumber">
