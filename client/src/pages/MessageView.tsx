@@ -707,7 +707,9 @@ export default function MessageView() {
                                 <Button
                                   type="button"
                                   onClick={() => {
-                                    const availableDepts = departments.filter(dept => dept.id !== user?.department?.id);
+                                    const availableDepts = departments.filter(dept => 
+                                      dept.id !== user?.department?.id && !dept.parentDepartmentId
+                                    );
                                     if (forwardRecipientIds.length === availableDepts.length) {
                                       setForwardRecipientIds([]);
                                     } else {
@@ -717,14 +719,16 @@ export default function MessageView() {
                                   className="bg-green-600 hover:bg-green-700 text-white text-sm h-8 px-3"
                                   data-testid="button-select-all-forward"
                                 >
-                                  {forwardRecipientIds.length === departments.filter(dept => dept.id !== user?.department?.id).length
+                                  {forwardRecipientIds.length === departments.filter(dept => 
+                                    dept.id !== user?.department?.id && !dept.parentDepartmentId
+                                  ).length
                                     ? 'Бекор кардан'
                                     : 'Ҳамаро қайд кардан'}
                                 </Button>
                               </div>
                               <div className="space-y-2 max-h-96 overflow-y-auto border rounded-lg p-4">
                                 {departments
-                                  .filter(dept => dept.id !== user?.department?.id)
+                                  .filter(dept => dept.id !== user?.department?.id && !dept.parentDepartmentId)
                                   .map(dept => (
                                     <div key={dept.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-accent">
                                       <Checkbox
