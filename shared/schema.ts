@@ -115,6 +115,8 @@ export const messages: any = pgTable("messages", {
   subject: text("subject").notNull(),
   content: text("content").notNull(),
   documentNumber: text("document_number"),
+  svNumber: text("sv_number"), // Рақами С/В (Содиротӣ/Воридотӣ number)
+  svDirection: text("sv_direction"), // 'outgoing' (Содиротӣ) or 'incoming' (Воридотӣ)
   documentTypeId: integer("document_type_id").references(() => documentTypes.id, { onDelete: 'set null' }), // Намуди ҳуҷҷат - optional
   senderId: integer("sender_id").notNull().references(() => departments.id, { onDelete: 'cascade' }),
   recipientId: integer("recipient_id").references(() => departments.id, { onDelete: 'cascade' }), // Legacy field, kept for backward compatibility
@@ -156,6 +158,8 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   documentDate: z.coerce.date(),
   recipientIds: z.array(z.number()).min(1).optional(), // Optional during migration
   documentTypeId: z.number().int().positive().nullable().optional(), // Optional type of document
+  svNumber: z.string().nullable().optional(), // Рақами С/В number
+  svDirection: z.enum(['outgoing', 'incoming']).nullable().optional(), // Содиротӣ or Воридотӣ
 });
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
