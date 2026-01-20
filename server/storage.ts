@@ -5,6 +5,7 @@ import type {
   Attachment, InsertAttachment,
   Assignment, InsertAssignment,
   AssignmentAttachment, InsertAssignmentAttachment,
+  AssignmentReply, InsertAssignmentReply,
   Announcement, InsertAnnouncement,
   AnnouncementAttachment, InsertAnnouncementAttachment,
   Person, InsertPerson,
@@ -75,6 +76,10 @@ export interface IStorage {
   getAssignmentAttachments(assignmentId: number): Promise<AssignmentAttachment[]>;
   getAssignmentAttachmentById(id: number): Promise<AssignmentAttachment | undefined>;
   
+  // Assignment Replies
+  createAssignmentReply(reply: InsertAssignmentReply): Promise<AssignmentReply>;
+  getAssignmentReplies(assignmentId: number): Promise<AssignmentReply[]>;
+  
   // Announcements
   getAnnouncements(departmentId?: number): Promise<Announcement[]>;
   getAnnouncementById(id: number): Promise<Announcement | undefined>;
@@ -124,7 +129,7 @@ export interface IStorage {
 
 // Database storage implementation
 import { db } from './db';
-import { departments, admins, messages, attachments, assignments, assignmentAttachments, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes } from '@shared/schema';
+import { departments, admins, messages, attachments, assignments, assignmentAttachments, assignmentReplies, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes } from '@shared/schema';
 import { eq, or, and, desc, asc, sql } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
@@ -486,8 +491,8 @@ export class DbStorage implements IStorage {
       }
     };
     
-    // Fetch attachments metadata for each assignment
-    const assignmentsWithAttachments = await Promise.all(
+    // Fetch attachments metadata and replies for each assignment
+    const assignmentsWithAttachmentsAndReplies = await Promise.all(
       allAssignments.map(async (assignment) => {
         const attachments = await db
           .select({
@@ -500,6 +505,12 @@ export class DbStorage implements IStorage {
           .from(assignmentAttachments)
           .where(eq(assignmentAttachments.assignmentId, assignment.id));
         
+        // Fetch replies for this assignment
+        const replies = await db
+          .select()
+          .from(assignmentReplies)
+          .where(eq(assignmentReplies.assignmentId, assignment.id));
+        
         // Decode filenames before returning
         const decodedAttachments = attachments.map(att => ({
           ...att,
@@ -509,11 +520,12 @@ export class DbStorage implements IStorage {
         return {
           ...assignment,
           attachments: decodedAttachments,
+          replies: replies,
         };
       })
     );
     
-    return assignmentsWithAttachments;
+    return assignmentsWithAttachmentsAndReplies;
   }
 
   async getAssignmentById(id: number): Promise<Assignment | undefined> {
@@ -629,6 +641,16 @@ export class DbStorage implements IStorage {
   async getAssignmentAttachmentById(id: number): Promise<AssignmentAttachment | undefined> {
     const result = await db.select().from(assignmentAttachments).where(eq(assignmentAttachments.id, id));
     return result[0];
+  }
+
+  // Assignment Replies
+  async createAssignmentReply(reply: InsertAssignmentReply): Promise<AssignmentReply> {
+    const result = await db.insert(assignmentReplies).values(reply).returning();
+    return result[0];
+  }
+
+  async getAssignmentReplies(assignmentId: number): Promise<AssignmentReply[]> {
+    return await db.select().from(assignmentReplies).where(eq(assignmentReplies.assignmentId, assignmentId));
   }
 
   // Announcements

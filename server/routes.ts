@@ -1841,6 +1841,51 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Create assignment reply (Чавоб додан)
+  app.post("/api/assignments/:id/replies", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const assignmentId = parseInt(req.params.id);
+      const { replyText, responderPersonId } = req.body;
+      
+      if (!replyText || typeof replyText !== 'string' || replyText.trim() === '') {
+        return res.status(400).json({ error: 'Reply text is required' });
+      }
+      
+      // Get the assignment
+      const assignment = await storage.getAssignmentById(assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ error: 'Assignment not found' });
+      }
+      
+      // Get responder department ID from session
+      const responderDepartmentId = req.session.user?.userType === 'department' 
+        ? req.session.user.department?.id 
+        : null;
+      
+      if (!responderDepartmentId) {
+        return res.status(403).json({ error: 'Only departments can reply to assignments' });
+      }
+      
+      // Check if department is a recipient of this assignment
+      const isRecipient = assignment.recipientIds?.includes(responderDepartmentId);
+      if (!isRecipient) {
+        return res.status(403).json({ error: 'Only recipient departments can reply to this assignment' });
+      }
+      
+      // Create the reply
+      const reply = await storage.createAssignmentReply({
+        assignmentId,
+        responderDepartmentId,
+        responderPersonId: responderPersonId || null,
+        replyText: replyText.trim(),
+      });
+      
+      res.status(201).json(reply);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Delete assignment (only creator can delete)
   app.delete("/api/assignments/:id", requireAuth, async (req: Request, res: Response) => {
     try {

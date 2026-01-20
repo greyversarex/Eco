@@ -232,6 +232,14 @@ export type Assignment = typeof assignments.$inferSelect & {
     mimeType: string;
     createdAt: Date;
   }>;
+  replies?: Array<{
+    id: number;
+    assignmentId: number;
+    responderDepartmentId: number;
+    responderPersonId: number | null;
+    replyText: string;
+    createdAt: Date;
+  }>;
 };
 
 // Assignment attachments
@@ -256,6 +264,26 @@ export const insertAssignmentAttachmentSchema = z.object({
 });
 export type InsertAssignmentAttachment = z.infer<typeof insertAssignmentAttachmentSchema>;
 export type AssignmentAttachment = typeof assignmentAttachments.$inferSelect;
+
+// Assignment replies table (Ответы на задачи / Ҷавобҳо)
+export const assignmentReplies = pgTable("assignment_replies", {
+  id: serial("id").primaryKey(),
+  assignmentId: integer("assignment_id").notNull().references(() => assignments.id, { onDelete: 'cascade' }),
+  responderDepartmentId: integer("responder_department_id").notNull().references(() => departments.id, { onDelete: 'cascade' }),
+  responderPersonId: integer("responder_person_id").references(() => people.id, { onDelete: 'set null' }),
+  replyText: text("reply_text").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  assignmentIdx: index("assignment_replies_assignment_id_idx").on(table.assignmentId),
+  responderIdx: index("assignment_replies_responder_department_id_idx").on(table.responderDepartmentId),
+}));
+
+export const insertAssignmentReplySchema = createInsertSchema(assignmentReplies).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertAssignmentReply = z.infer<typeof insertAssignmentReplySchema>;
+export type AssignmentReply = typeof assignmentReplies.$inferSelect;
 
 // Announcements table (Объявления / Эълонҳо)
 export const announcements = pgTable("announcements", {

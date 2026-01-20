@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock } from 'lucide-react';
+import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock, CheckCircle2, MessageSquare } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -27,6 +27,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 // Progress indicator component with segmented daily view
 function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: Date; deadline: Date; isCompleted: boolean }) {
@@ -210,6 +216,9 @@ export default function AssignmentsPage() {
   const [showAllInvited, setShowAllInvited] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'overdue' | 'completed'>('all');
   const [documentTypeFilterId, setDocumentTypeFilterId] = useState<string>('');
+  const [replyDialogOpen, setReplyDialogOpen] = useState(false);
+  const [replyAssignmentId, setReplyAssignmentId] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState('');
 
   const { data: assignments = [], isLoading } = useQuery<Assignment[]>({
     queryKey: ['/api/assignments'],
@@ -284,6 +293,29 @@ export default function AssignmentsPage() {
       toast({
         title: 'Муваффақият',
         description: 'Супориш иҷро шуд',
+      });
+    },
+  });
+
+  const replyAssignmentMutation = useMutation({
+    mutationFn: async ({ id, replyText }: { id: number; replyText: string }) => {
+      return await apiRequest('POST', `/api/assignments/${id}/replies`, { replyText });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      setReplyDialogOpen(false);
+      setReplyAssignmentId(null);
+      setReplyText('');
+      toast({
+        title: 'Муваффақият',
+        description: 'Ҷавоб фиристода шуд',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Хато',
+        description: error.message || 'Ҷавоб фиристода нашуд',
+        variant: 'destructive',
       });
     },
   });
@@ -762,6 +794,48 @@ export default function AssignmentsPage() {
               </DialogContent>
             </Dialog>
           )}
+
+          {/* Reply Dialog */}
+          <Dialog open={replyDialogOpen} onOpenChange={setReplyDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Ҷавоб додан</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Textarea
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Ҷавоби худро нависед..."
+                  className="min-h-[100px]"
+                  data-testid="textarea-reply"
+                />
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setReplyDialogOpen(false);
+                      setReplyAssignmentId(null);
+                      setReplyText('');
+                    }}
+                    data-testid="button-cancel-reply"
+                  >
+                    Бекор кардан
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (replyAssignmentId && replyText.trim()) {
+                        replyAssignmentMutation.mutate({ id: replyAssignmentId, replyText: replyText.trim() });
+                      }
+                    }}
+                    disabled={!replyText.trim() || replyAssignmentMutation.isPending}
+                    data-testid="button-submit-reply"
+                  >
+                    {replyAssignmentMutation.isPending ? 'Фиристодан...' : 'Ҷавоб додан'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="space-y-4">
@@ -863,7 +937,34 @@ export default function AssignmentsPage() {
                       {assignment.allDepartmentExecutors && assignment.allDepartmentExecutors.length > 0 && (
                         <div className="text-sm text-muted-foreground mt-2">
                           <span className="font-medium">Иҷрокунандагон:</span>{' '}
-                          {assignment.allDepartmentExecutors.join(', ')}
+                          <TooltipProvider>
+                            {assignment.allDepartmentExecutorIds?.map((personId, index) => {
+                              const personName = assignment.allDepartmentExecutors[index];
+                              const person = allPeople.find(p => p.id === personId);
+                              const reply = person && assignment.replies?.find(r => r.responderDepartmentId === person.departmentId);
+                              return (
+                                <span key={personId}>
+                                  {index > 0 && ', '}
+                                  {reply ? (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span className="inline-flex items-center gap-0.5 text-green-600 cursor-pointer">
+                                          <CheckCircle2 className="h-3 w-3" />
+                                          {personName}
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-xs">
+                                        <p className="font-medium">Ҷавоб:</p>
+                                        <p>{reply.replyText}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  ) : (
+                                    <span>{personName}</span>
+                                  )}
+                                </span>
+                              );
+                            })}
+                          </TooltipProvider>
                         </div>
                       )}
                     </div>
@@ -915,16 +1016,36 @@ export default function AssignmentsPage() {
                     </div>
                   )}
                   
-                  {!assignment.isCompleted && new Date() <= new Date(assignment.deadline) && user?.userType === 'department' && user.department?.id === assignment.senderId && (
-                    <Button
-                      onClick={() => completeAssignmentMutation.mutate(assignment.id)}
-                      disabled={completeAssignmentMutation.isPending}
-                      className="mt-2"
-                      data-testid={`button-complete-${assignment.id}`}
-                    >
-                      Иҷро шуд
-                    </Button>
-                  )}
+                  <div className="flex gap-2 mt-2">
+                    {!assignment.isCompleted && new Date() <= new Date(assignment.deadline) && user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                      <Button
+                        onClick={() => completeAssignmentMutation.mutate(assignment.id)}
+                        disabled={completeAssignmentMutation.isPending}
+                        data-testid={`button-complete-${assignment.id}`}
+                      >
+                        Иҷро шуд
+                      </Button>
+                    )}
+                    {!assignment.isCompleted && user?.userType === 'department' && user.department?.id !== assignment.senderId && assignment.recipientIds?.includes(user.department?.id || 0) && !assignment.replies?.some(r => r.responderDepartmentId === user.department?.id) && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setReplyAssignmentId(assignment.id);
+                          setReplyDialogOpen(true);
+                        }}
+                        data-testid={`button-reply-${assignment.id}`}
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Ҷавоб додан
+                      </Button>
+                    )}
+                    {assignment.replies?.some(r => r.responderDepartmentId === user?.department?.id) && (
+                      <span className="text-sm text-green-600 flex items-center gap-1">
+                        <CheckCircle2 className="h-4 w-4" />
+                        Ҷавоб дода шуд
+                      </span>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
                 ))}
@@ -986,7 +1107,34 @@ export default function AssignmentsPage() {
                       {assignment.allDepartmentExecutors && assignment.allDepartmentExecutors.length > 0 && (
                         <div className="text-sm text-muted-foreground mt-2">
                           <span className="font-medium">Иҷрокунандагон:</span>{' '}
-                          {assignment.allDepartmentExecutors.join(', ')}
+                          <TooltipProvider>
+                            {assignment.allDepartmentExecutorIds?.map((personId, index) => {
+                              const personName = assignment.allDepartmentExecutors[index];
+                              const person = allPeople.find(p => p.id === personId);
+                              const reply = person && assignment.replies?.find(r => r.responderDepartmentId === person.departmentId);
+                              return (
+                                <span key={personId}>
+                                  {index > 0 && ', '}
+                                  {reply ? (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span className="inline-flex items-center gap-0.5 text-green-600 cursor-pointer">
+                                          <CheckCircle2 className="h-3 w-3" />
+                                          {personName}
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-xs">
+                                        <p className="font-medium">Ҷавоб:</p>
+                                        <p>{reply.replyText}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  ) : (
+                                    <span>{personName}</span>
+                                  )}
+                                </span>
+                              );
+                            })}
+                          </TooltipProvider>
                         </div>
                       )}
                     </div>
@@ -1036,6 +1184,28 @@ export default function AssignmentsPage() {
                       </div>
                     </div>
                   )}
+                  
+                  <div className="flex gap-2 mt-2">
+                    {!assignment.isCompleted && user?.userType === 'department' && user.department?.id !== assignment.senderId && assignment.recipientIds?.includes(user.department?.id || 0) && !assignment.replies?.some(r => r.responderDepartmentId === user.department?.id) && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setReplyAssignmentId(assignment.id);
+                          setReplyDialogOpen(true);
+                        }}
+                        data-testid={`button-reply-${assignment.id}`}
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Ҷавоб додан
+                      </Button>
+                    )}
+                    {assignment.replies?.some(r => r.responderDepartmentId === user?.department?.id) && (
+                      <span className="text-sm text-green-600 flex items-center gap-1">
+                        <CheckCircle2 className="h-4 w-4" />
+                        Ҷавоб дода шуд
+                      </span>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
                 ))}
@@ -1146,6 +1316,16 @@ export default function AssignmentsPage() {
                               </a>
                             ))}
                           </div>
+                        </div>
+                      )}
+                      
+                      {/* Show reply status for completed assignments */}
+                      {assignment.replies?.some(r => r.responderDepartmentId === user?.department?.id) && (
+                        <div className="flex gap-2 mt-2">
+                          <span className="text-sm text-green-600 flex items-center gap-1">
+                            <CheckCircle2 className="h-4 w-4" />
+                            Ҷавоб дода шуд
+                          </span>
                         </div>
                       )}
                     </CardContent>
