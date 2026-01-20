@@ -7,6 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { t } from '@/lib/i18n';
 import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X, Forward, Check, XCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -54,7 +61,7 @@ export default function MessageView() {
   
   // Assignment modal state
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
-  const [assignmentTopic, setAssignmentTopic] = useState('');
+  const [assignmentDocumentTypeId, setAssignmentDocumentTypeId] = useState('');
   const [assignmentContent, setAssignmentContent] = useState('');
   const [assignmentDocNumber, setAssignmentDocNumber] = useState('');
   const [selectedExecutorIds, setSelectedExecutorIds] = useState<number[]>([]);
@@ -254,7 +261,7 @@ export default function MessageView() {
       });
       setIsAssignmentDialogOpen(false);
       // Clear form
-      setAssignmentTopic('');
+      setAssignmentDocumentTypeId('');
       setAssignmentContent('');
       setAssignmentDocNumber('');
       setSelectedExecutorIds([]);
@@ -395,8 +402,8 @@ export default function MessageView() {
   const openAssignmentDialog = async () => {
     if (!message) return;
     
-    // Pre-fill topic from message subject
-    setAssignmentTopic(message.subject || '');
+    // Pre-fill document type from message
+    setAssignmentDocumentTypeId(message.documentTypeId?.toString() || '');
     
     // Pre-fill content from message content (not subject!)
     setAssignmentContent(message.content || '');
@@ -444,10 +451,10 @@ export default function MessageView() {
   };
 
   const handleSubmitAssignment = () => {
-    if (!assignmentTopic) {
+    if (!assignmentDocumentTypeId) {
       toast({
         title: 'Хато',
-        description: 'Мавзӯъро интихоб кунед',
+        description: 'Намуди ҳуҷҷатро интихоб кунед',
         variant: 'destructive',
       });
       return;
@@ -470,7 +477,7 @@ export default function MessageView() {
     }
 
     const formData = new FormData();
-    formData.append('topic', assignmentTopic);
+    formData.append('documentTypeId', assignmentDocumentTypeId);
     if (assignmentContent) {
       formData.append('content', assignmentContent);
     }
@@ -793,13 +800,25 @@ export default function MessageView() {
                           </DialogHeader>
                           <div className="space-y-4 pt-4">
                             <div className="space-y-2">
-                              <Label>Мавзӯъ</Label>
-                              <Input
-                                value={assignmentTopic}
-                                onChange={(e) => setAssignmentTopic(e.target.value)}
-                                placeholder="Мавзӯъи супориш"
-                                data-testid="input-assignment-topic"
-                              />
+                              <Label>Намуди ҳуҷҷат <span className="text-destructive">*</span></Label>
+                              <Select 
+                                value={assignmentDocumentTypeId} 
+                                onValueChange={setAssignmentDocumentTypeId}
+                              >
+                                <SelectTrigger data-testid="select-assignment-document-type">
+                                  <SelectValue placeholder="Намуди ҳуҷҷатро интихоб кунед" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {documentTypes.map((docType) => (
+                                    <SelectItem 
+                                      key={docType.id} 
+                                      value={docType.id.toString()}
+                                    >
+                                      {docType.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
 
                             <div className="space-y-2">
