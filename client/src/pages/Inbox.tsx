@@ -2,6 +2,13 @@ import { useState, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import MessageListItem from '@/components/MessageListItem';
 import { t } from '@/lib/i18n';
 import { ArrowLeft, Trash2, LogOut, Search } from 'lucide-react';
@@ -9,7 +16,7 @@ import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
-import type { Message, Department } from '@shared/schema';
+import type { Message, Department, DocumentType } from '@shared/schema';
 import { format } from 'date-fns';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { apiFetch } from '@/lib/api-config';
@@ -22,6 +29,7 @@ export default function Inbox() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [documentTypeFilter, setDocumentTypeFilter] = useState<string>('');
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -34,6 +42,10 @@ export default function Inbox() {
 
   const { data: departments = [], isLoading: loadingDepartments } = useQuery<Omit<Department, 'accessCode'>[]>({
     queryKey: ['/api/departments/all'],
+  });
+
+  const { data: documentTypes = [] } = useQuery<DocumentType[]>({
+    queryKey: ['/api/document-types'],
   });
 
   const getDepartmentName = (deptId: number) => {
@@ -106,16 +118,29 @@ export default function Inbox() {
   }, [filteredMessages, isOutbox, departments]);
 
   const searchedMessages = useMemo(() => {
-    if (!searchQuery.trim()) return formattedMessages;
+    let result = formattedMessages;
     
-    const query = searchQuery.toLowerCase();
-    return formattedMessages.filter(msg => 
-      msg.subject.toLowerCase().includes(query) ||
-      msg.sender.toLowerCase().includes(query) ||
-      msg.documentNumber.toLowerCase().includes(query) ||
-      msg.content.toLowerCase().includes(query)
-    );
-  }, [formattedMessages, searchQuery]);
+    // Filter by document type
+    if (documentTypeFilter && documentTypeFilter !== 'all') {
+      const selectedType = documentTypes.find(dt => dt.id.toString() === documentTypeFilter);
+      if (selectedType) {
+        result = result.filter(msg => msg.subject === selectedType.name);
+      }
+    }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(msg => 
+        msg.subject.toLowerCase().includes(query) ||
+        msg.sender.toLowerCase().includes(query) ||
+        msg.documentNumber.toLowerCase().includes(query) ||
+        msg.content.toLowerCase().includes(query)
+      );
+    }
+    
+    return result;
+  }, [formattedMessages, searchQuery, documentTypeFilter, documentTypes]);
 
   const bulkDeleteMutation = useMutation({
     mutationFn: async (messageIds: number[]) => {
@@ -279,16 +304,34 @@ export default function Inbox() {
       <main className="mx-auto max-w-6xl relative z-10">
         <div className="border-x border-border bg-background/95 backdrop-blur-sm min-h-screen">
           <div className="p-4 border-b border-border bg-background/50">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Ҷустуҷӯ дар паёмҳо..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-                data-testid="input-message-search"
-              />
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Ҷустуҷӯ дар паёмҳо..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                  data-testid="input-message-search"
+                />
+              </div>
+              <Select
+                value={documentTypeFilter}
+                onValueChange={setDocumentTypeFilter}
+              >
+                <SelectTrigger className="w-48" data-testid="select-document-type-filter">
+                  <SelectValue placeholder="Намуди ҳуҷҷат" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Ҳама</SelectItem>
+                  {documentTypes.map((dt) => (
+                    <SelectItem key={dt.id} value={dt.id.toString()}>
+                      {dt.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           {loadingMessages || loadingDepartments ? (
