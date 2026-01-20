@@ -32,7 +32,6 @@ import { OfflineIndicator } from '@/components/offline-indicator';
 export default function ComposeMessage() {
   
   const [, setLocation] = useLocation();
-  const [subject, setSubject] = useState('');
   const [documentNumber, setDocumentNumber] = useState('');
   const [documentTypeId, setDocumentTypeId] = useState<string>('');
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
@@ -179,15 +178,19 @@ export default function ComposeMessage() {
       return;
     }
 
-    // Validate required fields
-    if (!subject.trim()) {
+    // Validate required fields - document type is required
+    if (!documentTypeId) {
       toast({
         title: 'Хато',
-        description: 'Мавзуъро ворид кунед',
+        description: 'Намуди ҳуҷҷатро интихоб кунед',
         variant: 'destructive',
       });
       return;
     }
+
+    // Get document type name to use as subject
+    const selectedDocType = documentTypes.find(dt => dt.id.toString() === documentTypeId);
+    const docTypeName = selectedDocType?.name || 'Ҳуҷҷат';
 
     // Validate that at least one recipient is selected
     if (selectedRecipients.length === 0) {
@@ -205,7 +208,7 @@ export default function ComposeMessage() {
       if (selectedRecipients.length > 1) {
         const formData = new FormData();
         formData.append('recipientIds', JSON.stringify(selectedRecipients));
-        formData.append('subject', subject);
+        formData.append('subject', docTypeName);
         formData.append('content', content);
         formData.append('documentNumber', documentNumber || '');
         formData.append('documentTypeId', documentTypeId || '');
@@ -236,7 +239,7 @@ export default function ComposeMessage() {
       } else {
         // Single recipient - use original endpoint
         const messageData = {
-          subject,
+          subject: docTypeName,
           content,
           documentNumber: documentNumber || null,
           documentTypeId: documentTypeId ? parseInt(documentTypeId) : null,
@@ -290,7 +293,6 @@ export default function ComposeMessage() {
 
       // Clear form and redirect
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
-      setSubject('');
       setContent('');
       setDocumentNumber('');
       setDocumentTypeId('');
@@ -348,15 +350,19 @@ export default function ComposeMessage() {
   };
 
   const handleSaveDraft = async () => {
-    // Validate required fields
-    if (!subject.trim()) {
+    // Validate required fields - document type is required
+    if (!documentTypeId) {
       toast({
         title: 'Хато',
-        description: 'Мавзуъро ворид кунед',
+        description: 'Намуди ҳуҷҷатро интихоб кунед',
         variant: 'destructive',
       });
       return;
     }
+
+    // Get document type name
+    const selectedDocType = documentTypes.find(dt => dt.id.toString() === documentTypeId);
+    const docTypeName = selectedDocType?.name || 'Ҳуҷҷат';
 
     if (selectedRecipients.length === 0) {
       toast({
@@ -369,7 +375,7 @@ export default function ComposeMessage() {
 
     try {
       await saveDraft({
-        subject,
+        subject: docTypeName,
         content,
         recipientIds: selectedRecipients,
         documentNumber: documentNumber || undefined,
@@ -377,7 +383,6 @@ export default function ComposeMessage() {
       });
 
       // Clear form
-      setSubject('');
       setContent('');
       setDocumentNumber('');
       setDocumentTypeId('');
@@ -452,37 +457,8 @@ export default function ComposeMessage() {
           <CardContent className="px-4 sm:px-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="subject">
-                  {t.subject} <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="subject"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder={t.enterSubject}
-                  data-testid="input-subject"
-                />
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="documentNumber">
-                    Рақами ҳуҷҷат
-                  </Label>
-                  <Input
-                    id="documentNumber"
-                    value={documentNumber}
-                    onChange={(e) => setDocumentNumber(e.target.value)}
-                    placeholder="Рақами ҳуҷҷат"
-                    data-testid="input-document-number"
-                  />
-                </div>
-
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="documentType">
-                  Намуди ҳуҷҷат
+                  Намуди ҳуҷҷат <span className="text-destructive">*</span>
                 </Label>
                 <Select 
                   value={documentTypeId} 
@@ -502,6 +478,19 @@ export default function ComposeMessage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="documentNumber">
+                  Рақами ҳуҷҷат
+                </Label>
+                <Input
+                  id="documentNumber"
+                  value={documentNumber}
+                  onChange={(e) => setDocumentNumber(e.target.value)}
+                  placeholder="Рақами ҳуҷҷат"
+                  data-testid="input-document-number"
+                />
               </div>
 
               <div className="space-y-2">
