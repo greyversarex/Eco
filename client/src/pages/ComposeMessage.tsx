@@ -458,7 +458,6 @@ export default function ComposeMessage() {
           </PageHeaderRight>
         </PageHeaderContainer>
       </PageHeader>
-
       <main className="flex-1 mx-auto max-w-4xl w-full px-3 py-6 sm:px-4 md:px-6 lg:px-8">
         <Card>
           <CardHeader className="px-4 sm:px-6">
@@ -492,9 +491,7 @@ export default function ComposeMessage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>
-                    Рақами С/В
-                  </Label>
+                  <Label>Рақами Содирот/Воридот</Label>
                   <div className="flex gap-2">
                     <Input
                       value={svNumber}
@@ -839,7 +836,5 @@ export default function ComposeMessage() {
       </main>
       <Footer />
     </div>
-    
-  
   );
 }
