@@ -1707,8 +1707,34 @@ export function registerRoutes(app: Express) {
       const allDepartmentPeople = allPeople.filter((p: any) => 
         p.departmentId && recipientIds.includes(p.departmentId)
       );
-      const allDepartmentExecutorIds = allDepartmentPeople.map((p: any) => p.id);
-      const allDepartmentExecutors = allDepartmentPeople.map((p: any) => p.name);
+      
+      let allDepartmentExecutorIds: number[] = [];
+      let allDepartmentExecutors: string[] = [];
+      let finalExecutors = executors;
+      let finalExecutorIds = executorIds;
+      
+      if (allDepartmentPeople.length > 0) {
+        // If people exist in departments, use people names
+        allDepartmentExecutorIds = allDepartmentPeople.map((p: any) => p.id);
+        allDepartmentExecutors = allDepartmentPeople.map((p: any) => p.name);
+      } else {
+        // If no people in departments, use department names instead
+        // First department goes to Даъват (executors), rest go to Иҷрокунандагон (allDepartmentExecutors)
+        const allDepartments = await storage.getDepartments();
+        const recipientDepts = allDepartments.filter((d: any) => recipientIds.includes(d.id));
+        
+        if (recipientDepts.length > 0 && finalExecutors.length === 0) {
+          // First department as Даъват
+          finalExecutors = [recipientDepts[0].name];
+          finalExecutorIds = [recipientDepts[0].id];
+          
+          // Rest of departments as Иҷрокунандагон
+          if (recipientDepts.length > 1) {
+            allDepartmentExecutors = recipientDepts.slice(1).map((d: any) => d.name);
+            allDepartmentExecutorIds = recipientDepts.slice(1).map((d: any) => d.id);
+          }
+        }
+      }
 
       // Determine senderId: for departments use departmentId, for admins require explicit sender
       let senderId: number;
@@ -1739,10 +1765,10 @@ export function registerRoutes(app: Express) {
         topic: null, // deprecated, use documentTypeId
         content: req.body.content || null,
         documentNumber: req.body.documentNumber || null,
-        executors: executors, // Invited executors (Даъват)
-        executorIds: executorIds, // Invited executor IDs (Даъват)
-        allDepartmentExecutors: allDepartmentExecutors, // All department people (Иҷрокунандагон)
-        allDepartmentExecutorIds: allDepartmentExecutorIds, // All department people IDs (Иҷрокунандагон)
+        executors: finalExecutors, // Invited executors (Даъват) - people or first department
+        executorIds: finalExecutorIds, // Invited executor IDs (Даъват)
+        allDepartmentExecutors: allDepartmentExecutors, // All department people or remaining departments (Иҷрокунандагон)
+        allDepartmentExecutorIds: allDepartmentExecutorIds, // All department people IDs or remaining department IDs (Иҷрокунандагон)
         recipientIds: recipientIds,
         deadline: new Date(req.body.deadline),
       };
