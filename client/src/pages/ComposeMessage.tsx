@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DatePicker } from '@/components/ui/date-picker';
 import { t } from '@/lib/i18n';
 import { ArrowLeft, Paperclip, X, LogOut, Save } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
@@ -34,7 +33,6 @@ export default function ComposeMessage() {
   
   const [, setLocation] = useLocation();
   const [subject, setSubject] = useState('');
-  const [date, setDate] = useState('');
   const [documentNumber, setDocumentNumber] = useState('');
   const [documentTypeId, setDocumentTypeId] = useState<string>('');
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
@@ -191,15 +189,6 @@ export default function ComposeMessage() {
       return;
     }
 
-    if (!date) {
-      toast({
-        title: 'Хато',
-        description: 'Санаро интихоб кунед',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     // Validate that at least one recipient is selected
     if (selectedRecipients.length === 0) {
       toast({
@@ -221,7 +210,7 @@ export default function ComposeMessage() {
         formData.append('documentNumber', documentNumber || '');
         formData.append('documentTypeId', documentTypeId || '');
         formData.append('senderId', user.department.id.toString());
-        formData.append('documentDate', new Date(date).toISOString());
+        formData.append('documentDate', new Date().toISOString());
         
         // Attach all files
         selectedFiles.forEach(file => {
@@ -253,7 +242,7 @@ export default function ComposeMessage() {
           documentTypeId: documentTypeId ? parseInt(documentTypeId) : null,
           senderId: user.department.id,
           recipientId: selectedRecipients[0],
-          documentDate: new Date(date).toISOString(),
+          documentDate: new Date().toISOString(),
           replyToId: null,
         };
 
@@ -306,7 +295,6 @@ export default function ComposeMessage() {
       setDocumentNumber('');
       setDocumentTypeId('');
       setSelectedRecipients([]);
-      setDate('');
       setSelectedFiles([]);
       setLocation('/department/outbox');
     } catch (error: any) {
@@ -394,7 +382,6 @@ export default function ComposeMessage() {
       setDocumentNumber('');
       setDocumentTypeId('');
       setSelectedRecipients([]);
-      setDate('');
       setSelectedFiles([]);
 
       // Redirect to drafts page
@@ -491,35 +478,6 @@ export default function ComposeMessage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="date">
-                    {t.date} <span className="text-destructive">*</span>
-                  </Label>
-                  <div className="flex gap-2">
-                    <DatePicker
-                      id="date"
-                      value={date}
-                      onChange={(value) => setDate(value)}
-                      placeholder="Санаро интихоб кунед"
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      variant="default"
-                      onClick={() => {
-                        const today = new Date();
-                        const year = today.getFullYear();
-                        const month = String(today.getMonth() + 1).padStart(2, "0");
-                        const day = String(today.getDate()).padStart(2, "0");
-                        setDate(`${year}-${month}-${day}`);
-                      }}
-                      className="shrink-0"
-                      data-testid="button-today"
-                    >
-                      Имрӯз
-                    </Button>
-                  </div>
-                </div>
               </div>
 
               <div className="space-y-2">

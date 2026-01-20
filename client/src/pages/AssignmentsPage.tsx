@@ -16,10 +16,17 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { apiFetch } from '@/lib/api-config';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import type { Assignment, Person, Department } from '@shared/schema';
+import type { Assignment, Person, Department, DocumentType } from '@shared/schema';
 import { Footer } from '@/components/Footer';
 import { DatePicker } from '@/components/ui/date-picker';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 // Progress indicator component with segmented daily view
 function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: Date; deadline: Date; isCompleted: boolean }) {
@@ -193,7 +200,7 @@ export default function AssignmentsPage() {
   const { toast } = useToast();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [topic, setTopic] = useState('');
+  const [documentTypeId, setDocumentTypeId] = useState<string>('');
   const [content, setContent] = useState('');
   const [documentNumber, setDocumentNumber] = useState('');
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
@@ -218,6 +225,12 @@ export default function AssignmentsPage() {
     queryKey: ['/api/people'],
   });
 
+  const { data: documentTypes = [] } = useQuery<DocumentType[]>({
+    queryKey: ['/api/document-types'],
+    staleTime: 0,
+    refetchOnMount: 'always',
+  });
+
   const createAssignmentMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const res = await apiFetch('/api/assignments', {
@@ -238,7 +251,7 @@ export default function AssignmentsPage() {
         description: 'Супориш эҷод шуд',
       });
       setIsDialogOpen(false);
-      setTopic('');
+      setDocumentTypeId('');
       setContent('');
       setDocumentNumber('');
       setSelectedRecipients([]);
@@ -310,10 +323,10 @@ export default function AssignmentsPage() {
   };
 
   const handleSubmit = () => {
-    if (!topic) {
+    if (!documentTypeId) {
       toast({
         title: 'Хато',
-        description: 'Мавзӯъ',
+        description: 'Намуди ҳуҷҷатро интихоб кунед',
         variant: 'destructive',
       });
       return;
@@ -336,7 +349,7 @@ export default function AssignmentsPage() {
     }
 
     const formData = new FormData();
-    formData.append('topic', topic);
+    formData.append('documentTypeId', documentTypeId);
     if (content) {
       formData.append('content', content);
     }
@@ -357,6 +370,15 @@ export default function AssignmentsPage() {
   // Check permissions from database
   const canCreate = user?.userType === 'department' && user.department?.canCreateAssignment;
   const canDelete = user?.userType === 'department' && user.department?.canCreateAssignment;
+
+  // Helper to get document type name
+  const getDocTypeName = (assignment: Assignment) => {
+    if (assignment.documentTypeId) {
+      const docType = documentTypes.find(dt => dt.id === assignment.documentTypeId);
+      return docType?.name || 'Номаълум';
+    }
+    return assignment.topic || 'Номаълум';
+  };
 
   return (
     <div
@@ -420,13 +442,25 @@ export default function AssignmentsPage() {
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label>Мавзӯъ</Label>
-                    <Input
-                      value={topic}
-                      onChange={(e) => setTopic(e.target.value)}
-                      placeholder="Мавзӯъи супориш"
-                      data-testid="input-topic"
-                    />
+                    <Label>Намуди ҳуҷҷат <span className="text-destructive">*</span></Label>
+                    <Select 
+                      value={documentTypeId} 
+                      onValueChange={setDocumentTypeId}
+                    >
+                      <SelectTrigger data-testid="select-document-type">
+                        <SelectValue placeholder="Намуди ҳуҷҷатро интихоб кунед" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {documentTypes.map((docType) => (
+                          <SelectItem 
+                            key={docType.id} 
+                            value={docType.id.toString()}
+                          >
+                            {docType.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
@@ -775,7 +809,7 @@ export default function AssignmentsPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-baseline gap-3 flex-wrap mb-2">
-                        <h3 className="text-lg font-semibold">{assignment.topic}</h3>
+                        <h3 className="text-lg font-semibold">{getDocTypeName(assignment)}</h3>
                         {assignment.documentNumber && (
                           <span className="text-sm text-muted-foreground">
                             <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
@@ -898,7 +932,7 @@ export default function AssignmentsPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-baseline gap-3 flex-wrap mb-2">
-                        <h3 className="text-lg font-semibold">{assignment.topic}</h3>
+                        <h3 className="text-lg font-semibold">{getDocTypeName(assignment)}</h3>
                         {assignment.documentNumber && (
                           <span className="text-sm text-muted-foreground">
                             <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
@@ -1009,7 +1043,7 @@ export default function AssignmentsPage() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-baseline gap-3 flex-wrap mb-2">
-                            <h3 className="text-lg font-semibold">{assignment.topic}</h3>
+                            <h3 className="text-lg font-semibold">{getDocTypeName(assignment)}</h3>
                             {assignment.documentNumber && (
                               <span className="text-sm text-muted-foreground">
                                 <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}

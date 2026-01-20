@@ -187,7 +187,8 @@ export type Attachment = typeof attachments.$inferSelect;
 export const assignments = pgTable("assignments", {
   id: serial("id").primaryKey(),
   senderId: integer("sender_id").references(() => departments.id, { onDelete: 'cascade' }), // Создатель супориша (nullable для миграции)
-  topic: text("topic").notNull(), // Мавзӯъ: "Нақшаи корӣ", "Протоколи назоратӣ", etc.
+  topic: text("topic"), // Мавзӯъ (deprecated, use documentTypeId)
+  documentTypeId: integer("document_type_id").references(() => documentTypes.id, { onDelete: 'set null' }), // Намуди ҳуҷҷат
   content: text("content"), // Мазмуни супоришҳои додашуда (комментарии)
   documentNumber: text("document_number"),
   executors: text("executors").array().notNull(), // ПРИГЛАШЕННЫЕ исполнители (массив имён) - Даъват
@@ -216,6 +217,7 @@ export const insertAssignmentSchema = createInsertSchema(assignments).omit({
 }).extend({
   senderId: z.number().int().positive(), // Required для новых assignments
   deadline: z.coerce.date(),
+  documentTypeId: z.number().int().positive().nullable().optional(), // Намуди ҳуҷҷат
 });
 export type InsertAssignment = z.infer<typeof insertAssignmentSchema>;
 export type Assignment = typeof assignments.$inferSelect & {

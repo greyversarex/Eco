@@ -1733,7 +1733,8 @@ export function registerRoutes(app: Express) {
       // Prepare assignment data
       const assignmentData = {
         senderId: senderId, // Creator department ID
-        topic: req.body.topic,
+        documentTypeId: req.body.documentTypeId ? parseInt(req.body.documentTypeId) : null,
+        topic: null, // deprecated, use documentTypeId
         content: req.body.content || null,
         documentNumber: req.body.documentNumber || null,
         executors: executors, // Invited executors (Даъват)
@@ -1792,11 +1793,18 @@ export function registerRoutes(app: Express) {
             const sender = await storage.getDepartmentById(createdAssignment.senderId);
             const senderName = sender?.name || 'Неизвестно';
             
+            // Get document type name for notification
+            let docTypeName = 'Супориш';
+            if (createdAssignment.documentTypeId) {
+              const docType = await storage.getDocumentTypeById(createdAssignment.documentTypeId);
+              if (docType) docTypeName = docType.name;
+            }
+            
             // Send notification to each recipient department
             const notificationPromises = finalRecipientIds.map(recipientId =>
               sendPushNotification(recipientId, 'department', {
                 title: 'Супориши нав',
-                body: `${createdAssignment.topic} - ${senderName}`,
+                body: `${docTypeName} - ${senderName}`,
                 icon: 'https://ecodoc.cc/pwa-192.png',
                 badge: 'https://ecodoc.cc/pwa-192.png',
                 url: '/department/assignments',
