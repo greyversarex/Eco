@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Paperclip, X, LogOut, Save } from 'lucide-react';
+import { ArrowLeft, Paperclip, X, LogOut, Save, Search } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -40,6 +40,7 @@ export default function ComposeMessage() {
   const [content, setContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+  const [recipientSearch, setRecipientSearch] = useState('');
   const { user } = useAuth();
   const { toast } = useToast();
   const isOnline = useOnlineStatus();
@@ -563,9 +564,21 @@ export default function ComposeMessage() {
                   </p>
                 ) : (
                   <div className="border rounded-md p-4 max-h-96 overflow-y-auto">
+                    <div className="relative mb-3">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="text"
+                        placeholder="Ҷустуҷӯ..."
+                        value={recipientSearch}
+                        onChange={(e) => setRecipientSearch(e.target.value)}
+                        className="pl-10"
+                        data-testid="input-recipient-search"
+                      />
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {availableRecipients
                         .filter(dept => dept.id !== (user?.userType === 'department' ? user.department?.id : undefined))
+                        .filter(dept => !recipientSearch.trim() || dept.name.toLowerCase().includes(recipientSearch.toLowerCase()))
                         .sort((a, b) => a.sortOrder - b.sortOrder)
                         .map((dept) => (
                           <div key={dept.id} className="flex items-center space-x-2">
