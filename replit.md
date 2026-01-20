@@ -25,7 +25,8 @@ PostgreSQL with connection pooling is used for data storage. Key tables include 
 Files are stored directly within the PostgreSQL database using a `bytea` column, supporting up to 5 attachments per item (message/assignment/announcement) with a maximum of 100 MB per file. Client-side uploads use `multipart/form-data`, and secure downloads require backend authentication. This method ensures autonomous deployment, transaction integrity, simplified backup/restore, and mobile application compatibility.
 
 ### Key Features
-*   **Assignments and Announcements:** Comprehensive task management and platform-wide notifications with deadline tracking, multi-executor assignment, topic selection, content/comments, and completion status. Includes file attachments, read tracking, and badge counters with admin panel-controlled permissions.
+*   **Assignments and Announcements:** Comprehensive task management and platform-wide notifications with deadline tracking, multi-executor assignment, topic selection, content/comments, and completion status. Includes file attachments, read tracking, badge counters with admin panel-controlled permissions, and assignment reply system allowing recipient departments to respond.
+*   **Assignment Replies:** Recipient departments can submit replies to assignments with visual indicators (checkmarks/tooltips) showing which executors' departments have responded.
 *   **Broadcast Messaging:** Optimized for sending messages to multiple departments.
 *   **Message Forwarding (Иловакунӣ):** Allows department users to forward messages with automatic attachment copying and tracking of original sender/forwarder.
 *   **Department Icon Upload:** Interactive icon upload with image cropping and zooming.
