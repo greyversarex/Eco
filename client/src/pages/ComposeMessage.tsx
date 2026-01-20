@@ -492,6 +492,18 @@ export default function ComposeMessage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  <Label htmlFor="documentNumber">
+                    Рақами ҳуҷҷат
+                  </Label>
+                  <Input
+                    id="documentNumber"
+                    value={documentNumber}
+                    onChange={(e) => setDocumentNumber(e.target.value)}
+                    placeholder="Рақами ҳуҷҷат"
+                    data-testid="input-document-number"
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label>Рақами тартибӣ</Label>
                   <div className="flex gap-2">
                     <Input
@@ -514,18 +526,6 @@ export default function ComposeMessage() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="documentNumber">
-                    Рақами ҳуҷҷат
-                  </Label>
-                  <Input
-                    id="documentNumber"
-                    value={documentNumber}
-                    onChange={(e) => setDocumentNumber(e.target.value)}
-                    placeholder="Рақами ҳуҷҷат"
-                    data-testid="input-document-number"
-                  />
                 </div>
               </div>
 
