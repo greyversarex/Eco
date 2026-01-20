@@ -334,7 +334,7 @@ export default function Inbox() {
                 
                 {/* S/V Number Header */}
                 <div className="text-center ml-[-1px] mr-[-1px]">
-                  Рақами С/В
+                  Рақами тартибӣ
                 </div>
                 
                 {/* Document Number Header */}

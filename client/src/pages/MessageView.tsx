@@ -460,14 +460,6 @@ export default function MessageView() {
       });
       return;
     }
-    if (selectedExecutorIds.length === 0) {
-      toast({
-        title: 'Хато',
-        description: 'Иҷрокунандагонро интихоб кунед',
-        variant: 'destructive',
-      });
-      return;
-    }
     if (!assignmentDeadline) {
       toast({
         title: 'Хато',
@@ -624,13 +616,10 @@ export default function MessageView() {
                 <div className="space-y-3 text-base border-t pt-6 px-6">
                   {(message as any).svNumber && (
                     <div data-testid="text-sv-number">
-                      <span className="font-medium text-[#050505]">Рақами С/В:</span>
+                      <span className="font-medium text-[#050505]">
+                        {(message as any).svDirection === 'outgoing' ? 'Рақами содиротӣ:' : (message as any).svDirection === 'incoming' ? 'Рақами воридотӣ:' : 'Рақами тартибӣ:'}
+                      </span>
                       <span className="ml-2 text-foreground">{(message as any).svNumber}</span>
-                      {(message as any).svDirection && (
-                        <span className={`ml-2 ${(message as any).svDirection === 'outgoing' ? 'text-green-600' : 'text-blue-600'}`}>
-                          ({(message as any).svDirection === 'outgoing' ? 'Содиротӣ' : 'Воридотӣ'})
-                        </span>
-                      )}
                     </div>
                   )}
                   {message.documentNumber && (

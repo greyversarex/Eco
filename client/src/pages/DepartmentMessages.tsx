@@ -190,7 +190,7 @@ export default function DepartmentMessages() {
                     >
                       {/* S/V Number Header */}
                       <div className="text-center">
-                        Рақами С/В
+                        Рақами тартибӣ
                       </div>
                       
                       {/* Document Number Header */}
@@ -262,7 +262,7 @@ export default function DepartmentMessages() {
                     >
                       {/* S/V Number Header */}
                       <div className="text-center">
-                        Рақами С/В
+                        Рақами тартибӣ
                       </div>
                       
                       {/* Document Number Header */}
