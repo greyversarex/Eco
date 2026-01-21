@@ -21,7 +21,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { apiFetch, buildApiUrl } from '@/lib/api-config';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import type { Message, Department, Person, DocumentType } from '@shared/schema';
+import type { Message, Department, Person, DocumentType, MessageDocument } from '@shared/schema';
 import { format } from 'date-fns';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
@@ -107,6 +107,12 @@ export default function MessageView() {
   const { data: originalMessage } = useQuery<Message>({
     queryKey: ['/api/messages', message?.replyToId],
     enabled: !!message?.replyToId,
+  });
+
+  // Load attached documents
+  const { data: messageDocuments = [] } = useQuery<MessageDocument[]>({
+    queryKey: ['/api/messages', id, 'documents'],
+    enabled: !!id,
   });
 
   const markAsReadMutation = useMutation({
@@ -685,6 +691,32 @@ export default function MessageView() {
                             {t.download}
                           </Button>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {messageDocuments.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t px-6">
+                    <h3 className="text-xl font-semibold text-foreground">
+                      Ҳуҷҷатҳо ({messageDocuments.length})
+                    </h3>
+                    <div className="space-y-3">
+                      {messageDocuments.map((doc, index) => (
+                        <Card key={doc.id} className="overflow-hidden" data-testid={`document-card-${index}`}>
+                          <CardHeader className="py-3 px-4 bg-muted/30 flex flex-row items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-5 w-5 text-green-600" />
+                              <span className="font-medium">{doc.title}</span>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="p-4">
+                            <div 
+                              className="prose prose-sm max-w-none"
+                              dangerouslySetInnerHTML={{ __html: doc.htmlContent }}
+                            />
+                          </CardContent>
+                        </Card>
                       ))}
                     </div>
                   </div>
