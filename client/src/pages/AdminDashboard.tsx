@@ -604,6 +604,16 @@ export default function AdminDashboard() {
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => window.location.href = '/admin/document-templates'}
+              data-testid="button-document-templates"
+              className="gap-2 hidden sm:flex"
+            >
+              <FileText className="h-4 w-4" />
+              <span className="hidden md:inline">Намунаҳо</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => window.location.href = '/admin/departments'}
               data-testid="button-departments-mobile"
               className="sm:hidden"
