@@ -145,17 +145,17 @@ export default function AdminDepartmentMessages() {
               size="sm"
               onClick={() => setLocation('/admin/departments')}
               data-testid="button-back"
-              className="shrink-0"
+              className="shrink-0 text-white hover:bg-white/20"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="flex items-start gap-2 sm:gap-3 min-w-0 pt-1">
               <img src={logoImage} alt="Логотип" className="hidden sm:block h-10 w-10 object-contain shrink-0" />
               <div className="min-w-0 text-left">
-                <h1 className="text-sm sm:text-base md:text-lg font-semibold text-foreground truncate">
+                <h1 className="text-sm sm:text-base md:text-lg font-semibold text-white truncate">
                   {department?.name || 'Шуъба'}
                 </h1>
-                <p className="text-xs text-muted-foreground hidden sm:block">EcoDoc - Портали электронӣ - {t.adminPanel}</p>
+                <p className="text-xs text-white/70 hidden sm:block">EcoDoc - Портали электронӣ - {t.adminPanel}</p>
               </div>
             </div>
           </PageHeaderLeft>
@@ -166,7 +166,7 @@ export default function AdminDepartmentMessages() {
                   variant="ghost"
                   size="icon"
                   data-testid="button-trash"
-                  className="shrink-0"
+                  className="shrink-0 text-white hover:bg-white/20"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

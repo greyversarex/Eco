@@ -152,8 +152,8 @@ export default function AdminDocumentTypes() {
           <PageHeaderLeft className="gap-2 sm:gap-3 min-w-0 flex-1 pt-2">
             <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0" />
             <div className="min-w-0 text-left">
-              <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">Намуди ҳуҷҷатҳо</h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">Идоракунии намудҳои ҳуҷҷат</p>
+              <h1 className="text-base sm:text-lg font-semibold text-white truncate">Намуди ҳуҷҷатҳо</h1>
+              <p className="text-xs text-white/70 hidden sm:block">Идоракунии намудҳои ҳуҷҷат</p>
             </div>
           </PageHeaderLeft>
           <PageHeaderRight className="gap-2 sm:gap-4 shrink-0">
@@ -162,7 +162,7 @@ export default function AdminDocumentTypes() {
               size="sm"
               onClick={() => setLocation('/admin/dashboard')}
               data-testid="button-back"
-              className="gap-2"
+              className="gap-2 text-white hover:bg-white/20"
             >
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden md:inline">Бозгашт</span>
@@ -172,7 +172,7 @@ export default function AdminDocumentTypes() {
               size="sm"
               onClick={logout}
               data-testid="button-logout"
-              className="gap-2"
+              className="gap-2 text-white hover:bg-white/20"
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden md:inline">{t.logout}</span>

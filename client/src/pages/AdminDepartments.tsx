@@ -70,8 +70,8 @@ export default function AdminDepartments() {
           <PageHeaderLeft className="gap-2 sm:gap-3 min-w-0 flex-1 pt-2">
             <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0" />
             <div className="min-w-0 text-left">
-              <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{t.adminPanel}</h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">EcoDoc - Портали электронӣ</p>
+              <h1 className="text-base sm:text-lg font-semibold text-white truncate">{t.adminPanel}</h1>
+              <p className="text-xs text-white/70 hidden sm:block">EcoDoc - Портали электронӣ</p>
             </div>
           </PageHeaderLeft>
           <PageHeaderRight className="gap-2 sm:gap-4 shrink-0">
@@ -80,7 +80,7 @@ export default function AdminDepartments() {
               size="sm"
               onClick={() => setLocation('/admin/dashboard')}
               data-testid="button-settings"
-              className="gap-2 hidden sm:flex"
+              className="gap-2 hidden sm:flex text-white hover:bg-white/20"
             >
               <Settings className="h-4 w-4" />
               <span className="hidden md:inline">Идора</span>
@@ -90,7 +90,7 @@ export default function AdminDepartments() {
               size="sm"
               onClick={() => setLocation('/admin/dashboard')}
               data-testid="button-settings-mobile"
-              className="sm:hidden"
+              className="sm:hidden text-white hover:bg-white/20"
             >
               <Settings className="h-4 w-4" />
             </Button>
@@ -99,6 +99,7 @@ export default function AdminDepartments() {
               size="sm"
               onClick={logout}
               data-testid="button-logout"
+              className="text-white hover:bg-white/20"
             >
               <LogOut className="h-4 w-4" />
             </Button>

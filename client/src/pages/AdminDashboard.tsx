@@ -566,8 +566,8 @@ export default function AdminDashboard() {
           <PageHeaderLeft className="gap-2 sm:gap-3 min-w-0 flex-1 pt-2">
             <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0" />
             <div className="min-w-0 text-left">
-              <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">{t.adminPanel}</h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">EcoDoc - Портали электронӣ</p>
+              <h1 className="text-base sm:text-lg font-semibold text-white truncate">{t.adminPanel}</h1>
+              <p className="text-xs text-white/70 hidden sm:block">EcoDoc - Портали электронӣ</p>
             </div>
           </PageHeaderLeft>
           <PageHeaderRight className="gap-2 sm:gap-4 shrink-0">
@@ -576,7 +576,7 @@ export default function AdminDashboard() {
               size="sm"
               onClick={() => window.location.href = '/admin/departments'}
               data-testid="button-departments"
-              className="gap-2 hidden sm:flex"
+              className="gap-2 hidden sm:flex text-white hover:bg-white/20"
             >
               <Mail className="h-4 w-4" />
               <span className="hidden md:inline">Паёмҳо</span>
@@ -586,7 +586,7 @@ export default function AdminDashboard() {
               size="sm"
               onClick={() => window.location.href = '/admin/people'}
               data-testid="button-people"
-              className="gap-2 hidden sm:flex"
+              className="gap-2 hidden sm:flex text-white hover:bg-white/20"
             >
               <Users className="h-4 w-4" />
               <span className="hidden md:inline">Иҷрокунандагон</span>
@@ -596,7 +596,7 @@ export default function AdminDashboard() {
               size="sm"
               onClick={() => window.location.href = '/admin/document-types'}
               data-testid="button-document-types"
-              className="gap-2 hidden sm:flex"
+              className="gap-2 hidden sm:flex text-white hover:bg-white/20"
             >
               <FileText className="h-4 w-4" />
               <span className="hidden md:inline">Намудҳо</span>
@@ -606,7 +606,7 @@ export default function AdminDashboard() {
               size="sm"
               onClick={() => window.location.href = '/admin/document-templates'}
               data-testid="button-document-templates"
-              className="gap-2 hidden sm:flex"
+              className="gap-2 hidden sm:flex text-white hover:bg-white/20"
             >
               <FileText className="h-4 w-4" />
               <span className="hidden md:inline">Намунаҳо</span>
@@ -616,7 +616,7 @@ export default function AdminDashboard() {
               size="sm"
               onClick={() => window.location.href = '/admin/departments'}
               data-testid="button-departments-mobile"
-              className="sm:hidden"
+              className="sm:hidden text-white hover:bg-white/20"
             >
               <Mail className="h-4 w-4" />
             </Button>
