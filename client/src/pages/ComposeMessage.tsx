@@ -109,10 +109,35 @@ export default function ComposeMessage() {
     queryKey: ['/api/document-templates'],
   });
 
+  const replacePlaceholders = (html: string, docNumber: string): string => {
+    const now = new Date();
+    const day = now.getDate().toString().padStart(2, '0');
+    const months = [
+      'январ', 'феврал', 'март', 'апрел', 'май', 'июн',
+      'июл', 'август', 'сентябр', 'октябр', 'ноябр', 'декабр'
+    ];
+    const month = months[now.getMonth()];
+    const year = now.getFullYear().toString();
+    
+    return html
+      .replace(/\{number\}/gi, docNumber || '___')
+      .replace(/\{date\.day\}/gi, day)
+      .replace(/\{date_day\}/gi, day)
+      .replace(/\{date\.month\}/gi, month)
+      .replace(/\{date_month\}/gi, month)
+      .replace(/\{date\.year\}/gi, year)
+      .replace(/\{date_year\}/gi, year)
+      .replace(/\{сана\.рӯз\}/gi, day)
+      .replace(/\{сана\.моҳ\}/gi, month)
+      .replace(/\{сана\.сол\}/gi, year)
+      .replace(/\{рақам\}/gi, docNumber || '___');
+  };
+
   const handleSelectTemplate = (template: DocumentTemplate) => {
     setSelectedTemplateId(template.id);
     setDocumentTitle(template.name);
-    setDocumentContent(template.htmlContent);
+    const processedContent = replacePlaceholders(template.htmlContent, documentNumber);
+    setDocumentContent(processedContent);
     setShowTemplateDialog(false);
     setShowDocumentEditor(true);
   };
