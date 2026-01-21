@@ -11,14 +11,16 @@ export function PageHeader({ variant = 'department', children, className = '' }:
   
   const variantClasses = {
     department: "border-border/20",
-    admin: "border-border bg-background/80"
+    admin: "border-border/20"
   };
   
   const variantStyles = {
     department: {
       background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
     },
-    admin: undefined
+    admin: {
+      background: 'linear-gradient(135deg, #4a9d4a 0%, #5cb85c 50%, #6fca6f 100%)'
+    }
   };
 
   return (
