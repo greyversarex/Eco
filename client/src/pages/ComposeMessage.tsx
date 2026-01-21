@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Paperclip, X, LogOut, Save, Search } from 'lucide-react';
+import { ArrowLeft, Paperclip, X, LogOut, Save, Search, FileText } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -15,7 +15,16 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { apiFetch } from '@/lib/api-config';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import type { Department, Person, DocumentType } from '@shared/schema';
+import type { Department, Person, DocumentType, DocumentTemplate } from '@shared/schema';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { DocumentEditor } from '@/components/DocumentEditor';
 import {
   Select,
   SelectContent,
@@ -41,6 +50,11 @@ export default function ComposeMessage() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [recipientSearch, setRecipientSearch] = useState('');
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [showDocumentEditor, setShowDocumentEditor] = useState(false);
+  const [documentContent, setDocumentContent] = useState('');
+  const [documentTitle, setDocumentTitle] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const isOnline = useOnlineStatus();
@@ -91,12 +105,44 @@ export default function ComposeMessage() {
     refetchOnMount: 'always',
   });
 
+  const { data: documentTemplates = [] } = useQuery<DocumentTemplate[]>({
+    queryKey: ['/api/document-templates'],
+  });
+
+  const handleSelectTemplate = (template: DocumentTemplate) => {
+    setSelectedTemplateId(template.id);
+    setDocumentTitle(template.name);
+    setDocumentContent(template.htmlContent);
+    setShowTemplateDialog(false);
+    setShowDocumentEditor(true);
+  };
+
+  const handleCloseDocumentEditor = () => {
+    setShowDocumentEditor(false);
+    setDocumentContent('');
+    setDocumentTitle('');
+    setSelectedTemplateId(null);
+  };
+
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
       return await apiRequest('POST', '/api/messages', messageData);
     },
     onSuccess: async (data: any) => {
       const messageId = data.id;
+      
+      // Save document if created
+      if (documentContent && documentTitle) {
+        try {
+          await apiRequest('POST', `/api/messages/${messageId}/documents`, {
+            templateId: selectedTemplateId,
+            title: documentTitle,
+            htmlContent: documentContent,
+          });
+        } catch (error) {
+          console.error('Failed to save document:', error);
+        }
+      }
       
       // Upload files if any selected
       if (selectedFiles.length > 0) {
@@ -758,6 +804,20 @@ export default function ComposeMessage() {
                       <Paperclip className="h-4 w-4" />
                       Интихоб кардани файлҳо
                     </Button>
+                    {documentTemplates.length > 0 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowTemplateDialog(true)}
+                        disabled={sendMessageMutation.isPending || isUploadingFiles}
+                        className="gap-2"
+                        data-testid="button-create-document"
+                      >
+                        <FileText className="h-4 w-4" />
+                        Ҳуҷҷат аз намуна
+                      </Button>
+                    )}
                     {selectedFiles.length > 0 && (
                       <span className="text-sm text-muted-foreground">
                         Файлҳои интихобшуда: {selectedFiles.length}/5
@@ -833,8 +893,113 @@ export default function ComposeMessage() {
             </form>
           </CardContent>
         </Card>
+
+        {documentContent && !showDocumentEditor && (
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  {documentTitle}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDocumentEditor(true)}
+                    data-testid="button-edit-document"
+                  >
+                    Таҳрир
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCloseDocumentEditor}
+                    data-testid="button-remove-document"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div 
+                className="prose prose-sm max-w-none p-4 border rounded-lg bg-gray-50"
+                dangerouslySetInnerHTML={{ __html: documentContent }}
+              />
+            </CardContent>
+          </Card>
+        )}
       </main>
       <Footer />
+
+      <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Интихоби намунаи ҳуҷҷат</DialogTitle>
+            <DialogDescription>
+              Намунаи лозимиро интихоб кунед
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[400px] overflow-y-auto">
+            {documentTemplates.map((template) => (
+              <div
+                key={template.id}
+                className="flex items-center gap-3 p-3 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
+                onClick={() => handleSelectTemplate(template)}
+                data-testid={`template-option-${template.id}`}
+              >
+                <FileText className="h-5 w-5 text-green-600 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-gray-900">{template.name}</h4>
+                  {template.description && (
+                    <p className="text-sm text-gray-500 truncate">{template.description}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+            {documentTemplates.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <FileText className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                <p>Ягон намуна мавҷуд нест</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTemplateDialog(false)}>
+              Бекор кардан
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDocumentEditor} onOpenChange={setShowDocumentEditor}>
+        <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              {documentTitle}
+            </DialogTitle>
+            <DialogDescription>
+              Ҳуҷҷатро таҳрир кунед
+            </DialogDescription>
+          </DialogHeader>
+          <DocumentEditor
+            content={documentContent}
+            onChange={setDocumentContent}
+            departmentName={user?.department?.name}
+            className="min-h-[400px]"
+          />
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowDocumentEditor(false)}>
+              Пӯшидан
+            </Button>
+            <Button onClick={() => setShowDocumentEditor(false)} data-testid="button-save-document">
+              Сабт кардан
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
