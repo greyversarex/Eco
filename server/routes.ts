@@ -805,7 +805,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Upload document template (Admin only) - converts .docx to HTML
-  app.post("/api/document-templates", requireAdmin, uploadMiddleware.single('file'), async (req: Request, res: Response) => {
+  app.post("/api/document-templates", requireAdmin, upload.single('file'), async (req: Request, res: Response) => {
     try {
       const { name, description, sortOrder, isActive } = req.body;
       const file = req.file;
@@ -845,7 +845,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.patch("/api/document-templates/:id", requireAdmin, uploadMiddleware.single('file'), async (req: Request, res: Response) => {
+  app.patch("/api/document-templates/:id", requireAdmin, upload.single('file'), async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const { name, description, sortOrder, isActive } = req.body;
