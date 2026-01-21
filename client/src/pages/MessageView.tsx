@@ -1006,7 +1006,30 @@ export default function MessageView() {
 
                             {/* Иҷрокунандагон (Исполнители) - показывает ТОЛЬКО не выбранных людей с чекбоксами */}
                             <div className="space-y-2">
-                              <Label>Иҷрокунандагон</Label>
+                              <div className="flex items-center justify-between">
+                                <Label>Иҷрокунандагон</Label>
+                                {selectedRecipients.length > 0 && (() => {
+                                  const allAvailablePeople = allPeople.filter(p => 
+                                    selectedRecipients.includes(p.departmentId!) && !selectedExecutorIds.includes(p.id)
+                                  );
+                                  if (allAvailablePeople.length <= 1) return null;
+                                  return (
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        const allPeopleIds = allAvailablePeople.map(p => p.id);
+                                        setSelectedExecutorIds(Array.from(new Set([...selectedExecutorIds, ...allPeopleIds])));
+                                      }}
+                                      className="text-xs h-7"
+                                      data-testid="button-select-all-executors"
+                                    >
+                                      Ҳамаро интихоб кардан
+                                    </Button>
+                                  );
+                                })()}
+                              </div>
                               {selectedRecipients.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">
                                   Аввал қабулкунандаро интихоб кунед
@@ -1024,24 +1047,8 @@ export default function MessageView() {
                                     
                                     return (
                                       <div key={recipientId} className="mb-4 last:mb-0">
-                                        <div className="flex items-center justify-between mb-2">
-                                          <div className="text-sm font-semibold text-gray-700">
-                                            {dept?.name || 'Номаълум'}
-                                          </div>
-                                          {peopleInDept.length > 1 && (
-                                            <Button
-                                              type="button"
-                                              variant="ghost"
-                                              size="sm"
-                                              onClick={() => {
-                                                const deptPeopleIds = peopleInDept.map(p => p.id);
-                                                setSelectedExecutorIds(Array.from(new Set([...selectedExecutorIds, ...deptPeopleIds])));
-                                              }}
-                                              className="text-xs h-7"
-                                            >
-                                              Ҳамаро интихоб
-                                            </Button>
-                                          )}
+                                        <div className="text-sm font-semibold text-gray-700 mb-2">
+                                          {dept?.name || 'Номаълум'}
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-2">
                                           {peopleInDept.map(person => (
