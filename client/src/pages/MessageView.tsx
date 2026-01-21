@@ -942,7 +942,7 @@ export default function MessageView() {
                               )}
                             </div>
 
-                            {/* Даъват (Приглашенные) - раскрываемый список */}
+                            {/* Даъват (Приглашенные) - только ПЕРВЫЙ выбранный человек */}
                             {selectedExecutorIds.length > 0 && (
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between">
@@ -954,49 +954,30 @@ export default function MessageView() {
                                 <div className="border rounded-md p-4">
                                   <div className="space-y-2">
                                     {(() => {
-                                      const invitedPeople = allPeople.filter(p => selectedExecutorIds.includes(p.id));
-                                      const displayedPeople = showAllInvited ? invitedPeople : invitedPeople.slice(0, 5);
+                                      // Только первый выбранный человек в Даъват
+                                      const firstPerson = allPeople.find(p => p.id === selectedExecutorIds[0]);
+                                      if (!firstPerson) return null;
+                                      const dept = departments.find(d => d.id === firstPerson.departmentId);
                                       
                                       return (
-                                        <>
-                                          {displayedPeople.map(person => {
-                                            const dept = departments.find(d => d.id === person.departmentId);
-                                            return (
-                                              <div key={person.id} className="flex items-center justify-between space-x-2 py-1">
-                                                <div className="flex items-center space-x-2 flex-1">
-                                                  <Checkbox
-                                                    id={`invited-${person.id}`}
-                                                    checked={true}
-                                                    onCheckedChange={() => {
-                                                      setSelectedExecutorIds(selectedExecutorIds.filter(id => id !== person.id));
-                                                    }}
-                                                    data-testid={`checkbox-invited-${person.id}`}
-                                                  />
-                                                  <label htmlFor={`invited-${person.id}`} className="text-sm cursor-pointer flex-1">
-                                                    {person.name}
-                                                  </label>
-                                                </div>
-                                                <span className="text-xs text-muted-foreground">
-                                                  {dept?.name || 'Номаълум'}
-                                                </span>
-                                              </div>
-                                            );
-                                          })}
-                                          {invitedPeople.length > 5 && (
-                                            <div className="pt-2 border-t">
-                                              <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => setShowAllInvited(!showAllInvited)}
-                                                className="text-xs w-full"
-                                                data-testid="button-toggle-invited"
-                                              >
-                                                {showAllInvited ? 'Пинҳон кардан' : `Тамоми рӯйхат (${invitedPeople.length})`}
-                                              </Button>
-                                            </div>
-                                          )}
-                                        </>
+                                        <div className="flex items-center justify-between space-x-2 py-1">
+                                          <div className="flex items-center space-x-2 flex-1">
+                                            <Checkbox
+                                              id={`invited-${firstPerson.id}`}
+                                              checked={true}
+                                              onCheckedChange={() => {
+                                                setSelectedExecutorIds(selectedExecutorIds.filter(id => id !== firstPerson.id));
+                                              }}
+                                              data-testid={`checkbox-invited-${firstPerson.id}`}
+                                            />
+                                            <label htmlFor={`invited-${firstPerson.id}`} className="text-sm cursor-pointer flex-1">
+                                              {firstPerson.name}
+                                            </label>
+                                          </div>
+                                          <span className="text-xs text-muted-foreground">
+                                            {dept?.name || 'Номаълум'}
+                                          </span>
+                                        </div>
                                       );
                                     })()}
                                   </div>
@@ -1004,13 +985,15 @@ export default function MessageView() {
                               </div>
                             )}
 
-                            {/* Иҷрокунандагон (Исполнители) - показывает ТОЛЬКО не выбранных людей с чекбоксами */}
+                            {/* Иҷрокунандагон (Исполнители) - показывает всех людей, кроме первого выбранного (который в Даъват) */}
                             <div className="space-y-2">
                               <div className="flex items-center justify-between">
                                 <Label>Иҷрокунандагон</Label>
                                 {selectedRecipients.length > 0 && (() => {
+                                  // Первый выбранный человек (в Даъват) исключен из списка
+                                  const firstSelectedId = selectedExecutorIds[0];
                                   const allAvailablePeople = allPeople.filter(p => 
-                                    selectedRecipients.includes(p.departmentId!) && !selectedExecutorIds.includes(p.id)
+                                    selectedRecipients.includes(p.departmentId!) && p.id !== firstSelectedId && !selectedExecutorIds.includes(p.id)
                                   );
                                   if (allAvailablePeople.length <= 1) return null;
                                   return (
@@ -1019,7 +1002,9 @@ export default function MessageView() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => {
-                                        const allPeopleIds = allAvailablePeople.map(p => p.id);
+                                        const allPeopleIds = allPeople
+                                          .filter(p => selectedRecipients.includes(p.departmentId!) && p.id !== firstSelectedId)
+                                          .map(p => p.id);
                                         setSelectedExecutorIds(Array.from(new Set([...selectedExecutorIds, ...allPeopleIds])));
                                       }}
                                       className="text-xs h-7"
@@ -1038,9 +1023,10 @@ export default function MessageView() {
                                 <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
                                   {selectedRecipients.map(recipientId => {
                                     const dept = departments.find(d => d.id === recipientId);
-                                    // ВАЖНО: показываем только тех, кто НЕ выбран (не в приглашенных)
+                                    // Первый выбранный человек показывается в Даъват, не здесь
+                                    const firstSelectedId = selectedExecutorIds[0];
                                     const peopleInDept = allPeople.filter(p => 
-                                      p.departmentId === recipientId && !selectedExecutorIds.includes(p.id)
+                                      p.departmentId === recipientId && p.id !== firstSelectedId
                                     );
                                     
                                     if (peopleInDept.length === 0) return null;
@@ -1051,34 +1037,36 @@ export default function MessageView() {
                                           {dept?.name || 'Номаълум'}
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-2">
-                                          {peopleInDept.map(person => (
-                                            <div key={person.id} className="flex items-center space-x-2">
-                                              <Checkbox
-                                                id={`executor-${person.id}`}
-                                                checked={selectedExecutorIds.includes(person.id)}
-                                                onCheckedChange={(checked) => {
-                                                  if (checked) {
-                                                    setSelectedExecutorIds([...selectedExecutorIds, person.id]);
-                                                  } else {
-                                                    setSelectedExecutorIds(selectedExecutorIds.filter(id => id !== person.id));
-                                                  }
-                                                }}
-                                                data-testid={`checkbox-executor-${person.id}`}
-                                              />
-                                              <label htmlFor={`executor-${person.id}`} className="text-sm cursor-pointer">
-                                                {person.name}
-                                              </label>
-                                            </div>
-                                          ))}
+                                          {peopleInDept.map(person => {
+                                            // Чекбокс отмечен если человек выбран (кроме первого)
+                                            const isChecked = selectedExecutorIds.includes(person.id);
+                                            return (
+                                              <div key={person.id} className="flex items-center space-x-2">
+                                                <Checkbox
+                                                  id={`executor-${person.id}`}
+                                                  checked={isChecked}
+                                                  onCheckedChange={(checked) => {
+                                                    if (checked) {
+                                                      setSelectedExecutorIds([...selectedExecutorIds, person.id]);
+                                                    } else {
+                                                      setSelectedExecutorIds(selectedExecutorIds.filter(id => id !== person.id));
+                                                    }
+                                                  }}
+                                                  data-testid={`checkbox-executor-${person.id}`}
+                                                />
+                                                <label htmlFor={`executor-${person.id}`} className="text-sm cursor-pointer">
+                                                  {person.name}
+                                                </label>
+                                              </div>
+                                            );
+                                          })}
                                         </div>
                                       </div>
                                     );
                                   })}
-                                  {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId) && !selectedExecutorIds.includes(p.id)).length === 0 && (
+                                  {allPeople.filter(p => p.departmentId !== null && selectedRecipients.includes(p.departmentId) && p.id !== selectedExecutorIds[0]).length === 0 && (
                                     <p className="text-sm text-muted-foreground text-center py-4">
-                                      {selectedExecutorIds.length > 0 
-                                        ? 'Ҳама иҷрокунандагон даъват шудаанд'
-                                        : 'Иҷрокунандае дар ин шуъбаҳо нест'}
+                                      Иҷрокунандае дар ин шуъбаҳо нест
                                     </p>
                                   )}
                                 </div>
