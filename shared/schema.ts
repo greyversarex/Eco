@@ -380,3 +380,48 @@ export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 
 // Note: Sessions table is managed by connect-pg-simple
 // It will be created automatically with the correct schema
+
+// Document Templates table (Намунаҳои ҳуҷҷатҳо) - templates uploaded by admin
+export const documentTemplates = pgTable("document_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // Template name shown to users
+  description: text("description"), // Optional description
+  originalFileName: text("original_file_name").notNull(), // Original .docx filename
+  htmlContent: text("html_content").notNull(), // Converted HTML content for editing
+  originalDocx: bytea("original_docx"), // Original .docx file (optional backup)
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertDocumentTemplateSchema = createInsertSchema(documentTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertDocumentTemplate = z.infer<typeof insertDocumentTemplateSchema>;
+export type DocumentTemplate = typeof documentTemplates.$inferSelect;
+
+// Message Documents table (Ҳуҷҷатҳои паём) - documents created from templates, attached to messages
+export const messageDocuments = pgTable("message_documents", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").notNull().references(() => messages.id, { onDelete: 'cascade' }),
+  templateId: integer("template_id").references(() => documentTemplates.id, { onDelete: 'set null' }),
+  title: text("title").notNull(), // Document title
+  htmlContent: text("html_content").notNull(), // Current editable HTML content
+  lastEditedBy: integer("last_edited_by").references(() => departments.id, { onDelete: 'set null' }),
+  lastEditedAt: timestamp("last_edited_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  messageIdx: index("message_documents_message_id_idx").on(table.messageId),
+  templateIdx: index("message_documents_template_id_idx").on(table.templateId),
+}));
+
+export const insertMessageDocumentSchema = createInsertSchema(messageDocuments).omit({
+  id: true,
+  createdAt: true,
+  lastEditedAt: true,
+});
+export type InsertMessageDocument = z.infer<typeof insertMessageDocumentSchema>;
+export type MessageDocument = typeof messageDocuments.$inferSelect;

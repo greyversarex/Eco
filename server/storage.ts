@@ -11,7 +11,9 @@ import type {
   Person, InsertPerson,
   DepartmentIcon, InsertDepartmentIcon,
   PushSubscription, InsertPushSubscription,
-  DocumentType, InsertDocumentType
+  DocumentType, InsertDocumentType,
+  DocumentTemplate, InsertDocumentTemplate,
+  MessageDocument, InsertMessageDocument
 } from "@shared/schema";
 
 export interface IStorage {
@@ -125,11 +127,26 @@ export interface IStorage {
   
   // Message Approval (Иҷозат)
   updateMessageApproval(id: number, status: 'approved' | 'rejected', approvedById: number): Promise<Message | undefined>;
+  
+  // Document Templates (Намунаҳои ҳуҷҷатҳо)
+  getDocumentTemplates(): Promise<DocumentTemplate[]>;
+  getActiveDocumentTemplates(): Promise<DocumentTemplate[]>;
+  getDocumentTemplateById(id: number): Promise<DocumentTemplate | undefined>;
+  createDocumentTemplate(template: InsertDocumentTemplate): Promise<DocumentTemplate>;
+  updateDocumentTemplate(id: number, template: Partial<InsertDocumentTemplate>): Promise<DocumentTemplate | undefined>;
+  deleteDocumentTemplate(id: number): Promise<boolean>;
+  
+  // Message Documents (Ҳуҷҷатҳои паём)
+  getMessageDocuments(messageId: number): Promise<MessageDocument[]>;
+  getMessageDocumentById(id: number): Promise<MessageDocument | undefined>;
+  createMessageDocument(doc: InsertMessageDocument): Promise<MessageDocument>;
+  updateMessageDocument(id: number, doc: Partial<InsertMessageDocument>): Promise<MessageDocument | undefined>;
+  deleteMessageDocument(id: number): Promise<boolean>;
 }
 
 // Database storage implementation
 import { db } from './db';
-import { departments, admins, messages, attachments, assignments, assignmentAttachments, assignmentReplies, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes } from '@shared/schema';
+import { departments, admins, messages, attachments, assignments, assignmentAttachments, assignmentReplies, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes, documentTemplates, messageDocuments } from '@shared/schema';
 import { eq, or, and, desc, asc, sql } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
@@ -948,6 +965,70 @@ export class DbStorage implements IStorage {
       .where(eq(messages.id, id))
       .returning();
     return result[0];
+  }
+
+  // Document Templates (Намунаҳои ҳуҷҷатҳо)
+  async getDocumentTemplates(): Promise<DocumentTemplate[]> {
+    return await db.select().from(documentTemplates).orderBy(asc(documentTemplates.sortOrder), asc(documentTemplates.id));
+  }
+
+  async getActiveDocumentTemplates(): Promise<DocumentTemplate[]> {
+    return await db.select().from(documentTemplates)
+      .where(eq(documentTemplates.isActive, true))
+      .orderBy(asc(documentTemplates.sortOrder), asc(documentTemplates.id));
+  }
+
+  async getDocumentTemplateById(id: number): Promise<DocumentTemplate | undefined> {
+    const result = await db.select().from(documentTemplates).where(eq(documentTemplates.id, id));
+    return result[0];
+  }
+
+  async createDocumentTemplate(template: InsertDocumentTemplate): Promise<DocumentTemplate> {
+    const result = await db.insert(documentTemplates).values(template).returning();
+    return result[0];
+  }
+
+  async updateDocumentTemplate(id: number, template: Partial<InsertDocumentTemplate>): Promise<DocumentTemplate | undefined> {
+    const result = await db.update(documentTemplates)
+      .set({ ...template, updatedAt: new Date() })
+      .where(eq(documentTemplates.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteDocumentTemplate(id: number): Promise<boolean> {
+    const result = await db.delete(documentTemplates).where(eq(documentTemplates.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Message Documents (Ҳуҷҷатҳои паём)
+  async getMessageDocuments(messageId: number): Promise<MessageDocument[]> {
+    return await db.select().from(messageDocuments)
+      .where(eq(messageDocuments.messageId, messageId))
+      .orderBy(asc(messageDocuments.id));
+  }
+
+  async getMessageDocumentById(id: number): Promise<MessageDocument | undefined> {
+    const result = await db.select().from(messageDocuments).where(eq(messageDocuments.id, id));
+    return result[0];
+  }
+
+  async createMessageDocument(doc: InsertMessageDocument): Promise<MessageDocument> {
+    const result = await db.insert(messageDocuments).values(doc).returning();
+    return result[0];
+  }
+
+  async updateMessageDocument(id: number, doc: Partial<InsertMessageDocument>): Promise<MessageDocument | undefined> {
+    const result = await db.update(messageDocuments)
+      .set({ ...doc, lastEditedAt: new Date() })
+      .where(eq(messageDocuments.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteMessageDocument(id: number): Promise<boolean> {
+    const result = await db.delete(messageDocuments).where(eq(messageDocuments.id, id)).returning();
+    return result.length > 0;
   }
 }
 
