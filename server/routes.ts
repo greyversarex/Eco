@@ -1904,8 +1904,8 @@ export function registerRoutes(app: Express) {
       }
       
       // Get responder department ID from session
-      const responderDepartmentId = req.session.user?.userType === 'department' 
-        ? req.session.user.department?.id 
+      const responderDepartmentId = req.session.userType === 'department' 
+        ? req.session.departmentId 
         : null;
       
       if (!responderDepartmentId) {
