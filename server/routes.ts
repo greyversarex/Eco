@@ -1713,14 +1713,33 @@ export function registerRoutes(app: Express) {
       let finalExecutorIds = executorIds;
       
       if (executorIds.length > 0) {
-        // User selected specific people - use their names for Даъват
-        // For Иҷрокунандагон - show remaining departments (excluding those with selected people)
-        const selectedPeopleDeptIds = new Set(
-          allPeople.filter((p: any) => executorIds.includes(p.id)).map((p: any) => p.departmentId)
-        );
-        const remainingDepts = recipientDepts.filter((d: any) => !selectedPeopleDeptIds.has(d.id));
-        allDepartmentExecutors = remainingDepts.map((d: any) => d.name);
-        allDepartmentExecutorIds = remainingDepts.map((d: any) => d.id);
+        // User selected specific people
+        // First person goes to Даъват, rest go to Иҷрокунандагон
+        const selectedPeople = allPeople.filter((p: any) => executorIds.includes(p.id));
+        
+        // Sort by the order they were selected (maintain executorIds order)
+        const orderedPeople: any[] = executorIds
+          .map(id => selectedPeople.find((p: any) => p.id === id))
+          .filter(Boolean) as any[];
+        
+        if (orderedPeople.length > 0) {
+          const firstPerson = orderedPeople[0];
+          // First person goes to Даъват
+          finalExecutors = [firstPerson.name];
+          finalExecutorIds = [firstPerson.id];
+          
+          // Remaining people go to Иҷрокунандагон
+          if (orderedPeople.length > 1) {
+            allDepartmentExecutors = orderedPeople.slice(1).map((p: any) => p.name);
+            allDepartmentExecutorIds = orderedPeople.slice(1).map((p: any) => p.id);
+          } else {
+            // Only 1 person selected - other departments (excluding person's dept) become Иҷрокунандагон
+            const personDeptId = firstPerson.departmentId;
+            const otherDepts = recipientDepts.filter((d: any) => d.id !== personDeptId);
+            allDepartmentExecutors = otherDepts.map((d: any) => d.name);
+            allDepartmentExecutorIds = otherDepts.map((d: any) => d.id);
+          }
+        }
       } else {
         // No people selected - use department names
         // First department goes to Даъват, rest go to Иҷрокунандагон
