@@ -772,6 +772,220 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Document Templates routes (Намунаҳои ҳуҷҷатҳо)
+  app.get("/api/document-templates", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const templates = await storage.getActiveDocumentTemplates();
+      res.json(templates);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/document-templates/all", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const templates = await storage.getDocumentTemplates();
+      res.json(templates);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/document-templates/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const template = await storage.getDocumentTemplateById(id);
+      if (!template) {
+        return res.status(404).json({ error: "Намунаи ҳуҷҷат ёфт нашуд" });
+      }
+      res.json(template);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Upload document template (Admin only) - converts .docx to HTML
+  app.post("/api/document-templates", requireAdmin, uploadMiddleware.single('file'), async (req: Request, res: Response) => {
+    try {
+      const { name, description, sortOrder, isActive } = req.body;
+      const file = req.file;
+      
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        return res.status(400).json({ error: "Номи намуна ҳатмист" });
+      }
+      
+      if (!file) {
+        return res.status(400).json({ error: "Файли .docx ҳатмист" });
+      }
+      
+      // Check file type
+      const allowedTypes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ error: "Танҳо файлҳои .docx қабул мешаванд" });
+      }
+      
+      // Convert docx to HTML using mammoth
+      const mammoth = await import('mammoth');
+      const result = await mammoth.convertToHtml({ buffer: file.buffer });
+      const htmlContent = result.value;
+      
+      const template = await storage.createDocumentTemplate({
+        name: name.trim(),
+        description: description || null,
+        originalFileName: file.originalname,
+        htmlContent: htmlContent,
+        originalDocx: file.buffer,
+        sortOrder: parseInt(sortOrder) || 0,
+        isActive: isActive !== 'false',
+      });
+      
+      res.status(201).json(template);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/document-templates/:id", requireAdmin, uploadMiddleware.single('file'), async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, sortOrder, isActive } = req.body;
+      const file = req.file;
+      
+      const updates: any = {};
+      if (name !== undefined) updates.name = name.trim();
+      if (description !== undefined) updates.description = description;
+      if (sortOrder !== undefined) updates.sortOrder = parseInt(sortOrder);
+      if (isActive !== undefined) updates.isActive = isActive === 'true' || isActive === true;
+      
+      // If new file uploaded, convert to HTML
+      if (file) {
+        const allowedTypes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (!allowedTypes.includes(file.mimetype)) {
+          return res.status(400).json({ error: "Танҳо файлҳои .docx қабул мешаванд" });
+        }
+        
+        const mammoth = await import('mammoth');
+        const result = await mammoth.convertToHtml({ buffer: file.buffer });
+        updates.htmlContent = result.value;
+        updates.originalFileName = file.originalname;
+        updates.originalDocx = file.buffer;
+      }
+      
+      const template = await storage.updateDocumentTemplate(id, updates);
+      if (!template) {
+        return res.status(404).json({ error: "Намунаи ҳуҷҷат ёфт нашуд" });
+      }
+      res.json(template);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/document-templates/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteDocumentTemplate(id);
+      if (!success) {
+        return res.status(404).json({ error: "Намунаи ҳуҷҷат ёфт нашуд" });
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Message Documents routes (Ҳуҷҷатҳои паём)
+  app.get("/api/messages/:messageId/documents", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const documents = await storage.getMessageDocuments(messageId);
+      res.json(documents);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/message-documents/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const document = await storage.getMessageDocumentById(id);
+      if (!document) {
+        return res.status(404).json({ error: "Ҳуҷҷат ёфт нашуд" });
+      }
+      res.json(document);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/messages/:messageId/documents", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const { templateId, title, htmlContent } = req.body;
+      
+      if (!title || typeof title !== 'string' || title.trim().length === 0) {
+        return res.status(400).json({ error: "Номи ҳуҷҷат ҳатмист" });
+      }
+      
+      if (!htmlContent || typeof htmlContent !== 'string') {
+        return res.status(400).json({ error: "Мазмуни ҳуҷҷат ҳатмист" });
+      }
+      
+      // Get department ID from session
+      const departmentId = req.session.userType === 'department' ? req.session.departmentId : null;
+      
+      const document = await storage.createMessageDocument({
+        messageId,
+        templateId: templateId || null,
+        title: title.trim(),
+        htmlContent,
+        lastEditedBy: departmentId,
+      });
+      
+      res.status(201).json(document);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/message-documents/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { title, htmlContent } = req.body;
+      
+      const updates: any = {};
+      if (title !== undefined) updates.title = title.trim();
+      if (htmlContent !== undefined) updates.htmlContent = htmlContent;
+      
+      // Get department ID from session for tracking
+      const departmentId = req.session.userType === 'department' ? req.session.departmentId : null;
+      if (departmentId) {
+        updates.lastEditedBy = departmentId;
+      }
+      
+      const document = await storage.updateMessageDocument(id, updates);
+      if (!document) {
+        return res.status(404).json({ error: "Ҳуҷҷат ёфт нашуд" });
+      }
+      res.json(document);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/message-documents/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteMessageDocument(id);
+      if (!success) {
+        return res.status(404).json({ error: "Ҳуҷҷат ёфт нашуд" });
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Message Approval routes (Иҷозат)
   app.patch("/api/messages/:id/approve", requireAuth, async (req: Request, res: Response) => {
     try {
