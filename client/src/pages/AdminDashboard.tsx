@@ -26,7 +26,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { t } from '@/lib/i18n';
-import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical, Download, ChevronDown, ChevronRight, FileText } from 'lucide-react';
+import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical, Download, ChevronDown, ChevronRight, FileText, FileImage } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -610,6 +610,16 @@ export default function AdminDashboard() {
             >
               <FileText className="h-4 w-4" />
               <span className="hidden md:inline">Намунаҳо</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.location.href = '/admin/visual-templates'}
+              data-testid="button-visual-templates"
+              className="gap-2 hidden sm:flex text-white hover:bg-white/20"
+            >
+              <FileImage className="h-4 w-4" />
+              <span className="hidden md:inline">Визуалӣ</span>
             </Button>
             <Button
               variant="ghost"
