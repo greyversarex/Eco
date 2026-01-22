@@ -78,7 +78,7 @@ import {
   Quote,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 interface DocumentEditorProps {
   content: string;
@@ -191,6 +191,12 @@ export function DocumentEditor({
       onChange(editor.getHTML());
     },
   });
+
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
 
   const handleImageUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

@@ -1012,8 +1012,8 @@ export default function ComposeMessage() {
             <DocumentEditor
               content={documentContent}
               onChange={setDocumentContent}
-              departmentName={user?.department?.name}
-              canApprove={user?.department?.canApprove}
+              departmentName={user?.userType === 'department' ? user.department?.name : undefined}
+              canApprove={user?.userType === 'department' ? user.department?.canApprove : false}
               className="h-full"
             />
           </div>
