@@ -894,7 +894,7 @@ export default function AssignmentsPage() {
               setComposeMessageDialogOpen(false);
               setComposeForAssignment(null);
             }}
-            defaultRecipientId={composeForAssignment?.senderId}
+            defaultRecipientId={composeForAssignment?.senderId ?? undefined}
             assignmentId={composeForAssignment?.id}
             onSuccess={() => {
               setComposeForAssignment(null);
@@ -1186,7 +1186,7 @@ export default function AssignmentsPage() {
                         </Button>
                       )
                     )}
-                    {assignment.replies?.some(r => r.responderDepartmentId === user?.department?.id) && (
+                    {user?.userType === 'department' && assignment.replies?.some(r => r.responderDepartmentId === user?.department?.id) && (
                       <span className="text-sm text-green-600 flex items-center gap-1">
                         <CheckCircle2 className="h-4 w-4" />
                         Ҷавоб дода шуд
@@ -1416,7 +1416,7 @@ export default function AssignmentsPage() {
                         </Button>
                       )
                     )}
-                    {assignment.replies?.some(r => r.responderDepartmentId === user?.department?.id) && (
+                    {user?.userType === 'department' && assignment.replies?.some(r => r.responderDepartmentId === user?.department?.id) && (
                       <span className="text-sm text-green-600 flex items-center gap-1">
                         <CheckCircle2 className="h-4 w-4" />
                         Ҷавоб дода шуд
@@ -1537,7 +1537,7 @@ export default function AssignmentsPage() {
                       )}
                       
                       {/* Show reply status for completed assignments */}
-                      {assignment.replies?.some(r => r.responderDepartmentId === user?.department?.id) && (
+                      {user?.userType === 'department' && assignment.replies?.some(r => r.responderDepartmentId === user?.department?.id) && (
                         <div className="flex gap-2 mt-2">
                           <span className="text-sm text-green-600 flex items-center gap-1">
                             <CheckCircle2 className="h-4 w-4" />
