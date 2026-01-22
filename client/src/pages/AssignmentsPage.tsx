@@ -33,6 +33,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { ComposeMessageModal } from '@/components/ComposeMessageModal';
 
 // Progress indicator component with segmented daily view
 function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: Date; deadline: Date; isCompleted: boolean }) {
@@ -864,45 +865,19 @@ export default function AssignmentsPage() {
             </DialogContent>
           </Dialog>
 
-          {/* Compose Message Dialog for Даъват */}
-          <Dialog open={composeMessageDialogOpen} onOpenChange={setComposeMessageDialogOpen}>
-            <DialogContent className="sm:max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Ҷавоб ба супориш - Ҳуҷҷати нав</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="text-sm text-muted-foreground">
-                  <p><span className="font-medium">Супориш:</span> {composeForAssignment?.content?.substring(0, 100)}...</p>
-                  <p><span className="font-medium">Фиристода ба:</span> Раёсат</p>
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setComposeMessageDialogOpen(false);
-                      setComposeForAssignment(null);
-                    }}
-                    data-testid="button-cancel-compose"
-                  >
-                    Бекор кардан
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      // Navigate to compose page with assignment context
-                      setComposeMessageDialogOpen(false);
-                      if (composeForAssignment) {
-                        setLocation(`/department/compose?assignmentId=${composeForAssignment.id}&recipientId=${composeForAssignment.senderId}`);
-                      }
-                    }}
-                    data-testid="button-open-compose"
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    Эҷоди ҳуҷҷат
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          {/* Compose Message Modal for Даъват */}
+          <ComposeMessageModal
+            isOpen={composeMessageDialogOpen}
+            onClose={() => {
+              setComposeMessageDialogOpen(false);
+              setComposeForAssignment(null);
+            }}
+            defaultRecipientId={composeForAssignment?.senderId}
+            assignmentId={composeForAssignment?.id}
+            onSuccess={() => {
+              setComposeForAssignment(null);
+            }}
+          />
         </div>
 
         <div className="space-y-4">
