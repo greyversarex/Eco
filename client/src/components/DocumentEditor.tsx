@@ -204,12 +204,37 @@ export function DocumentEditor({
     }
   }, [editor]);
 
+  const findTextPosition = useCallback((searchStr: string, startFrom: number = 1): { from: number; to: number } | null => {
+    if (!editor || !searchStr) return null;
+    
+    let foundPos: { from: number; to: number } | null = null;
+    const searchLower = searchStr.toLowerCase();
+    
+    editor.state.doc.descendants((node, pos) => {
+      if (foundPos) return false;
+      if (node.isText && node.text) {
+        const textLower = node.text.toLowerCase();
+        const index = textLower.indexOf(searchLower);
+        if (index !== -1) {
+          const absoluteFrom = pos + index;
+          const absoluteTo = absoluteFrom + searchStr.length;
+          if (absoluteFrom >= startFrom) {
+            foundPos = { from: absoluteFrom, to: absoluteTo };
+            return false;
+          }
+        }
+      }
+      return true;
+    });
+    
+    return foundPos;
+  }, [editor]);
+
   const handleSearch = () => {
     if (!editor || !searchText) return;
-    const text = editor.getText();
-    const index = text.indexOf(searchText);
-    if (index !== -1) {
-      editor.chain().focus().setTextSelection({ from: index, to: index + searchText.length }).run();
+    const result = findTextPosition(searchText, 1);
+    if (result) {
+      editor.chain().focus().setTextSelection(result).run();
     }
   };
 
@@ -217,8 +242,12 @@ export function DocumentEditor({
     if (!editor || !searchText) return;
     const { from, to } = editor.state.selection;
     const selectedText = editor.state.doc.textBetween(from, to);
-    if (selectedText === searchText) {
+    if (selectedText.toLowerCase() === searchText.toLowerCase()) {
       editor.chain().focus().insertContent(replaceText).run();
+      const nextResult = findTextPosition(searchText, from);
+      if (nextResult) {
+        editor.chain().focus().setTextSelection(nextResult).run();
+      }
     } else {
       handleSearch();
     }
@@ -226,9 +255,16 @@ export function DocumentEditor({
 
   const handleReplaceAll = () => {
     if (!editor || !searchText) return;
-    const html = editor.getHTML();
-    const newHtml = html.split(searchText).join(replaceText);
-    editor.commands.setContent(newHtml);
+    
+    let replaced = true;
+    while (replaced) {
+      const result = findTextPosition(searchText, 1);
+      if (result) {
+        editor.chain().focus().setTextSelection(result).insertContent(replaceText).run();
+      } else {
+        replaced = false;
+      }
+    }
   };
 
   if (!editor) {
@@ -441,6 +477,7 @@ export function DocumentEditor({
                 <div className="grid grid-cols-10 gap-1">
                   {COLORS.map((color) => (
                     <button
+                      type="button"
                       key={color}
                       onClick={() => editor.chain().focus().setColor(color).run()}
                       className="w-5 h-5 rounded border border-gray-300 hover:scale-110 transition-transform"
@@ -463,6 +500,7 @@ export function DocumentEditor({
                 <div className="grid grid-cols-10 gap-1">
                   {COLORS.slice(0, 40).map((color) => (
                     <button
+                      type="button"
                       key={color}
                       onClick={() => editor.chain().focus().toggleHighlight({ color }).run()}
                       className="w-5 h-5 rounded border border-gray-300 hover:scale-110 transition-transform"
