@@ -30,6 +30,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
 import { offlineDB } from '@/lib/offline-db';
 import { useOnlineStatus } from '@/hooks/use-offline';
+import { DocumentStamp, StampButtons } from '@/components/DocumentStamp';
 
 interface Attachment {
   id: number;
@@ -1223,52 +1224,35 @@ export default function MessageView() {
                       </Dialog>
                     )}
                     
-                    {/* Approval buttons - only for recipients with canApprove permission */}
+                    {/* Stamp buttons - only for recipients with canApprove permission */}
                     {user.department?.canApprove && 
                      !message.approvalStatus &&
                      (message.recipientId === user.department.id || 
                       (message.recipientIds && message.recipientIds.includes(user.department.id))) && (
-                      <div className="flex gap-2">
-                        <Button 
-                          onClick={handleApprove} 
-                          disabled={approvalMutation.isPending}
-                          className="gap-2 bg-green-600 hover:bg-green-700 text-white"
-                          data-testid="button-approve"
-                        >
-                          <Check className="h-4 w-4" />
-                          Тасдиқ кардан
-                        </Button>
-                        <Button 
-                          onClick={handleReject} 
-                          disabled={approvalMutation.isPending}
-                          variant="destructive"
-                          className="gap-2"
-                          data-testid="button-reject"
-                        >
-                          <XCircle className="h-4 w-4" />
-                          Рад кардан
-                        </Button>
+                      <div className="mt-6 pt-6 border-t">
+                        <h4 className="text-sm font-medium text-muted-foreground mb-4">Мӯҳр гузоштан:</h4>
+                        <StampButtons
+                          onApprove={handleApprove}
+                          onReject={handleReject}
+                          isPending={approvalMutation.isPending}
+                        />
                       </div>
                     )}
                     
-                    {/* Show approval status if already approved/rejected */}
+                    {/* Show stamp if already approved/rejected */}
                     {(message.approvalStatus === 'approved' || message.approvalStatus === 'rejected') && (
-                      <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
-                        message.approvalStatus === 'approved' 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-                          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                      }`}>
-                        {message.approvalStatus === 'approved' ? (
-                          <>
-                            <Check className="h-4 w-4" />
-                            Тасдиқ шудааст
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="h-4 w-4" />
-                            Рад карда шудааст
-                          </>
-                        )}
+                      <div className="mt-6 pt-6 border-t">
+                        <h4 className="text-sm font-medium text-muted-foreground mb-4">Мӯҳри расмӣ:</h4>
+                        <DocumentStamp
+                          status={message.approvalStatus as 'approved' | 'rejected'}
+                          departmentName={
+                            departments.find((d: Department) => d.id === message.approvedById)?.name || 
+                            user.department?.name || 
+                            'Департамент'
+                          }
+                          approvedAt={message.approvedAt}
+                          size="lg"
+                        />
                       </div>
                     )}
                   </div>
