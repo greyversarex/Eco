@@ -386,7 +386,7 @@ export const documentTemplates = pgTable("document_templates", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(), // Template name shown to users
   description: text("description"), // Optional description
-  originalFileName: text("original_file_name").notNull(), // Original .docx filename
+  originalFileName: text("original_file_name"), // Original .docx filename (null for editor-created templates)
   htmlContent: text("html_content").notNull(), // Converted HTML content for editing
   originalDocx: bytea("original_docx"), // Original .docx file (optional backup)
   isActive: boolean("is_active").default(true).notNull(),

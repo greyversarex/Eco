@@ -919,6 +919,58 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Create document template with HTML content directly (from editor)
+  app.post("/api/document-templates/html", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { name, description, htmlContent, sortOrder, isActive } = req.body;
+      
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        return res.status(400).json({ error: "Номи намуна ҳатмист" });
+      }
+      
+      if (!htmlContent || typeof htmlContent !== 'string') {
+        return res.status(400).json({ error: "Мундариҷаи ҳуҷҷат ҳатмист" });
+      }
+      
+      const template = await storage.createDocumentTemplate({
+        name: name.trim(),
+        description: description || null,
+        originalFileName: null,
+        htmlContent: htmlContent,
+        originalDocx: null,
+        sortOrder: parseInt(sortOrder) || 0,
+        isActive: isActive !== false,
+      });
+      
+      res.status(201).json(template);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Update document template with HTML content directly (from editor)
+  app.patch("/api/document-templates/:id/html", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, htmlContent, sortOrder, isActive } = req.body;
+      
+      const updates: any = {};
+      if (name !== undefined) updates.name = name.trim();
+      if (description !== undefined) updates.description = description;
+      if (htmlContent !== undefined) updates.htmlContent = htmlContent;
+      if (sortOrder !== undefined) updates.sortOrder = parseInt(sortOrder);
+      if (isActive !== undefined) updates.isActive = isActive;
+      
+      const template = await storage.updateDocumentTemplate(id, updates);
+      if (!template) {
+        return res.status(404).json({ error: "Намунаи ҳуҷҷат ёфт нашуд" });
+      }
+      res.json(template);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.delete("/api/document-templates/:id", requireAdmin, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);

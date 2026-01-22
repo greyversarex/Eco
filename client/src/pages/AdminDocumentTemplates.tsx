@@ -14,16 +14,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { LogOut, Plus, Pencil, Trash2, FileText, ArrowLeft, Upload, Eye } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LogOut, Plus, Pencil, Trash2, FileText, ArrowLeft, Upload, Eye, Edit3 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import type { DocumentTemplate } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
-import logoImage from '@assets/logo-optimized.webp';
 import { Footer } from '@/components/Footer';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
+import { DocumentEditor } from '@/components/DocumentEditor';
 
 interface TemplateFormData {
   name: string;
@@ -31,6 +32,8 @@ interface TemplateFormData {
   sortOrder: number;
   isActive: boolean;
   file: File | null;
+  htmlContent: string;
+  creationMethod: 'upload' | 'editor';
 }
 
 const initialFormData: TemplateFormData = {
@@ -39,6 +42,8 @@ const initialFormData: TemplateFormData = {
   sortOrder: 0,
   isActive: true,
   file: null,
+  htmlContent: '',
+  creationMethod: 'editor',
 };
 
 export default function AdminDocumentTemplates() {
@@ -53,6 +58,8 @@ export default function AdminDocumentTemplates() {
   const [formData, setFormData] = useState<TemplateFormData>(initialFormData);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<DocumentTemplate | null>(null);
+  const [isEditorDialogOpen, setIsEditorDialogOpen] = useState(false);
+  const [editorContent, setEditorContent] = useState('');
 
   const { data: templates = [], isLoading } = useQuery<DocumentTemplate[]>({
     queryKey: ['/api/document-templates/all'],
@@ -70,6 +77,21 @@ export default function AdminDocumentTemplates() {
         throw new Error(error.error || 'Хатогӣ');
       }
       return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/document-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/document-templates/all'] });
+      toast({ title: 'Намунаи ҳуҷҷат илова шуд', variant: 'default' });
+      closeDialog();
+    },
+    onError: (error: any) => {
+      toast({ title: error.message || 'Хатогӣ', variant: 'destructive' });
+    },
+  });
+
+  const createWithHtmlMutation = useMutation({
+    mutationFn: async (data: { name: string; description: string; htmlContent: string; sortOrder: number; isActive: boolean }) => {
+      return await apiRequest('POST', '/api/document-templates/html', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/document-templates'] });
@@ -106,6 +128,21 @@ export default function AdminDocumentTemplates() {
     },
   });
 
+  const updateWithHtmlMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: { name: string; description: string; htmlContent: string; sortOrder: number; isActive: boolean } }) => {
+      return await apiRequest('PATCH', `/api/document-templates/${id}/html`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/document-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/document-templates/all'] });
+      toast({ title: 'Намунаи ҳуҷҷат тағйир ёфт', variant: 'default' });
+      closeDialog();
+    },
+    onError: (error: any) => {
+      toast({ title: error.message || 'Хатогӣ', variant: 'destructive' });
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       return await apiRequest('DELETE', `/api/document-templates/${id}`);
@@ -123,8 +160,10 @@ export default function AdminDocumentTemplates() {
 
   const closeDialog = () => {
     setIsDialogOpen(false);
+    setIsEditorDialogOpen(false);
     setEditingTemplate(null);
     setFormData(initialFormData);
+    setEditorContent('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -133,6 +172,7 @@ export default function AdminDocumentTemplates() {
   const openCreateDialog = () => {
     setEditingTemplate(null);
     setFormData(initialFormData);
+    setEditorContent('');
     setIsDialogOpen(true);
   };
 
@@ -144,8 +184,16 @@ export default function AdminDocumentTemplates() {
       sortOrder: template.sortOrder,
       isActive: template.isActive,
       file: null,
+      htmlContent: template.htmlContent,
+      creationMethod: 'editor',
     });
+    setEditorContent(template.htmlContent);
     setIsDialogOpen(true);
+  };
+
+  const openEditorFullscreen = () => {
+    setIsDialogOpen(false);
+    setIsEditorDialogOpen(true);
   };
 
   const handleSubmit = () => {
@@ -154,24 +202,45 @@ export default function AdminDocumentTemplates() {
       return;
     }
 
-    if (!editingTemplate && !formData.file) {
-      toast({ title: 'Файли .docx ҳатмист', variant: 'destructive' });
-      return;
-    }
+    if (formData.creationMethod === 'editor') {
+      if (!editorContent || editorContent === '<p></p>') {
+        toast({ title: 'Мундариҷаи ҳуҷҷат холӣ аст', variant: 'destructive' });
+        return;
+      }
 
-    const data = new FormData();
-    data.append('name', formData.name.trim());
-    data.append('description', formData.description);
-    data.append('sortOrder', formData.sortOrder.toString());
-    data.append('isActive', formData.isActive.toString());
-    if (formData.file) {
-      data.append('file', formData.file);
-    }
+      const htmlData = {
+        name: formData.name.trim(),
+        description: formData.description,
+        htmlContent: editorContent,
+        sortOrder: formData.sortOrder,
+        isActive: formData.isActive,
+      };
 
-    if (editingTemplate) {
-      updateMutation.mutate({ id: editingTemplate.id, data });
+      if (editingTemplate) {
+        updateWithHtmlMutation.mutate({ id: editingTemplate.id, data: htmlData });
+      } else {
+        createWithHtmlMutation.mutate(htmlData);
+      }
     } else {
-      createMutation.mutate(data);
+      if (!editingTemplate && !formData.file) {
+        toast({ title: 'Файли .docx ҳатмист', variant: 'destructive' });
+        return;
+      }
+
+      const data = new FormData();
+      data.append('name', formData.name.trim());
+      data.append('description', formData.description);
+      data.append('sortOrder', formData.sortOrder.toString());
+      data.append('isActive', formData.isActive.toString());
+      if (formData.file) {
+        data.append('file', formData.file);
+      }
+
+      if (editingTemplate) {
+        updateMutation.mutate({ id: editingTemplate.id, data });
+      } else {
+        createMutation.mutate(data);
+      }
     }
   };
 
@@ -190,6 +259,9 @@ export default function AdminDocumentTemplates() {
     await logout();
     setLocation('/admin/login');
   };
+
+  const isPending = createMutation.isPending || updateMutation.isPending || 
+                    createWithHtmlMutation.isPending || updateWithHtmlMutation.isPending;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -249,7 +321,7 @@ export default function AdminDocumentTemplates() {
               <CardContent className="py-12 text-center text-gray-500">
                 <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Ягон намунаи ҳуҷҷат нест</p>
-                <p className="text-sm mt-2">Файли .docx-ро боргузорӣ кунед</p>
+                <p className="text-sm mt-2">Намунаро дар редактор эҷод кунед ё файли .docx боргузорӣ кунед</p>
               </CardContent>
             </Card>
           ) : (
@@ -265,9 +337,11 @@ export default function AdminDocumentTemplates() {
                           {template.description && (
                             <p className="text-sm text-gray-500 truncate">{template.description}</p>
                           )}
-                          <p className="text-xs text-gray-400 mt-1">
-                            Файл: {template.originalFileName}
-                          </p>
+                          {template.originalFileName && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              Файл: {template.originalFileName}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -313,15 +387,13 @@ export default function AdminDocumentTemplates() {
       <Footer />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingTemplate ? 'Тағйири намуна' : 'Намунаи нав'}
             </DialogTitle>
             <DialogDescription>
-              {editingTemplate 
-                ? 'Маълумоти намунаро тағйир диҳед' 
-                : 'Файли .docx-ро боргузорӣ кунед'}
+              Намунаро дар редактор эҷод кунед ё файли .docx боргузорӣ кунед
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -346,44 +418,97 @@ export default function AdminDocumentTemplates() {
                 data-testid="input-template-description"
               />
             </div>
-            <div>
-              <Label htmlFor="file">
-                Файли .docx {editingTemplate ? '(барои иваз кардан)' : '*'}
-              </Label>
-              <div className="mt-1">
+
+            <Tabs 
+              value={formData.creationMethod} 
+              onValueChange={(v) => setFormData({ ...formData, creationMethod: v as 'upload' | 'editor' })}
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="editor" className="flex items-center gap-2">
+                  <Edit3 className="h-4 w-4" />
+                  Редактор
+                </TabsTrigger>
+                <TabsTrigger value="upload" className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Боргузорӣ .docx
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="editor" className="mt-4">
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 p-2 border-b flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Мундариҷаи ҳуҷҷат</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={openEditorFullscreen}
+                      data-testid="button-open-fullscreen-editor"
+                    >
+                      <Edit3 className="h-4 w-4 mr-2" />
+                      Кушодани редактори калон
+                    </Button>
+                  </div>
+                  <div className="max-h-[300px] overflow-y-auto">
+                    <DocumentEditor
+                      content={editorContent}
+                      onChange={setEditorContent}
+                      className="min-h-[200px]"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Тавсия: Барои таҳрири пурра "Кушодани редактори калон"-ро пахш кунед
+                </p>
+              </TabsContent>
+
+              <TabsContent value="upload" className="mt-4">
+                <div>
+                  <Label htmlFor="file">
+                    Файли .docx {editingTemplate ? '(барои иваз кардан)' : '*'}
+                  </Label>
+                  <div className="mt-1">
+                    <Input
+                      ref={fileInputRef}
+                      id="file"
+                      type="file"
+                      accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      onChange={handleFileChange}
+                      data-testid="input-template-file"
+                    />
+                  </div>
+                  {formData.file && (
+                    <p className="text-sm text-green-600 mt-1">
+                      Интихоб шуд: {formData.file.name}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-2">
+                    Огоҳӣ: Ҳангоми боргузорӣ баъзе форматҳо гум мешаванд. Барои нигоҳ доштани форматҳо, аз редактор истифода баред.
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="sortOrder">Тартиб</Label>
                 <Input
-                  ref={fileInputRef}
-                  id="file"
-                  type="file"
-                  accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  onChange={handleFileChange}
-                  data-testid="input-template-file"
+                  id="sortOrder"
+                  type="number"
+                  value={formData.sortOrder}
+                  onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) || 0 })}
+                  data-testid="input-template-sort-order"
                 />
               </div>
-              {formData.file && (
-                <p className="text-sm text-green-600 mt-1">
-                  Интихоб шуд: {formData.file.name}
-                </p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="sortOrder">Тартиб</Label>
-              <Input
-                id="sortOrder"
-                type="number"
-                value={formData.sortOrder}
-                onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) || 0 })}
-                data-testid="input-template-sort-order"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                id="isActive"
-                checked={formData.isActive}
-                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                data-testid="switch-template-active"
-              />
-              <Label htmlFor="isActive">Фаъол</Label>
+              <div className="flex items-center gap-2 pt-6">
+                <Switch
+                  id="isActive"
+                  checked={formData.isActive}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                  data-testid="switch-template-active"
+                />
+                <Label htmlFor="isActive">Фаъол</Label>
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -392,10 +517,50 @@ export default function AdminDocumentTemplates() {
             </Button>
             <Button 
               onClick={handleSubmit}
-              disabled={createMutation.isPending || updateMutation.isPending}
+              disabled={isPending}
               data-testid="button-save"
             >
-              {createMutation.isPending || updateMutation.isPending ? 'Сабт...' : 'Сабт кардан'}
+              {isPending ? 'Сабт...' : 'Сабт кардан'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditorDialogOpen} onOpenChange={setIsEditorDialogOpen}>
+        <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>
+              Таҳрири намуна: {formData.name || 'Номи нав'}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Мундариҷаи ҳуҷҷатро таҳрир кунед
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden border rounded-lg">
+            <DocumentEditor
+              content={editorContent}
+              onChange={setEditorContent}
+              className="h-full"
+            />
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsEditorDialogOpen(false);
+                setIsDialogOpen(true);
+              }}
+            >
+              Бозгашт
+            </Button>
+            <Button 
+              onClick={() => {
+                setIsEditorDialogOpen(false);
+                setIsDialogOpen(true);
+              }}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Тасдиқ кардан
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -435,6 +600,7 @@ export default function AdminDocumentTemplates() {
           </DialogHeader>
           <div 
             className="prose prose-sm max-w-none p-4 border rounded-lg bg-white"
+            style={{ fontFamily: "'Times New Roman', serif", fontSize: '14pt', lineHeight: 1.5 }}
             dangerouslySetInnerHTML={{ __html: previewTemplate?.htmlContent || '' }}
           />
           <DialogFooter>
