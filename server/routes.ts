@@ -984,6 +984,179 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Visual Templates routes (Намунаҳои визуалӣ)
+  app.get("/api/visual-templates", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const templates = await storage.getActiveVisualTemplates();
+      // Return without background image data for list view
+      const templatesWithoutImage = templates.map(t => ({
+        ...t,
+        backgroundImage: undefined,
+        hasBackground: true
+      }));
+      res.json(templatesWithoutImage);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/visual-templates/all", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const templates = await storage.getAllVisualTemplates();
+      const templatesWithoutImage = templates.map(t => ({
+        ...t,
+        backgroundImage: undefined,
+        hasBackground: true
+      }));
+      res.json(templatesWithoutImage);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/visual-templates/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const template = await storage.getVisualTemplateById(id);
+      if (!template) {
+        return res.status(404).json({ error: "Намунаи визуалӣ ёфт нашуд" });
+      }
+      // Return with base64 encoded background
+      res.json({
+        ...template,
+        backgroundImage: template.backgroundImage ? 
+          `data:${template.backgroundMimeType};base64,${template.backgroundImage.toString('base64')}` : null
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/visual-templates", requireAdmin, upload.single('backgroundImage'), async (req: Request, res: Response) => {
+    try {
+      const { name, description, fields, pageWidth, pageHeight } = req.body;
+      const file = req.file;
+      
+      if (!name || !name.trim()) {
+        return res.status(400).json({ error: "Номи намуна ҳатмист" });
+      }
+      
+      if (!file) {
+        return res.status(400).json({ error: "Тасвири замина ҳатмист" });
+      }
+      
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ error: "Танҳо тасвирҳои PNG, JPEG ё PDF иҷозат дода мешаванд" });
+      }
+
+      let backgroundBuffer = file.buffer;
+      let mimeType = file.mimetype;
+      
+      // If PDF, we'll store it as-is (frontend will handle rendering)
+      // For images, compress with sharp if needed
+      if (file.mimetype !== 'application/pdf' && file.buffer.length > 500000) {
+        const sharp = (await import('sharp')).default;
+        backgroundBuffer = await sharp(file.buffer)
+          .resize(1200, 1700, { fit: 'inside', withoutEnlargement: true })
+          .jpeg({ quality: 85 })
+          .toBuffer();
+        mimeType = 'image/jpeg';
+      }
+
+      const parsedFields = fields ? JSON.parse(fields) : [];
+      
+      const template = await storage.createVisualTemplate({
+        name: name.trim(),
+        description: description?.trim() || null,
+        backgroundImage: backgroundBuffer,
+        backgroundMimeType: mimeType,
+        pageWidth: parseInt(pageWidth) || 595,
+        pageHeight: parseInt(pageHeight) || 842,
+        fields: parsedFields,
+        isActive: true,
+        sortOrder: 0
+      });
+      
+      res.status(201).json({
+        ...template,
+        backgroundImage: `data:${mimeType};base64,${backgroundBuffer.toString('base64')}`
+      });
+    } catch (error: any) {
+      console.error('Error creating visual template:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/visual-templates/:id", requireAdmin, upload.single('backgroundImage'), async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, fields, isActive, sortOrder, pageWidth, pageHeight } = req.body;
+      const file = req.file;
+      
+      const updateData: any = {};
+      
+      if (name !== undefined) updateData.name = name.trim();
+      if (description !== undefined) updateData.description = description?.trim() || null;
+      if (fields !== undefined) updateData.fields = JSON.parse(fields);
+      if (isActive !== undefined) updateData.isActive = isActive === 'true' || isActive === true;
+      if (sortOrder !== undefined) updateData.sortOrder = parseInt(sortOrder);
+      if (pageWidth !== undefined) updateData.pageWidth = parseInt(pageWidth);
+      if (pageHeight !== undefined) updateData.pageHeight = parseInt(pageHeight);
+      
+      if (file) {
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+        if (!allowedTypes.includes(file.mimetype)) {
+          return res.status(400).json({ error: "Танҳо тасвирҳои PNG, JPEG ё PDF иҷозат дода мешаванд" });
+        }
+        
+        let backgroundBuffer = file.buffer;
+        let mimeType = file.mimetype;
+        
+        if (file.mimetype !== 'application/pdf' && file.buffer.length > 500000) {
+          const sharp = (await import('sharp')).default;
+          backgroundBuffer = await sharp(file.buffer)
+            .resize(1200, 1700, { fit: 'inside', withoutEnlargement: true })
+            .jpeg({ quality: 85 })
+            .toBuffer();
+          mimeType = 'image/jpeg';
+        }
+        
+        updateData.backgroundImage = backgroundBuffer;
+        updateData.backgroundMimeType = mimeType;
+      }
+      
+      updateData.updatedAt = new Date();
+      
+      const template = await storage.updateVisualTemplate(id, updateData);
+      if (!template) {
+        return res.status(404).json({ error: "Намунаи визуалӣ ёфт нашуд" });
+      }
+      
+      res.json({
+        ...template,
+        backgroundImage: template.backgroundImage ? 
+          `data:${template.backgroundMimeType};base64,${template.backgroundImage.toString('base64')}` : null
+      });
+    } catch (error: any) {
+      console.error('Error updating visual template:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/visual-templates/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteVisualTemplate(id);
+      if (!success) {
+        return res.status(404).json({ error: "Намунаи визуалӣ ёфт нашуд" });
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Message Documents routes (Ҳуҷҷатҳои паём)
   app.get("/api/messages/:messageId/documents", requireAuth, async (req: Request, res: Response) => {
     try {

@@ -13,7 +13,8 @@ import type {
   PushSubscription, InsertPushSubscription,
   DocumentType, InsertDocumentType,
   DocumentTemplate, InsertDocumentTemplate,
-  MessageDocument, InsertMessageDocument
+  MessageDocument, InsertMessageDocument,
+  VisualTemplate, InsertVisualTemplate
 } from "@shared/schema";
 
 export interface IStorage {
@@ -142,11 +143,19 @@ export interface IStorage {
   createMessageDocument(doc: InsertMessageDocument): Promise<MessageDocument>;
   updateMessageDocument(id: number, doc: Partial<InsertMessageDocument>): Promise<MessageDocument | undefined>;
   deleteMessageDocument(id: number): Promise<boolean>;
+  
+  // Visual Templates (Намунаҳои визуалӣ)
+  getActiveVisualTemplates(): Promise<VisualTemplate[]>;
+  getAllVisualTemplates(): Promise<VisualTemplate[]>;
+  getVisualTemplateById(id: number): Promise<VisualTemplate | undefined>;
+  createVisualTemplate(template: InsertVisualTemplate): Promise<VisualTemplate>;
+  updateVisualTemplate(id: number, template: Partial<InsertVisualTemplate>): Promise<VisualTemplate | undefined>;
+  deleteVisualTemplate(id: number): Promise<boolean>;
 }
 
 // Database storage implementation
 import { db } from './db';
-import { departments, admins, messages, attachments, assignments, assignmentAttachments, assignmentReplies, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes, documentTemplates, messageDocuments } from '@shared/schema';
+import { departments, admins, messages, attachments, assignments, assignmentAttachments, assignmentReplies, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes, documentTemplates, messageDocuments, visualTemplates } from '@shared/schema';
 import { eq, or, and, desc, asc, sql } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
@@ -1028,6 +1037,41 @@ export class DbStorage implements IStorage {
 
   async deleteMessageDocument(id: number): Promise<boolean> {
     const result = await db.delete(messageDocuments).where(eq(messageDocuments.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Visual Templates (Намунаҳои визуалӣ)
+  async getActiveVisualTemplates(): Promise<VisualTemplate[]> {
+    return await db.select().from(visualTemplates)
+      .where(eq(visualTemplates.isActive, true))
+      .orderBy(asc(visualTemplates.sortOrder), asc(visualTemplates.id));
+  }
+
+  async getAllVisualTemplates(): Promise<VisualTemplate[]> {
+    return await db.select().from(visualTemplates)
+      .orderBy(asc(visualTemplates.sortOrder), asc(visualTemplates.id));
+  }
+
+  async getVisualTemplateById(id: number): Promise<VisualTemplate | undefined> {
+    const result = await db.select().from(visualTemplates).where(eq(visualTemplates.id, id));
+    return result[0];
+  }
+
+  async createVisualTemplate(template: InsertVisualTemplate): Promise<VisualTemplate> {
+    const result = await db.insert(visualTemplates).values(template).returning();
+    return result[0];
+  }
+
+  async updateVisualTemplate(id: number, template: Partial<InsertVisualTemplate>): Promise<VisualTemplate | undefined> {
+    const result = await db.update(visualTemplates)
+      .set({ ...template, updatedAt: new Date() })
+      .where(eq(visualTemplates.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteVisualTemplate(id: number): Promise<boolean> {
+    const result = await db.delete(visualTemplates).where(eq(visualTemplates.id, id)).returning();
     return result.length > 0;
   }
 }
