@@ -1230,7 +1230,6 @@ export default function MessageView() {
                      (message.recipientId === user.department.id || 
                       (message.recipientIds && message.recipientIds.includes(user.department.id))) && (
                       <div className="mt-6 pt-6 border-t">
-                        <h4 className="text-sm font-medium text-muted-foreground mb-4">Мӯҳр гузоштан:</h4>
                         <StampButtons
                           onApprove={handleApprove}
                           onReject={handleReject}

@@ -86,30 +86,26 @@ interface StampButtonsProps {
 
 export function StampButtons({ onApprove, onReject, isPending }: StampButtonsProps) {
   return (
-    <div className="space-y-3">
-      <div className="text-sm font-medium text-muted-foreground">Мӯҳр гузоштан:</div>
-      <div className="flex gap-3">
-        <Button
-          onClick={onApprove}
-          disabled={isPending}
-          variant="outline"
-          className="gap-2 border-green-500 text-green-700 hover:bg-green-50 hover:text-green-800 dark:border-green-600 dark:text-green-400 dark:hover:bg-green-900/30"
-          data-testid="stamp-button-approve"
-        >
-          <Check className="h-4 w-4" />
-          ИҶРО ШУД
-        </Button>
-        <Button
-          onClick={onReject}
-          disabled={isPending}
-          variant="outline"
-          className="gap-2 border-red-500 text-red-700 hover:bg-red-50 hover:text-red-800 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-900/30"
-          data-testid="stamp-button-reject"
-        >
-          <X className="h-4 w-4" />
-          РАД ШУД
-        </Button>
-      </div>
+    <div className="flex gap-2">
+      <Button
+        onClick={onApprove}
+        disabled={isPending}
+        className="gap-1 bg-green-600 hover:bg-green-700 text-white"
+        data-testid="stamp-button-approve"
+      >
+        <Check className="h-4 w-4" />
+        Иҷро шуд
+      </Button>
+      <Button
+        onClick={onReject}
+        disabled={isPending}
+        variant="outline"
+        className="gap-1 border-red-500 text-red-600 hover:bg-red-50"
+        data-testid="stamp-button-reject"
+      >
+        <X className="h-4 w-4" />
+        Рад шуд
+      </Button>
     </div>
   );
 }

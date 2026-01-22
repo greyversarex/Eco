@@ -1074,38 +1074,37 @@ export default function AssignmentsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="relative">
-                    <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
-                    
-                    {assignment.approvalStatus && (
-                      <div className="absolute right-0 bottom-0 transform translate-y-2">
-                        <div 
-                          className={`
-                            w-16 h-16 rounded-full border-2 flex flex-col items-center justify-center
-                            transform rotate-[-12deg] text-xs font-bold
-                            ${assignment.approvalStatus === 'approved' 
-                              ? 'border-green-600 text-green-700 bg-white/90' 
-                              : 'border-red-600 text-red-700 bg-white/90'
-                            }
-                          `}
-                          style={{
-                            boxShadow: assignment.approvalStatus === 'approved'
-                              ? '0 0 0 2px rgba(22, 163, 74, 0.2)'
-                              : '0 0 0 2px rgba(220, 38, 38, 0.2)'
-                          }}
-                        >
-                          {assignment.approvalStatus === 'approved' ? (
-                            <Check className="h-4 w-4 stroke-[3]" />
-                          ) : (
-                            <X className="h-4 w-4 stroke-[3]" />
-                          )}
-                          <span className="text-[8px] leading-tight text-center">
-                            {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
-                          </span>
-                        </div>
+                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                  
+                  {assignment.approvalStatus && (
+                    <div className="flex justify-end">
+                      <div 
+                        className={`
+                          w-20 h-20 rounded-full border-3 flex flex-col items-center justify-center
+                          transform rotate-[-12deg] text-xs font-bold
+                          ${assignment.approvalStatus === 'approved' 
+                            ? 'border-green-600 text-green-700 bg-white/90' 
+                            : 'border-red-600 text-red-700 bg-white/90'
+                          }
+                        `}
+                        style={{
+                          borderWidth: '3px',
+                          boxShadow: assignment.approvalStatus === 'approved'
+                            ? '0 0 0 2px rgba(22, 163, 74, 0.2)'
+                            : '0 0 0 2px rgba(220, 38, 38, 0.2)'
+                        }}
+                      >
+                        {assignment.approvalStatus === 'approved' ? (
+                          <Check className="h-5 w-5 stroke-[3]" />
+                        ) : (
+                          <X className="h-5 w-5 stroke-[3]" />
+                        )}
+                        <span className="text-[9px] leading-tight text-center font-bold">
+                          {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
+                        </span>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                   
                   {assignment.attachments && assignment.attachments.length > 0 && (
                     <div className="pt-3 border-t">
@@ -1327,38 +1326,37 @@ export default function AssignmentsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="relative">
-                    <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
-                    
-                    {assignment.approvalStatus && (
-                      <div className="absolute right-0 bottom-0 transform translate-y-2">
-                        <div 
-                          className={`
-                            w-16 h-16 rounded-full border-2 flex flex-col items-center justify-center
-                            transform rotate-[-12deg] text-xs font-bold
-                            ${assignment.approvalStatus === 'approved' 
-                              ? 'border-green-600 text-green-700 bg-white/90' 
-                              : 'border-red-600 text-red-700 bg-white/90'
-                            }
-                          `}
-                          style={{
-                            boxShadow: assignment.approvalStatus === 'approved'
-                              ? '0 0 0 2px rgba(22, 163, 74, 0.2)'
-                              : '0 0 0 2px rgba(220, 38, 38, 0.2)'
-                          }}
-                        >
-                          {assignment.approvalStatus === 'approved' ? (
-                            <Check className="h-4 w-4 stroke-[3]" />
-                          ) : (
-                            <X className="h-4 w-4 stroke-[3]" />
-                          )}
-                          <span className="text-[8px] leading-tight text-center">
-                            {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
-                          </span>
-                        </div>
+                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                  
+                  {assignment.approvalStatus && (
+                    <div className="flex justify-end">
+                      <div 
+                        className={`
+                          w-20 h-20 rounded-full border-3 flex flex-col items-center justify-center
+                          transform rotate-[-12deg] text-xs font-bold
+                          ${assignment.approvalStatus === 'approved' 
+                            ? 'border-green-600 text-green-700 bg-white/90' 
+                            : 'border-red-600 text-red-700 bg-white/90'
+                          }
+                        `}
+                        style={{
+                          borderWidth: '3px',
+                          boxShadow: assignment.approvalStatus === 'approved'
+                            ? '0 0 0 2px rgba(22, 163, 74, 0.2)'
+                            : '0 0 0 2px rgba(220, 38, 38, 0.2)'
+                        }}
+                      >
+                        {assignment.approvalStatus === 'approved' ? (
+                          <Check className="h-5 w-5 stroke-[3]" />
+                        ) : (
+                          <X className="h-5 w-5 stroke-[3]" />
+                        )}
+                        <span className="text-[9px] leading-tight text-center font-bold">
+                          {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
+                        </span>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                   
                   {assignment.attachments && assignment.attachments.length > 0 && (
                     <div className="pt-3 border-t">
