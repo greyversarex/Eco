@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock, CheckCircle2, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock, CheckCircle2, MessageSquare, Check } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -342,6 +342,28 @@ export default function AssignmentsPage() {
     setComposeForAssignment(assignment);
     setComposeMessageDialogOpen(true);
   };
+
+  const approveAssignmentMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: 'approved' | 'rejected' }) => {
+      return await apiRequest('PATCH', `/api/assignments/${id}/approve`, { status });
+    },
+    onSuccess: (_, { status }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      toast({
+        title: status === 'approved' ? 'Иҷро шуд' : 'Рад шуд',
+        description: status === 'approved' 
+          ? 'Супориш тасдиқ карда шуд' 
+          : 'Супориш рад карда шуд',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Хато',
+        description: error.message || 'Хатогӣ ҳангоми тасдиқ',
+        variant: 'destructive',
+      });
+    },
+  });
 
   const deleteAssignmentMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -1052,7 +1074,38 @@ export default function AssignmentsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                  <div className="relative">
+                    <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                    
+                    {assignment.approvalStatus && (
+                      <div className="absolute right-0 bottom-0 transform translate-y-2">
+                        <div 
+                          className={`
+                            w-16 h-16 rounded-full border-2 flex flex-col items-center justify-center
+                            transform rotate-[-12deg] text-xs font-bold
+                            ${assignment.approvalStatus === 'approved' 
+                              ? 'border-green-600 text-green-700 bg-white/90' 
+                              : 'border-red-600 text-red-700 bg-white/90'
+                            }
+                          `}
+                          style={{
+                            boxShadow: assignment.approvalStatus === 'approved'
+                              ? '0 0 0 2px rgba(22, 163, 74, 0.2)'
+                              : '0 0 0 2px rgba(220, 38, 38, 0.2)'
+                          }}
+                        >
+                          {assignment.approvalStatus === 'approved' ? (
+                            <Check className="h-4 w-4 stroke-[3]" />
+                          ) : (
+                            <X className="h-4 w-4 stroke-[3]" />
+                          )}
+                          <span className="text-[8px] leading-tight text-center">
+                            {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   
                   {assignment.attachments && assignment.attachments.length > 0 && (
                     <div className="pt-3 border-t">
@@ -1086,14 +1139,28 @@ export default function AssignmentsPage() {
                   )}
                   
                   <div className="flex gap-2 mt-2">
-                    {!assignment.isCompleted && new Date() <= new Date(assignment.deadline) && user?.userType === 'department' && user.department?.id === assignment.senderId && (
-                      <Button
-                        onClick={() => completeAssignmentMutation.mutate(assignment.id)}
-                        disabled={completeAssignmentMutation.isPending}
-                        data-testid={`button-complete-${assignment.id}`}
-                      >
-                        Иҷро шуд
-                      </Button>
+                    {!assignment.approvalStatus && user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                      <>
+                        <Button
+                          onClick={() => approveAssignmentMutation.mutate({ id: assignment.id, status: 'approved' })}
+                          disabled={approveAssignmentMutation.isPending}
+                          className="gap-1 bg-green-600 hover:bg-green-700 text-white"
+                          data-testid={`button-approve-${assignment.id}`}
+                        >
+                          <Check className="h-4 w-4" />
+                          Иҷро шуд
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => approveAssignmentMutation.mutate({ id: assignment.id, status: 'rejected' })}
+                          disabled={approveAssignmentMutation.isPending}
+                          className="gap-1 border-red-500 text-red-600 hover:bg-red-50"
+                          data-testid={`button-reject-${assignment.id}`}
+                        >
+                          <X className="h-4 w-4" />
+                          Рад шуд
+                        </Button>
+                      </>
                     )}
                     {!assignment.isCompleted && user?.userType === 'department' && user.department?.id !== assignment.senderId && assignment.recipientIds?.includes(user.department?.id || 0) && !assignment.replies?.some(r => r.responderDepartmentId === user.department?.id) && (
                       isUserDaavat(assignment) ? (
@@ -1260,7 +1327,38 @@ export default function AssignmentsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                  <div className="relative">
+                    <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                    
+                    {assignment.approvalStatus && (
+                      <div className="absolute right-0 bottom-0 transform translate-y-2">
+                        <div 
+                          className={`
+                            w-16 h-16 rounded-full border-2 flex flex-col items-center justify-center
+                            transform rotate-[-12deg] text-xs font-bold
+                            ${assignment.approvalStatus === 'approved' 
+                              ? 'border-green-600 text-green-700 bg-white/90' 
+                              : 'border-red-600 text-red-700 bg-white/90'
+                            }
+                          `}
+                          style={{
+                            boxShadow: assignment.approvalStatus === 'approved'
+                              ? '0 0 0 2px rgba(22, 163, 74, 0.2)'
+                              : '0 0 0 2px rgba(220, 38, 38, 0.2)'
+                          }}
+                        >
+                          {assignment.approvalStatus === 'approved' ? (
+                            <Check className="h-4 w-4 stroke-[3]" />
+                          ) : (
+                            <X className="h-4 w-4 stroke-[3]" />
+                          )}
+                          <span className="text-[8px] leading-tight text-center">
+                            {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   
                   {assignment.attachments && assignment.attachments.length > 0 && (
                     <div className="pt-3 border-t">

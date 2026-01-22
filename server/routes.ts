@@ -1,5 +1,8 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
+import { db } from "./db";
+import { assignments } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema, insertAssignmentSchema, insertAnnouncementSchema, insertPersonSchema, insertPushSubscriptionSchema } from "@shared/schema";
 import { z } from "zod";
@@ -2186,6 +2189,44 @@ export function registerRoutes(app: Express) {
         return res.status(404).json({ error: 'Assignment not found' });
       }
       res.json(assignment);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Approve or reject assignment (for sender/creator)
+  app.patch("/api/assignments/:id/approve", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || !['approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status. Must be "approved" or "rejected"' });
+      }
+      
+      const assignment = await storage.getAssignmentById(id);
+      if (!assignment) {
+        return res.status(404).json({ error: 'Assignment not found' });
+      }
+      
+      // Check if user is the sender (creator) of the assignment
+      const userDepartmentId = req.session.userType === 'department' ? req.session.departmentId : null;
+      if (!userDepartmentId || assignment.senderId !== userDepartmentId) {
+        return res.status(403).json({ error: 'Only the assignment creator can approve or reject it' });
+      }
+      
+      // Update the assignment with approval status
+      const [updated] = await db
+        .update(assignments)
+        .set({
+          approvalStatus: status,
+          approvedByDepartmentId: userDepartmentId,
+          approvedAt: new Date(),
+        })
+        .where(eq(assignments.id, id))
+        .returning();
+      
+      res.json(updated);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
