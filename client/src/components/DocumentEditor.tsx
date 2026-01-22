@@ -98,9 +98,9 @@ export function DocumentEditor({
   };
 
   return (
-    <div className={cn("border rounded-lg overflow-hidden bg-white", className)}>
+    <div className={cn("flex flex-col overflow-hidden bg-gray-200", className)}>
       {!readOnly && (
-        <div className="border-b bg-gray-50 p-2 flex flex-wrap items-center gap-1">
+        <div className="border-b bg-white px-4 py-2 flex flex-wrap items-center gap-1 shadow-sm shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -271,15 +271,23 @@ export function DocumentEditor({
         </div>
       )}
 
-      <EditorContent 
-        editor={editor} 
-        className="prose prose-sm max-w-none p-4 min-h-[300px] focus:outline-none"
-      />
+      <div className="flex-1 overflow-auto p-4 sm:p-8">
+        <div className="bg-white shadow-lg mx-auto" style={{ maxWidth: '210mm', minHeight: '297mm' }}>
+          <EditorContent 
+            editor={editor} 
+            className="prose prose-sm max-w-none focus:outline-none"
+          />
+        </div>
+      </div>
 
       <style>{`
         .ProseMirror {
-          min-height: 300px;
+          min-height: 297mm;
+          padding: 20mm 15mm;
           outline: none;
+          font-family: 'Times New Roman', Times, serif;
+          font-size: 14px;
+          line-height: 1.5;
         }
         .ProseMirror p {
           margin: 0.5em 0;
@@ -317,6 +325,10 @@ export function DocumentEditor({
           font-size: 1.1em;
           font-weight: bold;
           margin: 0.5em 0;
+        }
+        .ProseMirror img {
+          max-width: 100%;
+          height: auto;
         }
       `}</style>
     </div>

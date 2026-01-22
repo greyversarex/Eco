@@ -920,40 +920,28 @@ export default function ComposeMessage() {
         </Card>
 
         {documentContent && !showDocumentEditor && (
-          <Card className="mt-4">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  {documentTitle}
-                </span>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowDocumentEditor(true)}
-                    data-testid="button-edit-document"
-                  >
-                    Таҳрир
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleCloseDocumentEditor}
-                    data-testid="button-remove-document"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div 
-                className="prose prose-sm max-w-none p-4 border rounded-lg bg-gray-50"
-                dangerouslySetInnerHTML={{ __html: documentContent }}
-              />
-            </CardContent>
-          </Card>
+          <div className="mt-4 flex items-center gap-2">
+            <div
+              className="flex items-center gap-3 px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors flex-1"
+              onClick={() => setShowDocumentEditor(true)}
+              data-testid="button-open-document"
+            >
+              <FileText className="h-6 w-6 text-blue-600 shrink-0" />
+              <div className="min-w-0">
+                <p className="font-medium text-blue-900 truncate">{documentTitle}</p>
+                <p className="text-xs text-blue-600">Нажмите для редактирования</p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCloseDocumentEditor}
+              data-testid="button-remove-document"
+              className="shrink-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         )}
       </main>
       <Footer />
@@ -999,30 +987,35 @@ export default function ComposeMessage() {
       </Dialog>
 
       <Dialog open={showDocumentEditor} onOpenChange={setShowDocumentEditor}>
-        <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              {documentTitle}
-            </DialogTitle>
-            <DialogDescription>
+        <DialogContent className="w-[95vw] max-w-[1200px] h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-6 py-4 border-b bg-gray-50 shrink-0">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2 text-lg">
+                <FileText className="h-5 w-5 text-blue-600" />
+                {documentTitle}
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => setShowDocumentEditor(false)}>
+                  Пӯшидан
+                </Button>
+                <Button size="sm" onClick={() => setShowDocumentEditor(false)} data-testid="button-save-document">
+                  <Save className="h-4 w-4 mr-2" />
+                  Сабт кардан
+                </Button>
+              </div>
+            </div>
+            <DialogDescription className="sr-only">
               Ҳуҷҷатро таҳрир кунед
             </DialogDescription>
           </DialogHeader>
-          <DocumentEditor
-            content={documentContent}
-            onChange={setDocumentContent}
-            departmentName={user?.department?.name}
-            className="min-h-[400px]"
-          />
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowDocumentEditor(false)}>
-              Пӯшидан
-            </Button>
-            <Button onClick={() => setShowDocumentEditor(false)} data-testid="button-save-document">
-              Сабт кардан
-            </Button>
-          </DialogFooter>
+          <div className="flex-1 overflow-hidden">
+            <DocumentEditor
+              content={documentContent}
+              onChange={setDocumentContent}
+              departmentName={user?.department?.name}
+              className="h-full"
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
