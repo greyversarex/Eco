@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -50,6 +50,7 @@ export function ComposeMessageModal({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recipientSearch, setRecipientSearch] = useState('');
+  const prevIsOpenRef = useRef(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -83,19 +84,22 @@ export function ComposeMessageModal({
   );
 
   useEffect(() => {
-    if (isOpen) {
-      if (defaultRecipientId) {
-        setSelectedRecipients([defaultRecipientId]);
-      }
-    } else {
+    const wasOpen = prevIsOpenRef.current;
+    prevIsOpenRef.current = isOpen;
+    
+    if (isOpen && !wasOpen) {
       setDocumentNumber('');
       setSvNumber('');
       setSvDirection(null);
       setDocumentTypeId('');
-      setSelectedRecipients([]);
       setContent('');
       setSelectedFiles([]);
       setRecipientSearch('');
+      if (defaultRecipientId) {
+        setSelectedRecipients([defaultRecipientId]);
+      } else {
+        setSelectedRecipients([]);
+      }
     }
   }, [isOpen, defaultRecipientId]);
 
