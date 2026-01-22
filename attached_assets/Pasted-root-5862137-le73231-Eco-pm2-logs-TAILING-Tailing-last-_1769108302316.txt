@@ -1,0 +1,58 @@
+root@5862137-le73231:~/Eco# pm2 logs
+[TAILING] Tailing last 15 lines for [all] processes (change the value with --lines option)
+/root/.pm2/pm2.log last 15 lines:
+PM2        | 2026-01-22T21:49:15: PM2 log: Stopping app:ecotajikistan id:0
+PM2        | 2026-01-22T21:49:15: PM2 log: App [ecotajikistan:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-01-22T21:49:15: PM2 log: pid=1108603 msg=process killed
+PM2        | 2026-01-22T21:49:15: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-01-22T21:49:15: PM2 log: App [ecotajikistan:0] online
+PM2        | 2026-01-22T21:53:58: PM2 log: Stopping app:ecotajikistan id:0
+PM2        | 2026-01-22T21:53:58: PM2 log: App [ecotajikistan:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-01-22T21:53:58: PM2 log: pid=1108757 msg=process killed
+PM2        | 2026-01-22T21:53:58: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-01-22T21:53:58: PM2 log: App [ecotajikistan:0] online
+PM2        | 2026-01-22T21:54:28: PM2 log: Stopping app:ecotajikistan id:0
+PM2        | 2026-01-22T21:54:28: PM2 log: App [ecotajikistan:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-01-22T21:54:28: PM2 log: pid=1108901 msg=process killed
+PM2        | 2026-01-22T21:54:28: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-01-22T21:54:28: PM2 log: App [ecotajikistan:0] online
+
+/root/.pm2/logs/ecotajikistan-error.log last 15 lines:
+0|ecotajik |   path: '/api/messages/unread/by-department',
+0|ecotajik |   method: 'GET'
+0|ecotajik | }
+0|ecotajik | [AUTH_MIDDLEWARE] Rejected: No session or user ID {
+0|ecotajik |   hasDepartmentId: false,
+0|ecotajik |   hasAdminId: false,
+0|ecotajik |   sessionExists: true,
+0|ecotajik |   path: '/api/counters',
+0|ecotajik |   method: 'GET'
+0|ecotajik | }
+0|ecotajik | Error: ENOENT: no such file or directory, stat '/root/Eco/dist/public/index.html'
+0|ecotajik | Error: ENOENT: no such file or directory, stat '/root/Eco/dist/public/index.html'
+0|ecotajik | Error: ENOENT: no such file or directory, stat '/root/Eco/dist/public/index.html'
+0|ecotajik | Error: ENOENT: no such file or directory, stat '/root/Eco/dist/public/index.html'
+0|ecotajik | Error: ENOENT: no such file or directory, stat '/root/Eco/dist/public/index.html'
+
+/root/.pm2/logs/ecotajikistan-out.log last 15 lines:
+0|ecotajik | 11:57:30 PM [express] GET /api/departments/43/icon 200 in 4ms
+0|ecotajik | 11:57:30 PM [express] GET /api/departments/46/icon 200 in 3ms
+0|ecotajik | 11:57:30 PM [express] GET /api/departments/48/icon 200 in 4ms
+0|ecotajik | 11:57:30 PM [express] GET /api/departments/47/icon 200 in 4ms
+0|ecotajik | 11:57:30 PM [express] GET /api/departments/52/icon 200 in 6ms
+0|ecotajik | 11:57:30 PM [express] GET /api/departments/50/icon 200 in 12ms
+0|ecotajik | 11:57:30 PM [express] GET /api/departments/49/icon 200 in 11ms
+0|ecotajik | 11:57:30 PM [express] GET /api/departments/51/icon 200 in 10ms
+0|ecotajik | 11:57:31 PM [express] GET /api/departments/1/subdepartments 200 in 3ms :: []
+0|ecotajik | 11:57:31 PM [express] GET /api/people 200 in 10ms :: [{"id":91,"name":"Абдулҳатов Қобилҷон","departme…
+0|ecotajik | 11:57:31 PM [express] GET /api/document-types 200 in 17ms :: [{"id":1,"name":"Гузориш","description":…
+0|ecotajik | 11:57:31 PM [express] GET /api/document-templates 500 in 6ms :: {"error":"relation \"document_templat…
+0|ecotajik | 11:57:34 PM [express] GET /api/auth/me 200 in 2ms :: {"userType":"department","department":{"id":1,"n…
+0|ecotajik | 11:57:34 PM [express] GET /api/messages/unread/by-department 200 in 5ms :: {"17":1}
+0|ecotajik | 11:57:34 PM [express] GET /api/counters 200 in 4ms :: {"unreadAnnouncements":0,"uncompletedAssignment…
+
+0|ecotajikistan  | 11:57:59 PM [express] GET /api/messages/unread/by-department 200 in 7ms :: {"17":1}
+0|ecotajikistan  | 11:57:59 PM [express] GET /api/counters 200 in 6ms :: {"unreadAnnouncements":0,"uncompletedAssignment…
+0|ecotajikistan  | 11:58:01 PM [express] GET /api/auth/me 200 in 16ms :: {"userType":"department","department":{"id":1,"…
+0|ecotajikistan  | 11:58:01 PM [express] GET /api/messages/unread/by-department 200 in 6ms :: {"17":1}
+0|ecotajikistan  | 11:58:01 PM [express] GET /api/counters 200 in 5ms :: {"unreadAnnouncements":0,"uncompletedAssignment…

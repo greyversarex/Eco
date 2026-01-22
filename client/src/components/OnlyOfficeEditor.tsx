@@ -56,10 +56,19 @@ export function OnlyOfficeEditor({
       setIsLoading(true);
       setError(null);
 
+      // Set timeout for loading
+      const timeoutId = setTimeout(() => {
+        if (isLoading) {
+          setError('Вақти интизорӣ гузашт. Лутфан ба DocSpace ворид шавед.');
+          setIsLoading(false);
+        }
+      }, 15000);
+
       await new Promise(resolve => setTimeout(resolve, 500));
 
       if (!window.DocSpace?.SDK) {
-        setError('OnlyOffice SDK не загружен');
+        clearTimeout(timeoutId);
+        setError('OnlyOffice SDK боргирӣ нашуд. Саҳифаро аз нав кушоед.');
         setIsLoading(false);
         return;
       }
@@ -156,14 +165,24 @@ export function OnlyOfficeEditor({
           
           {error && (
             <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
-              <div className="flex flex-col items-center gap-3 text-center p-4">
-                <p className="text-destructive">{error}</p>
-                <p className="text-sm text-muted-foreground">
-                  Лутфан санҷед, ки ба OnlyOffice DocSpace ворид шудаед
+              <div className="flex flex-col items-center gap-4 text-center p-4">
+                <p className="text-destructive font-medium">{error}</p>
+                <p className="text-sm text-muted-foreground max-w-md">
+                  Барои истифодаи OnlyOffice, аввал ба DocSpace ворид шавед, 
+                  сипас ин саҳифаро аз нав кушоед.
                 </p>
-                <Button variant="outline" onClick={() => window.open(DOCSPACE_URL, '_blank')}>
-                  Кушодани DocSpace
-                </Button>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => window.open(DOCSPACE_URL, '_blank')}>
+                    Ворид шудан ба DocSpace
+                  </Button>
+                  <Button variant="default" onClick={() => {
+                    setError(null);
+                    setIsLoading(true);
+                    window.location.reload();
+                  }}>
+                    Аз нав кӯшиш кардан
+                  </Button>
+                </div>
               </div>
             </div>
           )}
