@@ -833,7 +833,7 @@ export default function ComposeMessage() {
                       <Paperclip className="h-4 w-4" />
                       Интихоб кардани файлҳо
                     </Button>
-                    {documentTemplates.length > 0 && (
+                    {(documentTemplates.length > 0 || visualTemplates.filter(t => t.isActive).length > 0) && (
                       <Button
                         type="button"
                         variant="outline"
