@@ -239,7 +239,7 @@ export default function MessageListItem({
         </div>
         
         {/* Icons */}
-        <div className="flex items-center gap-2 justify-end">
+        <div className="flex flex-col items-end gap-1">
           {approvalStatus === 'approved' && (
             <Badge variant="outline" className="gap-1 bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-600" data-testid={`badge-approved-${id}`}>
               <Check className="h-3 w-3" />
