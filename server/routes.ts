@@ -1045,23 +1045,31 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ error: "Тасвири замина ҳатмист" });
       }
       
-      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
       if (!allowedTypes.includes(file.mimetype)) {
-        return res.status(400).json({ error: "Танҳо тасвирҳои PNG, JPEG ё PDF иҷозат дода мешаванд" });
+        return res.status(400).json({ error: "Танҳо тасвирҳои PNG ё JPEG иҷозат дода мешаванд. PDF-ро ба тасвир табдил диҳед." });
       }
 
+      const sharp = (await import('sharp')).default;
       let backgroundBuffer = file.buffer;
       let mimeType = file.mimetype;
+      let actualWidth = 595;
+      let actualHeight = 842;
       
-      // If PDF, we'll store it as-is (frontend will handle rendering)
-      // For images, compress with sharp if needed
-      if (file.mimetype !== 'application/pdf' && file.buffer.length > 500000) {
-        const sharp = (await import('sharp')).default;
+      // Get image dimensions and compress if needed
+      const metadata = await sharp(file.buffer).metadata();
+      actualWidth = metadata.width || 595;
+      actualHeight = metadata.height || 842;
+      
+      if (file.buffer.length > 500000) {
         backgroundBuffer = await sharp(file.buffer)
           .resize(1200, 1700, { fit: 'inside', withoutEnlargement: true })
           .jpeg({ quality: 85 })
           .toBuffer();
         mimeType = 'image/jpeg';
+        const newMeta = await sharp(backgroundBuffer).metadata();
+        actualWidth = newMeta.width || actualWidth;
+        actualHeight = newMeta.height || actualHeight;
       }
 
       const parsedFields = fields ? JSON.parse(fields) : [];
@@ -1071,8 +1079,8 @@ export function registerRoutes(app: Express) {
         description: description?.trim() || null,
         backgroundImage: backgroundBuffer,
         backgroundMimeType: mimeType,
-        pageWidth: parseInt(pageWidth) || 595,
-        pageHeight: parseInt(pageHeight) || 842,
+        pageWidth: actualWidth,
+        pageHeight: actualHeight,
         fields: parsedFields,
         isActive: true,
         sortOrder: 0
@@ -1105,21 +1113,28 @@ export function registerRoutes(app: Express) {
       if (pageHeight !== undefined) updateData.pageHeight = parseInt(pageHeight);
       
       if (file) {
-        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
         if (!allowedTypes.includes(file.mimetype)) {
-          return res.status(400).json({ error: "Танҳо тасвирҳои PNG, JPEG ё PDF иҷозат дода мешаванд" });
+          return res.status(400).json({ error: "Танҳо тасвирҳои PNG ё JPEG иҷозат дода мешаванд. PDF-ро ба тасвир табдил диҳед." });
         }
         
+        const sharp = (await import('sharp')).default;
         let backgroundBuffer = file.buffer;
         let mimeType = file.mimetype;
         
-        if (file.mimetype !== 'application/pdf' && file.buffer.length > 500000) {
-          const sharp = (await import('sharp')).default;
+        const metadata = await sharp(file.buffer).metadata();
+        updateData.pageWidth = metadata.width || 595;
+        updateData.pageHeight = metadata.height || 842;
+        
+        if (file.buffer.length > 500000) {
           backgroundBuffer = await sharp(file.buffer)
             .resize(1200, 1700, { fit: 'inside', withoutEnlargement: true })
             .jpeg({ quality: 85 })
             .toBuffer();
           mimeType = 'image/jpeg';
+          const newMeta = await sharp(backgroundBuffer).metadata();
+          updateData.pageWidth = newMeta.width || updateData.pageWidth;
+          updateData.pageHeight = newMeta.height || updateData.pageHeight;
         }
         
         updateData.backgroundImage = backgroundBuffer;

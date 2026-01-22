@@ -442,7 +442,7 @@ export default function AdminVisualTemplates() {
                       type="file"
                       ref={fileInputRef}
                       onChange={handleFileChange}
-                      accept="image/png,image/jpeg,application/pdf"
+                      accept="image/png,image/jpeg"
                       className="hidden"
                       data-testid="input-template-file"
                     />
@@ -453,8 +453,11 @@ export default function AdminVisualTemplates() {
                       className="w-full"
                     >
                       <Upload className="h-4 w-4 mr-2" />
-                      {formData.file ? formData.file.name : 'Интихоби файл (PNG, JPEG, PDF)'}
+                      {formData.file ? formData.file.name : 'Интихоби тасвир (PNG, JPEG)'}
                     </Button>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      PDF-ро пеш аз боргузорӣ ба тасвир табдил диҳед
+                    </p>
                   </div>
                 </div>
 
