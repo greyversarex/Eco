@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Paperclip, X, LogOut, Save, Search, FileText, Image } from 'lucide-react';
+import { ArrowLeft, Paperclip, X, LogOut, Save, Search, FileText } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -15,7 +15,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { apiFetch } from '@/lib/api-config';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import type { Department, Person, DocumentType, DocumentTemplate, VisualTemplate } from '@shared/schema';
+import type { Department, Person, DocumentType, DocumentTemplate } from '@shared/schema';
 import {
   Dialog,
   DialogContent,
@@ -107,10 +107,6 @@ export default function ComposeMessage() {
 
   const { data: documentTemplates = [] } = useQuery<DocumentTemplate[]>({
     queryKey: ['/api/document-templates'],
-  });
-
-  const { data: visualTemplates = [] } = useQuery<VisualTemplate[]>({
-    queryKey: ['/api/visual-templates/all'],
   });
 
   const replacePlaceholders = (html: string, docNumber: string): string => {
@@ -833,7 +829,7 @@ export default function ComposeMessage() {
                       <Paperclip className="h-4 w-4" />
                       Интихоб кардани файлҳо
                     </Button>
-                    {(documentTemplates.length > 0 || visualTemplates.filter(t => t.isActive).length > 0) && (
+                    {documentTemplates.length > 0 && (
                       <Button
                         type="button"
                         variant="outline"
@@ -958,65 +954,24 @@ export default function ComposeMessage() {
               Намунаи лозимиро интихоб кунед
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 max-h-[400px] overflow-y-auto">
-            {visualTemplates.filter(t => t.isActive).length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Image className="h-4 w-4" />
-                  Намунаҳои визуалӣ
-                </h3>
-                <div className="space-y-2">
-                  {visualTemplates.filter(t => t.isActive).map((template) => (
-                    <div
-                      key={`visual-${template.id}`}
-                      className="flex items-center gap-3 p-3 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 cursor-pointer transition-colors"
-                      onClick={() => {
-                        setShowTemplateDialog(false);
-                        setLocation(`/visual-template/${template.id}`);
-                      }}
-                      data-testid={`visual-template-option-${template.id}`}
-                    >
-                      <Image className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900">{template.name}</h4>
-                        {template.description && (
-                          <p className="text-sm text-gray-500 truncate">{template.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+          <div className="space-y-2 max-h-[400px] overflow-y-auto">
+            {documentTemplates.map((template) => (
+              <div
+                key={template.id}
+                className="flex items-center gap-3 p-3 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
+                onClick={() => handleSelectTemplate(template)}
+                data-testid={`template-option-${template.id}`}
+              >
+                <FileText className="h-5 w-5 text-green-600 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-gray-900">{template.name}</h4>
+                  {template.description && (
+                    <p className="text-sm text-gray-500 truncate">{template.description}</p>
+                  )}
                 </div>
               </div>
-            )}
-            
-            {documentTemplates.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Намунаҳои матнӣ
-                </h3>
-                <div className="space-y-2">
-                  {documentTemplates.map((template) => (
-                    <div
-                      key={template.id}
-                      className="flex items-center gap-3 p-3 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => handleSelectTemplate(template)}
-                      data-testid={`template-option-${template.id}`}
-                    >
-                      <FileText className="h-5 w-5 text-green-600 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900">{template.name}</h4>
-                        {template.description && (
-                          <p className="text-sm text-gray-500 truncate">{template.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {documentTemplates.length === 0 && visualTemplates.filter(t => t.isActive).length === 0 && (
+            ))}
+            {documentTemplates.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 <FileText className="h-10 w-10 mx-auto mb-2 opacity-50" />
                 <p>Ягон намуна мавҷуд нест</p>
