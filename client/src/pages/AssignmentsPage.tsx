@@ -1076,44 +1076,45 @@ export default function AssignmentsPage() {
                 <CardContent className="space-y-4">
                   <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
                   
-                  {assignment.approvalStatus && (
-                    <div className="flex justify-end">
-                      <div 
-                        className={`
-                          w-20 h-20 rounded-full border-3 flex flex-col items-center justify-center
-                          transform rotate-[-12deg] text-xs font-bold
-                          ${assignment.approvalStatus === 'approved' 
-                            ? 'border-green-600 text-green-700 bg-white/90' 
-                            : 'border-red-600 text-red-700 bg-white/90'
-                          }
-                        `}
-                        style={{
-                          borderWidth: '3px',
-                          boxShadow: assignment.approvalStatus === 'approved'
-                            ? '0 0 0 2px rgba(22, 163, 74, 0.2)'
-                            : '0 0 0 2px rgba(220, 38, 38, 0.2)'
-                        }}
-                      >
-                        {assignment.approvalStatus === 'approved' ? (
-                          <Check className="h-5 w-5 stroke-[3]" />
-                        ) : (
-                          <X className="h-5 w-5 stroke-[3]" />
-                        )}
-                        <span className="text-[9px] leading-tight text-center font-bold">
-                          {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  
                   {assignment.attachments && assignment.attachments.length > 0 && (
                     <div className="pt-3 border-t">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Paperclip className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">
-                          Файлҳои замимашуда
-                          {' '}({assignment.attachments.length})
-                        </span>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Paperclip className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">
+                            Файлҳои замимашуда
+                            {' '}({assignment.attachments.length})
+                          </span>
+                        </div>
+                        {assignment.approvalStatus && (
+                          <div 
+                            className={`
+                              w-16 h-16 rounded-full flex flex-col items-center justify-center
+                              transform rotate-[-12deg] text-xs font-bold
+                              ${assignment.approvalStatus === 'approved' 
+                                ? 'border-green-600 text-green-700 bg-white/90' 
+                                : 'border-red-600 text-red-700 bg-white/90'
+                              }
+                            `}
+                            style={{
+                              borderWidth: '2px',
+                              borderStyle: 'solid',
+                              borderColor: assignment.approvalStatus === 'approved' ? '#16a34a' : '#dc2626',
+                              boxShadow: assignment.approvalStatus === 'approved'
+                                ? '0 0 0 2px rgba(22, 163, 74, 0.2)'
+                                : '0 0 0 2px rgba(220, 38, 38, 0.2)'
+                            }}
+                          >
+                            {assignment.approvalStatus === 'approved' ? (
+                              <Check className="h-4 w-4 stroke-[3]" />
+                            ) : (
+                              <X className="h-4 w-4 stroke-[3]" />
+                            )}
+                            <span className="text-[8px] leading-tight text-center font-bold">
+                              {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {assignment.attachments.map((attachment) => (
@@ -1328,44 +1329,45 @@ export default function AssignmentsPage() {
                 <CardContent className="space-y-4">
                   <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
                   
-                  {assignment.approvalStatus && (
-                    <div className="flex justify-end">
-                      <div 
-                        className={`
-                          w-20 h-20 rounded-full border-3 flex flex-col items-center justify-center
-                          transform rotate-[-12deg] text-xs font-bold
-                          ${assignment.approvalStatus === 'approved' 
-                            ? 'border-green-600 text-green-700 bg-white/90' 
-                            : 'border-red-600 text-red-700 bg-white/90'
-                          }
-                        `}
-                        style={{
-                          borderWidth: '3px',
-                          boxShadow: assignment.approvalStatus === 'approved'
-                            ? '0 0 0 2px rgba(22, 163, 74, 0.2)'
-                            : '0 0 0 2px rgba(220, 38, 38, 0.2)'
-                        }}
-                      >
-                        {assignment.approvalStatus === 'approved' ? (
-                          <Check className="h-5 w-5 stroke-[3]" />
-                        ) : (
-                          <X className="h-5 w-5 stroke-[3]" />
-                        )}
-                        <span className="text-[9px] leading-tight text-center font-bold">
-                          {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  
                   {assignment.attachments && assignment.attachments.length > 0 && (
                     <div className="pt-3 border-t">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Paperclip className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">
-                          Файлҳои замимашуда
-                          {' '}({assignment.attachments.length})
-                        </span>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Paperclip className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">
+                            Файлҳои замимашуда
+                            {' '}({assignment.attachments.length})
+                          </span>
+                        </div>
+                        {assignment.approvalStatus && (
+                          <div 
+                            className={`
+                              w-16 h-16 rounded-full flex flex-col items-center justify-center
+                              transform rotate-[-12deg] text-xs font-bold
+                              ${assignment.approvalStatus === 'approved' 
+                                ? 'border-green-600 text-green-700 bg-white/90' 
+                                : 'border-red-600 text-red-700 bg-white/90'
+                              }
+                            `}
+                            style={{
+                              borderWidth: '2px',
+                              borderStyle: 'solid',
+                              borderColor: assignment.approvalStatus === 'approved' ? '#16a34a' : '#dc2626',
+                              boxShadow: assignment.approvalStatus === 'approved'
+                                ? '0 0 0 2px rgba(22, 163, 74, 0.2)'
+                                : '0 0 0 2px rgba(220, 38, 38, 0.2)'
+                            }}
+                          >
+                            {assignment.approvalStatus === 'approved' ? (
+                              <Check className="h-4 w-4 stroke-[3]" />
+                            ) : (
+                              <X className="h-4 w-4 stroke-[3]" />
+                            )}
+                            <span className="text-[8px] leading-tight text-center font-bold">
+                              {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {assignment.attachments.map((attachment) => (
