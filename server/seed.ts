@@ -96,69 +96,81 @@ async function seed() {
       }
     }
 
-    // Real executors list
+    // Real executors list distributed across departments
     const peopleData = [
-      'Шукурзода И',
-      'Раҳмонзода Л.Ш',
-      'Назирзода Абдуқодир. С',
-      'Қурбонзода Абдуллоҳ. Ҳ',
-      'Холзода Суҳроб. Хол',
-      'Сабзали Шаҳтут. Н',
-      'Собтрзода Қурбоналӣ. М',
-      'Нурализода Фируз. М',
-      'Сафарализода Бахтиёр. С',
-      'Ибодуллои Маҳмадулло',
-      'Салимзода Умаралӣ. С',
-      'Қаландарзода Абдуқаюм. Ҷ',
-      'Давлатзода Сарвар',
-      'Зарифзода Фарҳод. Т',
-      'Идизод Неъматулло. Р',
-      'Қурбонзода Фируз. А',
-      'Маҳмудов Насим. З',
-      'Раҳмоналӣ Маҳмадалӣ',
-      'Давлатзода Афзал. А',
-      'Бобохонзода Адолатхон. О',
-      'Шамсиддинзода Хуршед.Ш',
-      'Дустзода Ҳасан. Т',
-      'Шерматов Хисравшоҳ. Р',
-      'Сафаров Фирузю П',
-      'Улуғов Умидҷон. А',
-      'Тиллои Гулрухсор. А',
-      'Аҳрорзода Ҳамароҳ. Ҳ',
-      'Судурзода Саидисмон. С',
-      'Ятимов Олимҷон. Р',
-      'Ҷунайдзода Муҳибулло.Ҳ',
-      'Панҷиев Аъзам. А',
-      'Яқубов Ҷамолиддин. Н',
-      'Каримов Алихон. А',
-      'Алмосов Сафаралӣ. А',
-      'Ашуриён Хуршед. Қ',
-      'Юсуфзода Абдуҷалил.Ҳ',
-      'Маҳмадализода Шарофиддин. А',
-      'Камолзода Дилшод. Н',
-      'Каримзода Акмал. Т',
-      'Нуров Муродулло.Т',
-      'Расуло Ҷамшед. Д',
-      'Буев Абдулазиз. А',
-      'Камолов Эраҷ. Т',
-      'Раҷабов Сайҷафар. Д',
-      'Саъдуллоев Бекназар. С',
-      'Ҳуҷумбороа Фазлиддин. С',
+      { name: 'Шукурзода И', deptCode: 'ROHBAR001' },
+      { name: 'Раҳмонзода Л.Ш', deptCode: 'MUOVIN001' },
+      { name: 'Назирзода Абдуқодир. С', deptCode: 'LOIQ001' },
+      { name: 'Қурбонзода Абдуллоҳ. Ҳ', deptCode: 'UMUMI001' },
+      { name: 'Холзода Суҳроб. Хол', deptCode: 'DUSHANBE001' },
+      { name: 'Сабзали Шаҳтут. Н', deptCode: 'AGENTI001' },
+      { name: 'Собтрзода Қурбоналӣ. М', deptCode: 'SUGHD001' },
+      { name: 'Нурализода Фируз. М', deptCode: 'VMKB001' },
+      { name: 'Сафарализода Бахтиёр. С', deptCode: 'ECOLOGI001' },
+      { name: 'Ибодуллои Маҳмадулло', deptCode: 'MONITORING001' },
+      { name: 'Салимзода Умаралӣ. С', deptCode: 'KADR001' },
+      { name: 'Қаландарзода Абдуқаюм. Ҷ', deptCode: 'ATMOSFERA001' },
+      { name: 'Давлатзода Сарвар', deptCode: 'DIGITAL001' },
+      { name: 'Зарифзода Фарҳод. Т', deptCode: 'MOHI001' },
+      { name: 'Идизод Неъматулло. Р', deptCode: 'FINANCE001' },
+      { name: 'Қурбонзода Фируз. А', deptCode: 'INTERNATIONAL001' },
+      { name: 'Маҳмудов Насим. З', deptCode: 'HUQUQI001' },
+      { name: 'Раҳмоналӣ Маҳмадалӣ', deptCode: 'PARTOVHO001' },
+      { name: 'Давлатзода Афзал. А', deptCode: 'WATER001' },
+      { name: 'Бобохонзода Адолатхон. О', deptCode: 'PROTECTED021' },
+      { name: 'Шамсиддинзода Хуршед.Ш', deptCode: 'NATURE022' },
+      { name: 'Дустзода Ҳасан. Т', deptCode: 'TABIAT001' },
+      { name: 'Шерматов Хисравшоҳ. Р', deptCode: 'WATERRES024' },
+      { name: 'Сафаров Фирузю П', deptCode: 'ZIST001' },
+      { name: 'Улуғов Умидҷон. А', deptCode: 'STOCKHOLM001' },
+      { name: 'Тиллои Гулрухсор. А', deptCode: 'AHBOR001' },
+      { name: 'Аҳрорзода Ҳамароҳ. Ҳ', deptCode: 'TASHHISI001' },
+      { name: 'Судурзода Саидисмон. С', deptCode: 'STANDARD001' },
+      { name: 'Ятимов Олимҷон. Р', deptCode: 'BIOLOGI001' },
+      { name: 'Ҷунайдзода Муҳибулло.Ҳ', deptCode: 'OZON001' },
+      { name: 'Панҷиев Аъзам. А', deptCode: 'SARMOYA001' },
+      { name: 'Яқубов Ҷамолиддин. Н', deptCode: 'TAMIR001' },
+      { name: 'Каримов Алихон. А', deptCode: 'INSON001' },
+      { name: 'Алмосов Сафаралӣ. А', deptCode: 'HIFZITABIAT001' },
+      { name: 'Ашуриён Хуршед. Қ', deptCode: 'ILMTABIAT001' },
+      { name: 'Юсуфзода Абдуҷалил.Ҳ', deptCode: 'SAYOHAT001' },
+      { name: 'Маҳмадализода Шарофиддин. А', deptCode: 'VARZOB001' },
+      { name: 'Камолзода Дилшод. Н', deptCode: 'RUDAKI001' },
+      { name: 'Каримзода Акмал. Т', deptCode: 'HISOR001' },
+      { name: 'Нуров Муродулло.Т', deptCode: 'SHAHRINAV001' },
+      { name: 'Расуло Ҷамшед. Д', deptCode: 'TURSUNZODA001' },
+      { name: 'Буев Абдулазиз. А', deptCode: 'VAHDAT001' },
+      { name: 'Камолов Эраҷ. Т', deptCode: 'FAYZOBOD001' },
+      { name: 'Раҷабов Сайҷафар. Д', deptCode: 'RASHT001' },
+      { name: 'Саъдуллоев Бекназар. С', deptCode: 'ROGUN001' },
+      { name: 'Ҳуҷумбороа Фазлиддин. С', deptCode: 'LAKHSH001' },
     ];
 
-    // Create people without department
+    // Create people with department link
     console.log('\n');
-    for (const personName of peopleData) {
-      const existing = await db.select().from(people).where(eq(people.name, personName));
+    for (const person of peopleData) {
+      const existing = await db.select().from(people).where(eq(people.name, person.name));
       
+      let departmentId = null;
+      if (person.deptCode) {
+        const dept = await db.select().from(departments).where(eq(departments.accessCode, person.deptCode));
+        if (dept.length > 0) {
+          departmentId = dept[0].id;
+        }
+      }
+
       if (existing.length === 0) {
         await db.insert(people).values({
-          name: personName,
-          departmentId: null,
+          name: person.name,
+          departmentId: departmentId,
         });
-        console.log(`✓ Иҷрокунанда илова карда шуд: ${personName}`);
+        console.log(`✓ Иҷрокунанда илова карда шуд: ${person.name} (${person.deptCode || 'бе департамент'})`);
       } else {
-        console.log(`✓ Иҷрокунанда аллакай ҳаст: ${personName}`);
+        // Update existing person with department if not set
+        await db.update(people)
+          .set({ departmentId })
+          .where(eq(people.id, existing[0].id));
+        console.log(`✓ Иҷрокунанда навсозӣ шуд: ${person.name} (${person.deptCode || 'бе департамент'})`);
       }
     }
 
