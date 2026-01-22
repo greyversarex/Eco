@@ -772,15 +772,15 @@ export default function MessageView() {
                 )}
 
                 {user?.userType === 'department' && (
-                  <div className="pt-4 border-t flex justify-between gap-3 px-6">
-                    <div className="flex gap-3">
-                      <Button onClick={handleReply} data-testid="button-reply" className="gap-2" size="lg">
+                  <div className="pt-4 border-t flex flex-wrap justify-between gap-3 px-6">
+                    <div className="flex flex-wrap gap-2">
+                      <Button onClick={handleReply} data-testid="button-reply" variant="outline" className="gap-2">
                         <Reply className="h-4 w-4" />
                         {t.reply}
                       </Button>
                       <Dialog open={isForwardDialogOpen} onOpenChange={setIsForwardDialogOpen}>
                         <DialogTrigger asChild>
-                          <Button data-testid="button-forward" className="gap-2" size="lg">
+                          <Button data-testid="button-forward" variant="outline" className="gap-2">
                             <Forward className="h-4 w-4" />
                             Фиристодан
                           </Button>
@@ -871,7 +871,7 @@ export default function MessageView() {
                         if (!open) setShowAllInvited(false);
                       }}>
                         <DialogTrigger asChild>
-                          <Button onClick={openAssignmentDialog} data-testid="button-create-assignment" className="gap-2 bg-green-600 hover:bg-green-700 text-white" size="lg">
+                          <Button onClick={openAssignmentDialog} data-testid="button-create-assignment" variant="outline" className="gap-2">
                             <FileText className="h-4 w-4" />
                             Вазифагузорӣ
                           </Button>

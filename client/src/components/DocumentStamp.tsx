@@ -1,5 +1,6 @@
-import { Check, X } from 'lucide-react';
+import { Check, X, Stamp } from 'lucide-react';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
 
 interface DocumentStampProps {
   status: 'approved' | 'rejected';
@@ -85,60 +86,30 @@ interface StampButtonsProps {
 
 export function StampButtons({ onApprove, onReject, isPending }: StampButtonsProps) {
   return (
-    <div className="flex gap-4">
-      <button
-        onClick={onApprove}
-        disabled={isPending}
-        className="
-          group flex flex-col items-center gap-2 p-4 
-          rounded-xl border-2 border-dashed border-green-400
-          hover:border-green-600 hover:bg-green-50 dark:hover:bg-green-900/20
-          transition-all duration-200
-          disabled:opacity-50 disabled:cursor-not-allowed
-        "
-        data-testid="stamp-button-approve"
-      >
-        <div className="
-          w-16 h-16 rounded-full 
-          border-3 border-green-600 
-          flex items-center justify-center
-          group-hover:scale-110 transition-transform
-          bg-white dark:bg-gray-900
-        ">
-          <Check className="h-8 w-8 text-green-600 stroke-[3]" />
-        </div>
-        <span className="font-semibold text-green-700 dark:text-green-400">
+    <div className="space-y-3">
+      <div className="text-sm font-medium text-muted-foreground">Мӯҳр гузоштан:</div>
+      <div className="flex gap-3">
+        <Button
+          onClick={onApprove}
+          disabled={isPending}
+          variant="outline"
+          className="gap-2 border-green-500 text-green-700 hover:bg-green-50 hover:text-green-800 dark:border-green-600 dark:text-green-400 dark:hover:bg-green-900/30"
+          data-testid="stamp-button-approve"
+        >
+          <Check className="h-4 w-4" />
           ИҶРО ШУД
-        </span>
-        <span className="text-xs text-muted-foreground">Мӯҳр гузоштан</span>
-      </button>
-
-      <button
-        onClick={onReject}
-        disabled={isPending}
-        className="
-          group flex flex-col items-center gap-2 p-4 
-          rounded-xl border-2 border-dashed border-red-400
-          hover:border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20
-          transition-all duration-200
-          disabled:opacity-50 disabled:cursor-not-allowed
-        "
-        data-testid="stamp-button-reject"
-      >
-        <div className="
-          w-16 h-16 rounded-full 
-          border-3 border-red-600 
-          flex items-center justify-center
-          group-hover:scale-110 transition-transform
-          bg-white dark:bg-gray-900
-        ">
-          <X className="h-8 w-8 text-red-600 stroke-[3]" />
-        </div>
-        <span className="font-semibold text-red-700 dark:text-red-400">
+        </Button>
+        <Button
+          onClick={onReject}
+          disabled={isPending}
+          variant="outline"
+          className="gap-2 border-red-500 text-red-700 hover:bg-red-50 hover:text-red-800 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-900/30"
+          data-testid="stamp-button-reject"
+        >
+          <X className="h-4 w-4" />
           РАД ШУД
-        </span>
-        <span className="text-xs text-muted-foreground">Мӯҳр гузоштан</span>
-      </button>
+        </Button>
+      </div>
     </div>
   );
 }
