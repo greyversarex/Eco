@@ -1013,6 +1013,7 @@ export default function ComposeMessage() {
               content={documentContent}
               onChange={setDocumentContent}
               departmentName={user?.department?.name}
+              canApprove={user?.department?.canApprove}
               className="h-full"
             />
           </div>

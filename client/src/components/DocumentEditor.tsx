@@ -33,6 +33,7 @@ interface DocumentEditorProps {
   content: string;
   onChange: (html: string) => void;
   departmentName?: string;
+  canApprove?: boolean;
   onInsertStamp?: () => void;
   onExportDocx?: () => void;
   onExportPdf?: () => void;
@@ -44,6 +45,7 @@ export function DocumentEditor({
   content,
   onChange,
   departmentName,
+  canApprove = false,
   onInsertStamp,
   onExportDocx,
   onExportPdf,
@@ -255,30 +257,34 @@ export function DocumentEditor({
             <TableIcon className="h-4 w-4" />
           </Button>
 
-          <Separator orientation="vertical" className="h-6 mx-1" />
+          {canApprove && (
+            <>
+              <Separator orientation="vertical" className="h-6 mx-1" />
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={insertApprovalStamp}
-            className="gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
-            title="Иҷозат - тасдиқ кардан"
-            data-testid="button-approval-stamp"
-          >
-            <CheckCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">Иҷозат</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={insertRejectionStamp}
-            className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-            title="Радшуда - рад кардан"
-            data-testid="button-rejection-stamp"
-          >
-            <XCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">Радшуда</span>
-          </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={insertApprovalStamp}
+                className="gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                title="Иҷозат - тасдиқ кардан"
+                data-testid="button-approval-stamp"
+              >
+                <CheckCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">Иҷозат</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={insertRejectionStamp}
+                className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                title="Радшуда - рад кардан"
+                data-testid="button-rejection-stamp"
+              >
+                <XCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">Радшуда</span>
+              </Button>
+            </>
+          )}
 
           {departmentName && (
             <>
