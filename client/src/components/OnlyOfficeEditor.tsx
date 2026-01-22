@@ -1,5 +1,6 @@
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { FileEdit, ExternalLink } from 'lucide-react';
+import { X, ExternalLink } from 'lucide-react';
 
 const DOCSPACE_URL = 'https://docspace-ytx0ft.onlyoffice.com';
 
@@ -9,11 +10,32 @@ interface OnlyOfficeEditorProps {
 }
 
 export function OnlyOfficeEditor({ isOpen, onClose }: OnlyOfficeEditorProps) {
-  if (isOpen) {
-    window.open(DOCSPACE_URL, '_blank');
-    onClose();
-  }
-  return null;
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] h-[95vh] p-0 gap-0">
+        <DialogHeader className="px-4 py-3 border-b flex flex-row items-center justify-between">
+          <DialogTitle className="text-lg">OnlyOffice DocSpace</DialogTitle>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" onClick={() => window.open(DOCSPACE_URL, '_blank')}>
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Дар табаи нав
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </DialogHeader>
+        
+        <div className="flex-1 relative" style={{ height: 'calc(95vh - 60px)' }}>
+          <iframe
+            src={DOCSPACE_URL}
+            className="w-full h-full border-0"
+            allow="clipboard-read; clipboard-write"
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export function OnlyOfficeButton({ 
