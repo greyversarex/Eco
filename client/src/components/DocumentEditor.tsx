@@ -100,77 +100,59 @@ export function DocumentEditor({
   };
 
   const insertApprovalStamp = () => {
-    const stampHtml = `
-      <div style="position: relative; display: inline-block; margin: 10px 0; transform: rotate(-15deg);">
-        <div style="
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 16px;
-          border: 3px solid #16a34a;
-          border-radius: 8px;
-          background: rgba(22, 163, 74, 0.1);
-        ">
-          <div style="
-            width: 50px;
-            height: 50px;
-            border: 2px solid #16a34a;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            color: #16a34a;
-          ">Раис</div>
-          <div style="
-            font-size: 28px;
-            font-weight: bold;
-            color: #16a34a;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-          ">ИҶОЗАТ</div>
-        </div>
-      </div>
+    const stampSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80" style="display: inline-block; margin: 10px 0;">
+        <g transform="rotate(-12, 100, 40)">
+          <rect x="2" y="2" width="196" height="76" rx="8" ry="8" fill="rgba(22, 163, 74, 0.15)" stroke="#16a34a" stroke-width="3"/>
+          <circle cx="45" cy="40" r="28" fill="none" stroke="#16a34a" stroke-width="2.5"/>
+          <circle cx="45" cy="40" r="22" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="45" y="36" text-anchor="middle" font-size="10" font-weight="bold" fill="#16a34a" font-family="Arial, sans-serif">РАИС</text>
+          <text x="45" y="48" text-anchor="middle" font-size="7" fill="#16a34a" font-family="Arial, sans-serif">★★★</text>
+          <text x="130" y="50" text-anchor="middle" font-size="26" font-weight="bold" fill="#16a34a" font-family="Arial, sans-serif" letter-spacing="3">ИҶОЗАТ</text>
+        </g>
+      </svg>
     `;
-    editor.chain().focus().insertContent(stampHtml).run();
+    editor.chain().focus().insertContent(stampSvg).run();
   };
 
   const insertRejectionStamp = () => {
-    const stampHtml = `
-      <div style="position: relative; display: inline-block; margin: 10px 0; transform: rotate(-15deg);">
-        <div style="
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 16px;
-          border: 3px solid #dc2626;
-          border-radius: 8px;
-          background: rgba(220, 38, 38, 0.1);
-        ">
-          <div style="
-            width: 50px;
-            height: 50px;
-            border: 2px solid #dc2626;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            color: #dc2626;
-          ">Раис</div>
-          <div style="
-            font-size: 28px;
-            font-weight: bold;
-            color: #dc2626;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-          ">РАДШУДА</div>
-        </div>
-      </div>
+    const stampSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="220" height="80" viewBox="0 0 220 80" style="display: inline-block; margin: 10px 0;">
+        <g transform="rotate(-12, 110, 40)">
+          <rect x="2" y="2" width="216" height="76" rx="8" ry="8" fill="rgba(220, 38, 38, 0.15)" stroke="#dc2626" stroke-width="3"/>
+          <circle cx="45" cy="40" r="28" fill="none" stroke="#dc2626" stroke-width="2.5"/>
+          <circle cx="45" cy="40" r="22" fill="none" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="45" y="36" text-anchor="middle" font-size="10" font-weight="bold" fill="#dc2626" font-family="Arial, sans-serif">РАИС</text>
+          <text x="45" y="48" text-anchor="middle" font-size="7" fill="#dc2626" font-family="Arial, sans-serif">★★★</text>
+          <text x="140" y="50" text-anchor="middle" font-size="24" font-weight="bold" fill="#dc2626" font-family="Arial, sans-serif" letter-spacing="2">РАДШУДА</text>
+        </g>
+      </svg>
     `;
-    editor.chain().focus().insertContent(stampHtml).run();
+    editor.chain().focus().insertContent(stampSvg).run();
+  };
+
+  const insertDepartmentStampGraphic = () => {
+    if (!departmentName) return;
+    const shortName = departmentName.length > 20 ? departmentName.substring(0, 20) + '...' : departmentName;
+    const stampSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140" style="display: inline-block; margin: 10px;">
+        <circle cx="70" cy="70" r="65" fill="none" stroke="#166534" stroke-width="3"/>
+        <circle cx="70" cy="70" r="55" fill="none" stroke="#166534" stroke-width="1.5"/>
+        <circle cx="70" cy="70" r="25" fill="none" stroke="#166534" stroke-width="1.5"/>
+        <text x="70" y="68" text-anchor="middle" font-size="8" font-weight="bold" fill="#166534" font-family="Arial, sans-serif">МӮҲР</text>
+        <text x="70" y="78" text-anchor="middle" font-size="6" fill="#166534" font-family="Arial, sans-serif">★★★</text>
+        <path id="topArc" d="M 20,70 A 50,50 0 0,1 120,70" fill="none"/>
+        <text font-size="8" font-weight="bold" fill="#166534" font-family="Arial, sans-serif">
+          <textPath href="#topArc" startOffset="50%" text-anchor="middle">${shortName}</textPath>
+        </text>
+        <path id="bottomArc" d="M 120,70 A 50,50 0 0,1 20,70" fill="none"/>
+        <text font-size="7" fill="#166534" font-family="Arial, sans-serif">
+          <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">КУМИТАИ ҲИФЗИ МУҲИТИ ЗИСТ</textPath>
+        </text>
+      </svg>
+    `;
+    editor.chain().focus().insertContent(stampSvg).run();
+    onInsertStamp?.();
   };
 
   return (
@@ -308,7 +290,7 @@ export function DocumentEditor({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={insertDepartmentStamp}
+                onClick={insertDepartmentStampGraphic}
                 className="gap-1 text-green-600"
                 title="Мӯҳри идора"
                 data-testid="button-insert-stamp"
