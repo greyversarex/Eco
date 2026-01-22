@@ -1034,19 +1034,10 @@ export default function ComposeMessage() {
         </DialogContent>
       </Dialog>
 
-      {/* OnlyOffice DocSpace Dialog */}
+      {/* OnlyOffice DocSpace - opens in new tab */}
       <OnlyOfficeEditor
         isOpen={showOnlyOffice}
         onClose={() => setShowOnlyOffice(false)}
-        mode="manager"
-        onSave={(file) => {
-          console.log('File from OnlyOffice:', file);
-          toast({
-            title: 'Файл интихоб шуд',
-            description: file.title || 'Файл аз OnlyOffice илова шуд',
-          });
-          setShowOnlyOffice(false);
-        }}
       />
     </div>
   );
