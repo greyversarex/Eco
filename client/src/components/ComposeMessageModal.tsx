@@ -83,13 +83,11 @@ export function ComposeMessageModal({
   );
 
   useEffect(() => {
-    if (isOpen && defaultRecipientId) {
-      setSelectedRecipients([defaultRecipientId]);
-    }
-  }, [isOpen, defaultRecipientId]);
-
-  useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      if (defaultRecipientId) {
+        setSelectedRecipients([defaultRecipientId]);
+      }
+    } else {
       setDocumentNumber('');
       setSvNumber('');
       setSvDirection(null);
@@ -99,7 +97,7 @@ export function ComposeMessageModal({
       setSelectedFiles([]);
       setRecipientSearch('');
     }
-  }, [isOpen]);
+  }, [isOpen, defaultRecipientId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
