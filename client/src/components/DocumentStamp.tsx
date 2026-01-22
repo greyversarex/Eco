@@ -99,8 +99,7 @@ export function StampButtons({ onApprove, onReject, isPending }: StampButtonsPro
       <Button
         onClick={onReject}
         disabled={isPending}
-        variant="outline"
-        className="gap-1 border-red-500 text-red-600 hover:bg-red-50"
+        className="gap-1 bg-red-600 hover:bg-red-700 text-white"
         data-testid="stamp-button-reject"
       >
         <X className="h-4 w-4" />

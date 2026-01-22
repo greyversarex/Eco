@@ -1151,10 +1151,9 @@ export default function AssignmentsPage() {
                           Иҷро шуд
                         </Button>
                         <Button
-                          variant="outline"
                           onClick={() => approveAssignmentMutation.mutate({ id: assignment.id, status: 'rejected' })}
                           disabled={approveAssignmentMutation.isPending}
-                          className="gap-1 border-red-500 text-red-600 hover:bg-red-50"
+                          className="gap-1 bg-red-600 hover:bg-red-700 text-white"
                           data-testid={`button-reject-${assignment.id}`}
                         >
                           <X className="h-4 w-4" />
