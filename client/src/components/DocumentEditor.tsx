@@ -23,6 +23,8 @@ import {
   Stamp,
   Table as TableIcon,
   Download,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -95,6 +97,80 @@ export function DocumentEditor({
 
   const insertTable = () => {
     editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+  };
+
+  const insertApprovalStamp = () => {
+    const stampHtml = `
+      <div style="position: relative; display: inline-block; margin: 10px 0; transform: rotate(-15deg);">
+        <div style="
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          border: 3px solid #16a34a;
+          border-radius: 8px;
+          background: rgba(22, 163, 74, 0.1);
+        ">
+          <div style="
+            width: 50px;
+            height: 50px;
+            border: 2px solid #16a34a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #16a34a;
+          ">Раис</div>
+          <div style="
+            font-size: 28px;
+            font-weight: bold;
+            color: #16a34a;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+          ">ИҶОЗАТ</div>
+        </div>
+      </div>
+    `;
+    editor.chain().focus().insertContent(stampHtml).run();
+  };
+
+  const insertRejectionStamp = () => {
+    const stampHtml = `
+      <div style="position: relative; display: inline-block; margin: 10px 0; transform: rotate(-15deg);">
+        <div style="
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          border: 3px solid #dc2626;
+          border-radius: 8px;
+          background: rgba(220, 38, 38, 0.1);
+        ">
+          <div style="
+            width: 50px;
+            height: 50px;
+            border: 2px solid #dc2626;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #dc2626;
+          ">Раис</div>
+          <div style="
+            font-size: 28px;
+            font-weight: bold;
+            color: #dc2626;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+          ">РАДШУДА</div>
+        </div>
+      </div>
+    `;
+    editor.chain().focus().insertContent(stampHtml).run();
   };
 
   return (
@@ -199,6 +275,31 @@ export function DocumentEditor({
             data-testid="button-insert-table"
           >
             <TableIcon className="h-4 w-4" />
+          </Button>
+
+          <Separator orientation="vertical" className="h-6 mx-1" />
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={insertApprovalStamp}
+            className="gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+            title="Иҷозат - тасдиқ кардан"
+            data-testid="button-approval-stamp"
+          >
+            <CheckCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">Иҷозат</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={insertRejectionStamp}
+            className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+            title="Радшуда - рад кардан"
+            data-testid="button-rejection-stamp"
+          >
+            <XCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">Радшуда</span>
           </Button>
 
           {departmentName && (

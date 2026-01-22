@@ -929,7 +929,7 @@ export default function ComposeMessage() {
               <FileText className="h-6 w-6 text-blue-600 shrink-0" />
               <div className="min-w-0">
                 <p className="font-medium text-blue-900 truncate">{documentTitle}</p>
-                <p className="text-xs text-blue-600">Нажмите для редактирования</p>
+                <p className="text-xs text-blue-600">Барои таҳрир пахш кунед</p>
               </div>
             </div>
             <Button
