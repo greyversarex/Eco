@@ -891,7 +891,7 @@ export default function AssignmentsPage() {
                       // Navigate to compose page with assignment context
                       setComposeMessageDialogOpen(false);
                       if (composeForAssignment) {
-                        setLocation(`/compose?assignmentId=${composeForAssignment.id}&recipientId=${composeForAssignment.senderId}`);
+                        setLocation(`/department/compose?assignmentId=${composeForAssignment.id}&recipientId=${composeForAssignment.senderId}`);
                       }
                     }}
                     data-testid="button-open-compose"
