@@ -1046,12 +1046,36 @@ export function registerRoutes(app: Express) {
       const id = parseInt(req.params.id);
       const { title, htmlContent } = req.body;
       
+      // Get the document first to check authorization
+      const existingDoc = await storage.getMessageDocumentById(id);
+      if (!existingDoc) {
+        return res.status(404).json({ error: "Ҳуҷҷат ёфт нашуд" });
+      }
+      
+      // Get department ID from session for tracking
+      const departmentId = req.session.userType === 'department' ? req.session.departmentId : null;
+      
+      // Authorization check: only sender or recipient of the message can edit documents
+      // Admins are also allowed to edit documents
+      if (req.session.userType === 'department') {
+        if (!departmentId) {
+          return res.status(403).json({ error: "Иҷозат надоред" });
+        }
+        const message = await storage.getMessage(existingDoc.messageId);
+        if (!message) {
+          return res.status(404).json({ error: "Паём ёфт нашуд" });
+        }
+        const isSender = message.senderId === departmentId;
+        const isRecipient = message.recipientIds?.includes(departmentId);
+        if (!isSender && !isRecipient) {
+          return res.status(403).json({ error: "Танҳо фиристанда ё гиранда метавонад ҳуҷҷатро таҳрир кунад" });
+        }
+      }
+      
       const updates: any = {};
       if (title !== undefined) updates.title = title.trim();
       if (htmlContent !== undefined) updates.htmlContent = htmlContent;
       
-      // Get department ID from session for tracking
-      const departmentId = req.session.userType === 'department' ? req.session.departmentId : null;
       if (departmentId) {
         updates.lastEditedBy = departmentId;
       }

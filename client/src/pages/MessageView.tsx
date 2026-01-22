@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X, Forward, Check, XCircle, Eye } from 'lucide-react';
+import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X, Forward, Check, XCircle, Eye, Edit, Save } from 'lucide-react';
+import { DocumentEditor } from '@/components/DocumentEditor';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { apiFetch, buildApiUrl } from '@/lib/api-config';
@@ -75,6 +76,11 @@ export default function MessageView() {
   // Forward modal state
   const [isForwardDialogOpen, setIsForwardDialogOpen] = useState(false);
   const [forwardRecipientIds, setForwardRecipientIds] = useState<number[]>([]);
+  
+  // Document editor state
+  const [editingDocument, setEditingDocument] = useState<MessageDocument | null>(null);
+  const [editedContent, setEditedContent] = useState('');
+  const [isDocumentEditorOpen, setIsDocumentEditorOpen] = useState(false);
   
   // Get 'from' query parameter to know where to go back
   const searchParams = new URLSearchParams(window.location.search);
@@ -247,6 +253,60 @@ export default function MessageView() {
       });
     },
   });
+
+  // Document update mutation
+  const updateDocumentMutation = useMutation({
+    mutationFn: async ({ documentId, htmlContent }: { documentId: number; htmlContent: string }) => {
+      const res = await apiFetch(`/api/message-documents/${documentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ htmlContent }),
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to update document');
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Муваффақият',
+        description: 'Ҳуҷҷат сабт шуд',
+      });
+      setIsDocumentEditorOpen(false);
+      setEditingDocument(null);
+      setEditedContent('');
+      if (id) {
+        // Invalidate all relevant cache keys
+        queryClient.invalidateQueries({ queryKey: ['/api/messages', id, 'documents'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/messages', id] });
+        queryClient.invalidateQueries({ queryKey: ['/api/message-documents'] });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Хато',
+        description: error.message || 'Хатогӣ ҳангоми сабти ҳуҷҷат',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleOpenDocumentEditor = (doc: MessageDocument) => {
+    setEditingDocument(doc);
+    setEditedContent(doc.htmlContent);
+    setIsDocumentEditorOpen(true);
+  };
+
+  const handleSaveDocument = () => {
+    if (editingDocument) {
+      updateDocumentMutation.mutate({ 
+        documentId: editingDocument.id, 
+        htmlContent: editedContent 
+      });
+    }
+  };
 
   const createAssignmentMutation = useMutation({
     mutationFn: async (formData: FormData) => {
@@ -753,11 +813,23 @@ export default function MessageView() {
                     <div className="space-y-3">
                       {messageDocuments.map((doc, index) => (
                         <Card key={doc.id} className="overflow-hidden" data-testid={`document-card-${index}`}>
-                          <CardHeader className="py-3 px-4 bg-muted/30 flex flex-row items-center justify-between">
+                          <CardHeader className="py-3 px-4 bg-muted/30 flex flex-row items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
                               <FileText className="h-5 w-5 text-green-600" />
                               <span className="font-medium">{doc.title}</span>
                             </div>
+                            {user?.userType === 'department' && (
+                              <Button 
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleOpenDocumentEditor(doc)}
+                                data-testid={`button-edit-document-${index}`}
+                                className="gap-1"
+                              >
+                                <Edit className="h-4 w-4" />
+                                Таҳрир
+                              </Button>
+                            )}
                           </CardHeader>
                           <CardContent className="p-4">
                             <div 
@@ -770,6 +842,53 @@ export default function MessageView() {
                     </div>
                   </div>
                 )}
+                
+                {/* Document Editor Dialog */}
+                <Dialog open={isDocumentEditorOpen} onOpenChange={(open) => {
+                  if (!open) {
+                    setIsDocumentEditorOpen(false);
+                    setEditingDocument(null);
+                    setEditedContent('');
+                  }
+                }}>
+                  <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+                    <DialogHeader className="flex-shrink-0">
+                      <DialogTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-green-600" />
+                        Таҳрири ҳуҷҷат: {editingDocument?.title}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-auto min-h-[400px]">
+                      <DocumentEditor
+                        content={editedContent}
+                        onChange={setEditedContent}
+                        placeholder="Мазмуни ҳуҷҷатро ворид кунед..."
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2 pt-4 flex-shrink-0 border-t">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsDocumentEditorOpen(false);
+                          setEditingDocument(null);
+                          setEditedContent('');
+                        }}
+                        data-testid="button-cancel-edit-document"
+                      >
+                        Бекор кардан
+                      </Button>
+                      <Button
+                        onClick={handleSaveDocument}
+                        disabled={updateDocumentMutation.isPending}
+                        className="gap-1"
+                        data-testid="button-save-document"
+                      >
+                        <Save className="h-4 w-4" />
+                        {updateDocumentMutation.isPending ? 'Сабт истодааст...' : 'Сабт кардан'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
 
                 {user?.userType === 'department' && (
                   <div className="pt-4 border-t flex flex-wrap justify-between gap-3 px-6">
