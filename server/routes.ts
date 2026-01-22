@@ -824,16 +824,36 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ error: "Танҳо файлҳои .docx қабул мешаванд" });
       }
       
-      // Convert docx to HTML using mammoth
+      // Convert docx to HTML using mammoth with style preservation
       const mammoth = await import('mammoth');
-      const result = await mammoth.convertToHtml({ buffer: file.buffer });
-      const htmlContent = result.value;
+      const options = {
+        styleMap: [
+          "p[style-name='Heading 1'] => h1:fresh",
+          "p[style-name='Heading 2'] => h2:fresh",
+          "p[style-name='Heading 3'] => h3:fresh",
+          "p[style-name='Title'] => h1.title:fresh",
+          "r[style-name='Strong'] => strong",
+          "r[style-name='Emphasis'] => em",
+          "u => u",
+          "strike => s",
+        ],
+        convertImage: mammoth.images.imgElement(async (image: any) => {
+          const imageBuffer = await image.read();
+          const base64 = imageBuffer.toString('base64');
+          const contentType = image.contentType || 'image/png';
+          return { src: `data:${contentType};base64,${base64}` };
+        }),
+      };
+      const result = await mammoth.convertToHtml({ buffer: file.buffer }, options);
+      
+      // Wrap content with default styling to preserve appearance
+      const styledHtmlContent = `<div style="font-family: 'Times New Roman', serif; font-size: 14pt; line-height: 1.5;">${result.value}</div>`;
       
       const template = await storage.createDocumentTemplate({
         name: name.trim(),
         description: description || null,
         originalFileName: file.originalname,
-        htmlContent: htmlContent,
+        htmlContent: styledHtmlContent,
         originalDocx: file.buffer,
         sortOrder: parseInt(sortOrder) || 0,
         isActive: isActive !== 'false',
@@ -857,7 +877,7 @@ export function registerRoutes(app: Express) {
       if (sortOrder !== undefined) updates.sortOrder = parseInt(sortOrder);
       if (isActive !== undefined) updates.isActive = isActive === 'true' || isActive === true;
       
-      // If new file uploaded, convert to HTML
+      // If new file uploaded, convert to HTML with style preservation
       if (file) {
         const allowedTypes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
         if (!allowedTypes.includes(file.mimetype)) {
@@ -865,8 +885,26 @@ export function registerRoutes(app: Express) {
         }
         
         const mammoth = await import('mammoth');
-        const result = await mammoth.convertToHtml({ buffer: file.buffer });
-        updates.htmlContent = result.value;
+        const options = {
+          styleMap: [
+            "p[style-name='Heading 1'] => h1:fresh",
+            "p[style-name='Heading 2'] => h2:fresh",
+            "p[style-name='Heading 3'] => h3:fresh",
+            "p[style-name='Title'] => h1.title:fresh",
+            "r[style-name='Strong'] => strong",
+            "r[style-name='Emphasis'] => em",
+            "u => u",
+            "strike => s",
+          ],
+          convertImage: mammoth.images.imgElement(async (image: any) => {
+            const imageBuffer = await image.read();
+            const base64 = imageBuffer.toString('base64');
+            const contentType = image.contentType || 'image/png';
+            return { src: `data:${contentType};base64,${base64}` };
+          }),
+        };
+        const result = await mammoth.convertToHtml({ buffer: file.buffer }, options);
+        updates.htmlContent = `<div style="font-family: 'Times New Roman', serif; font-size: 14pt; line-height: 1.5;">${result.value}</div>`;
         updates.originalFileName = file.originalname;
         updates.originalDocx = file.buffer;
       }
