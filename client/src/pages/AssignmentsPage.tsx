@@ -1089,28 +1089,28 @@ export default function AssignmentsPage() {
                         {assignment.approvalStatus && (
                           <div 
                             className={`
-                              w-16 h-16 rounded-full flex flex-col items-center justify-center
-                              transform rotate-[-12deg] text-xs font-bold
+                              w-14 h-14 rounded-full flex flex-col items-center justify-center
+                              transform rotate-[-12deg] font-bold shrink-0
                               ${assignment.approvalStatus === 'approved' 
-                                ? 'border-green-600 text-green-700 bg-white/90' 
-                                : 'border-red-600 text-red-700 bg-white/90'
+                                ? 'text-green-600 bg-green-50' 
+                                : 'text-red-600 bg-red-50'
                               }
                             `}
                             style={{
-                              borderWidth: '2px',
+                              borderWidth: '3px',
                               borderStyle: 'solid',
                               borderColor: assignment.approvalStatus === 'approved' ? '#16a34a' : '#dc2626',
                               boxShadow: assignment.approvalStatus === 'approved'
-                                ? '0 0 0 2px rgba(22, 163, 74, 0.2)'
-                                : '0 0 0 2px rgba(220, 38, 38, 0.2)'
+                                ? '0 0 8px rgba(22, 163, 74, 0.4)'
+                                : '0 0 8px rgba(220, 38, 38, 0.4)'
                             }}
                           >
                             {assignment.approvalStatus === 'approved' ? (
-                              <Check className="h-4 w-4 stroke-[3]" />
+                              <Check className="h-5 w-5 stroke-[3]" />
                             ) : (
-                              <X className="h-4 w-4 stroke-[3]" />
+                              <X className="h-5 w-5 stroke-[3]" />
                             )}
-                            <span className="text-[8px] leading-tight text-center font-bold">
+                            <span className="text-[7px] leading-tight text-center font-bold">
                               {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
                             </span>
                           </div>
@@ -1342,28 +1342,28 @@ export default function AssignmentsPage() {
                         {assignment.approvalStatus && (
                           <div 
                             className={`
-                              w-16 h-16 rounded-full flex flex-col items-center justify-center
-                              transform rotate-[-12deg] text-xs font-bold
+                              w-14 h-14 rounded-full flex flex-col items-center justify-center
+                              transform rotate-[-12deg] font-bold shrink-0
                               ${assignment.approvalStatus === 'approved' 
-                                ? 'border-green-600 text-green-700 bg-white/90' 
-                                : 'border-red-600 text-red-700 bg-white/90'
+                                ? 'text-green-600 bg-green-50' 
+                                : 'text-red-600 bg-red-50'
                               }
                             `}
                             style={{
-                              borderWidth: '2px',
+                              borderWidth: '3px',
                               borderStyle: 'solid',
                               borderColor: assignment.approvalStatus === 'approved' ? '#16a34a' : '#dc2626',
                               boxShadow: assignment.approvalStatus === 'approved'
-                                ? '0 0 0 2px rgba(22, 163, 74, 0.2)'
-                                : '0 0 0 2px rgba(220, 38, 38, 0.2)'
+                                ? '0 0 8px rgba(22, 163, 74, 0.4)'
+                                : '0 0 8px rgba(220, 38, 38, 0.4)'
                             }}
                           >
                             {assignment.approvalStatus === 'approved' ? (
-                              <Check className="h-4 w-4 stroke-[3]" />
+                              <Check className="h-5 w-5 stroke-[3]" />
                             ) : (
-                              <X className="h-4 w-4 stroke-[3]" />
+                              <X className="h-5 w-5 stroke-[3]" />
                             )}
-                            <span className="text-[8px] leading-tight text-center font-bold">
+                            <span className="text-[7px] leading-tight text-center font-bold">
                               {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
                             </span>
                           </div>
