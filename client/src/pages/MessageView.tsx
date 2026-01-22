@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X, Forward, Check, XCircle } from 'lucide-react';
+import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X, Forward, Check, XCircle, Eye } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { apiFetch, buildApiUrl } from '@/lib/api-config';
@@ -405,6 +405,43 @@ export default function MessageView() {
     }
   };
 
+  const handlePreview = async (attachmentId: number, fileName: string, mimeType: string) => {
+    try {
+      const response = await apiFetch(`/api/attachments/${attachmentId}`);
+      if (!response.ok) {
+        throw new Error('Failed to load file');
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      
+      const ext = fileName.toLowerCase().split('.').pop();
+      
+      if (mimeType.startsWith('image/') || ext === 'jpg' || ext === 'jpeg' || ext === 'png' || ext === 'gif' || ext === 'webp') {
+        window.open(url, '_blank');
+      } else if (mimeType === 'application/pdf' || ext === 'pdf') {
+        window.open(url, '_blank');
+      } else {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast({
+          title: 'Файл боргирӣ шуд',
+          description: 'Барои дидан файлро кушоед',
+        });
+      }
+    } catch (error: any) {
+      console.error('Preview error:', error);
+      toast({
+        title: 'Хато',
+        description: 'Хатогӣ ҳангоми кушодани файл',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Open assignment dialog with pre-filled data from message
   const openAssignmentDialog = async () => {
     if (!message) return;
@@ -680,16 +717,27 @@ export default function MessageView() {
                               {(attachment.fileSize / 1024 / 1024).toFixed(2)} МБ
                             </p>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="lg"
-                            onClick={() => handleDownload(attachment.id, attachment.filename)}
-                            data-testid={`button-download-${index}`}
-                            className="gap-2 shrink-0"
-                          >
-                            <Download className="h-5 w-5" />
-                            {t.download}
-                          </Button>
+                          <div className="flex gap-2 shrink-0">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handlePreview(attachment.id, attachment.filename, attachment.mimeType)}
+                              data-testid={`button-preview-${index}`}
+                              title="Дидан"
+                            >
+                              <Eye className="h-5 w-5" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="lg"
+                              onClick={() => handleDownload(attachment.id, attachment.filename)}
+                              data-testid={`button-download-${index}`}
+                              className="gap-2"
+                            >
+                              <Download className="h-5 w-5" />
+                              {t.download}
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
