@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Paperclip, X, LogOut, Save, Search, FileText } from 'lucide-react';
+import { ArrowLeft, Paperclip, X, LogOut, Save, Search, FileText, FileEdit } from 'lucide-react';
+import { OnlyOfficeEditor } from '@/components/OnlyOfficeEditor';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -52,6 +53,7 @@ export default function ComposeMessage() {
   const [recipientSearch, setRecipientSearch] = useState('');
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showDocumentEditor, setShowDocumentEditor] = useState(false);
+  const [showOnlyOffice, setShowOnlyOffice] = useState(false);
   const [documentContent, setDocumentContent] = useState('');
   const [documentTitle, setDocumentTitle] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
@@ -843,6 +845,18 @@ export default function ComposeMessage() {
                         Ҳуҷҷат аз намуна
                       </Button>
                     )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowOnlyOffice(true)}
+                      disabled={sendMessageMutation.isPending || isUploadingFiles}
+                      className="gap-2"
+                      data-testid="button-onlyoffice"
+                    >
+                      <FileEdit className="h-4 w-4" />
+                      OnlyOffice
+                    </Button>
                     {selectedFiles.length > 0 && (
                       <span className="text-sm text-muted-foreground">
                         Файлҳои интихобшуда: {selectedFiles.length}/5
@@ -1019,6 +1033,21 @@ export default function ComposeMessage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* OnlyOffice DocSpace Dialog */}
+      <OnlyOfficeEditor
+        isOpen={showOnlyOffice}
+        onClose={() => setShowOnlyOffice(false)}
+        mode="manager"
+        onSave={(file) => {
+          console.log('File from OnlyOffice:', file);
+          toast({
+            title: 'Файл интихоб шуд',
+            description: file.title || 'Файл аз OnlyOffice илова шуд',
+          });
+          setShowOnlyOffice(false);
+        }}
+      />
     </div>
   );
 }
