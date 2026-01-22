@@ -1,0 +1,165 @@
+root@5862137-le73231:~/Eco# git stash
+git pull origin main
+npm install
+npm run build
+pm2 restart all
+Saved working directory and index state WIP on main: a6d6900 Update assignment creation to display only the first selected person
+From https://github.com/greyversarex/Eco
+ * branch            main       -> FETCH_HEAD
+Updating a6d6900..bb31190
+Fast-forward
+ ...m2-logs-TAILING-Tailing-last-_1768991543685.txt |    52 +
+ attached_assets/image_1769014936829.png            |   Bin 0 -> 7287 bytes
+ attached_assets/image_1769029789068.png            |   Bin 0 -> 330668 bytes
+ attached_assets/image_1769030312899.png            |   Bin 0 -> 71626 bytes
+ attached_assets/image_1769031126049.png            |   Bin 0 -> 83843 bytes
+ attached_assets/image_1769072881110.png            |   Bin 0 -> 61497 bytes
+ attached_assets/image_1769074904808.png            |   Bin 0 -> 22302 bytes
+ attached_assets/image_1769076438126.png            |   Bin 0 -> 143666 bytes
+ attached_assets/image_1769079204477.png            |   Bin 0 -> 19959 bytes
+ attached_assets/image_1769079707914.png            |   Bin 0 -> 62157 bytes
+ attached_assets/image_1769081226115.png            |   Bin 0 -> 297379 bytes
+ attached_assets/image_1769086442660.png            |   Bin 0 -> 8202 bytes
+ attached_assets/image_1769101406100.png            |   Bin 0 -> 42005 bytes
+ attached_assets/image_1769104275997.png            |   Bin 0 -> 81690 bytes
+ attached_assets/image_1769104603758.png            |   Bin 0 -> 139569 bytes
+ attached_assets/image_1769105661191.png            |   Bin 0 -> 161662 bytes
+ attached_assets/image_1769105909934.png            |   Bin 0 -> 99922 bytes
+ attached_assets/image_1769105974621.png            |   Bin 0 -> 102147 bytes
+ attached_assets/image_1769106196021.png            |   Bin 0 -> 179070 bytes
+ attached_assets/image_1769106700843.png            |   Bin 0 -> 151105 bytes
+ .../photo_1_2026-01-22_14-43-43_1769075034440.jpg  |   Bin 0 -> 98844 bytes
+ .../photo_2_2026-01-22_14-43-43_1769075034441.jpg  |   Bin 0 -> 97694 bytes
+ client/index.html                                  |     3 +
+ client/src/App.tsx                                 |     6 +
+ client/src/components/DocumentEditor.tsx           |   876 +
+ client/src/components/OnlyOfficeEditor.tsx         |   210 +
+ client/src/components/PageHeader.tsx               |     6 +-
+ client/src/pages/AdminDashboard.tsx                |    22 +-
+ client/src/pages/AdminDepartmentMessages.tsx       |     8 +-
+ client/src/pages/AdminDepartments.tsx              |     9 +-
+ client/src/pages/AdminDocumentTemplates.tsx        |   615 +
+ client/src/pages/AdminDocumentTypes.tsx            |     8 +-
+ client/src/pages/AssignmentsPage.tsx               |   195 +-
+ client/src/pages/ComposeMessage.tsx                |   219 +-
+ client/src/pages/MessageView.tsx                   |   104 +-
+ package-lock.json                                  | 16306 ++++++++++---------
+ package.json                                       |    25 +-
+ server/routes.ts                                   |   308 +-
+ server/storage.ts                                  |    85 +-
+ shared/schema.ts                                   |    48 +-
+ 40 files changed, 11772 insertions(+), 7333 deletions(-)
+ create mode 100644 attached_assets/Pasted-root-5862137-le73231-Eco-pm2-logs-TAILING-Tailing-last-_1768991543685.txt
+ create mode 100644 attached_assets/image_1769014936829.png
+ create mode 100644 attached_assets/image_1769029789068.png
+ create mode 100644 attached_assets/image_1769030312899.png
+ create mode 100644 attached_assets/image_1769031126049.png
+ create mode 100644 attached_assets/image_1769072881110.png
+ create mode 100644 attached_assets/image_1769074904808.png
+ create mode 100644 attached_assets/image_1769076438126.png
+ create mode 100644 attached_assets/image_1769079204477.png
+ create mode 100644 attached_assets/image_1769079707914.png
+ create mode 100644 attached_assets/image_1769081226115.png
+ create mode 100644 attached_assets/image_1769086442660.png
+ create mode 100644 attached_assets/image_1769101406100.png
+ create mode 100644 attached_assets/image_1769104275997.png
+ create mode 100644 attached_assets/image_1769104603758.png
+ create mode 100644 attached_assets/image_1769105661191.png
+ create mode 100644 attached_assets/image_1769105909934.png
+ create mode 100644 attached_assets/image_1769105974621.png
+ create mode 100644 attached_assets/image_1769106196021.png
+ create mode 100644 attached_assets/image_1769106700843.png
+ create mode 100644 attached_assets/photo_1_2026-01-22_14-43-43_1769075034440.jpg
+ create mode 100644 attached_assets/photo_2_2026-01-22_14-43-43_1769075034441.jpg
+ create mode 100644 client/src/components/DocumentEditor.tsx
+ create mode 100644 client/src/components/OnlyOfficeEditor.tsx
+ create mode 100644 client/src/pages/AdminDocumentTemplates.tsx
+
+added 114 packages, changed 4 packages, and audited 1330 packages in 8s
+
+238 packages are looking for funding
+  run `npm fund` for details
+
+14 vulnerabilities (1 low, 6 moderate, 7 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues possible (including breaking changes), run:
+  npm audit fix --force
+
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
+
+> rest-express@1.0.4 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.21 building for production...
+transforming (1) index.html[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+transforming (8) ../node_modules/workbox-window/build/workbox-window.prod.e
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+✓ 2684 modules transformed.
+rendering chunks (73)...Killed
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [all](ids: [ 0 ])
+[PM2] [ecotajikistan](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ ecotajikistan      │ fork     │ 16   │ online    │ 0%       │ 488.0kb  │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+root@5862137-le73231:~/Eco# pm2 logs
+[TAILING] Tailing last 15 lines for [all] processes (change the value with --lines option)
+/root/.pm2/pm2.log last 15 lines:
+PM2        | 2026-01-21T13:36:59: PM2 log: pid=1073370 msg=process killed
+PM2        | 2026-01-21T13:36:59: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-01-21T13:36:59: PM2 log: App [ecotajikistan:0] online
+PM2        | 2026-01-22T09:41:59: PM2 log: [PM2] This PM2 is not UP TO DATE
+PM2        | 2026-01-22T09:41:59: PM2 log: [PM2] Upgrade to version 6.0.14
+PM2        | 2026-01-22T21:43:30: PM2 log: Stopping app:ecotajikistan id:0
+PM2        | 2026-01-22T21:43:30: PM2 log: App [ecotajikistan:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-01-22T21:43:31: PM2 log: pid=1073542 msg=process killed
+PM2        | 2026-01-22T21:43:31: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-01-22T21:43:31: PM2 log: App [ecotajikistan:0] online
+PM2        | 2026-01-22T21:49:15: PM2 log: Stopping app:ecotajikistan id:0
+PM2        | 2026-01-22T21:49:15: PM2 log: App [ecotajikistan:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-01-22T21:49:15: PM2 log: pid=1108603 msg=process killed
+PM2        | 2026-01-22T21:49:15: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-01-22T21:49:15: PM2 log: App [ecotajikistan:0] online
+
+/root/.pm2/logs/ecotajikistan-out.log last 15 lines:
+0|ecotajik | 11:43:48 PM [express] GET /api/people 200 in 8ms :: [{"id":91,"name":"Абдулҳатов Қобилҷон","departmen…
+0|ecotajik | 11:43:48 PM [express] GET /api/document-types 200 in 6ms :: [{"id":1,"name":"Гузориш","description":n…
+0|ecotajik | 11:43:56 PM [express] GET /api/auth/me 200 in 3ms :: {"userType":"department","department":{"id":1,"n…
+0|ecotajik | 11:43:57 PM [express] GET /api/messages/unread/by-department 200 in 5ms :: {"17":1}
+0|ecotajik | 11:43:57 PM [express] GET /api/counters 200 in 12ms :: {"unreadAnnouncements":0,"uncompletedAssignmen…
+0|ecotajik | 11:43:57 PM [express] GET /api/departments/1/subdepartments 200 in 6ms :: []
+0|ecotajik | 11:43:57 PM [express] GET /api/people 200 in 11ms :: [{"id":91,"name":"Абдулҳатов Қобилҷон","departme…
+0|ecotajik | 11:43:57 PM [express] GET /api/document-types 200 in 10ms :: [{"id":1,"name":"Гузориш","description":…
+0|ecotajik |
+0|ecotajik | > rest-express@1.0.4 start
+0|ecotajik | > NODE_ENV=production node dist/index.js
+0|ecotajik |
+0|ecotajik | 11:49:16 PM [express] 🔒 HTTPS mode enabled: secure cookies + sameSite:none (PWA/Mobile support)
+0|ecotajik | ✅ Push notifications configured
+0|ecotajik | 11:49:16 PM [express] serving on port 5000
+
+/root/.pm2/logs/ecotajikistan-error.log last 15 lines:
+0|ecotajik |   sessionExists: true,
+0|ecotajik |   path: '/api/messages/unread/by-department',
+0|ecotajik |   method: 'GET'
+0|ecotajik | }
+0|ecotajik | [AUTH_MIDDLEWARE] Rejected: No session or user ID {
+0|ecotajik |   hasDepartmentId: false,
+0|ecotajik |   hasAdminId: false,
+0|ecotajik |   sessionExists: true,
+0|ecotajik |   path: '/api/counters',
+0|ecotajik |   method: 'GET'
+0|ecotajik | }
+0|ecotajik | Error: ENOENT: no such file or directory, stat '/root/Eco/dist/public/index.html'
+0|ecotajik | Error: ENOENT: no such file or directory, stat '/root/Eco/dist/public/index.html'
+0|ecotajik | Error: ENOENT: no such file or directory, stat '/root/Eco/dist/public/index.html'
+0|ecotajik | Error: ENOENT: no such file or directory, stat '/root/Eco/dist/public/index.html'
+
