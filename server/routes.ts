@@ -1943,7 +1943,13 @@ export function registerRoutes(app: Express) {
   // Get all assignments (filtered by department if applicable)
   app.get("/api/assignments", requireAuth, async (req: Request, res: Response) => {
     try {
+      console.log('[ASSIGNMENTS] Fetching assignments for:', {
+        departmentId: req.session.departmentId,
+        adminId: req.session.adminId,
+      });
+      
       const allAssignments = await storage.getAssignments();
+      console.log('[ASSIGNMENTS] Total assignments from DB:', allAssignments.length);
       
       // Filter assignments: show if department is creator OR recipient
       if (req.session.departmentId) {
@@ -1957,12 +1963,15 @@ export function registerRoutes(app: Express) {
           // OR if senderId is NULL (legacy assignments before migration - show to departments with create permission)
           (assignment.senderId === null && req.session.departmentId)
         );
+        console.log('[ASSIGNMENTS] Filtered assignments for department:', filteredAssignments.length);
         return res.json(filteredAssignments);
       }
       
       // Admin sees all assignments
+      console.log('[ASSIGNMENTS] Returning all assignments for admin:', allAssignments.length);
       res.json(allAssignments);
     } catch (error: any) {
+      console.error('[ASSIGNMENTS] Error:', error);
       res.status(500).json({ error: error.message });
     }
   });
