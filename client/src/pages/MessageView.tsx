@@ -862,7 +862,8 @@ export default function MessageView() {
                       <DocumentEditor
                         content={editedContent}
                         onChange={setEditedContent}
-                        placeholder="Мазмуни ҳуҷҷатро ворид кунед..."
+                        departmentName={user?.userType === 'department' ? user.department?.name : undefined}
+                        canApprove={user?.userType === 'department' ? user.department?.canApprove : false}
                       />
                     </div>
                     <div className="flex justify-end gap-2 pt-4 flex-shrink-0 border-t">

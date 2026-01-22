@@ -1,8 +1,9 @@
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, NodeViewWrapper, NodeViewProps, ReactNodeViewRenderer } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Image from '@tiptap/extension-image';
+import { mergeAttributes, Node } from '@tiptap/core';
 import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
@@ -134,6 +135,35 @@ const FontSizeExtension = TextStyle.extend({
   },
 });
 
+const DraggableImageComponent = ({ node, selected }: NodeViewProps) => {
+  return (
+    <NodeViewWrapper 
+      as="span" 
+      className="inline-block"
+      draggable="true"
+      data-drag-handle
+    >
+      <img 
+        src={node.attrs.src}
+        alt={node.attrs.alt || ''}
+        title={node.attrs.title || ''}
+        className={cn(
+          "max-w-full h-auto cursor-grab active:cursor-grabbing transition-all",
+          selected && "outline outline-2 outline-green-500 outline-offset-2"
+        )}
+        draggable={false}
+      />
+    </NodeViewWrapper>
+  );
+};
+
+const DraggableImage = Image.extend({
+  draggable: true,
+  addNodeView() {
+    return ReactNodeViewRenderer(DraggableImageComponent);
+  },
+});
+
 export function DocumentEditor({
   content,
   onChange,
@@ -167,7 +197,7 @@ export function DocumentEditor({
       TableRow,
       TableCell,
       TableHeader,
-      Image.configure({
+      DraggableImage.configure({
         inline: true,
         allowBase64: true,
       }),
@@ -312,26 +342,63 @@ export function DocumentEditor({
   };
 
   const insertApprovalStamp = () => {
-    const stampSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="280" height="100" viewBox="0 0 280 100">
-      <rect x="10" y="10" width="260" height="80" rx="10" ry="10" fill="rgba(22, 163, 74, 0.1)" stroke="#16a34a" stroke-width="4"/>
-      <circle cx="60" cy="50" r="32" fill="rgba(22, 163, 74, 0.05)" stroke="#16a34a" stroke-width="3"/>
-      <circle cx="60" cy="50" r="24" fill="none" stroke="#16a34a" stroke-width="2"/>
-      <text x="60" y="46" text-anchor="middle" font-size="11" font-weight="bold" fill="#16a34a" font-family="Arial, sans-serif">РАИС</text>
-      <text x="60" y="60" text-anchor="middle" font-size="10" fill="#16a34a" font-family="Arial, sans-serif">★ ★ ★</text>
-      <text x="175" y="60" text-anchor="middle" font-size="32" font-weight="bold" fill="#16a34a" font-family="Arial, sans-serif" letter-spacing="4">ИҶОЗАТ</text>
+    const date = new Date().toLocaleDateString('ru-RU');
+    const stampSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+      <defs>
+        <filter id="roughEdgeApprove" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise"/>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+      </defs>
+      <g filter="url(#roughEdgeApprove)" transform="rotate(-12, 100, 100)">
+        <circle cx="100" cy="100" r="90" fill="none" stroke="#0d6939" stroke-width="6"/>
+        <circle cx="100" cy="100" r="80" fill="none" stroke="#0d6939" stroke-width="2"/>
+        <circle cx="100" cy="100" r="75" fill="none" stroke="#0d6939" stroke-width="2"/>
+        <path d="M 100 25 A 75 75 0 0 1 175 100" fill="none" stroke="#0d6939" stroke-width="2"/>
+        <text x="100" y="70" text-anchor="middle" font-size="18" font-weight="bold" fill="#0d6939" font-family="Times New Roman, serif">ИҶОЗАТ</text>
+        <g transform="translate(60, 80)">
+          <polygon points="8,0 10,6 16,6 11,10 13,16 8,12 3,16 5,10 0,6 6,6" fill="#0d6939"/>
+          <polygon points="28,0 30,6 36,6 31,10 33,16 28,12 23,16 25,10 20,6 26,6" fill="#0d6939"/>
+          <polygon points="48,0 50,6 56,6 51,10 53,16 48,12 43,16 45,10 40,6 46,6" fill="#0d6939"/>
+          <polygon points="68,0 70,6 76,6 71,10 73,16 68,12 63,16 65,10 60,6 66,6" fill="#0d6939"/>
+        </g>
+        <text x="100" y="115" text-anchor="middle" font-size="11" fill="#0d6939" font-family="Times New Roman, serif">КУМИТАИ ҲИФЗИ</text>
+        <text x="100" y="130" text-anchor="middle" font-size="11" fill="#0d6939" font-family="Times New Roman, serif">МУҲИТИ ЗИСТ</text>
+        <text x="100" y="150" text-anchor="middle" font-size="9" fill="#0d6939" font-family="Times New Roman, serif">${date}</text>
+        <line x1="50" y1="165" x2="150" y2="165" stroke="#0d6939" stroke-width="1"/>
+        <text x="100" y="180" text-anchor="middle" font-size="9" fill="#0d6939" font-family="Times New Roman, serif">Ҷумҳурии Тоҷикистон</text>
+      </g>
     </svg>`;
     const dataUrl = svgToDataUrl(stampSvg);
     editor.chain().focus().setImage({ src: dataUrl }).run();
   };
 
   const insertRejectionStamp = () => {
-    const stampSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="100" viewBox="0 0 300 100">
-      <rect x="10" y="10" width="280" height="80" rx="10" ry="10" fill="rgba(220, 38, 38, 0.1)" stroke="#dc2626" stroke-width="4"/>
-      <circle cx="60" cy="50" r="32" fill="rgba(220, 38, 38, 0.05)" stroke="#dc2626" stroke-width="3"/>
-      <circle cx="60" cy="50" r="24" fill="none" stroke="#dc2626" stroke-width="2"/>
-      <text x="60" y="46" text-anchor="middle" font-size="11" font-weight="bold" fill="#dc2626" font-family="Arial, sans-serif">РАИС</text>
-      <text x="60" y="60" text-anchor="middle" font-size="10" fill="#dc2626" font-family="Arial, sans-serif">★ ★ ★</text>
-      <text x="190" y="60" text-anchor="middle" font-size="30" font-weight="bold" fill="#dc2626" font-family="Arial, sans-serif" letter-spacing="3">РАДШУДА</text>
+    const date = new Date().toLocaleDateString('ru-RU');
+    const stampSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+      <defs>
+        <filter id="roughEdgeReject" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise"/>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+      </defs>
+      <g filter="url(#roughEdgeReject)" transform="rotate(-8, 100, 100)">
+        <circle cx="100" cy="100" r="90" fill="none" stroke="#b91c1c" stroke-width="6"/>
+        <circle cx="100" cy="100" r="80" fill="none" stroke="#b91c1c" stroke-width="2"/>
+        <circle cx="100" cy="100" r="75" fill="none" stroke="#b91c1c" stroke-width="2"/>
+        <line x1="35" y1="35" x2="165" y2="165" stroke="#b91c1c" stroke-width="4"/>
+        <line x1="165" y1="35" x2="35" y2="165" stroke="#b91c1c" stroke-width="4"/>
+        <text x="100" y="65" text-anchor="middle" font-size="16" font-weight="bold" fill="#b91c1c" font-family="Times New Roman, serif">РАДШУДА</text>
+        <g transform="translate(72, 75)">
+          <polygon points="8,0 10,6 16,6 11,10 13,16 8,12 3,16 5,10 0,6 6,6" fill="#b91c1c"/>
+          <polygon points="28,0 30,6 36,6 31,10 33,16 28,12 23,16 25,10 20,6 26,6" fill="#b91c1c"/>
+          <polygon points="48,0 50,6 56,6 51,10 53,16 48,12 43,16 45,10 40,6 46,6" fill="#b91c1c"/>
+        </g>
+        <text x="100" y="125" text-anchor="middle" font-size="11" fill="#b91c1c" font-family="Times New Roman, serif">КУМИТАИ ҲИФЗИ</text>
+        <text x="100" y="140" text-anchor="middle" font-size="11" fill="#b91c1c" font-family="Times New Roman, serif">МУҲИТИ ЗИСТ</text>
+        <text x="100" y="160" text-anchor="middle" font-size="9" fill="#b91c1c" font-family="Times New Roman, serif">${date}</text>
+        <text x="100" y="180" text-anchor="middle" font-size="9" fill="#b91c1c" font-family="Times New Roman, serif">Ҷумҳурии Тоҷикистон</text>
+      </g>
     </svg>`;
     const dataUrl = svgToDataUrl(stampSvg);
     editor.chain().focus().setImage({ src: dataUrl }).run();
@@ -339,14 +406,39 @@ export function DocumentEditor({
 
   const insertDepartmentStampGraphic = () => {
     if (!departmentName) return;
-    const stampSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
-      <circle cx="90" cy="90" r="80" fill="rgba(22, 101, 52, 0.05)" stroke="#166534" stroke-width="4"/>
-      <circle cx="90" cy="90" r="68" fill="none" stroke="#166534" stroke-width="2"/>
-      <circle cx="90" cy="90" r="35" fill="none" stroke="#166534" stroke-width="2"/>
-      <text x="90" y="86" text-anchor="middle" font-size="14" font-weight="bold" fill="#166534" font-family="Arial, sans-serif">МӮҲР</text>
-      <text x="90" y="102" text-anchor="middle" font-size="12" fill="#166534" font-family="Arial, sans-serif">★ ★ ★</text>
-      <text x="90" y="42" text-anchor="middle" font-size="11" font-weight="bold" fill="#166534" font-family="Arial, sans-serif">${departmentName.substring(0, 20)}</text>
-      <text x="90" y="150" text-anchor="middle" font-size="9" fill="#166534" font-family="Arial, sans-serif">КУМИТАИ ҲИФЗИ МУҲИТИ ЗИСТ</text>
+    const date = new Date().toLocaleDateString('ru-RU');
+    const shortName = departmentName.length > 25 ? departmentName.substring(0, 25) + '...' : departmentName;
+    const stampSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+      <defs>
+        <filter id="roughEdgeDept" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" result="noise"/>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <clipPath id="circleClip">
+          <circle cx="100" cy="100" r="88"/>
+        </clipPath>
+      </defs>
+      <g filter="url(#roughEdgeDept)" transform="rotate(-5, 100, 100)">
+        <circle cx="100" cy="100" r="95" fill="rgba(22, 101, 52, 0.03)" stroke="#166534" stroke-width="5"/>
+        <circle cx="100" cy="100" r="88" fill="none" stroke="#166534" stroke-width="3"/>
+        <circle cx="100" cy="100" r="82" fill="none" stroke="#166534" stroke-width="1"/>
+        <circle cx="100" cy="100" r="45" fill="none" stroke="#166534" stroke-width="2"/>
+        <circle cx="100" cy="100" r="40" fill="none" stroke="#166534" stroke-width="1"/>
+        <path d="M 100 14 A 86 86 0 0 1 186 100" fill="none" stroke="#166534" stroke-width="2" stroke-dasharray="4,2"/>
+        <path d="M 100 14 A 86 86 0 0 0 14 100" fill="none" stroke="#166534" stroke-width="2" stroke-dasharray="4,2"/>
+        <text x="100" y="25" text-anchor="middle" font-size="8" fill="#166534" font-family="Times New Roman, serif" letter-spacing="2">ҶУМҲУРИИ ТОҶИКИСТОН</text>
+        <text x="100" y="180" text-anchor="middle" font-size="7" fill="#166534" font-family="Times New Roman, serif" letter-spacing="1">КУМИТАИ ҲИФЗИ МУҲИТИ ЗИСТ</text>
+        <text x="100" y="75" text-anchor="middle" font-size="16" font-weight="bold" fill="#166534" font-family="Times New Roman, serif">МӮҲР</text>
+        <g transform="translate(72, 85)">
+          <polygon points="8,0 10,6 16,6 11,10 13,16 8,12 3,16 5,10 0,6 6,6" fill="#166534"/>
+          <polygon points="28,0 30,6 36,6 31,10 33,16 28,12 23,16 25,10 20,6 26,6" fill="#166534"/>
+          <polygon points="48,0 50,6 56,6 51,10 53,16 48,12 43,16 45,10 40,6 46,6" fill="#166534"/>
+        </g>
+        <text x="100" y="120" text-anchor="middle" font-size="8" fill="#166534" font-family="Times New Roman, serif">${shortName}</text>
+        <text x="100" y="138" text-anchor="middle" font-size="8" fill="#166534" font-family="Times New Roman, serif">${date}</text>
+        <circle cx="100" cy="157" r="10" fill="none" stroke="#166534" stroke-width="1"/>
+        <path d="M 93 157 L 98 162 L 108 152" fill="none" stroke="#166534" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
     </svg>`;
     const dataUrl = svgToDataUrl(stampSvg);
     editor.chain().focus().setImage({ src: dataUrl }).run();
