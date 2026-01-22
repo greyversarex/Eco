@@ -220,6 +220,8 @@ export default function AssignmentsPage() {
   const [replyAssignmentId, setReplyAssignmentId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
   const [recipientSearch, setRecipientSearch] = useState('');
+  const [composeMessageDialogOpen, setComposeMessageDialogOpen] = useState(false);
+  const [composeForAssignment, setComposeForAssignment] = useState<Assignment | null>(null);
 
   const { data: assignments = [], isLoading } = useQuery<Assignment[]>({
     queryKey: ['/api/assignments'],
@@ -320,6 +322,25 @@ export default function AssignmentsPage() {
       });
     },
   });
+
+  // Check if current user is a "Даъват" (invited executor) for an assignment
+  const isUserDaavat = (assignment: Assignment) => {
+    if (user?.userType !== 'department' || !user.department?.id) return false;
+    // Find any person from user's department that is in the executorIds
+    const userDeptPeople = allPeople.filter(p => p.departmentId === user.department?.id);
+    return userDeptPeople.some(p => assignment.executorIds?.includes(p.id));
+  };
+
+  // Get reply for a specific person by their department
+  const getReplyForDepartment = (assignment: Assignment, departmentId: number) => {
+    return assignment.replies?.find(r => r.responderDepartmentId === departmentId);
+  };
+
+  // Handle Даъват reply - open compose message dialog
+  const handleDaavatReply = (assignment: Assignment) => {
+    setComposeForAssignment(assignment);
+    setComposeMessageDialogOpen(true);
+  };
 
   const deleteAssignmentMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -842,6 +863,46 @@ export default function AssignmentsPage() {
               </div>
             </DialogContent>
           </Dialog>
+
+          {/* Compose Message Dialog for Даъват */}
+          <Dialog open={composeMessageDialogOpen} onOpenChange={setComposeMessageDialogOpen}>
+            <DialogContent className="sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Ҷавоб ба супориш - Ҳуҷҷати нав</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  <p><span className="font-medium">Супориш:</span> {composeForAssignment?.content?.substring(0, 100)}...</p>
+                  <p><span className="font-medium">Фиристода ба:</span> Раёсат</p>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setComposeMessageDialogOpen(false);
+                      setComposeForAssignment(null);
+                    }}
+                    data-testid="button-cancel-compose"
+                  >
+                    Бекор кардан
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      // Navigate to compose page with assignment context
+                      setComposeMessageDialogOpen(false);
+                      if (composeForAssignment) {
+                        setLocation(`/compose?assignmentId=${composeForAssignment.id}&recipientId=${composeForAssignment.senderId}`);
+                      }
+                    }}
+                    data-testid="button-open-compose"
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Эҷоди ҳуҷҷат
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="space-y-4">
@@ -932,10 +993,37 @@ export default function AssignmentsPage() {
                       )}
                       
                       {/* Даъват (Приглашенные исполнители) */}
-                      {assignment.executors && assignment.executors.length > 0 && (
+                      {assignment.executors && assignment.executors.length > 0 && assignment.executorIds && (
                         <div className="text-sm text-muted-foreground mt-2">
                           <span className="font-medium">Даъват:</span>{' '}
-                          {assignment.executors.join(', ')}
+                          <TooltipProvider>
+                            {assignment.executorIds.map((personId, index) => {
+                              const personName = assignment.executors[index];
+                              const person = allPeople.find(p => p.id === personId);
+                              const reply = person && assignment.replies?.find(r => r.responderDepartmentId === person.departmentId);
+                              return (
+                                <span key={personId}>
+                                  {index > 0 && ', '}
+                                  {reply ? (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span className="inline-flex items-center gap-0.5 text-green-600 cursor-pointer drop-shadow-[0_0_6px_rgba(34,197,94,0.6)]">
+                                          <CheckCircle2 className="h-3 w-3" />
+                                          {personName}
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-xs">
+                                        <p className="font-medium">Ҷавоб:</p>
+                                        <p>{reply.replyText}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  ) : (
+                                    <span>{personName}</span>
+                                  )}
+                                </span>
+                              );
+                            })}
+                          </TooltipProvider>
                         </div>
                       )}
                       
@@ -954,7 +1042,7 @@ export default function AssignmentsPage() {
                                   {reply ? (
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <span className="inline-flex items-center gap-0.5 text-green-600 cursor-pointer">
+                                        <span className="inline-flex items-center gap-0.5 text-green-600 cursor-pointer drop-shadow-[0_0_6px_rgba(34,197,94,0.6)]">
                                           <CheckCircle2 className="h-3 w-3" />
                                           {personName}
                                         </span>
@@ -1033,17 +1121,29 @@ export default function AssignmentsPage() {
                       </Button>
                     )}
                     {!assignment.isCompleted && user?.userType === 'department' && user.department?.id !== assignment.senderId && assignment.recipientIds?.includes(user.department?.id || 0) && !assignment.replies?.some(r => r.responderDepartmentId === user.department?.id) && (
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setReplyAssignmentId(assignment.id);
-                          setReplyDialogOpen(true);
-                        }}
-                        data-testid={`button-reply-${assignment.id}`}
-                      >
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Ҷавоб додан
-                      </Button>
+                      isUserDaavat(assignment) ? (
+                        <Button
+                          variant="outline"
+                          onClick={() => handleDaavatReply(assignment)}
+                          data-testid={`button-reply-daavat-${assignment.id}`}
+                          className="border-green-500 text-green-600 hover:bg-green-50"
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Ҷавоб додан
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setReplyAssignmentId(assignment.id);
+                            setReplyDialogOpen(true);
+                          }}
+                          data-testid={`button-reply-${assignment.id}`}
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Ҷавоб додан
+                        </Button>
+                      )
                     )}
                     {assignment.replies?.some(r => r.responderDepartmentId === user?.department?.id) && (
                       <span className="text-sm text-green-600 flex items-center gap-1">
@@ -1102,10 +1202,37 @@ export default function AssignmentsPage() {
                       )}
                       
                       {/* Даъват (Приглашенные исполнители) */}
-                      {assignment.executors && assignment.executors.length > 0 && (
+                      {assignment.executors && assignment.executors.length > 0 && assignment.executorIds && (
                         <div className="text-sm text-muted-foreground mt-2">
                           <span className="font-medium">Даъват:</span>{' '}
-                          {assignment.executors.join(', ')}
+                          <TooltipProvider>
+                            {assignment.executorIds.map((personId, index) => {
+                              const personName = assignment.executors[index];
+                              const person = allPeople.find(p => p.id === personId);
+                              const reply = person && assignment.replies?.find(r => r.responderDepartmentId === person.departmentId);
+                              return (
+                                <span key={personId}>
+                                  {index > 0 && ', '}
+                                  {reply ? (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span className="inline-flex items-center gap-0.5 text-green-600 cursor-pointer drop-shadow-[0_0_6px_rgba(34,197,94,0.6)]">
+                                          <CheckCircle2 className="h-3 w-3" />
+                                          {personName}
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipContent className="max-w-xs">
+                                        <p className="font-medium">Ҷавоб:</p>
+                                        <p>{reply.replyText}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  ) : (
+                                    <span>{personName}</span>
+                                  )}
+                                </span>
+                              );
+                            })}
+                          </TooltipProvider>
                         </div>
                       )}
                       
@@ -1124,7 +1251,7 @@ export default function AssignmentsPage() {
                                   {reply ? (
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <span className="inline-flex items-center gap-0.5 text-green-600 cursor-pointer">
+                                        <span className="inline-flex items-center gap-0.5 text-green-600 cursor-pointer drop-shadow-[0_0_6px_rgba(34,197,94,0.6)]">
                                           <CheckCircle2 className="h-3 w-3" />
                                           {personName}
                                         </span>
@@ -1193,17 +1320,29 @@ export default function AssignmentsPage() {
                   
                   <div className="flex gap-2 mt-2">
                     {!assignment.isCompleted && user?.userType === 'department' && user.department?.id !== assignment.senderId && assignment.recipientIds?.includes(user.department?.id || 0) && !assignment.replies?.some(r => r.responderDepartmentId === user.department?.id) && (
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setReplyAssignmentId(assignment.id);
-                          setReplyDialogOpen(true);
-                        }}
-                        data-testid={`button-reply-${assignment.id}`}
-                      >
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Ҷавоб додан
-                      </Button>
+                      isUserDaavat(assignment) ? (
+                        <Button
+                          variant="outline"
+                          onClick={() => handleDaavatReply(assignment)}
+                          data-testid={`button-reply-daavat-${assignment.id}`}
+                          className="border-green-500 text-green-600 hover:bg-green-50"
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Ҷавоб додан
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setReplyAssignmentId(assignment.id);
+                            setReplyDialogOpen(true);
+                          }}
+                          data-testid={`button-reply-${assignment.id}`}
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Ҷавоб додан
+                        </Button>
+                      )
                     )}
                     {assignment.replies?.some(r => r.responderDepartmentId === user?.department?.id) && (
                       <span className="text-sm text-green-600 flex items-center gap-1">
