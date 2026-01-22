@@ -110,21 +110,42 @@ export function DocumentEditor({
   };
 
   const insertApprovalStamp = () => {
-    const stampSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80"><g transform="rotate(-12, 100, 40)"><rect x="2" y="2" width="196" height="76" rx="8" ry="8" fill="rgba(22, 163, 74, 0.15)" stroke="#16a34a" stroke-width="3"/><circle cx="45" cy="40" r="28" fill="none" stroke="#16a34a" stroke-width="2.5"/><circle cx="45" cy="40" r="22" fill="none" stroke="#16a34a" stroke-width="1.5"/><text x="45" y="36" text-anchor="middle" font-size="10" font-weight="bold" fill="#16a34a" font-family="Arial, sans-serif">РАИС</text><text x="45" y="48" text-anchor="middle" font-size="7" fill="#16a34a" font-family="Arial, sans-serif">★★★</text><text x="130" y="50" text-anchor="middle" font-size="26" font-weight="bold" fill="#16a34a" font-family="Arial, sans-serif" letter-spacing="3">ИҶОЗАТ</text></g></svg>`;
+    const stampSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="280" height="100" viewBox="0 0 280 100">
+      <rect x="10" y="10" width="260" height="80" rx="10" ry="10" fill="rgba(22, 163, 74, 0.1)" stroke="#16a34a" stroke-width="4"/>
+      <circle cx="60" cy="50" r="32" fill="rgba(22, 163, 74, 0.05)" stroke="#16a34a" stroke-width="3"/>
+      <circle cx="60" cy="50" r="24" fill="none" stroke="#16a34a" stroke-width="2"/>
+      <text x="60" y="46" text-anchor="middle" font-size="11" font-weight="bold" fill="#16a34a" font-family="Arial, sans-serif">РАИС</text>
+      <text x="60" y="60" text-anchor="middle" font-size="10" fill="#16a34a" font-family="Arial, sans-serif">★ ★ ★</text>
+      <text x="175" y="60" text-anchor="middle" font-size="32" font-weight="bold" fill="#16a34a" font-family="Arial, sans-serif" letter-spacing="4">ИҶОЗАТ</text>
+    </svg>`;
     const dataUrl = svgToDataUrl(stampSvg);
     editor.chain().focus().setImage({ src: dataUrl }).run();
   };
 
   const insertRejectionStamp = () => {
-    const stampSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="80" viewBox="0 0 220 80"><g transform="rotate(-12, 110, 40)"><rect x="2" y="2" width="216" height="76" rx="8" ry="8" fill="rgba(220, 38, 38, 0.15)" stroke="#dc2626" stroke-width="3"/><circle cx="45" cy="40" r="28" fill="none" stroke="#dc2626" stroke-width="2.5"/><circle cx="45" cy="40" r="22" fill="none" stroke="#dc2626" stroke-width="1.5"/><text x="45" y="36" text-anchor="middle" font-size="10" font-weight="bold" fill="#dc2626" font-family="Arial, sans-serif">РАИС</text><text x="45" y="48" text-anchor="middle" font-size="7" fill="#dc2626" font-family="Arial, sans-serif">★★★</text><text x="140" y="50" text-anchor="middle" font-size="24" font-weight="bold" fill="#dc2626" font-family="Arial, sans-serif" letter-spacing="2">РАДШУДА</text></g></svg>`;
+    const stampSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="100" viewBox="0 0 300 100">
+      <rect x="10" y="10" width="280" height="80" rx="10" ry="10" fill="rgba(220, 38, 38, 0.1)" stroke="#dc2626" stroke-width="4"/>
+      <circle cx="60" cy="50" r="32" fill="rgba(220, 38, 38, 0.05)" stroke="#dc2626" stroke-width="3"/>
+      <circle cx="60" cy="50" r="24" fill="none" stroke="#dc2626" stroke-width="2"/>
+      <text x="60" y="46" text-anchor="middle" font-size="11" font-weight="bold" fill="#dc2626" font-family="Arial, sans-serif">РАИС</text>
+      <text x="60" y="60" text-anchor="middle" font-size="10" fill="#dc2626" font-family="Arial, sans-serif">★ ★ ★</text>
+      <text x="190" y="60" text-anchor="middle" font-size="30" font-weight="bold" fill="#dc2626" font-family="Arial, sans-serif" letter-spacing="3">РАДШУДА</text>
+    </svg>`;
     const dataUrl = svgToDataUrl(stampSvg);
     editor.chain().focus().setImage({ src: dataUrl }).run();
   };
 
   const insertDepartmentStampGraphic = () => {
     if (!departmentName) return;
-    const shortName = departmentName.length > 15 ? departmentName.substring(0, 15) : departmentName;
-    const stampSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140"><circle cx="70" cy="70" r="65" fill="none" stroke="#166534" stroke-width="3"/><circle cx="70" cy="70" r="55" fill="none" stroke="#166534" stroke-width="1.5"/><circle cx="70" cy="70" r="25" fill="none" stroke="#166534" stroke-width="1.5"/><text x="70" y="68" text-anchor="middle" font-size="8" font-weight="bold" fill="#166534" font-family="Arial, sans-serif">МӮҲР</text><text x="70" y="78" text-anchor="middle" font-size="6" fill="#166534" font-family="Arial, sans-serif">★★★</text><defs><path id="topArc${Date.now()}" d="M 20,70 A 50,50 0 0,1 120,70" fill="none"/><path id="bottomArc${Date.now()}" d="M 120,70 A 50,50 0 0,1 20,70" fill="none"/></defs><text font-size="8" font-weight="bold" fill="#166534" font-family="Arial, sans-serif"><textPath href="#topArc${Date.now()}" startOffset="50%" text-anchor="middle">${shortName}</textPath></text><text font-size="7" fill="#166534" font-family="Arial, sans-serif"><textPath href="#bottomArc${Date.now()}" startOffset="50%" text-anchor="middle">КУМИТАИ ҲИФЗИ МУҲИТИ ЗИСТ</textPath></text></svg>`;
+    const stampSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
+      <circle cx="90" cy="90" r="80" fill="rgba(22, 101, 52, 0.05)" stroke="#166534" stroke-width="4"/>
+      <circle cx="90" cy="90" r="68" fill="none" stroke="#166534" stroke-width="2"/>
+      <circle cx="90" cy="90" r="35" fill="none" stroke="#166534" stroke-width="2"/>
+      <text x="90" y="86" text-anchor="middle" font-size="14" font-weight="bold" fill="#166534" font-family="Arial, sans-serif">МӮҲР</text>
+      <text x="90" y="102" text-anchor="middle" font-size="12" fill="#166534" font-family="Arial, sans-serif">★ ★ ★</text>
+      <text x="90" y="42" text-anchor="middle" font-size="11" font-weight="bold" fill="#166534" font-family="Arial, sans-serif">${departmentName.substring(0, 20)}</text>
+      <text x="90" y="150" text-anchor="middle" font-size="9" fill="#166534" font-family="Arial, sans-serif">КУМИТАИ ҲИФЗИ МУҲИТИ ЗИСТ</text>
+    </svg>`;
     const dataUrl = svgToDataUrl(stampSvg);
     editor.chain().focus().setImage({ src: dataUrl }).run();
     onInsertStamp?.();
