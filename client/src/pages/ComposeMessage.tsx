@@ -308,6 +308,21 @@ export default function ComposeMessage() {
 
         const result = await response.json();
         
+        // Save document for each message if created
+        if (documentContent && documentTitle && result.messageIds) {
+          try {
+            for (const messageId of result.messageIds) {
+              await apiRequest('POST', `/api/messages/${messageId}/documents`, {
+                templateId: selectedTemplateId,
+                title: documentTitle,
+                htmlContent: documentContent,
+              });
+            }
+          } catch (error) {
+            console.error('Failed to save document for broadcast:', error);
+          }
+        }
+        
         toast({
           title: 'Муваффақият',
           description: `${result.messagesCreated} паём${selectedFiles.length > 0 ? ' ва файлҳо' : ''} фиристода ${selectedFiles.length > 0 ? 'шуданд' : 'шуд'}`,
@@ -328,6 +343,19 @@ export default function ComposeMessage() {
         };
 
         const message = await apiRequest('POST', '/api/messages', messageData);
+
+        // Save document if created
+        if (documentContent && documentTitle) {
+          try {
+            await apiRequest('POST', `/api/messages/${message.id}/documents`, {
+              templateId: selectedTemplateId,
+              title: documentTitle,
+              htmlContent: documentContent,
+            });
+          } catch (error) {
+            console.error('Failed to save document:', error);
+          }
+        }
 
         // Upload files if any
         if (selectedFiles.length > 0) {
@@ -1032,6 +1060,8 @@ export default function ComposeMessage() {
               departmentName={user?.userType === 'department' ? user.department?.name : undefined}
               canApprove={user?.userType === 'department' ? user.department?.canApprove : false}
               className="h-full"
+              title={documentTitle}
+              onTitleChange={setDocumentTitle}
             />
           </div>
         </DialogContent>

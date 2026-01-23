@@ -15,6 +15,28 @@ import Highlight from '@tiptap/extension-highlight';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
+import { Extension, Editor } from '@tiptap/core';
+
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    pageBreak: {
+      insertPageBreak: () => ReturnType;
+    };
+  }
+}
+
+const PageBreak = Extension.create({
+  name: 'pageBreak',
+  addCommands() {
+    return {
+      insertPageBreak: () => ({ editor }: { editor: Editor }) => {
+        return editor.chain()
+          .insertContent('<div class="page-break" contenteditable="false"><span>-- Саҳифаи нав --</span></div>')
+          .run();
+      },
+    };
+  },
+});
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -77,6 +99,11 @@ import {
   Heading3,
   Pilcrow,
   Quote,
+  ChevronsUpDown,
+  Pilcrow as ParagraphMark,
+  FileText,
+  Pencil,
+  SeparatorHorizontal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useCallback, useEffect } from 'react';
@@ -91,7 +118,18 @@ interface DocumentEditorProps {
   onExportPdf?: () => void;
   readOnly?: boolean;
   className?: string;
+  title?: string;
+  onTitleChange?: (title: string) => void;
 }
+
+const LINE_SPACINGS = [
+  { value: '1', label: '1.0' },
+  { value: '1.15', label: '1.15' },
+  { value: '1.5', label: '1.5' },
+  { value: '2', label: '2.0' },
+  { value: '2.5', label: '2.5' },
+  { value: '3', label: '3.0' },
+];
 
 const FONT_FAMILIES = [
   { value: 'Arial', label: 'Arial' },
@@ -174,11 +212,47 @@ export function DocumentEditor({
   onExportPdf,
   readOnly = false,
   className,
+  title,
+  onTitleChange,
 }: DocumentEditorProps) {
   const [searchText, setSearchText] = useState('');
   const [replaceText, setReplaceText] = useState('');
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [showFormattingMarks, setShowFormattingMarks] = useState(false);
+  const [lineSpacing, setLineSpacing] = useState('1.5');
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editableTitle, setEditableTitle] = useState(title || 'Ҳуҷҷати нав');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (title) {
+      setEditableTitle(title);
+    }
+  }, [title]);
+
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [isEditingTitle]);
+
+  const handleTitleSave = () => {
+    setIsEditingTitle(false);
+    if (onTitleChange && editableTitle.trim()) {
+      onTitleChange(editableTitle.trim());
+    }
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleTitleSave();
+    } else if (e.key === 'Escape') {
+      setEditableTitle(title || 'Ҳуҷҷати нав');
+      setIsEditingTitle(false);
+    }
+  };
 
   const editor = useEditor({
     extensions: [
@@ -214,6 +288,7 @@ export function DocumentEditor({
       Subscript,
       Superscript,
       HorizontalRule,
+      PageBreak,
     ],
     content,
     editable: !readOnly,
@@ -456,6 +531,37 @@ export function DocumentEditor({
 
   return (
     <div className={cn("border rounded-lg overflow-hidden bg-background", className)}>
+      {/* Document Title Header */}
+      {(title !== undefined || onTitleChange) && (
+        <div className="border-b bg-gradient-to-r from-green-600 to-green-700 px-4 py-3 flex items-center gap-2">
+          <FileText className="h-5 w-5 text-white" />
+          {isEditingTitle ? (
+            <Input
+              ref={titleInputRef}
+              value={editableTitle}
+              onChange={(e) => setEditableTitle(e.target.value)}
+              onBlur={handleTitleSave}
+              onKeyDown={handleTitleKeyDown}
+              className="h-7 bg-white/90 text-gray-900 font-medium max-w-md"
+              data-testid="input-document-title"
+            />
+          ) : (
+            <button
+              onClick={() => onTitleChange && setIsEditingTitle(true)}
+              className={cn(
+                "text-white font-semibold text-lg flex items-center gap-2",
+                onTitleChange && "hover:underline cursor-pointer"
+              )}
+              disabled={!onTitleChange}
+              data-testid="button-edit-title"
+            >
+              {editableTitle}
+              {onTitleChange && <Pencil className="h-4 w-4 opacity-60" />}
+            </button>
+          )}
+        </div>
+      )}
+
       {!readOnly && (
         <div className="border-b bg-muted/30 p-1 space-y-1">
           {/* Row 1: Font, Size, Basic Formatting */}
@@ -487,6 +593,32 @@ export function DocumentEditor({
                 ))}
               </SelectContent>
             </Select>
+
+            {/* Line Spacing */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8" title="Фосилаи сатрҳо" data-testid="button-line-spacing">
+                  <ChevronsUpDown className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-32 p-1">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground px-2 py-1">Фосилаи сатрҳо</p>
+                  {LINE_SPACINGS.map((spacing) => (
+                    <Button
+                      key={spacing.value}
+                      variant={lineSpacing === spacing.value ? "secondary" : "ghost"}
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={() => setLineSpacing(spacing.value)}
+                      data-testid={`button-line-spacing-${spacing.value}`}
+                    >
+                      {spacing.label}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
 
             <Separator orientation="vertical" className="h-6 mx-1" />
 
@@ -753,6 +885,14 @@ export function DocumentEditor({
                 <Minus className="h-4 w-4" />
               </ToolbarButton>
 
+              {/* Page Break */}
+              <ToolbarButton
+                onClick={() => editor.chain().focus().insertPageBreak().run()}
+                title="Саҳифаи нав (Page Break)"
+              >
+                <SeparatorHorizontal className="h-4 w-4" data-testid="button-page-break" />
+              </ToolbarButton>
+
               {/* Image Upload */}
               <ToolbarButton
                 onClick={() => fileInputRef.current?.click()}
@@ -838,6 +978,17 @@ export function DocumentEditor({
 
             <Separator orientation="vertical" className="h-6 mx-1" />
 
+            {/* Show Formatting Marks */}
+            <ToolbarButton
+              onClick={() => setShowFormattingMarks(!showFormattingMarks)}
+              isActive={showFormattingMarks}
+              title="Намоиши ҳамаи аломатҳо"
+            >
+              <Pilcrow className="h-4 w-4" data-testid="button-show-formatting-marks" />
+            </ToolbarButton>
+
+            <Separator orientation="vertical" className="h-6 mx-1" />
+
             {/* Stamps */}
             {canApprove && (
               <ToolbarGroup>
@@ -917,26 +1068,49 @@ export function DocumentEditor({
         </div>
       )}
 
-      <EditorContent 
-        editor={editor} 
-        className={cn(
-          "prose prose-sm max-w-none p-4 min-h-[400px] focus:outline-none bg-white",
-          "[&_.ProseMirror]:min-h-[400px] [&_.ProseMirror]:outline-none",
-          "[&_.ProseMirror]:font-['Times_New_Roman',serif] [&_.ProseMirror]:text-base [&_.ProseMirror]:leading-relaxed",
-          "[&_.ProseMirror_p]:my-2 [&_.ProseMirror_p]:leading-relaxed",
-          "[&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-bold [&_.ProseMirror_h1]:my-4",
-          "[&_.ProseMirror_h2]:text-xl [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_h2]:my-3",
-          "[&_.ProseMirror_h3]:text-lg [&_.ProseMirror_h3]:font-bold [&_.ProseMirror_h3]:my-2",
-          "[&_.ProseMirror_table]:border-collapse [&_.ProseMirror_table]:w-full",
-          "[&_.ProseMirror_th]:border [&_.ProseMirror_th]:border-gray-300 [&_.ProseMirror_th]:p-2 [&_.ProseMirror_th]:bg-gray-100",
-          "[&_.ProseMirror_td]:border [&_.ProseMirror_td]:border-gray-300 [&_.ProseMirror_td]:p-2",
-          "[&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-gray-300 [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:italic",
-          "[&_.ProseMirror_hr]:border-t-2 [&_.ProseMirror_hr]:border-gray-300 [&_.ProseMirror_hr]:my-4",
-          "[&_.ProseMirror_img]:max-w-full [&_.ProseMirror_img]:h-auto",
-          "[&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-6 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-6"
-        )}
-        data-testid="document-editor-content"
-      />
+      {/* A4 Page Container with Pagination */}
+      <div className="bg-gray-200 p-4 overflow-auto max-h-[70vh]">
+        <div 
+          className="mx-auto bg-white shadow-lg"
+          style={{
+            width: '210mm',
+            minHeight: '297mm',
+            padding: '20mm 25mm',
+          }}
+        >
+          <EditorContent 
+            editor={editor} 
+            className={cn(
+              "prose prose-sm max-w-none focus:outline-none",
+              "[&_.ProseMirror]:min-h-[257mm] [&_.ProseMirror]:outline-none",
+              "[&_.ProseMirror]:font-['Times_New_Roman',serif] [&_.ProseMirror]:text-base",
+              "[&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-bold [&_.ProseMirror_h1]:my-4",
+              "[&_.ProseMirror_h2]:text-xl [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_h2]:my-3",
+              "[&_.ProseMirror_h3]:text-lg [&_.ProseMirror_h3]:font-bold [&_.ProseMirror_h3]:my-2",
+              "[&_.ProseMirror_table]:border-collapse [&_.ProseMirror_table]:w-full",
+              "[&_.ProseMirror_th]:border [&_.ProseMirror_th]:border-gray-300 [&_.ProseMirror_th]:p-2 [&_.ProseMirror_th]:bg-gray-100",
+              "[&_.ProseMirror_td]:border [&_.ProseMirror_td]:border-gray-300 [&_.ProseMirror_td]:p-2",
+              "[&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-gray-300 [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:italic",
+              "[&_.ProseMirror_hr]:border-t-2 [&_.ProseMirror_hr]:border-gray-300 [&_.ProseMirror_hr]:my-4",
+              "[&_.ProseMirror_img]:max-w-full [&_.ProseMirror_img]:h-auto",
+              "[&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-6 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-6",
+              "[&_.ProseMirror_.page-break]:my-8 [&_.ProseMirror_.page-break]:py-4 [&_.ProseMirror_.page-break]:border-t-2 [&_.ProseMirror_.page-break]:border-b-2 [&_.ProseMirror_.page-break]:border-dashed [&_.ProseMirror_.page-break]:border-gray-400 [&_.ProseMirror_.page-break]:bg-gray-50 [&_.ProseMirror_.page-break]:text-center [&_.ProseMirror_.page-break]:text-gray-500 [&_.ProseMirror_.page-break]:text-sm [&_.ProseMirror_.page-break]:font-medium",
+              showFormattingMarks && "[&_.ProseMirror_p]:after:content-['¶'] [&_.ProseMirror_p]:after:text-blue-300 [&_.ProseMirror_p]:after:text-sm",
+              showFormattingMarks && "[&_.ProseMirror]:whitespace-pre-wrap"
+            )}
+            style={{
+              lineHeight: lineSpacing,
+            }}
+            data-testid="document-editor-content"
+          />
+        </div>
+      </div>
+
+      {/* Page info footer */}
+      <div className="border-t bg-muted/30 px-4 py-1 text-xs text-muted-foreground flex items-center justify-between">
+        <span>Формат: A4 (210 × 297 мм)</span>
+        <span>Фосилаи сатрҳо: {lineSpacing}</span>
+      </div>
     </div>
   );
 }

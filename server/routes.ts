@@ -1061,7 +1061,7 @@ export function registerRoutes(app: Express) {
         if (!departmentId) {
           return res.status(403).json({ error: "Иҷозат надоред" });
         }
-        const message = await storage.getMessage(existingDoc.messageId);
+        const message = await storage.getMessageById(existingDoc.messageId);
         if (!message) {
           return res.status(404).json({ error: "Паём ёфт нашуд" });
         }
