@@ -891,15 +891,6 @@ export default function MessageView() {
                             </p>
                           </div>
                           <div className="flex gap-2 shrink-0">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handlePreview(attachment.id, attachment.filename, attachment.mimeType)}
-                              data-testid={`button-preview-${index}`}
-                              title="Дидан"
-                            >
-                              <Eye className="h-5 w-5" />
-                            </Button>
                             {isEditableAttachment(attachment.mimeType, attachment.filename) && (
                               <Button
                                 variant="outline"
