@@ -320,11 +320,24 @@ export default function MessageView() {
       'text/html',
       'text/plain',
       'application/xhtml+xml',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
-    const editableExtensions = ['.html', '.htm', '.txt', '.md'];
+    const editableExtensions = ['.html', '.htm', '.txt', '.md', '.doc', '.docx'];
     const lowerFilename = filename.toLowerCase();
     return editableMimeTypes.includes(mimeType) || 
            editableExtensions.some(ext => lowerFilename.endsWith(ext));
+  };
+  
+  // Check if file is a Word document
+  const isWordDocument = (mimeType: string, filename: string) => {
+    const wordMimeTypes = [
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ];
+    const lowerFilename = filename.toLowerCase();
+    return wordMimeTypes.includes(mimeType) || 
+           lowerFilename.endsWith('.doc') || lowerFilename.endsWith('.docx');
   };
 
   // Load attachment content and open editor
@@ -335,12 +348,25 @@ export default function MessageView() {
       if (!response.ok) throw new Error('Failed to load attachment');
       
       const blob = await response.blob();
-      const text = await blob.text();
+      let htmlContent = '';
       
-      // If it's plain text, wrap it in basic HTML
-      let htmlContent = text;
-      if (attachment.mimeType === 'text/plain' || attachment.filename.toLowerCase().endsWith('.txt')) {
-        htmlContent = `<p>${text.split('\n').join('</p><p>')}</p>`;
+      // Handle Word documents using mammoth
+      if (isWordDocument(attachment.mimeType, attachment.filename)) {
+        const mammoth = await import('mammoth');
+        const arrayBuffer = await blob.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        htmlContent = result.value;
+        if (result.messages.length > 0) {
+          console.log('Mammoth conversion messages:', result.messages);
+        }
+      } else {
+        const text = await blob.text();
+        // If it's plain text, wrap it in basic HTML
+        if (attachment.mimeType === 'text/plain' || attachment.filename.toLowerCase().endsWith('.txt')) {
+          htmlContent = `<p>${text.split('\n').join('</p><p>')}</p>`;
+        } else {
+          htmlContent = text;
+        }
       }
       
       setEditingAttachment(attachment);
