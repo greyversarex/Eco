@@ -1417,15 +1417,6 @@ export default function AssignmentsPage() {
                                   </span>
                                 </div>
                                 <p className="text-sm">{reply.replyText}</p>
-                                {reply.documentContent && (
-                                  <div className="mt-2 p-2 bg-white rounded border">
-                                    <div className="text-xs text-muted-foreground mb-1">Ҳуҷҷат:</div>
-                                    <div 
-                                      className="text-sm prose prose-sm max-w-none"
-                                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(reply.documentContent, { ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'], ALLOWED_ATTR: ['colspan', 'rowspan'] }) }}
-                                    />
-                                  </div>
-                                )}
                                 {reply.attachments && reply.attachments.length > 0 && (
                                   <div className="mt-2 flex flex-wrap gap-2">
                                     {reply.attachments.map((att: any) => (
@@ -1748,15 +1739,6 @@ export default function AssignmentsPage() {
                                   </span>
                                 </div>
                                 <p className="text-sm">{reply.replyText}</p>
-                                {reply.documentContent && (
-                                  <div className="mt-2 p-2 bg-white rounded border">
-                                    <div className="text-xs text-muted-foreground mb-1">Ҳуҷҷат:</div>
-                                    <div 
-                                      className="text-sm prose prose-sm max-w-none"
-                                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(reply.documentContent, { ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'], ALLOWED_ATTR: ['colspan', 'rowspan'] }) }}
-                                    />
-                                  </div>
-                                )}
                                 {reply.attachments && reply.attachments.length > 0 && (
                                   <div className="mt-2 flex flex-wrap gap-2">
                                     {reply.attachments.map((att: any) => (
@@ -1971,15 +1953,6 @@ export default function AssignmentsPage() {
                                       </span>
                                     </div>
                                     <p className="text-sm">{reply.replyText}</p>
-                                    {reply.documentContent && (
-                                      <div className="mt-2 p-2 bg-white rounded border">
-                                        <div className="text-xs text-muted-foreground mb-1">Ҳуҷҷат:</div>
-                                        <div 
-                                          className="text-sm prose prose-sm max-w-none"
-                                          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(reply.documentContent, { ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'], ALLOWED_ATTR: ['colspan', 'rowspan'] }) }}
-                                        />
-                                      </div>
-                                    )}
                                     {reply.attachments && reply.attachments.length > 0 && (
                                       <div className="mt-2 flex flex-wrap gap-2">
                                         {reply.attachments.map((att: any) => (

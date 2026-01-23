@@ -2297,28 +2297,75 @@ export function registerRoutes(app: Express) {
         return res.status(403).json({ error: 'Only recipient departments can reply to this assignment' });
       }
       
-      // Sanitize document content to prevent XSS with strict config
-      const sanitizedDocumentContent = documentContent 
-        ? DOMPurify.sanitize(documentContent, { 
-            ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
-            ALLOWED_ATTR: ['colspan', 'rowspan'],
-            ALLOW_DATA_ATTR: false,
-            ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):)/i,
-          })
-        : null;
-      
-      // Create the reply
+      // Create the reply (no documentContent stored as text - it will be converted to DOCX)
       const reply = await storage.createAssignmentReply({
         assignmentId,
         responderDepartmentId,
         responderPersonId: responderPersonId ? parseInt(responderPersonId) : null,
         replyText: replyText.trim(),
-        documentContent: sanitizedDocumentContent,
+        documentContent: null, // Document content is now saved as DOCX attachment
       });
       
       // Handle file attachments
       const files = req.files as Express.Multer.File[];
       const attachmentsResult = [];
+      
+      // If documentContent is provided, convert to DOCX and save as attachment
+      if (documentContent && documentContent.trim()) {
+        const sanitizedContent = DOMPurify.sanitize(documentContent, { 
+          ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+          ALLOWED_ATTR: ['colspan', 'rowspan'],
+          ALLOW_DATA_ATTR: false,
+          ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):)/i,
+        });
+        
+        // Convert HTML to DOCX
+        const { Document, Packer, Paragraph, TextRun } = await import('docx');
+        
+        // Parse HTML and convert to DOCX paragraphs (simplified conversion)
+        const textContent = sanitizedContent
+          .replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<\/p>/gi, '\n\n')
+          .replace(/<[^>]+>/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .trim();
+        
+        const paragraphs = textContent.split(/\n+/).filter((p: string) => p.trim()).map((text: string) => 
+          new Paragraph({
+            children: [new TextRun({ text: text.trim(), size: 24 })],
+          })
+        );
+        
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: paragraphs.length > 0 ? paragraphs : [new Paragraph({ children: [new TextRun('')] })],
+          }],
+        });
+        
+        const docxBuffer = await Packer.toBuffer(doc);
+        
+        // Save as attachment with filename "Ҳуҷҷат.docx"
+        const docxAttachment = await storage.createAssignmentReplyAttachment({
+          replyId: reply.id,
+          filename: 'Ҳуҷҷат.docx',
+          fileData: Buffer.from(docxBuffer),
+          fileSize: docxBuffer.byteLength,
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        });
+        attachmentsResult.push({
+          id: docxAttachment.id,
+          filename: docxAttachment.filename,
+          fileSize: docxAttachment.fileSize,
+          mimeType: docxAttachment.mimeType,
+        });
+      }
+      
+      // Handle user-uploaded file attachments
       if (files && files.length > 0) {
         for (const file of files) {
           const attachment = await storage.createAssignmentReplyAttachment({
