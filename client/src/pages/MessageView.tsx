@@ -82,6 +82,12 @@ export default function MessageView() {
   const [editedContent, setEditedContent] = useState('');
   const [isDocumentEditorOpen, setIsDocumentEditorOpen] = useState(false);
   
+  // Attachment editor state
+  const [editingAttachment, setEditingAttachment] = useState<Attachment | null>(null);
+  const [attachmentContent, setAttachmentContent] = useState('');
+  const [isAttachmentEditorOpen, setIsAttachmentEditorOpen] = useState(false);
+  const [isLoadingAttachment, setIsLoadingAttachment] = useState(false);
+  
   // Get 'from' query parameter to know where to go back
   const searchParams = new URLSearchParams(window.location.search);
   const fromPage = searchParams.get('from');
@@ -304,6 +310,86 @@ export default function MessageView() {
       updateDocumentMutation.mutate({ 
         documentId: editingDocument.id, 
         htmlContent: editedContent 
+      });
+    }
+  };
+
+  // Check if attachment can be edited in document editor
+  const isEditableAttachment = (mimeType: string, filename: string) => {
+    const editableMimeTypes = [
+      'text/html',
+      'text/plain',
+      'application/xhtml+xml',
+    ];
+    const editableExtensions = ['.html', '.htm', '.txt', '.md'];
+    const lowerFilename = filename.toLowerCase();
+    return editableMimeTypes.includes(mimeType) || 
+           editableExtensions.some(ext => lowerFilename.endsWith(ext));
+  };
+
+  // Load attachment content and open editor
+  const handleEditAttachment = async (attachment: Attachment) => {
+    setIsLoadingAttachment(true);
+    try {
+      const response = await apiFetch(`/api/attachments/${attachment.id}`);
+      if (!response.ok) throw new Error('Failed to load attachment');
+      
+      const blob = await response.blob();
+      const text = await blob.text();
+      
+      // If it's plain text, wrap it in basic HTML
+      let htmlContent = text;
+      if (attachment.mimeType === 'text/plain' || attachment.filename.toLowerCase().endsWith('.txt')) {
+        htmlContent = `<p>${text.split('\n').join('</p><p>')}</p>`;
+      }
+      
+      setEditingAttachment(attachment);
+      setAttachmentContent(htmlContent);
+      setIsAttachmentEditorOpen(true);
+    } catch (error) {
+      console.error('Error loading attachment:', error);
+      toast({
+        title: 'Хато',
+        description: 'Хатогӣ ҳангоми боркунии файл',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoadingAttachment(false);
+    }
+  };
+
+  // Save edited attachment as new document
+  const handleSaveAttachmentAsDocument = async () => {
+    if (!editingAttachment || !id) return;
+    
+    try {
+      const response = await apiFetch('/api/message-documents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messageId: parseInt(id),
+          title: editingAttachment.filename.replace(/\.[^/.]+$/, ''),
+          htmlContent: attachmentContent,
+        }),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) throw new Error('Failed to save document');
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/messages', id, 'documents'] });
+      toast({
+        title: 'Муваффақият',
+        description: 'Ҳуҷҷат сабт шуд',
+      });
+      setIsAttachmentEditorOpen(false);
+      setEditingAttachment(null);
+      setAttachmentContent('');
+    } catch (error) {
+      console.error('Error saving document:', error);
+      toast({
+        title: 'Хато',
+        description: 'Хатогӣ ҳангоми сабти ҳуҷҷат',
+        variant: 'destructive',
       });
     }
   };
@@ -788,6 +874,18 @@ export default function MessageView() {
                             >
                               <Eye className="h-5 w-5" />
                             </Button>
+                            {isEditableAttachment(attachment.mimeType, attachment.filename) && (
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleEditAttachment(attachment)}
+                                disabled={isLoadingAttachment}
+                                data-testid={`button-edit-attachment-${index}`}
+                                title="Таҳрир дар муҳаррир"
+                              >
+                                <Edit className="h-5 w-5" />
+                              </Button>
+                            )}
                             <Button
                               variant="outline"
                               size="lg"
@@ -878,6 +976,53 @@ export default function MessageView() {
                       >
                         <Save className="h-4 w-4" />
                         {updateDocumentMutation.isPending ? 'Сабт истодааст...' : 'Сабт кардан'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Attachment Editor Dialog */}
+                <Dialog open={isAttachmentEditorOpen} onOpenChange={(open) => {
+                  if (!open) {
+                    setIsAttachmentEditorOpen(false);
+                    setEditingAttachment(null);
+                    setAttachmentContent('');
+                  }
+                }}>
+                  <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+                    <DialogHeader className="flex-shrink-0">
+                      <DialogTitle className="flex items-center gap-2">
+                        <Paperclip className="h-5 w-5 text-green-600" />
+                        Таҳрири файл: {editingAttachment?.filename}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-auto min-h-[400px]">
+                      <DocumentEditor
+                        content={attachmentContent}
+                        onChange={setAttachmentContent}
+                        departmentName={user?.userType === 'department' ? user.department?.name : undefined}
+                        canApprove={user?.userType === 'department' ? user.department?.canApprove : false}
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2 pt-4 flex-shrink-0 border-t">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsAttachmentEditorOpen(false);
+                          setEditingAttachment(null);
+                          setAttachmentContent('');
+                        }}
+                        data-testid="button-cancel-edit-attachment"
+                      >
+                        Бекор кардан
+                      </Button>
+                      <Button
+                        onClick={handleSaveAttachmentAsDocument}
+                        className="gap-1"
+                        data-testid="button-save-attachment-as-document"
+                      >
+                        <Save className="h-4 w-4" />
+                        Сабт ҳамчун ҳуҷҷат
                       </Button>
                     </div>
                   </DialogContent>
