@@ -2265,11 +2265,11 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Create assignment reply (Чавоб додан)
-  app.post("/api/assignments/:id/replies", requireAuth, async (req: Request, res: Response) => {
+  // Create assignment reply with attachments (Чавоб додан)
+  app.post("/api/assignments/:id/replies", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
     try {
       const assignmentId = parseInt(req.params.id);
-      const { replyText, responderPersonId } = req.body;
+      const { replyText, documentContent, responderPersonId } = req.body;
       
       if (!replyText || typeof replyText !== 'string' || replyText.trim() === '') {
         return res.status(400).json({ error: 'Reply text is required' });
@@ -2300,11 +2300,51 @@ export function registerRoutes(app: Express) {
       const reply = await storage.createAssignmentReply({
         assignmentId,
         responderDepartmentId,
-        responderPersonId: responderPersonId || null,
+        responderPersonId: responderPersonId ? parseInt(responderPersonId) : null,
         replyText: replyText.trim(),
+        documentContent: documentContent || null,
       });
       
-      res.status(201).json(reply);
+      // Handle file attachments
+      const files = req.files as Express.Multer.File[];
+      const attachmentsResult = [];
+      if (files && files.length > 0) {
+        for (const file of files) {
+          const attachment = await storage.createAssignmentReplyAttachment({
+            replyId: reply.id,
+            filename: file.originalname,
+            fileData: file.buffer,
+            fileSize: file.size,
+            mimeType: file.mimetype,
+          });
+          attachmentsResult.push({
+            id: attachment.id,
+            filename: attachment.filename,
+            fileSize: attachment.fileSize,
+            mimeType: attachment.mimeType,
+          });
+        }
+      }
+      
+      res.status(201).json({ ...reply, attachments: attachmentsResult });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get assignment reply attachments
+  app.get("/api/assignment-reply-attachments/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const attachment = await storage.getAssignmentReplyAttachment(id);
+      
+      if (!attachment) {
+        return res.status(404).json({ error: 'Attachment not found' });
+      }
+      
+      res.setHeader('Content-Type', attachment.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(attachment.filename)}"`);
+      res.send(attachment.fileData);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
