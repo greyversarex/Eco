@@ -223,6 +223,7 @@ export default function AssignmentsPage() {
   const [replyAssignmentId, setReplyAssignmentId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
   const [replyDocumentContent, setReplyDocumentContent] = useState('');
+  const [showReplyDocumentEditor, setShowReplyDocumentEditor] = useState(false);
   const [replyFiles, setReplyFiles] = useState<File[]>([]);
   const [expandedReplies, setExpandedReplies] = useState<Set<number>>(new Set());
   const [recipientSearch, setRecipientSearch] = useState('');
@@ -882,6 +883,7 @@ export default function AssignmentsPage() {
               setReplyAssignmentId(null);
               setReplyText('');
               setReplyDocumentContent('');
+              setShowReplyDocumentEditor(false);
               setReplyFiles([]);
             }
           }}>
@@ -902,17 +904,43 @@ export default function AssignmentsPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Ҳуҷҷат (ихтиёрӣ)</Label>
-                    <span className="text-xs text-muted-foreground">Барои сохтани ҳуҷҷат истифода баред</span>
-                  </div>
-                  <div className="border rounded-lg overflow-hidden">
-                    <DocumentEditor
-                      content={replyDocumentContent}
-                      onChange={setReplyDocumentContent}
-                      readOnly={false}
-                    />
-                  </div>
+                  {!showReplyDocumentEditor ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowReplyDocumentEditor(true)}
+                      className="w-full"
+                      data-testid="button-create-document"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Сохтани ҳуҷҷат
+                    </Button>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <Label>Ҳуҷҷат</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setShowReplyDocumentEditor(false);
+                            setReplyDocumentContent('');
+                          }}
+                          data-testid="button-close-document-editor"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="border rounded-lg overflow-hidden">
+                        <DocumentEditor
+                          content={replyDocumentContent}
+                          onChange={setReplyDocumentContent}
+                          readOnly={false}
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -984,6 +1012,7 @@ export default function AssignmentsPage() {
                       setReplyAssignmentId(null);
                       setReplyText('');
                       setReplyDocumentContent('');
+                      setShowReplyDocumentEditor(false);
                       setReplyFiles([]);
                     }}
                     data-testid="button-cancel-reply"
