@@ -245,7 +245,14 @@ export type Assignment = typeof assignments.$inferSelect & {
     responderDepartmentId: number;
     responderPersonId: number | null;
     replyText: string;
+    documentContent?: string | null;
     createdAt: Date;
+    attachments?: Array<{
+      id: number;
+      filename: string;
+      fileSize: number;
+      mimeType: string;
+    }>;
   }>;
 };
 

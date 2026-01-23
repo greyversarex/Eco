@@ -368,8 +368,9 @@ export default function AssignmentsPage() {
 
   // Handle Даъват reply - open compose message dialog
   const handleDaavatReply = (assignment: Assignment) => {
-    setComposeForAssignment(assignment);
-    setComposeMessageDialogOpen(true);
+    // Даъват теперь тоже использует простой диалог ответа
+    setReplyAssignmentId(assignment.id);
+    setReplyDialogOpen(true);
   };
 
   const approveAssignmentMutation = useMutation({
@@ -909,8 +910,7 @@ export default function AssignmentsPage() {
                     <DocumentEditor
                       content={replyDocumentContent}
                       onChange={setReplyDocumentContent}
-                      editable={true}
-                      showToolbar={true}
+                      readOnly={false}
                     />
                   </div>
                 </div>
