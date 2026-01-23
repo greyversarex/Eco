@@ -2270,7 +2270,7 @@ export function registerRoutes(app: Express) {
   app.post("/api/assignments/:id/replies", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
     try {
       const assignmentId = parseInt(req.params.id);
-      const { replyText, documentContent, responderPersonId } = req.body;
+      const { replyText, documentContent, documentFilename, responderPersonId } = req.body;
       
       if (!replyText || typeof replyText !== 'string' || replyText.trim() === '') {
         return res.status(400).json({ error: 'Reply text is required' });
@@ -2349,10 +2349,11 @@ export function registerRoutes(app: Express) {
         
         const docxBuffer = await Packer.toBuffer(doc);
         
-        // Save as attachment with filename "Ҳуҷҷат.docx"
+        // Save as attachment with custom or default filename
+        const safeFilename = (documentFilename || 'Ҳуҷҷат').replace(/[<>:"/\\|?*]/g, '_').trim() || 'Ҳуҷҷат';
         const docxAttachment = await storage.createAssignmentReplyAttachment({
           replyId: reply.id,
-          filename: 'Ҳуҷҷат.docx',
+          filename: `${safeFilename}.docx`,
           fileData: Buffer.from(docxBuffer),
           fileSize: docxBuffer.byteLength,
           mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

@@ -223,6 +223,7 @@ export default function AssignmentsPage() {
   const [replyAssignmentId, setReplyAssignmentId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
   const [replyDocumentContent, setReplyDocumentContent] = useState('');
+  const [replyDocumentFilename, setReplyDocumentFilename] = useState('Ҳуҷҷат');
   const [showReplyDocumentEditor, setShowReplyDocumentEditor] = useState(false);
   const [replyFiles, setReplyFiles] = useState<File[]>([]);
   const [expandedReplies, setExpandedReplies] = useState<Set<number>>(new Set());
@@ -308,11 +309,12 @@ export default function AssignmentsPage() {
   });
 
   const replyAssignmentMutation = useMutation({
-    mutationFn: async ({ id, replyText, documentContent, files }: { id: number; replyText: string; documentContent?: string; files?: File[] }) => {
+    mutationFn: async ({ id, replyText, documentContent, documentFilename, files }: { id: number; replyText: string; documentContent?: string; documentFilename?: string; files?: File[] }) => {
       const formData = new FormData();
       formData.append('replyText', replyText);
       if (documentContent) {
         formData.append('documentContent', documentContent);
+        formData.append('documentFilename', documentFilename || 'Ҳуҷҷат');
       }
       if (files && files.length > 0) {
         for (const file of files) {
@@ -339,6 +341,8 @@ export default function AssignmentsPage() {
       setReplyAssignmentId(null);
       setReplyText('');
       setReplyDocumentContent('');
+      setReplyDocumentFilename('Ҳуҷҷат');
+      setShowReplyDocumentEditor(false);
       setReplyFiles([]);
       toast({
         title: 'Муваффақият',
@@ -926,11 +930,22 @@ export default function AssignmentsPage() {
                           onClick={() => {
                             setShowReplyDocumentEditor(false);
                             setReplyDocumentContent('');
+                            setReplyDocumentFilename('Ҳуҷҷат');
                           }}
                           data-testid="button-close-document-editor"
                         >
                           <X className="h-4 w-4" />
                         </Button>
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Input
+                          value={replyDocumentFilename}
+                          onChange={(e) => setReplyDocumentFilename(e.target.value)}
+                          placeholder="Номи ҳуҷҷат"
+                          className="flex-1"
+                          data-testid="input-document-filename"
+                        />
+                        <span className="text-sm text-muted-foreground">.docx</span>
                       </div>
                       <div className="border rounded-lg overflow-hidden">
                         <DocumentEditor
@@ -1012,6 +1027,7 @@ export default function AssignmentsPage() {
                       setReplyAssignmentId(null);
                       setReplyText('');
                       setReplyDocumentContent('');
+                      setReplyDocumentFilename('Ҳуҷҷат');
                       setShowReplyDocumentEditor(false);
                       setReplyFiles([]);
                     }}
@@ -1026,6 +1042,7 @@ export default function AssignmentsPage() {
                           id: replyAssignmentId, 
                           replyText: replyText.trim(),
                           documentContent: replyDocumentContent || undefined,
+                          documentFilename: replyDocumentFilename || 'Ҳуҷҷат',
                           files: replyFiles.length > 0 ? replyFiles : undefined
                         });
                       }
