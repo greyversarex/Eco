@@ -1498,36 +1498,34 @@ export default function MessageView() {
                       </Dialog>
                     )}
                     
-                    {/* Stamp buttons - only for recipients with canApprove permission */}
+                    {/* Stamp buttons - only for recipients with canApprove permission - inline with action buttons */}
                     {user.department?.canApprove && 
                      !message.approvalStatus &&
                      (message.recipientId === user.department.id || 
                       (message.recipientIds && message.recipientIds.includes(user.department.id))) && (
-                      <div className="mt-6 pt-6 border-t">
-                        <StampButtons
-                          onApprove={handleApprove}
-                          onReject={handleReject}
-                          isPending={approvalMutation.isPending}
-                        />
-                      </div>
+                      <StampButtons
+                        onApprove={handleApprove}
+                        onReject={handleReject}
+                        isPending={approvalMutation.isPending}
+                      />
                     )}
-                    
-                    {/* Show stamp if already approved/rejected */}
-                    {(message.approvalStatus === 'approved' || message.approvalStatus === 'rejected') && (
-                      <div className="mt-6 pt-6 border-t">
-                        <h4 className="text-sm font-medium text-muted-foreground mb-4">Мӯҳри расмӣ:</h4>
-                        <DocumentStamp
-                          status={message.approvalStatus as 'approved' | 'rejected'}
-                          departmentName={
-                            departments.find((d: Department) => d.id === message.approvedById)?.name || 
-                            user.department?.name || 
-                            'Департамент'
-                          }
-                          approvedAt={message.approvedAt}
-                          size="lg"
-                        />
-                      </div>
-                    )}
+                  </div>
+                )}
+                  
+                {/* Show stamp if already approved/rejected */}
+                {(message.approvalStatus === 'approved' || message.approvalStatus === 'rejected') && (
+                  <div className="mt-6 pt-6 border-t px-6">
+                    <h4 className="text-sm font-medium text-muted-foreground mb-4">Мӯҳри расмӣ:</h4>
+                    <DocumentStamp
+                      status={message.approvalStatus as 'approved' | 'rejected'}
+                      departmentName={
+                        departments.find((d: Department) => d.id === message.approvedById)?.name || 
+                        (user?.userType === 'department' ? user.department?.name : '') || 
+                        'Департамент'
+                      }
+                      approvedAt={message.approvedAt}
+                      size="lg"
+                    />
                   </div>
                 )}
               </CardContent>
