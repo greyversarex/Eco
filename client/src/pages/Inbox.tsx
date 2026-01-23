@@ -369,8 +369,8 @@ export default function Inbox() {
                 className="hidden sm:grid border-b border-border px-6 py-3 bg-muted/30 font-semibold text-sm text-muted-foreground items-center gap-x-4"
                 style={{
                   gridTemplateColumns: isDeleteMode 
-                    ? 'auto 80px 120px 1fr 150px 130px 80px'
-                    : '80px 120px 1fr 150px 130px 80px'
+                    ? 'auto 80px 120px 1fr 180px 130px 80px'
+                    : '80px 120px 1fr 180px 130px 80px'
                 }}
               >
                 {isDeleteMode && <div />}
@@ -391,12 +391,12 @@ export default function Inbox() {
                 </div>
                 
                 {/* Sender/Recipient Header */}
-                <div>
+                <div className="pr-4">
                   {isOutbox ? 'Қабулкунанда' : 'Фиристанда'}
                 </div>
                 
                 {/* Date Header */}
-                <div>
+                <div className="pl-2">
                   Сана
                 </div>
                 
