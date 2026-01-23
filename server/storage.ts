@@ -534,6 +534,26 @@ export class DbStorage implements IStorage {
           .from(assignmentReplies)
           .where(eq(assignmentReplies.assignmentId, assignment.id));
         
+        // Fetch attachments for each reply
+        const repliesWithAttachments = await Promise.all(
+          replies.map(async (reply) => {
+            const replyAttachments = await db
+              .select({
+                id: assignmentReplyAttachments.id,
+                filename: assignmentReplyAttachments.filename,
+                fileSize: assignmentReplyAttachments.fileSize,
+                mimeType: assignmentReplyAttachments.mimeType,
+              })
+              .from(assignmentReplyAttachments)
+              .where(eq(assignmentReplyAttachments.replyId, reply.id));
+            
+            return {
+              ...reply,
+              attachments: replyAttachments,
+            };
+          })
+        );
+        
         // Decode filenames before returning
         const decodedAttachments = attachments.map(att => ({
           ...att,
@@ -543,7 +563,7 @@ export class DbStorage implements IStorage {
         return {
           ...assignment,
           attachments: decodedAttachments,
-          replies: replies,
+          replies: repliesWithAttachments,
         };
       })
     );

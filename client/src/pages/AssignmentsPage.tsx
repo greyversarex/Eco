@@ -1317,6 +1317,107 @@ export default function AssignmentsPage() {
                     )}
                   </div>
                 </CardContent>
+                
+                {/* Collapsible Replies Section */}
+                {assignment.replies && assignment.replies.length > 0 && (
+                  <div className="border-t">
+                    <Button
+                      variant="ghost"
+                      className="w-full flex items-center justify-between py-3 px-6 hover:bg-gray-50"
+                      onClick={() => {
+                        setExpandedReplies(prev => {
+                          const newSet = new Set(prev);
+                          if (newSet.has(assignment.id)) {
+                            newSet.delete(assignment.id);
+                          } else {
+                            newSet.add(assignment.id);
+                          }
+                          return newSet;
+                        });
+                      }}
+                      data-testid={`button-toggle-replies-${assignment.id}`}
+                    >
+                      <span className="text-sm font-medium">
+                        Ҷавобҳо ({assignment.replies.length})
+                      </span>
+                      {expandedReplies.has(assignment.id) ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                    
+                    {expandedReplies.has(assignment.id) && (
+                      <div className="px-6 pb-4 space-y-3">
+                        {[...assignment.replies]
+                          .sort((a, b) => {
+                            const aDaavat = assignment.executorIds?.some(eId => {
+                              const person = allPeople.find(p => p.id === eId);
+                              return person?.departmentId === a.responderDepartmentId;
+                            }) || false;
+                            const bDaavat = assignment.executorIds?.some(eId => {
+                              const person = allPeople.find(p => p.id === eId);
+                              return person?.departmentId === b.responderDepartmentId;
+                            }) || false;
+                            if (aDaavat && !bDaavat) return -1;
+                            if (!aDaavat && bDaavat) return 1;
+                            return 0;
+                          })
+                          .map((reply) => {
+                            const responderDept = allDepartments.find(d => d.id === reply.responderDepartmentId);
+                            const isDaavatReply = assignment.executorIds?.some(eId => {
+                              const person = allPeople.find(p => p.id === eId);
+                              return person?.departmentId === reply.responderDepartmentId;
+                            });
+                            return (
+                              <div 
+                                key={reply.id} 
+                                className={`p-3 rounded-lg border ${isDaavatReply ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}
+                                data-testid={`reply-${reply.id}`}
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-sm">{responderDept?.name || 'Номаълум'}</span>
+                                    {isDaavatReply && (
+                                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Даъват</span>
+                                    )}
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(reply.createdAt).toLocaleDateString('ru-RU')}
+                                  </span>
+                                </div>
+                                <p className="text-sm">{reply.replyText}</p>
+                                {reply.documentContent && (
+                                  <div className="mt-2 p-2 bg-white rounded border">
+                                    <div className="text-xs text-muted-foreground mb-1">Ҳуҷҷат:</div>
+                                    <div 
+                                      className="text-sm prose prose-sm max-w-none"
+                                      dangerouslySetInnerHTML={{ __html: reply.documentContent }}
+                                    />
+                                  </div>
+                                )}
+                                {reply.attachments && reply.attachments.length > 0 && (
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {reply.attachments.map((att: any) => (
+                                      <a
+                                        key={att.id}
+                                        href={`/api/assignment-reply-attachments/${att.id}`}
+                                        className="flex items-center gap-1 text-xs bg-white border rounded px-2 py-1 hover:bg-gray-100"
+                                        data-testid={`button-download-reply-attachment-${att.id}`}
+                                      >
+                                        <Download className="h-3 w-3" />
+                                        {att.filename}
+                                      </a>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </Card>
                 ))}
               </div>
@@ -1547,6 +1648,107 @@ export default function AssignmentsPage() {
                     )}
                   </div>
                 </CardContent>
+                
+                {/* Collapsible Replies Section */}
+                {assignment.replies && assignment.replies.length > 0 && (
+                  <div className="border-t">
+                    <Button
+                      variant="ghost"
+                      className="w-full flex items-center justify-between py-3 px-6 hover:bg-gray-50"
+                      onClick={() => {
+                        setExpandedReplies(prev => {
+                          const newSet = new Set(prev);
+                          if (newSet.has(assignment.id)) {
+                            newSet.delete(assignment.id);
+                          } else {
+                            newSet.add(assignment.id);
+                          }
+                          return newSet;
+                        });
+                      }}
+                      data-testid={`button-toggle-replies-overdue-${assignment.id}`}
+                    >
+                      <span className="text-sm font-medium">
+                        Ҷавобҳо ({assignment.replies.length})
+                      </span>
+                      {expandedReplies.has(assignment.id) ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                    
+                    {expandedReplies.has(assignment.id) && (
+                      <div className="px-6 pb-4 space-y-3">
+                        {[...assignment.replies]
+                          .sort((a, b) => {
+                            const aDaavat = assignment.executorIds?.some(eId => {
+                              const person = allPeople.find(p => p.id === eId);
+                              return person?.departmentId === a.responderDepartmentId;
+                            }) || false;
+                            const bDaavat = assignment.executorIds?.some(eId => {
+                              const person = allPeople.find(p => p.id === eId);
+                              return person?.departmentId === b.responderDepartmentId;
+                            }) || false;
+                            if (aDaavat && !bDaavat) return -1;
+                            if (!aDaavat && bDaavat) return 1;
+                            return 0;
+                          })
+                          .map((reply) => {
+                            const responderDept = allDepartments.find(d => d.id === reply.responderDepartmentId);
+                            const isDaavatReply = assignment.executorIds?.some(eId => {
+                              const person = allPeople.find(p => p.id === eId);
+                              return person?.departmentId === reply.responderDepartmentId;
+                            });
+                            return (
+                              <div 
+                                key={reply.id} 
+                                className={`p-3 rounded-lg border ${isDaavatReply ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}
+                                data-testid={`reply-overdue-${reply.id}`}
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-sm">{responderDept?.name || 'Номаълум'}</span>
+                                    {isDaavatReply && (
+                                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Даъват</span>
+                                    )}
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(reply.createdAt).toLocaleDateString('ru-RU')}
+                                  </span>
+                                </div>
+                                <p className="text-sm">{reply.replyText}</p>
+                                {reply.documentContent && (
+                                  <div className="mt-2 p-2 bg-white rounded border">
+                                    <div className="text-xs text-muted-foreground mb-1">Ҳуҷҷат:</div>
+                                    <div 
+                                      className="text-sm prose prose-sm max-w-none"
+                                      dangerouslySetInnerHTML={{ __html: reply.documentContent }}
+                                    />
+                                  </div>
+                                )}
+                                {reply.attachments && reply.attachments.length > 0 && (
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {reply.attachments.map((att: any) => (
+                                      <a
+                                        key={att.id}
+                                        href={`/api/assignment-reply-attachments/${att.id}`}
+                                        className="flex items-center gap-1 text-xs bg-white border rounded px-2 py-1 hover:bg-gray-100"
+                                        data-testid={`button-download-reply-attachment-overdue-${att.id}`}
+                                      >
+                                        <Download className="h-3 w-3" />
+                                        {att.filename}
+                                      </a>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </Card>
                 ))}
               </div>
@@ -1669,6 +1871,107 @@ export default function AssignmentsPage() {
                         </div>
                       )}
                     </CardContent>
+                    
+                    {/* Collapsible Replies Section */}
+                    {assignment.replies && assignment.replies.length > 0 && (
+                      <div className="border-t">
+                        <Button
+                          variant="ghost"
+                          className="w-full flex items-center justify-between py-3 px-6 hover:bg-gray-50"
+                          onClick={() => {
+                            setExpandedReplies(prev => {
+                              const newSet = new Set(prev);
+                              if (newSet.has(assignment.id)) {
+                                newSet.delete(assignment.id);
+                              } else {
+                                newSet.add(assignment.id);
+                              }
+                              return newSet;
+                            });
+                          }}
+                          data-testid={`button-toggle-replies-completed-${assignment.id}`}
+                        >
+                          <span className="text-sm font-medium">
+                            Ҷавобҳо ({assignment.replies.length})
+                          </span>
+                          {expandedReplies.has(assignment.id) ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </Button>
+                        
+                        {expandedReplies.has(assignment.id) && (
+                          <div className="px-6 pb-4 space-y-3">
+                            {[...assignment.replies]
+                              .sort((a, b) => {
+                                const aDaavat = assignment.executorIds?.some(eId => {
+                                  const person = allPeople.find(p => p.id === eId);
+                                  return person?.departmentId === a.responderDepartmentId;
+                                }) || false;
+                                const bDaavat = assignment.executorIds?.some(eId => {
+                                  const person = allPeople.find(p => p.id === eId);
+                                  return person?.departmentId === b.responderDepartmentId;
+                                }) || false;
+                                if (aDaavat && !bDaavat) return -1;
+                                if (!aDaavat && bDaavat) return 1;
+                                return 0;
+                              })
+                              .map((reply) => {
+                                const responderDept = allDepartments.find(d => d.id === reply.responderDepartmentId);
+                                const isDaavatReply = assignment.executorIds?.some(eId => {
+                                  const person = allPeople.find(p => p.id === eId);
+                                  return person?.departmentId === reply.responderDepartmentId;
+                                });
+                                return (
+                                  <div 
+                                    key={reply.id} 
+                                    className={`p-3 rounded-lg border ${isDaavatReply ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}
+                                    data-testid={`reply-completed-${reply.id}`}
+                                  >
+                                    <div className="flex items-center justify-between mb-2">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-sm">{responderDept?.name || 'Номаълум'}</span>
+                                        {isDaavatReply && (
+                                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Даъват</span>
+                                        )}
+                                      </div>
+                                      <span className="text-xs text-muted-foreground">
+                                        {new Date(reply.createdAt).toLocaleDateString('ru-RU')}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm">{reply.replyText}</p>
+                                    {reply.documentContent && (
+                                      <div className="mt-2 p-2 bg-white rounded border">
+                                        <div className="text-xs text-muted-foreground mb-1">Ҳуҷҷат:</div>
+                                        <div 
+                                          className="text-sm prose prose-sm max-w-none"
+                                          dangerouslySetInnerHTML={{ __html: reply.documentContent }}
+                                        />
+                                      </div>
+                                    )}
+                                    {reply.attachments && reply.attachments.length > 0 && (
+                                      <div className="mt-2 flex flex-wrap gap-2">
+                                        {reply.attachments.map((att: any) => (
+                                          <a
+                                            key={att.id}
+                                            href={`/api/assignment-reply-attachments/${att.id}`}
+                                            className="flex items-center gap-1 text-xs bg-white border rounded px-2 py-1 hover:bg-gray-100"
+                                            data-testid={`button-download-reply-attachment-completed-${att.id}`}
+                                          >
+                                            <Download className="h-3 w-3" />
+                                            {att.filename}
+                                          </a>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </Card>
                 ))}
               </div>
