@@ -818,25 +818,17 @@ export default function MessageView() {
                               <FileText className="h-5 w-5 text-green-600" />
                               <span className="font-medium">{doc.title}</span>
                             </div>
-                            {user?.userType === 'department' && (
-                              <Button 
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleOpenDocumentEditor(doc)}
-                                data-testid={`button-edit-document-${index}`}
-                                className="gap-1"
-                              >
-                                <Edit className="h-4 w-4" />
-                                Таҳрир
-                              </Button>
-                            )}
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleOpenDocumentEditor(doc)}
+                              data-testid={`button-edit-document-${index}`}
+                              className="gap-1"
+                            >
+                              <Edit className="h-4 w-4" />
+                              Таҳрир
+                            </Button>
                           </CardHeader>
-                          <CardContent className="p-4">
-                            <div 
-                              className="prose prose-sm max-w-none"
-                              dangerouslySetInnerHTML={{ __html: doc.htmlContent }}
-                            />
-                          </CardContent>
                         </Card>
                       ))}
                     </div>
