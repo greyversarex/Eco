@@ -8,6 +8,7 @@ import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema, insertA
 import { z } from "zod";
 import multer from "multer";
 import webpush from "web-push";
+import DOMPurify from "isomorphic-dompurify";
 
 // Allowed MIME types for file uploads
 const ALLOWED_MIME_TYPES = [
@@ -2296,13 +2297,23 @@ export function registerRoutes(app: Express) {
         return res.status(403).json({ error: 'Only recipient departments can reply to this assignment' });
       }
       
+      // Sanitize document content to prevent XSS with strict config
+      const sanitizedDocumentContent = documentContent 
+        ? DOMPurify.sanitize(documentContent, { 
+            ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+            ALLOWED_ATTR: ['colspan', 'rowspan'],
+            ALLOW_DATA_ATTR: false,
+            ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):)/i,
+          })
+        : null;
+      
       // Create the reply
       const reply = await storage.createAssignmentReply({
         assignmentId,
         responderDepartmentId,
         responderPersonId: responderPersonId ? parseInt(responderPersonId) : null,
         replyText: replyText.trim(),
-        documentContent: documentContent || null,
+        documentContent: sanitizedDocumentContent,
       });
       
       // Handle file attachments
@@ -2332,7 +2343,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Get assignment reply attachments
+  // Get assignment reply attachments with authorization
   app.get("/api/assignment-reply-attachments/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
@@ -2340,6 +2351,27 @@ export function registerRoutes(app: Express) {
       
       if (!attachment) {
         return res.status(404).json({ error: 'Attachment not found' });
+      }
+      
+      // Authorization check: verify user has access to the parent assignment
+      const reply = await storage.getAssignmentReplyById(attachment.replyId);
+      if (!reply) {
+        return res.status(404).json({ error: 'Reply not found' });
+      }
+      
+      const assignment = await storage.getAssignmentById(reply.assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ error: 'Assignment not found' });
+      }
+      
+      // Allow access for: admin, sender, or recipients
+      const departmentId = req.session.departmentId;
+      const isAdmin = req.session.userType === 'admin';
+      const isSender = assignment.senderId === departmentId;
+      const isRecipient = assignment.recipientIds?.includes(departmentId);
+      
+      if (!isAdmin && !isSender && !isRecipient) {
+        return res.status(403).json({ error: 'Access denied to this attachment' });
       }
       
       res.setHeader('Content-Type', attachment.mimeType);

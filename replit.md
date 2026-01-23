@@ -26,7 +26,7 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 
 ### Key Features
 *   **Assignments and Announcements:** Comprehensive task management and platform-wide notifications with deadline tracking, multi-executor assignment, topic selection, content/comments, and completion status. Includes file attachments, read tracking, badge counters with admin panel-controlled permissions, and assignment reply system allowing recipient departments to respond.
-*   **Assignment Replies:** Recipient departments can submit replies to assignments with visual indicators (checkmarks/tooltips) showing which executors' departments have responded.
+*   **Assignment Replies:** Recipient departments can submit replies to assignments with document editor integration, file attachments (up to 5 files per reply), and visual indicators (checkmarks/tooltips) showing which executors' departments have responded. Replies are displayed in a collapsible "Ҷавобҳо" section under each assignment, with "даъват" (invited executor) replies appearing first. Content is sanitized both server-side and client-side using DOMPurify to prevent XSS attacks.
 *   **Broadcast Messaging:** Optimized for sending messages to multiple departments.
 *   **Message Forwarding (Иловакунӣ):** Allows department users to forward messages with automatic attachment copying and tracking of original sender/forwarder.
 *   **Department Icon Upload:** Interactive icon upload with image cropping and zooming.
@@ -58,4 +58,5 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Archive Generation:** `jszip`, `docx`
 *   **Push Notifications:** `web-push`
 *   **Utilities:** `date-fns`, `clsx`, `tailwind-merge`
+*   **Security:** `isomorphic-dompurify`
 *   **Third-Party Services:** PostgreSQL server (version 13+), Google Fonts (Inter and Roboto)

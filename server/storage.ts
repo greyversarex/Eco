@@ -82,6 +82,7 @@ export interface IStorage {
   // Assignment Replies
   createAssignmentReply(reply: InsertAssignmentReply): Promise<AssignmentReply>;
   getAssignmentReplies(assignmentId: number): Promise<AssignmentReply[]>;
+  getAssignmentReplyById(id: number): Promise<AssignmentReply | undefined>;
   
   // Assignment Reply Attachments
   createAssignmentReplyAttachment(attachment: InsertAssignmentReplyAttachment): Promise<AssignmentReplyAttachment>;
@@ -694,6 +695,11 @@ export class DbStorage implements IStorage {
 
   async getAssignmentReplies(assignmentId: number): Promise<AssignmentReply[]> {
     return await db.select().from(assignmentReplies).where(eq(assignmentReplies.assignmentId, assignmentId));
+  }
+
+  async getAssignmentReplyById(id: number): Promise<AssignmentReply | undefined> {
+    const result = await db.select().from(assignmentReplies).where(eq(assignmentReplies.id, id));
+    return result[0];
   }
 
   // Assignment Reply Attachments

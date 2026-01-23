@@ -9,7 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
 import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock, CheckCircle2, MessageSquare, Check, Upload, ChevronDown, ChevronUp } from 'lucide-react';
-import DocumentEditor from '@/components/DocumentEditor';
+import { DocumentEditor } from '@/components/DocumentEditor';
+import DOMPurify from 'isomorphic-dompurify';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -1392,7 +1393,7 @@ export default function AssignmentsPage() {
                                     <div className="text-xs text-muted-foreground mb-1">Ҳуҷҷат:</div>
                                     <div 
                                       className="text-sm prose prose-sm max-w-none"
-                                      dangerouslySetInnerHTML={{ __html: reply.documentContent }}
+                                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(reply.documentContent, { ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'], ALLOWED_ATTR: ['colspan', 'rowspan'] }) }}
                                     />
                                   </div>
                                 )}
@@ -1723,7 +1724,7 @@ export default function AssignmentsPage() {
                                     <div className="text-xs text-muted-foreground mb-1">Ҳуҷҷат:</div>
                                     <div 
                                       className="text-sm prose prose-sm max-w-none"
-                                      dangerouslySetInnerHTML={{ __html: reply.documentContent }}
+                                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(reply.documentContent, { ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'], ALLOWED_ATTR: ['colspan', 'rowspan'] }) }}
                                     />
                                   </div>
                                 )}
@@ -1946,7 +1947,7 @@ export default function AssignmentsPage() {
                                         <div className="text-xs text-muted-foreground mb-1">Ҳуҷҷат:</div>
                                         <div 
                                           className="text-sm prose prose-sm max-w-none"
-                                          dangerouslySetInnerHTML={{ __html: reply.documentContent }}
+                                          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(reply.documentContent, { ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'u', 'strong', 'em', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'], ALLOWED_ATTR: ['colspan', 'rowspan'] }) }}
                                         />
                                       </div>
                                     )}
