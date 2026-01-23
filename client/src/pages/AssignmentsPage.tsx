@@ -1412,10 +1412,13 @@ export default function AssignmentsPage() {
                           })
                           .map((reply) => {
                             const responderDept = allDepartments.find(d => d.id === reply.responderDepartmentId);
+                            const responderPerson = reply.responderPersonId ? allPeople.find(p => p.id === reply.responderPersonId) : null;
                             const isDaavatReply = assignment.executorIds?.some(eId => {
                               const person = allPeople.find(p => p.id === eId);
                               return person?.departmentId === reply.responderDepartmentId;
                             });
+                            // Show person name if responderPersonId is set, otherwise show department name
+                            const responderName = responderPerson?.name || responderDept?.name || 'Номаълум';
                             return (
                               <div 
                                 key={reply.id} 
@@ -1424,7 +1427,7 @@ export default function AssignmentsPage() {
                               >
                                 <div className="flex items-center justify-between mb-2">
                                   <div className="flex items-center gap-2">
-                                    <span className="font-medium text-sm">{responderDept?.name || 'Номаълум'}</span>
+                                    <span className="font-medium text-sm">{responderName}</span>
                                     {isDaavatReply && (
                                       <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Даъват</span>
                                     )}
@@ -1734,10 +1737,13 @@ export default function AssignmentsPage() {
                           })
                           .map((reply) => {
                             const responderDept = allDepartments.find(d => d.id === reply.responderDepartmentId);
+                            const responderPerson = reply.responderPersonId ? allPeople.find(p => p.id === reply.responderPersonId) : null;
                             const isDaavatReply = assignment.executorIds?.some(eId => {
                               const person = allPeople.find(p => p.id === eId);
                               return person?.departmentId === reply.responderDepartmentId;
                             });
+                            // Show person name if responderPersonId is set, otherwise show department name
+                            const responderName = responderPerson?.name || responderDept?.name || 'Номаълум';
                             return (
                               <div 
                                 key={reply.id} 
@@ -1746,7 +1752,7 @@ export default function AssignmentsPage() {
                               >
                                 <div className="flex items-center justify-between mb-2">
                                   <div className="flex items-center gap-2">
-                                    <span className="font-medium text-sm">{responderDept?.name || 'Номаълум'}</span>
+                                    <span className="font-medium text-sm">{responderName}</span>
                                     {isDaavatReply && (
                                       <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Даъват</span>
                                     )}
@@ -1948,10 +1954,13 @@ export default function AssignmentsPage() {
                               })
                               .map((reply) => {
                                 const responderDept = allDepartments.find(d => d.id === reply.responderDepartmentId);
+                                const responderPerson = reply.responderPersonId ? allPeople.find(p => p.id === reply.responderPersonId) : null;
                                 const isDaavatReply = assignment.executorIds?.some(eId => {
                                   const person = allPeople.find(p => p.id === eId);
                                   return person?.departmentId === reply.responderDepartmentId;
                                 });
+                                // Show person name if responderPersonId is set, otherwise show department name
+                                const responderName = responderPerson?.name || responderDept?.name || 'Номаълум';
                                 return (
                                   <div 
                                     key={reply.id} 
@@ -1960,7 +1969,7 @@ export default function AssignmentsPage() {
                                   >
                                     <div className="flex items-center justify-between mb-2">
                                       <div className="flex items-center gap-2">
-                                        <span className="font-medium text-sm">{responderDept?.name || 'Номаълум'}</span>
+                                        <span className="font-medium text-sm">{responderName}</span>
                                         {isDaavatReply && (
                                           <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Даъват</span>
                                         )}
