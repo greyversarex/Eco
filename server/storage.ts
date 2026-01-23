@@ -6,6 +6,7 @@ import type {
   Assignment, InsertAssignment,
   AssignmentAttachment, InsertAssignmentAttachment,
   AssignmentReply, InsertAssignmentReply,
+  AssignmentReplyAttachment, InsertAssignmentReplyAttachment,
   Announcement, InsertAnnouncement,
   AnnouncementAttachment, InsertAnnouncementAttachment,
   Person, InsertPerson,
@@ -82,6 +83,11 @@ export interface IStorage {
   createAssignmentReply(reply: InsertAssignmentReply): Promise<AssignmentReply>;
   getAssignmentReplies(assignmentId: number): Promise<AssignmentReply[]>;
   
+  // Assignment Reply Attachments
+  createAssignmentReplyAttachment(attachment: InsertAssignmentReplyAttachment): Promise<AssignmentReplyAttachment>;
+  getAssignmentReplyAttachments(replyId: number): Promise<AssignmentReplyAttachment[]>;
+  getAssignmentReplyAttachment(id: number): Promise<AssignmentReplyAttachment | undefined>;
+  
   // Announcements
   getAnnouncements(departmentId?: number): Promise<Announcement[]>;
   getAnnouncementById(id: number): Promise<Announcement | undefined>;
@@ -146,7 +152,7 @@ export interface IStorage {
 
 // Database storage implementation
 import { db } from './db';
-import { departments, admins, messages, attachments, assignments, assignmentAttachments, assignmentReplies, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes, documentTemplates, messageDocuments } from '@shared/schema';
+import { departments, admins, messages, attachments, assignments, assignmentAttachments, assignmentReplies, assignmentReplyAttachments, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes, documentTemplates, messageDocuments } from '@shared/schema';
 import { eq, or, and, desc, asc, sql } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
@@ -668,6 +674,21 @@ export class DbStorage implements IStorage {
 
   async getAssignmentReplies(assignmentId: number): Promise<AssignmentReply[]> {
     return await db.select().from(assignmentReplies).where(eq(assignmentReplies.assignmentId, assignmentId));
+  }
+
+  // Assignment Reply Attachments
+  async createAssignmentReplyAttachment(attachment: InsertAssignmentReplyAttachment): Promise<AssignmentReplyAttachment> {
+    const result = await db.insert(assignmentReplyAttachments).values(attachment).returning();
+    return result[0];
+  }
+
+  async getAssignmentReplyAttachments(replyId: number): Promise<AssignmentReplyAttachment[]> {
+    return await db.select().from(assignmentReplyAttachments).where(eq(assignmentReplyAttachments.replyId, replyId));
+  }
+
+  async getAssignmentReplyAttachment(id: number): Promise<AssignmentReplyAttachment | undefined> {
+    const result = await db.select().from(assignmentReplyAttachments).where(eq(assignmentReplyAttachments.id, id));
+    return result[0];
   }
 
   // Announcements

@@ -279,6 +279,7 @@ export const assignmentReplies = pgTable("assignment_replies", {
   responderDepartmentId: integer("responder_department_id").notNull().references(() => departments.id, { onDelete: 'cascade' }),
   responderPersonId: integer("responder_person_id").references(() => people.id, { onDelete: 'set null' }),
   replyText: text("reply_text").notNull(),
+  documentContent: text("document_content"), // HTML content from document editor
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   assignmentIdx: index("assignment_replies_assignment_id_idx").on(table.assignmentId),
@@ -291,6 +292,26 @@ export const insertAssignmentReplySchema = createInsertSchema(assignmentReplies)
 });
 export type InsertAssignmentReply = z.infer<typeof insertAssignmentReplySchema>;
 export type AssignmentReply = typeof assignmentReplies.$inferSelect;
+
+// Assignment reply attachments table (Файлы ответов / Файлҳои ҷавоб)
+export const assignmentReplyAttachments = pgTable("assignment_reply_attachments", {
+  id: serial("id").primaryKey(),
+  replyId: integer("reply_id").notNull().references(() => assignmentReplies.id, { onDelete: 'cascade' }),
+  filename: text("filename").notNull(),
+  fileData: bytea("file_data").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  replyIdx: index("assignment_reply_attachments_reply_id_idx").on(table.replyId),
+}));
+
+export const insertAssignmentReplyAttachmentSchema = createInsertSchema(assignmentReplyAttachments).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertAssignmentReplyAttachment = z.infer<typeof insertAssignmentReplyAttachmentSchema>;
+export type AssignmentReplyAttachment = typeof assignmentReplyAttachments.$inferSelect;
 
 // Announcements table (Объявления / Эълонҳо)
 export const announcements = pgTable("announcements", {
