@@ -8,7 +8,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock, CheckCircle2, MessageSquare, Check } from 'lucide-react';
+import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock, CheckCircle2, MessageSquare, Check, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import DocumentEditor from '@/components/DocumentEditor';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -220,6 +221,9 @@ export default function AssignmentsPage() {
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [replyAssignmentId, setReplyAssignmentId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
+  const [replyDocumentContent, setReplyDocumentContent] = useState('');
+  const [replyFiles, setReplyFiles] = useState<File[]>([]);
+  const [expandedReplies, setExpandedReplies] = useState<Set<number>>(new Set());
   const [recipientSearch, setRecipientSearch] = useState('');
   const [composeMessageDialogOpen, setComposeMessageDialogOpen] = useState(false);
   const [composeForAssignment, setComposeForAssignment] = useState<Assignment | null>(null);
@@ -302,14 +306,38 @@ export default function AssignmentsPage() {
   });
 
   const replyAssignmentMutation = useMutation({
-    mutationFn: async ({ id, replyText }: { id: number; replyText: string }) => {
-      return await apiRequest('POST', `/api/assignments/${id}/replies`, { replyText });
+    mutationFn: async ({ id, replyText, documentContent, files }: { id: number; replyText: string; documentContent?: string; files?: File[] }) => {
+      const formData = new FormData();
+      formData.append('replyText', replyText);
+      if (documentContent) {
+        formData.append('documentContent', documentContent);
+      }
+      if (files && files.length > 0) {
+        for (const file of files) {
+          formData.append('files', file);
+        }
+      }
+      
+      const response = await apiFetch(`/api/assignments/${id}/replies`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to submit reply');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
       setReplyDialogOpen(false);
       setReplyAssignmentId(null);
       setReplyText('');
+      setReplyDocumentContent('');
+      setReplyFiles([]);
       toast({
         title: 'Муваффақият',
         description: 'Ҷавоб фиристода шуд',
@@ -845,27 +873,117 @@ export default function AssignmentsPage() {
             </Dialog>
           )}
 
-          {/* Reply Dialog */}
-          <Dialog open={replyDialogOpen} onOpenChange={setReplyDialogOpen}>
-            <DialogContent className="sm:max-w-md">
+          {/* Reply Dialog with Document Editor */}
+          <Dialog open={replyDialogOpen} onOpenChange={(open) => {
+            setReplyDialogOpen(open);
+            if (!open) {
+              setReplyAssignmentId(null);
+              setReplyText('');
+              setReplyDocumentContent('');
+              setReplyFiles([]);
+            }
+          }}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Ҷавоб додан</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
-                <Textarea
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Ҷавоби худро нависед..."
-                  className="min-h-[100px]"
-                  data-testid="textarea-reply"
-                />
-                <div className="flex gap-2 justify-end">
+                <div className="space-y-2">
+                  <Label>Тавсифи мухтасар</Label>
+                  <Textarea
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="Ҷавоби худро нависед..."
+                    className="min-h-[80px]"
+                    data-testid="textarea-reply"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Ҳуҷҷат (ихтиёрӣ)</Label>
+                    <span className="text-xs text-muted-foreground">Барои сохтани ҳуҷҷат истифода баред</span>
+                  </div>
+                  <div className="border rounded-lg overflow-hidden">
+                    <DocumentEditor
+                      content={replyDocumentContent}
+                      onChange={setReplyDocumentContent}
+                      editable={true}
+                      showToolbar={true}
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Файлҳо (то 5 файл)</Label>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        id="reply-file-upload"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          if (replyFiles.length + files.length <= 5) {
+                            setReplyFiles(prev => [...prev, ...files]);
+                          } else {
+                            toast({
+                              title: 'Хато',
+                              description: 'Ҳадди аксар 5 файл иҷозат дода мешавад',
+                              variant: 'destructive',
+                            });
+                          }
+                          e.target.value = '';
+                        }}
+                        data-testid="input-reply-files"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('reply-file-upload')?.click()}
+                        disabled={replyFiles.length >= 5}
+                        data-testid="button-add-reply-files"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Илова кардан
+                      </Button>
+                      <span className="text-sm text-muted-foreground">
+                        {replyFiles.length}/5 файл
+                      </span>
+                    </div>
+                    {replyFiles.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {replyFiles.map((file, index) => (
+                          <div key={index} className="flex items-center gap-2 bg-accent px-3 py-1 rounded-md">
+                            <Paperclip className="h-3 w-3" />
+                            <span className="text-sm truncate max-w-[150px]">{file.name}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5"
+                              onClick={() => setReplyFiles(prev => prev.filter((_, i) => i !== index))}
+                              data-testid={`button-remove-reply-file-${index}`}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex gap-2 justify-end pt-4 border-t">
                   <Button
                     variant="outline"
                     onClick={() => {
                       setReplyDialogOpen(false);
                       setReplyAssignmentId(null);
                       setReplyText('');
+                      setReplyDocumentContent('');
+                      setReplyFiles([]);
                     }}
                     data-testid="button-cancel-reply"
                   >
@@ -874,7 +992,12 @@ export default function AssignmentsPage() {
                   <Button
                     onClick={() => {
                       if (replyAssignmentId && replyText.trim()) {
-                        replyAssignmentMutation.mutate({ id: replyAssignmentId, replyText: replyText.trim() });
+                        replyAssignmentMutation.mutate({ 
+                          id: replyAssignmentId, 
+                          replyText: replyText.trim(),
+                          documentContent: replyDocumentContent || undefined,
+                          files: replyFiles.length > 0 ? replyFiles : undefined
+                        });
                       }
                     }}
                     disabled={!replyText.trim() || replyAssignmentMutation.isPending}
