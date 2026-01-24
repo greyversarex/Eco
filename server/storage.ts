@@ -40,7 +40,9 @@ export interface IStorage {
   
   // Admins
   getAdminByUsername(username: string): Promise<Admin | undefined>;
+  getAdminById(id: number): Promise<Admin | undefined>;
   createAdmin(admin: InsertAdmin): Promise<Admin>;
+  updateAdminPassword(id: number, hashedPassword: string): Promise<void>;
   
   // Messages
   getMessages(): Promise<Message[]>;
@@ -293,6 +295,15 @@ export class DbStorage implements IStorage {
   async createAdmin(admin: InsertAdmin): Promise<Admin> {
     const result = await db.insert(admins).values(admin).returning();
     return result[0];
+  }
+
+  async getAdminById(id: number): Promise<Admin | undefined> {
+    const result = await db.select().from(admins).where(eq(admins.id, id));
+    return result[0];
+  }
+
+  async updateAdminPassword(id: number, hashedPassword: string): Promise<void> {
+    await db.update(admins).set({ password: hashedPassword }).where(eq(admins.id, id));
   }
 
   // Messages

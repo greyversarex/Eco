@@ -290,6 +290,44 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Admin change password
+  app.post("/api/auth/admin/change-password", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'Рамзи кунунӣ ва рамзи нав зарур аст' });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'Рамзи нав бояд на камтар аз 6 аломат бошад' });
+      }
+
+      const adminId = req.session.adminId;
+      if (!adminId) {
+        return res.status(401).json({ error: 'Не авторизован' });
+      }
+
+      const admin = await storage.getAdminById(adminId);
+      if (!admin) {
+        return res.status(404).json({ error: 'Админ ёфт нашуд' });
+      }
+
+      const passwordMatch = await bcrypt.compare(currentPassword, admin.password);
+      if (!passwordMatch) {
+        return res.status(401).json({ error: 'Рамзи кунунӣ нодуруст аст' });
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await storage.updateAdminPassword(adminId, hashedPassword);
+
+      res.json({ success: true, message: 'Рамз бомуваффақият иваз шуд' });
+    } catch (error: any) {
+      console.error('Change password error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Logout
   app.post("/api/auth/logout", (req: Request, res: Response) => {
     req.session.destroy((err: any) => {

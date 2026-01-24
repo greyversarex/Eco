@@ -26,7 +26,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { t } from '@/lib/i18n';
-import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical, Download, ChevronDown, ChevronRight, FileText } from 'lucide-react';
+import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical, Download, ChevronDown, ChevronRight, FileText, Key } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -289,6 +289,11 @@ export default function AdminDashboard() {
   const [editParentDepartmentId, setEditParentDepartmentId] = useState<number | null>(null);
   // Subdepartments modal
   const [subdeptsModalDept, setSubdeptsModalDept] = useState<Department | null>(null);
+  // Password change
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const { logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -418,6 +423,57 @@ export default function AdminDashboard() {
       });
     },
   });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
+      return await apiRequest('POST', '/api/auth/admin/change-password', data);
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Муваффақият',
+        description: 'Рамз бомуваффақият иваз шуд',
+      });
+      setPasswordDialogOpen(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Хато',
+        description: error.message || 'Хатогӣ ҳангоми иваз кардани рамз',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleChangePassword = () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast({
+        title: 'Хато',
+        description: 'Ҳамаи майдонҳоро пур кунед',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: 'Хато',
+        description: 'Рамзҳои нав мувофиқат намекунанд',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({
+        title: 'Хато',
+        description: 'Рамзи нав бояд на камтар аз 6 аломат бошад',
+        variant: 'destructive',
+      });
+      return;
+    }
+    changePasswordMutation.mutate({ currentPassword, newPassword });
+  };
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -620,6 +676,80 @@ export default function AdminDashboard() {
             >
               <Mail className="h-4 w-4" />
             </Button>
+            <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  data-testid="button-change-password"
+                  className="gap-2 text-white hover:bg-white/20"
+                >
+                  <Key className="h-4 w-4" />
+                  <span className="hidden md:inline">Рамз</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[400px]">
+                <DialogHeader>
+                  <DialogTitle>Иваз кардани рамз</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="current-password">Рамзи кунунӣ</Label>
+                    <Input
+                      id="current-password"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="Рамзи кунунӣ"
+                      data-testid="input-current-password"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password">Рамзи нав</Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Рамзи нав (на камтар аз 6 аломат)"
+                      data-testid="input-new-password"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">Тасдиқи рамзи нав</Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Рамзи навро такрор кунед"
+                      data-testid="input-confirm-password"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setPasswordDialogOpen(false);
+                      setCurrentPassword('');
+                      setNewPassword('');
+                      setConfirmPassword('');
+                    }}
+                    data-testid="button-cancel-password"
+                  >
+                    Бекор
+                  </Button>
+                  <Button
+                    onClick={handleChangePassword}
+                    disabled={changePasswordMutation.isPending}
+                    data-testid="button-save-password"
+                  >
+                    {changePasswordMutation.isPending ? 'Дар ҳоли иваз...' : 'Иваз кардан'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <Button
               size="sm"
               onClick={logout}
