@@ -581,9 +581,9 @@ export function DocumentEditor({
             </Select>
 
             {/* Font Size */}
-            <Select onValueChange={setFontSize} defaultValue="12">
+            <Select onValueChange={setFontSize} defaultValue="14">
               <SelectTrigger className="w-[70px] h-8" data-testid="select-font-size">
-                <SelectValue placeholder="12" />
+                <SelectValue placeholder="14" />
               </SelectTrigger>
               <SelectContent>
                 {FONT_SIZES.map((size) => (
@@ -1083,7 +1083,7 @@ export function DocumentEditor({
             className={cn(
               "prose prose-sm max-w-none focus:outline-none",
               "[&_.ProseMirror]:min-h-[257mm] [&_.ProseMirror]:outline-none",
-              "[&_.ProseMirror]:font-['Times_New_Roman',serif] [&_.ProseMirror]:text-base",
+              "[&_.ProseMirror]:font-['Times_New_Roman',serif] [&_.ProseMirror]:[font-size:14pt]",
               "[&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-bold [&_.ProseMirror_h1]:my-4",
               "[&_.ProseMirror_h2]:text-xl [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_h2]:my-3",
               "[&_.ProseMirror_h3]:text-lg [&_.ProseMirror_h3]:font-bold [&_.ProseMirror_h3]:my-2",
