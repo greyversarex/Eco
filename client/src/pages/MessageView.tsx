@@ -186,7 +186,7 @@ export default function MessageView() {
   if (fromPage) {
     backLocation = fromPage;
   } else if (user?.userType === 'admin') {
-    backLocation = '/admin/departments';
+    backLocation = '/royalty/departments';
   } else if (isSentMessage) {
     backLocation = '/department/outbox';
   }

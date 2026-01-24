@@ -206,7 +206,7 @@ export default function AdminPeople() {
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => navigate('/admin/dashboard')}
+                onClick={() => navigate('/royalty/dashboard')}
                 className="bg-white/10 hover:bg-white/20 text-white border-white/30"
                 data-testid="button-back-admin"
               >

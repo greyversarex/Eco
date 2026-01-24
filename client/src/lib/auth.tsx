@@ -133,7 +133,7 @@ export function AdminRoute({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isLoading && (!user || user.userType !== 'admin')) {
-      setLocation('/admin');
+      setLocation('/royalty');
     }
   }, [user, isLoading, setLocation]);
 

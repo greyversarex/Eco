@@ -53,37 +53,37 @@ function Router() {
       <Switch>
         <Route path="/" component={DepartmentLogin} />
         <Route path="/privacy" component={PrivacyPolicy} />
-        <Route path="/admin" component={AdminLogin} />
-        <Route path="/admin-login" component={AdminLogin} />
-        <Route path="/admin/dashboard">
+        <Route path="/royalty" component={AdminLogin} />
+        <Route path="/royalty-login" component={AdminLogin} />
+        <Route path="/royalty/dashboard">
           <AdminRoute>
             <AdminDashboard />
           </AdminRoute>
         </Route>
-        <Route path="/admin/departments">
+        <Route path="/royalty/departments">
           <AdminRoute>
             <AdminDepartments />
           </AdminRoute>
         </Route>
-        <Route path="/admin/inbox">
-          <Redirect to="/admin/departments" />
+        <Route path="/royalty/inbox">
+          <Redirect to="/royalty/departments" />
         </Route>
-        <Route path="/admin/department/:id">
+        <Route path="/royalty/department/:id">
           <AdminRoute>
             <AdminDepartmentMessages />
           </AdminRoute>
         </Route>
-        <Route path="/admin/people">
+        <Route path="/royalty/people">
           <AdminRoute>
             <AdminPeople />
           </AdminRoute>
         </Route>
-        <Route path="/admin/document-types">
+        <Route path="/royalty/document-types">
           <AdminRoute>
             <AdminDocumentTypes />
           </AdminRoute>
         </Route>
-        <Route path="/admin/document-templates">
+        <Route path="/royalty/document-templates">
           <AdminRoute>
             <AdminDocumentTemplates />
           </AdminRoute>

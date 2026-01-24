@@ -17,7 +17,7 @@ import { format } from 'date-fns';
 
 export default function AdminDepartmentMessages() {
   const [, setLocation] = useLocation();
-  const [, params] = useRoute('/admin/department/:id');
+  const [, params] = useRoute('/royalty/department/:id');
   const [trashDialogOpen, setTrashDialogOpen] = useState(false);
   const [trashTab, setTrashTab] = useState<'messages' | 'assignments' | 'announcements'>('messages');
   const { toast } = useToast();
@@ -121,7 +121,7 @@ export default function AdminDepartmentMessages() {
 
   const handleMessageClick = (messageId: number) => {
     console.log('Opening message:', messageId);
-    setLocation(`/department/message/${messageId}?from=/admin/department/${departmentId}`);
+    setLocation(`/department/message/${messageId}?from=/royalty/department/${departmentId}`);
   };
 
   return (
@@ -143,7 +143,7 @@ export default function AdminDepartmentMessages() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setLocation('/admin/departments')}
+              onClick={() => setLocation('/royalty/departments')}
               data-testid="button-back"
               className="shrink-0 text-white hover:bg-white/20"
             >

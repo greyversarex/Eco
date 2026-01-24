@@ -49,7 +49,7 @@ export default function AdminDepartments() {
   };
 
   const handleDepartmentClick = (departmentId: number) => {
-    setLocation(`/admin/department/${departmentId}`);
+    setLocation(`/royalty/department/${departmentId}`);
   };
 
   return (
@@ -78,7 +78,7 @@ export default function AdminDepartments() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setLocation('/admin/dashboard')}
+              onClick={() => setLocation('/royalty/dashboard')}
               data-testid="button-settings"
               className="gap-2 hidden sm:flex text-white hover:bg-white/20"
             >
@@ -88,7 +88,7 @@ export default function AdminDepartments() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setLocation('/admin/dashboard')}
+              onClick={() => setLocation('/royalty/dashboard')}
               data-testid="button-settings-mobile"
               className="sm:hidden text-white hover:bg-white/20"
             >

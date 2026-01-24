@@ -160,7 +160,7 @@ export default function AdminDocumentTypes() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setLocation('/admin/dashboard')}
+              onClick={() => setLocation('/royalty/dashboard')}
               data-testid="button-back"
               className="gap-2 text-white hover:bg-white/20"
             >

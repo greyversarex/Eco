@@ -257,7 +257,7 @@ export default function AdminDocumentTemplates() {
 
   const handleLogout = async () => {
     await logout();
-    setLocation('/admin/login');
+    setLocation('/royalty/login');
   };
 
   const isPending = createMutation.isPending || updateMutation.isPending || 
@@ -276,7 +276,7 @@ export default function AdminDocumentTemplates() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setLocation('/admin')}
+              onClick={() => setLocation('/royalty')}
               className="text-white hover:bg-white/20"
               data-testid="button-back"
             >

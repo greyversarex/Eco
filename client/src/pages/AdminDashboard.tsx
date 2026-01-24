@@ -574,7 +574,7 @@ export default function AdminDashboard() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => window.location.href = '/admin/departments'}
+              onClick={() => window.location.href = '/royalty/departments'}
               data-testid="button-departments"
               className="gap-2 hidden sm:flex text-white hover:bg-white/20"
             >
@@ -584,7 +584,7 @@ export default function AdminDashboard() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => window.location.href = '/admin/people'}
+              onClick={() => window.location.href = '/royalty/people'}
               data-testid="button-people"
               className="gap-2 hidden sm:flex text-white hover:bg-white/20"
             >
@@ -594,7 +594,7 @@ export default function AdminDashboard() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => window.location.href = '/admin/document-types'}
+              onClick={() => window.location.href = '/royalty/document-types'}
               data-testid="button-document-types"
               className="gap-2 hidden sm:flex text-white hover:bg-white/20"
             >
@@ -604,7 +604,7 @@ export default function AdminDashboard() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => window.location.href = '/admin/document-templates'}
+              onClick={() => window.location.href = '/royalty/document-templates'}
               data-testid="button-document-templates"
               className="gap-2 hidden sm:flex text-white hover:bg-white/20"
             >
@@ -614,7 +614,7 @@ export default function AdminDashboard() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => window.location.href = '/admin/departments'}
+              onClick={() => window.location.href = '/royalty/departments'}
               data-testid="button-departments-mobile"
               className="sm:hidden text-white hover:bg-white/20"
             >

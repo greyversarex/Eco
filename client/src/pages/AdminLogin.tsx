@@ -37,7 +37,7 @@ export default function AdminLogin() {
         });
       }
       
-      setLocation('/admin/dashboard');
+      setLocation('/royalty/dashboard');
     },
     onError: (error) => {
       const err = error as Error;
