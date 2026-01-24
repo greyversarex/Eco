@@ -18,7 +18,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { apiFetch } from '@/lib/api-config';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import type { Assignment, Person, Department, DocumentType } from '@shared/schema';
+import type { Assignment, Person, Department, DocumentType, DocumentTemplate } from '@shared/schema';
 import { Footer } from '@/components/Footer';
 import { DatePicker } from '@/components/ui/date-picker';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
@@ -35,6 +35,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { ComposeMessageModal } from '@/components/ComposeMessageModal';
 
 // Progress indicator component with segmented daily view
@@ -225,6 +230,7 @@ export default function AssignmentsPage() {
   const [replyDocumentContent, setReplyDocumentContent] = useState('');
   const [replyDocumentFilename, setReplyDocumentFilename] = useState('Ҳуҷҷат');
   const [showReplyDocumentEditor, setShowReplyDocumentEditor] = useState(false);
+  const [templatePopoverOpen, setTemplatePopoverOpen] = useState(false);
   const [replyFiles, setReplyFiles] = useState<File[]>([]);
   const [expandedReplies, setExpandedReplies] = useState<Set<number>>(new Set());
   const [recipientSearch, setRecipientSearch] = useState('');
@@ -250,6 +256,10 @@ export default function AssignmentsPage() {
     queryKey: ['/api/document-types'],
     staleTime: 0,
     refetchOnMount: 'always',
+  });
+
+  const { data: documentTemplates = [] } = useQuery<DocumentTemplate[]>({
+    queryKey: ['/api/document-templates'],
   });
 
   // Filter assignments by document type
@@ -909,16 +919,66 @@ export default function AssignmentsPage() {
                 
                 <div className="space-y-2">
                   {!showReplyDocumentEditor ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowReplyDocumentEditor(true)}
-                      className="w-full"
-                      data-testid="button-create-document"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Сохтани ҳуҷҷат
-                    </Button>
+                    documentTemplates.length > 0 ? (
+                      <Popover open={templatePopoverOpen} onOpenChange={setTemplatePopoverOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full"
+                            data-testid="button-create-document"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Сохтани ҳуҷҷат
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64 p-0" align="start">
+                          <div className="max-h-[200px] overflow-y-auto">
+                            {documentTemplates.map((template) => (
+                              <button
+                                key={template.id}
+                                type="button"
+                                className="w-full text-left px-3 py-2 hover:bg-accent text-sm border-b last:border-b-0"
+                                onClick={() => {
+                                  setReplyDocumentContent(template.htmlContent || '');
+                                  setReplyDocumentFilename(template.name || 'Ҳуҷҷат');
+                                  setShowReplyDocumentEditor(true);
+                                  setTemplatePopoverOpen(false);
+                                }}
+                                data-testid={`button-template-${template.id}`}
+                              >
+                                {template.name}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              className="w-full text-left px-3 py-2 hover:bg-accent text-sm text-muted-foreground"
+                              onClick={() => {
+                                setReplyDocumentContent('');
+                                setReplyDocumentFilename('Ҳуҷҷат');
+                                setShowReplyDocumentEditor(true);
+                                setTemplatePopoverOpen(false);
+                              }}
+                              data-testid="button-new-document"
+                            >
+                              <Plus className="h-3 w-3 inline mr-1" />
+                              Ҳуҷҷати нав
+                            </button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowReplyDocumentEditor(true)}
+                        className="w-full"
+                        data-testid="button-create-document"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Сохтани ҳуҷҷат
+                      </Button>
+                    )
                   ) : (
                     <>
                       <div className="flex items-center justify-between">
