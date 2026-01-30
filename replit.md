@@ -32,6 +32,7 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Department Icon Upload:** Interactive icon upload with image cropping and zooming.
 *   **ZIP Archive Export System:** Admin-only feature to export department message history as structured ZIP archives, including formatted Word documents and attachments.
 *   **Recycle Bin (Корзина) System:** Soft-delete functionality for messages, assignments, and announcements with department-scoped visibility and admin permanent deletion capabilities.
+*   **Independent Message Deletion:** Senders and recipients can delete messages independently - when a sender deletes a message, recipients can still see it, and vice versa. Uses `isDeletedBySender` and `deletedByRecipientIds` fields for per-user deletion tracking. Admins can perform global deletions that affect all users.
 *   **Unified Department Ordering System:** Centralized `sortOrder`-based department ordering managed via an admin panel with drag-and-drop.
 *   **People/Executors Management System:** Manages people (executors) with department associations, including CRUD API and automatic filtering in forms.
 *   **Flexible Permission System:** Database-driven permissions for `canCreateAssignment`, `canCreateAssignmentFromMessage`, and `canMonitor`.
