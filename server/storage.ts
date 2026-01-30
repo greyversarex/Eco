@@ -52,11 +52,13 @@ export interface IStorage {
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<Message | undefined>;
   deleteMessage(id: number): Promise<boolean>;
+  deleteMessageForDepartment(id: number, departmentId: number): Promise<boolean>; // New: independent deletion
   getUnreadCountByDepartment(departmentId: number): Promise<number>;
   getUnreadCountsForAllDepartments(currentDeptId: number): Promise<Record<number, number>>;
   getAllDepartmentsUnreadCounts(): Promise<Record<number, number>>;
   listDeletedMessages(departmentId?: number): Promise<Message[]>;
   restoreMessage(id: number): Promise<boolean>;
+  restoreMessageForDepartment(id: number, departmentId: number): Promise<boolean>; // New: independent restore
   permanentDeleteMessage(id: number): Promise<boolean>;
   
   // Attachments
@@ -364,12 +366,46 @@ export class DbStorage implements IStorage {
   }
 
   async deleteMessage(id: number): Promise<boolean> {
-    // Soft delete: mark as deleted
+    // Admin/permanent soft delete: mark as deleted for everyone
     const result = await db.update(messages)
       .set({ isDeleted: true, deletedAt: new Date() })
       .where(eq(messages.id, id))
       .returning();
     return result.length > 0;
+  }
+
+  async deleteMessageForDepartment(id: number, departmentId: number): Promise<boolean> {
+    // Independent deletion: only affects the requesting department
+    const message = await this.getMessageById(id);
+    if (!message) return false;
+
+    const isSender = message.senderId === departmentId;
+    const isRecipient = message.recipientId === departmentId || 
+      (message.recipientIds?.includes(departmentId) ?? false);
+
+    if (!isSender && !isRecipient) {
+      return false; // No permission
+    }
+
+    if (isSender) {
+      // Sender deleting: mark as deleted by sender
+      const result = await db.update(messages)
+        .set({ isDeletedBySender: true, deletedBySenderAt: new Date() })
+        .where(eq(messages.id, id))
+        .returning();
+      return result.length > 0;
+    } else {
+      // Recipient deleting: add to deletedByRecipientIds array
+      const currentDeletedBy = message.deletedByRecipientIds || [];
+      if (!currentDeletedBy.includes(departmentId)) {
+        const result = await db.update(messages)
+          .set({ deletedByRecipientIds: [...currentDeletedBy, departmentId] })
+          .where(eq(messages.id, id))
+          .returning();
+        return result.length > 0;
+      }
+      return true; // Already deleted for this recipient
+    }
   }
 
   async getUnreadCountByDepartment(departmentId: number): Promise<number> {
@@ -447,27 +483,93 @@ export class DbStorage implements IStorage {
   }
 
   async listDeletedMessages(departmentId?: number): Promise<Message[]> {
-    const where = departmentId
-      ? and(
-          eq(messages.isDeleted, true),
+    if (departmentId) {
+      // For department: show messages they deleted independently
+      // Sender deleted their sent messages OR recipient deleted received messages
+      const allMessages = await db.select().from(messages)
+        .where(
           or(
-            eq(messages.senderId, departmentId),
-            sql`${messages.recipientIds} @> ARRAY[${departmentId}]::integer[]`,
-            eq(messages.recipientId, departmentId)
+            // Messages where this department is sender and deleted by sender
+            and(
+              eq(messages.senderId, departmentId),
+              eq(messages.isDeletedBySender, true)
+            ),
+            // Messages where this department is recipient and in deletedByRecipientIds
+            and(
+              or(
+                sql`${messages.recipientIds} @> ARRAY[${departmentId}]::integer[]`,
+                eq(messages.recipientId, departmentId)
+              ),
+              sql`${messages.deletedByRecipientIds} @> ARRAY[${departmentId}]::integer[]`
+            ),
+            // Also show admin-deleted messages that belong to this department
+            and(
+              eq(messages.isDeleted, true),
+              or(
+                eq(messages.senderId, departmentId),
+                sql`${messages.recipientIds} @> ARRAY[${departmentId}]::integer[]`,
+                eq(messages.recipientId, departmentId)
+              )
+            )
           )
         )
-      : eq(messages.isDeleted, true);
-    return await db.select().from(messages)
-      .where(where)
-      .orderBy(desc(messages.deletedAt));
+        .orderBy(desc(messages.createdAt));
+      return allMessages;
+    } else {
+      // Admin: show all permanently deleted messages
+      return await db.select().from(messages)
+        .where(eq(messages.isDeleted, true))
+        .orderBy(desc(messages.deletedAt));
+    }
   }
 
   async restoreMessage(id: number): Promise<boolean> {
+    // Admin restore: clear all deletion flags
     const result = await db.update(messages)
-      .set({ isDeleted: false, deletedAt: null })
+      .set({ 
+        isDeleted: false, 
+        deletedAt: null,
+        isDeletedBySender: false,
+        deletedBySenderAt: null,
+        deletedByRecipientIds: []
+      })
       .where(eq(messages.id, id))
       .returning();
     return result.length > 0;
+  }
+
+  async restoreMessageForDepartment(id: number, departmentId: number): Promise<boolean> {
+    // Independent restore: only restore for the requesting department
+    const message = await this.getMessageById(id);
+    if (!message) return false;
+
+    const isSender = message.senderId === departmentId;
+    const isRecipient = message.recipientId === departmentId || 
+      (message.recipientIds?.includes(departmentId) ?? false);
+
+    if (!isSender && !isRecipient) {
+      return false; // No permission
+    }
+
+    if (isSender && message.isDeletedBySender) {
+      // Sender restoring: clear sender deletion flag
+      const result = await db.update(messages)
+        .set({ isDeletedBySender: false, deletedBySenderAt: null })
+        .where(eq(messages.id, id))
+        .returning();
+      return result.length > 0;
+    } else if (isRecipient) {
+      // Recipient restoring: remove from deletedByRecipientIds array
+      const currentDeletedBy = message.deletedByRecipientIds || [];
+      if (currentDeletedBy.includes(departmentId)) {
+        const result = await db.update(messages)
+          .set({ deletedByRecipientIds: currentDeletedBy.filter(id => id !== departmentId) })
+          .where(eq(messages.id, id))
+          .returning();
+        return result.length > 0;
+      }
+    }
+    return true; // Nothing to restore
   }
 
   async permanentDeleteMessage(id: number): Promise<boolean> {
