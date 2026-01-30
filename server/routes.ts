@@ -1831,13 +1831,24 @@ export function registerRoutes(app: Express) {
   // Upload file attachment to message
   app.post("/api/messages/:id/attachments", requireAuth, upload.single('file'), async (req: Request, res: Response) => {
     try {
+      console.log('[ATTACHMENT_UPLOAD] Starting upload for message:', req.params.id, {
+        hasFile: !!req.file,
+        fileName: req.file?.originalname,
+        fileSize: req.file?.size,
+        mimeType: req.file?.mimetype,
+        departmentId: req.session.departmentId,
+        adminId: req.session.adminId,
+      });
+      
       const messageId = parseInt(req.params.id);
       
       if (isNaN(messageId)) {
+        console.log('[ATTACHMENT_UPLOAD] Invalid message ID:', req.params.id);
         return res.status(400).json({ error: 'Invalid message ID' });
       }
 
       if (!req.file) {
+        console.log('[ATTACHMENT_UPLOAD] No file in request for message:', messageId);
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
@@ -1856,8 +1867,25 @@ export function registerRoutes(app: Express) {
 
       // Check if user has access to this message
       if (req.session.departmentId) {
-        // Department can only upload to messages they sent or received
-        if (message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
+        const deptId = req.session.departmentId;
+        const isSender = message.senderId === deptId;
+        const isLegacyRecipient = message.recipientId === deptId;
+        const isArrayRecipient = message.recipientIds?.includes(deptId) ?? false;
+        const hasAccess = isSender || isLegacyRecipient || isArrayRecipient;
+        
+        console.log('[ATTACHMENT_UPLOAD] Access check:', {
+          messageId,
+          deptId,
+          senderId: message.senderId,
+          recipientId: message.recipientId,
+          recipientIds: message.recipientIds,
+          isSender,
+          isLegacyRecipient,
+          isArrayRecipient,
+          hasAccess,
+        });
+        
+        if (!hasAccess) {
           return res.status(403).json({ error: 'Access denied' });
         }
       } else if (!req.session.adminId) {
@@ -1905,8 +1933,13 @@ export function registerRoutes(app: Express) {
 
       // Check if user has access to this message
       if (req.session.departmentId) {
-        // Department can only see attachments for messages they sent or received
-        if (message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
+        const deptId = req.session.departmentId;
+        const isSender = message.senderId === deptId;
+        const isLegacyRecipient = message.recipientId === deptId;
+        const isArrayRecipient = message.recipientIds?.includes(deptId) ?? false;
+        const hasAccess = isSender || isLegacyRecipient || isArrayRecipient;
+        
+        if (!hasAccess) {
           return res.status(403).json({ error: 'Access denied' });
         }
       } else if (!req.session.adminId) {
@@ -1955,8 +1988,13 @@ export function registerRoutes(app: Express) {
 
       // Check if user has access to this message
       if (req.session.departmentId) {
-        // Department can only download attachments for messages they sent or received
-        if (message.senderId !== req.session.departmentId && message.recipientId !== req.session.departmentId) {
+        const deptId = req.session.departmentId;
+        const isSender = message.senderId === deptId;
+        const isLegacyRecipient = message.recipientId === deptId;
+        const isArrayRecipient = message.recipientIds?.includes(deptId) ?? false;
+        const hasAccess = isSender || isLegacyRecipient || isArrayRecipient;
+        
+        if (!hasAccess) {
           return res.status(403).json({ error: 'Access denied' });
         }
       } else if (!req.session.adminId) {
