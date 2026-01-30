@@ -320,17 +320,27 @@ export class DbStorage implements IStorage {
 
   async getMessagesByDepartment(departmentId: number): Promise<{ inbox: Message[]; outbox: Message[] }> {
     // Inbox: messages where departmentId is in recipientIds array, or legacy recipientId matches
+    // Also filter out messages deleted by this recipient or deleted globally
     const inbox = await db.select().from(messages).where(
       and(
         or(
           sql`${messages.recipientIds} @> ARRAY[${departmentId}]::integer[]`,
           eq(messages.recipientId, departmentId)
         ),
-        eq(messages.isDeleted, false)
+        eq(messages.isDeleted, false),
+        // Exclude messages deleted by this recipient
+        sql`NOT (COALESCE(${messages.deletedByRecipientIds}, ARRAY[]::integer[]) @> ARRAY[${departmentId}]::integer[])`
       )
     ).orderBy(desc(messages.createdAt));
     
-    const outbox = await db.select().from(messages).where(and(eq(messages.senderId, departmentId), eq(messages.isDeleted, false))).orderBy(desc(messages.createdAt));
+    // Outbox: messages sent by this department, not deleted by sender or globally
+    const outbox = await db.select().from(messages).where(
+      and(
+        eq(messages.senderId, departmentId), 
+        eq(messages.isDeleted, false),
+        eq(messages.isDeletedBySender, false) // Exclude messages deleted by sender
+      )
+    ).orderBy(desc(messages.createdAt));
     return { inbox, outbox };
   }
 
@@ -409,6 +419,7 @@ export class DbStorage implements IStorage {
   }
 
   async getUnreadCountByDepartment(departmentId: number): Promise<number> {
+    // Count unread messages for this department, excluding those deleted by this department
     const result = await db.select().from(messages)
       .where(and(
         or(
@@ -416,12 +427,15 @@ export class DbStorage implements IStorage {
           eq(messages.recipientId, departmentId)
         ),
         eq(messages.isRead, false),
-        eq(messages.isDeleted, false)
+        eq(messages.isDeleted, false),
+        // Exclude messages deleted by this recipient
+        sql`NOT (COALESCE(${messages.deletedByRecipientIds}, ARRAY[]::integer[]) @> ARRAY[${departmentId}]::integer[])`
       ));
     return result.length;
   }
 
   async getMessagesByDepartmentPair(currentDeptId: number, otherDeptId: number): Promise<{ received: Message[]; sent: Message[] }> {
+    // Received messages: exclude those deleted by the current department (recipient)
     const received = await db.select().from(messages)
       .where(and(
         or(
@@ -429,9 +443,13 @@ export class DbStorage implements IStorage {
           eq(messages.recipientId, currentDeptId)
         ),
         eq(messages.senderId, otherDeptId),
-        eq(messages.isDeleted, false)
+        eq(messages.isDeleted, false),
+        // Exclude messages deleted by this recipient
+        sql`NOT (COALESCE(${messages.deletedByRecipientIds}, ARRAY[]::integer[]) @> ARRAY[${currentDeptId}]::integer[])`
       ))
       .orderBy(desc(messages.createdAt));
+    
+    // Sent messages: exclude those deleted by sender
     const sent = await db.select().from(messages)
       .where(and(
         eq(messages.senderId, currentDeptId),
@@ -439,13 +457,15 @@ export class DbStorage implements IStorage {
           sql`${messages.recipientIds} @> ARRAY[${otherDeptId}]::integer[]`,
           eq(messages.recipientId, otherDeptId)
         ),
-        eq(messages.isDeleted, false)
+        eq(messages.isDeleted, false),
+        eq(messages.isDeletedBySender, false) // Exclude messages deleted by sender
       ))
       .orderBy(desc(messages.createdAt));
     return { received, sent };
   }
 
   async getUnreadCountsForAllDepartments(currentDeptId: number): Promise<Record<number, number>> {
+    // Get unread messages for this department, excluding those deleted by this department
     const allMessages = await db.select().from(messages)
       .where(and(
         or(
@@ -453,7 +473,9 @@ export class DbStorage implements IStorage {
           eq(messages.recipientId, currentDeptId)
         ),
         eq(messages.isRead, false),
-        eq(messages.isDeleted, false)
+        eq(messages.isDeleted, false),
+        // Exclude messages deleted by this recipient
+        sql`NOT (COALESCE(${messages.deletedByRecipientIds}, ARRAY[]::integer[]) @> ARRAY[${currentDeptId}]::integer[])`
       ));
     
     const counts: Record<number, number> = {};
@@ -464,17 +486,22 @@ export class DbStorage implements IStorage {
   }
 
   async getAllDepartmentsUnreadCounts(): Promise<Record<number, number>> {
+    // Admin view: get all unread messages (still exclude globally deleted)
     const allMessages = await db.select().from(messages)
       .where(and(eq(messages.isRead, false), eq(messages.isDeleted, false)));
     
     const counts: Record<number, number> = {};
     for (const msg of allMessages) {
       // For broadcast messages (recipientIds array), count for each recipient
+      // Exclude recipients who have deleted this message
+      const deletedByRecipients = msg.deletedByRecipientIds || [];
       if (msg.recipientIds && msg.recipientIds.length > 0) {
         for (const recipientId of msg.recipientIds) {
-          counts[recipientId] = (counts[recipientId] || 0) + 1;
+          if (!deletedByRecipients.includes(recipientId)) {
+            counts[recipientId] = (counts[recipientId] || 0) + 1;
+          }
         }
-      } else if (msg.recipientId) {
+      } else if (msg.recipientId && !deletedByRecipients.includes(msg.recipientId)) {
         // Legacy single recipient
         counts[msg.recipientId] = (counts[msg.recipientId] || 0) + 1;
       }

@@ -1598,22 +1598,26 @@ export function registerRoutes(app: Express) {
       const isAdmin = req.session.adminId;
       
       if (isDepartment) {
-        const isSender = message.senderId === req.session.departmentId;
-        const isRecipient = message.recipientId === req.session.departmentId || 
-                           (message.recipientIds && message.recipientIds.includes(req.session.departmentId));
+        // Department users: use independent deletion (only affects their view)
+        const deleted = await storage.deleteMessageForDepartment(id, req.session.departmentId);
         
-        if (!isSender && !isRecipient) {
+        if (!deleted) {
           return res.status(403).json({ error: 'No permission to delete this message' });
         }
+        
+        return res.json({ success: true });
+      } else if (isAdmin) {
+        // Admin: use global deletion (affects all users)
+        const deleted = await storage.deleteMessage(id);
+        
+        if (!deleted) {
+          return res.status(500).json({ error: 'Failed to delete message' });
+        }
+        
+        return res.json({ success: true });
       }
       
-      const deleted = await storage.deleteMessage(id);
-      
-      if (!deleted) {
-        return res.status(500).json({ error: 'Failed to delete message' });
-      }
-      
-      res.json({ success: true });
+      return res.status(403).json({ error: 'No permission to delete this message' });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
@@ -1639,6 +1643,8 @@ export function registerRoutes(app: Express) {
       
       // Verify permissions for each message
       const deletedCount = { success: 0, failed: 0 };
+      const isDepartment = req.session.departmentId;
+      const isAdmin = req.session.adminId;
       
       for (const messageId of messageIds) {
         try {
@@ -1650,25 +1656,16 @@ export function registerRoutes(app: Express) {
             continue;
           }
           
-          // Check permissions - both departments and admins can delete
-          const isDepartment = req.session.departmentId;
-          const isAdmin = req.session.adminId;
+          let deleted = false;
           
-          // Departments can only delete messages they sent or received
+          // Departments use independent deletion (only affects their view)
           if (isDepartment) {
-            const isSender = message.senderId === req.session.departmentId;
-            const isRecipient = message.recipientId === req.session.departmentId || 
-                               (message.recipientIds && message.recipientIds.includes(req.session.departmentId));
-            
-            if (!isSender && !isRecipient) {
-              deletedCount.failed++;
-              continue;
-            }
+            deleted = await storage.deleteMessageForDepartment(messageId, req.session.departmentId);
+          } else if (isAdmin) {
+            // Admins use global deletion (affects all users)
+            deleted = await storage.deleteMessage(messageId);
           }
           
-          // Admins can delete any message (no additional check needed)
-          
-          const deleted = await storage.deleteMessage(messageId);
           if (deleted) {
             deletedCount.success++;
           } else {
@@ -1707,8 +1704,9 @@ export function registerRoutes(app: Express) {
     try {
       const id = parseInt(req.params.id);
       const departmentId = req.session.departmentId;
+      const isAdmin = req.session.adminId;
       
-      // First check if message exists in deleted messages visible to this department
+      // First check if message exists in deleted messages visible to this user
       const deletedMessages = await storage.listDeletedMessages(departmentId);
       const messageToRestore = deletedMessages.find(m => m.id === id);
       
@@ -1716,8 +1714,15 @@ export function registerRoutes(app: Express) {
         return res.status(404).json({ error: 'Message not found in trash or access denied' });
       }
       
-      // Restore the message
-      const restored = await storage.restoreMessage(id);
+      let restored = false;
+      
+      if (departmentId) {
+        // Department: use independent restore (only affects their view)
+        restored = await storage.restoreMessageForDepartment(id, departmentId);
+      } else if (isAdmin) {
+        // Admin: use global restore (restores for all users)
+        restored = await storage.restoreMessage(id);
+      }
       
       if (!restored) {
         return res.status(500).json({ error: 'Failed to restore message' });
