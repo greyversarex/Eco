@@ -1224,11 +1224,33 @@ export function registerRoutes(app: Express) {
         if (!isSender && !isLegacyRecipient && !isBroadcastRecipient) {
           return res.status(403).json({ error: 'Access denied' });
         }
+        
+        // Check if message was deleted by this department (per-user deletion)
+        const deletedByRecipients = message.deletedByRecipientIds || [];
+        const isDeletedForSender = isSender && message.isDeletedBySender;
+        const isDeletedForRecipient = (isLegacyRecipient || isBroadcastRecipient) && 
+          deletedByRecipients.includes(req.session.departmentId);
+        
+        // If both sender AND recipient, check if deleted from their perspective
+        if (isSender && (isLegacyRecipient || isBroadcastRecipient)) {
+          // Both perspectives: must be deleted from both to hide
+          if (isDeletedForSender && isDeletedForRecipient) {
+            return res.status(404).json({ error: 'Message not found' });
+          }
+        } else if (isDeletedForSender || isDeletedForRecipient) {
+          // Only one perspective: if deleted from that perspective, hide it
+          return res.status(404).json({ error: 'Message not found' });
+        }
+        
+        // Also check for globally deleted messages
+        if (message.isDeleted) {
+          return res.status(404).json({ error: 'Message not found' });
+        }
       } else if (!req.session.adminId) {
         // If not department and not admin, deny access
         return res.status(403).json({ error: 'Access denied' });
       }
-      // Admins can see all messages
+      // Admins can see all messages (including deleted ones for admin purposes)
       
       res.json(message);
     } catch (error: any) {
@@ -1947,6 +1969,24 @@ export function registerRoutes(app: Express) {
         if (!hasAccess) {
           return res.status(403).json({ error: 'Access denied' });
         }
+        
+        // Check if message was deleted by this department (per-user deletion)
+        const deletedByRecipients = message.deletedByRecipientIds || [];
+        const isDeletedForSender = isSender && message.isDeletedBySender;
+        const isDeletedForRecipient = (isLegacyRecipient || isArrayRecipient) && 
+          deletedByRecipients.includes(deptId);
+        
+        if (isSender && (isLegacyRecipient || isArrayRecipient)) {
+          if (isDeletedForSender && isDeletedForRecipient) {
+            return res.status(404).json({ error: 'Message not found' });
+          }
+        } else if (isDeletedForSender || isDeletedForRecipient) {
+          return res.status(404).json({ error: 'Message not found' });
+        }
+        
+        if (message.isDeleted) {
+          return res.status(404).json({ error: 'Message not found' });
+        }
       } else if (!req.session.adminId) {
         // If not department and not admin, deny access
         return res.status(403).json({ error: 'Access denied' });
@@ -2001,6 +2041,24 @@ export function registerRoutes(app: Express) {
         
         if (!hasAccess) {
           return res.status(403).json({ error: 'Access denied' });
+        }
+        
+        // Check if message was deleted by this department (per-user deletion)
+        const deletedByRecipients = message.deletedByRecipientIds || [];
+        const isDeletedForSender = isSender && message.isDeletedBySender;
+        const isDeletedForRecipient = (isLegacyRecipient || isArrayRecipient) && 
+          deletedByRecipients.includes(deptId);
+        
+        if (isSender && (isLegacyRecipient || isArrayRecipient)) {
+          if (isDeletedForSender && isDeletedForRecipient) {
+            return res.status(404).json({ error: 'Attachment not found' });
+          }
+        } else if (isDeletedForSender || isDeletedForRecipient) {
+          return res.status(404).json({ error: 'Attachment not found' });
+        }
+        
+        if (message.isDeleted) {
+          return res.status(404).json({ error: 'Attachment not found' });
         }
       } else if (!req.session.adminId) {
         // If not department and not admin, deny access

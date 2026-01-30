@@ -397,7 +397,24 @@ export class DbStorage implements IStorage {
       return false; // No permission
     }
 
-    if (isSender) {
+    // Handle case where user is both sender and recipient (e.g., broadcast includes sender)
+    // In this case, delete from both perspectives
+    if (isSender && isRecipient) {
+      const currentDeletedBy = message.deletedByRecipientIds || [];
+      const newDeletedBy = currentDeletedBy.includes(departmentId) 
+        ? currentDeletedBy 
+        : [...currentDeletedBy, departmentId];
+      
+      const result = await db.update(messages)
+        .set({ 
+          isDeletedBySender: true, 
+          deletedBySenderAt: new Date(),
+          deletedByRecipientIds: newDeletedBy
+        })
+        .where(eq(messages.id, id))
+        .returning();
+      return result.length > 0;
+    } else if (isSender) {
       // Sender deleting: mark as deleted by sender
       const result = await db.update(messages)
         .set({ isDeletedBySender: true, deletedBySenderAt: new Date() })
@@ -578,7 +595,19 @@ export class DbStorage implements IStorage {
       return false; // No permission
     }
 
-    if (isSender && message.isDeletedBySender) {
+    // Handle case where user is both sender and recipient
+    if (isSender && isRecipient) {
+      const currentDeletedBy = message.deletedByRecipientIds || [];
+      const result = await db.update(messages)
+        .set({ 
+          isDeletedBySender: false, 
+          deletedBySenderAt: null,
+          deletedByRecipientIds: currentDeletedBy.filter(id => id !== departmentId)
+        })
+        .where(eq(messages.id, id))
+        .returning();
+      return result.length > 0;
+    } else if (isSender && message.isDeletedBySender) {
       // Sender restoring: clear sender deletion flag
       const result = await db.update(messages)
         .set({ isDeletedBySender: false, deletedBySenderAt: null })
