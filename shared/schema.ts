@@ -130,8 +130,13 @@ export const messages: any = pgTable("messages", {
   approvedById: integer("approved_by_id").references(() => departments.id, { onDelete: 'set null' }), // Department that approved/rejected
   approvedAt: timestamp("approved_at"), // When approval decision was made
   isRead: boolean("is_read").default(false).notNull(),
-  isDeleted: boolean("is_deleted").default(false).notNull(),
+  isDeleted: boolean("is_deleted").default(false).notNull(), // Admin/permanent delete flag
   deletedAt: timestamp("deleted_at"),
+  // Independent deletion: sender can delete without affecting recipients
+  isDeletedBySender: boolean("is_deleted_by_sender").default(false).notNull(),
+  deletedBySenderAt: timestamp("deleted_by_sender_at"),
+  // Independent deletion: each recipient can delete for themselves
+  deletedByRecipientIds: integer("deleted_by_recipient_ids").array().default(sql`ARRAY[]::integer[]`).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   senderIdx: index("messages_sender_id_idx").on(table.senderId),
@@ -140,6 +145,7 @@ export const messages: any = pgTable("messages", {
   recipientIdsIdx: index("messages_recipient_ids_idx").using("gin", table.recipientIds),
   deletedIdx: index("messages_is_deleted_idx").on(table.isDeleted),
   approvalIdx: index("messages_approval_status_idx").on(table.approvalStatus),
+  deletedByRecipientIdsIdx: index("messages_deleted_by_recipient_ids_idx").using("gin", table.deletedByRecipientIds),
 }));
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
@@ -148,6 +154,9 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   isRead: true,
   isDeleted: true,
   deletedAt: true,
+  isDeletedBySender: true, // Populated by delete logic
+  deletedBySenderAt: true, // Populated by delete logic
+  deletedByRecipientIds: true, // Populated by delete logic
   originalSenderId: true, // Populated by forwarding logic
   forwardedById: true, // Populated by forwarding logic
   recipientIds: true, // Optional during migration, will be populated from recipientId or explicit array
