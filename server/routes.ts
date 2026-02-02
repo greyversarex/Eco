@@ -70,12 +70,9 @@ function decodeFilename(filename: string): string {
   }
 }
 
-// Configure multer for file uploads (store in memory as Buffer)
+// Configure multer for file uploads (store in memory as Buffer) - no file size limit
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 100 * 1024 * 1024, // 100MB max file size
-  },
 });
 
 // Configure multer for department icon uploads with stricter limits

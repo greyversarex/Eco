@@ -25,8 +25,8 @@ export default function ObjectUploader({
   messageId,
   onUploadComplete,
   accept,
-  maxSizeMB = 100,
-  maxFiles = 5,
+  maxSizeMB = Infinity,
+  maxFiles = Infinity,
   language = 'tg',
 }: ObjectUploaderProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -65,31 +65,9 @@ export default function ObjectUploader({
 
   const handleFilesSelect = (selectedFiles: FileList | File[]) => {
     const filesArray = Array.from(selectedFiles);
-    const maxSizeBytes = maxSizeMB * 1024 * 1024;
-    
-    // Check max files limit
-    if (uploadedFiles.length + filesArray.length > maxFiles) {
-      toast({
-        title: t.error,
-        description: t.maxFilesReached.replace('{maxFiles}', maxFiles.toString()),
-        variant: 'destructive',
-      });
-      return;
-    }
 
-    // Validate file sizes
-    const validFiles: File[] = [];
-    for (const file of filesArray) {
-      if (file.size > maxSizeBytes) {
-        toast({
-          title: t.error,
-          description: `${file.name}: ${t.fileTooLarge.replace('{maxSize}', maxSizeMB.toString())}`,
-          variant: 'destructive',
-        });
-      } else {
-        validFiles.push(file);
-      }
-    }
+    // All files are valid - no limits
+    const validFiles: File[] = filesArray;
 
     // Add files to upload queue
     if (validFiles.length > 0) {
@@ -241,7 +219,6 @@ export default function ObjectUploader({
   };
 
   const anyUploading = uploadedFiles.some(f => f.isUploading);
-  const canAddMore = uploadedFiles.length < maxFiles;
 
   return (
     <div className="space-y-4">
@@ -272,9 +249,6 @@ export default function ObjectUploader({
             <div className="space-y-2">
               <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">{t.dragDrop}</p>
-              <p className="text-xs text-muted-foreground">
-                {language === 'tg' ? `То ${maxFiles} файл` : `До ${maxFiles} файлов`}
-              </p>
             </div>
           </div>
         </div>
@@ -318,7 +292,7 @@ export default function ObjectUploader({
             </div>
           ))}
 
-          {canAddMore && !anyUploading && (
+          {!anyUploading && (
             <div>
               <input
                 ref={fileInputRef}
@@ -337,7 +311,7 @@ export default function ObjectUploader({
                 data-testid="button-add-more"
               >
                 <Upload className="h-4 w-4 mr-2" />
-                {t.addMore} ({uploadedFiles.length}/{maxFiles})
+                {t.addMore}
               </Button>
             </div>
           )}
