@@ -209,28 +209,14 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
               size="sm"
               onClick={(e) => {
                 e.stopPropagation();
-                window.open(`/api/admin/departments/${department.id}/archive/inbox`, '_blank');
+                window.open(`/api/admin/departments/${department.id}/archive`, '_blank');
               }}
-              data-testid={`button-archive-inbox-${department.id}`}
+              data-testid={`button-archive-${department.id}`}
               className="flex-1 min-w-[80px]"
-              title="Воридшуда"
+              title="Скачать архив сообщений"
             >
               <Download className="h-4 w-4 mr-1" />
-              Вор.
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                window.open(`/api/admin/departments/${department.id}/archive/outbox`, '_blank');
-              }}
-              data-testid={`button-archive-outbox-${department.id}`}
-              className="flex-1 min-w-[80px]"
-              title="Ирсолшуда"
-            >
-              <Download className="h-4 w-4 mr-1" />
-              Ирс.
+              Архив
             </Button>
             <Button
               variant="outline"
