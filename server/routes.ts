@@ -3419,4 +3419,118 @@ export function registerRoutes(app: Express) {
 
   // Store sendPushNotification function for use in other routes
   (app as any).sendPushNotification = sendPushNotification;
+
+  // ===== Department Files (Мубодила) Routes =====
+  
+  // Get all files for a department
+  app.get("/api/department-files/:departmentId", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const departmentId = parseInt(req.params.departmentId);
+      const files = await storage.getDepartmentFiles(departmentId);
+      
+      // Return file metadata without the actual file data
+      const filesMetadata = files.map(f => ({
+        id: f.id,
+        departmentId: f.departmentId,
+        fileName: f.fileName,
+        originalFileName: f.originalFileName,
+        fileSize: f.fileSize,
+        mimeType: f.mimeType,
+        uploadedById: f.uploadedById,
+        createdAt: f.createdAt,
+      }));
+      
+      res.json(filesMetadata);
+    } catch (error: any) {
+      console.error('Error getting department files:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Upload a file to department storage
+  app.post("/api/department-files/:departmentId", requireAuth, upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      const departmentId = parseInt(req.params.departmentId);
+      const req_any = req as any;
+      const uploadedById = req_any.session?.departmentId;
+      
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const originalFileName = decodeFilename(req.file.originalname);
+      const timestamp = Date.now();
+      const fileName = `${timestamp}_${originalFileName}`;
+
+      const fileData = {
+        departmentId,
+        fileName,
+        originalFileName,
+        fileData: req.file.buffer,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+        uploadedById,
+      };
+
+      const savedFile = await storage.createDepartmentFile(fileData);
+
+      res.json({
+        id: savedFile.id,
+        fileName: savedFile.fileName,
+        originalFileName: savedFile.originalFileName,
+        fileSize: savedFile.fileSize,
+        mimeType: savedFile.mimeType,
+        createdAt: savedFile.createdAt,
+      });
+    } catch (error: any) {
+      console.error('Error uploading department file:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Download a department file
+  app.get("/api/department-files/download/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const file = await storage.getDepartmentFileById(id);
+
+      if (!file) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+
+      res.set({
+        'Content-Type': file.mimeType,
+        'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(file.originalFileName)}`,
+        'Content-Length': file.fileSize,
+      });
+
+      res.send(file.fileData);
+    } catch (error: any) {
+      console.error('Error downloading department file:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Delete a department file
+  app.delete("/api/department-files/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const file = await storage.getDepartmentFileById(id);
+
+      if (!file) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+
+      const deleted = await storage.deleteDepartmentFile(id);
+      
+      if (deleted) {
+        res.json({ success: true });
+      } else {
+        res.status(500).json({ error: 'Failed to delete file' });
+      }
+    } catch (error: any) {
+      console.error('Error deleting department file:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
 }

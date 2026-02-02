@@ -470,3 +470,31 @@ export const insertMessageDocumentSchema = createInsertSchema(messageDocuments).
 export type InsertMessageDocument = z.infer<typeof insertMessageDocumentSchema>;
 export type MessageDocument = typeof messageDocuments.$inferSelect;
 
+// Department Files table (Мубодила) - file storage per department
+export const departmentFiles = pgTable("department_files", {
+  id: serial("id").primaryKey(),
+  departmentId: integer("department_id").notNull().references(() => departments.id, { onDelete: 'cascade' }),
+  fileName: text("file_name").notNull(),
+  originalFileName: text("original_file_name").notNull(),
+  fileData: bytea("file_data").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  uploadedById: integer("uploaded_by_id").references(() => departments.id, { onDelete: 'set null' }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  deptIdx: index("department_files_department_id_idx").on(table.departmentId),
+  createdAtIdx: index("department_files_created_at_idx").on(table.createdAt),
+}));
+
+export const insertDepartmentFileSchema = z.object({
+  departmentId: z.number(),
+  fileName: z.string(),
+  originalFileName: z.string(),
+  fileData: z.instanceof(Buffer),
+  fileSize: z.number(),
+  mimeType: z.string(),
+  uploadedById: z.number().optional(),
+});
+export type InsertDepartmentFile = z.infer<typeof insertDepartmentFileSchema>;
+export type DepartmentFile = typeof departmentFiles.$inferSelect;
+

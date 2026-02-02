@@ -34,6 +34,7 @@ const AnnouncementsPage = lazy(() => import("@/pages/AnnouncementsPage"));
 const MonitoringPage = lazy(() => import("@/pages/MonitoringPage"));
 const TrashPage = lazy(() => import("@/pages/TrashPage"));
 const DraftsPage = lazy(() => import("@/pages/DraftsPage"));
+const MubodilaPage = lazy(() => import("@/pages/MubodilaPage"));
 
 // Loading fallback component
 function PageLoader() {
@@ -141,6 +142,11 @@ function Router() {
         <Route path="/department/drafts">
           <DepartmentRoute>
             <DraftsPage />
+          </DepartmentRoute>
+        </Route>
+        <Route path="/department/mubodila">
+          <DepartmentRoute>
+            <MubodilaPage />
           </DepartmentRoute>
         </Route>
         <Route component={NotFound} />

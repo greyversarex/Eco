@@ -14,7 +14,8 @@ import type {
   PushSubscription, InsertPushSubscription,
   DocumentType, InsertDocumentType,
   DocumentTemplate, InsertDocumentTemplate,
-  MessageDocument, InsertMessageDocument
+  MessageDocument, InsertMessageDocument,
+  DepartmentFile, InsertDepartmentFile
 } from "@shared/schema";
 
 export interface IStorage {
@@ -153,11 +154,17 @@ export interface IStorage {
   createMessageDocument(doc: InsertMessageDocument): Promise<MessageDocument>;
   updateMessageDocument(id: number, doc: Partial<InsertMessageDocument>): Promise<MessageDocument | undefined>;
   deleteMessageDocument(id: number): Promise<boolean>;
+  
+  // Department Files (Мубодила)
+  getDepartmentFiles(departmentId: number): Promise<DepartmentFile[]>;
+  getDepartmentFileById(id: number): Promise<DepartmentFile | undefined>;
+  createDepartmentFile(file: InsertDepartmentFile): Promise<DepartmentFile>;
+  deleteDepartmentFile(id: number): Promise<boolean>;
 }
 
 // Database storage implementation
 import { db } from './db';
-import { departments, admins, messages, attachments, assignments, assignmentAttachments, assignmentReplies, assignmentReplyAttachments, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes, documentTemplates, messageDocuments } from '@shared/schema';
+import { departments, admins, messages, attachments, assignments, assignmentAttachments, assignmentReplies, assignmentReplyAttachments, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes, documentTemplates, messageDocuments, departmentFiles } from '@shared/schema';
 import { eq, or, and, desc, asc, sql } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
@@ -1244,6 +1251,28 @@ export class DbStorage implements IStorage {
 
   async deleteMessageDocument(id: number): Promise<boolean> {
     const result = await db.delete(messageDocuments).where(eq(messageDocuments.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Department Files (Мубодила)
+  async getDepartmentFiles(departmentId: number): Promise<DepartmentFile[]> {
+    return await db.select().from(departmentFiles)
+      .where(eq(departmentFiles.departmentId, departmentId))
+      .orderBy(desc(departmentFiles.createdAt));
+  }
+
+  async getDepartmentFileById(id: number): Promise<DepartmentFile | undefined> {
+    const result = await db.select().from(departmentFiles).where(eq(departmentFiles.id, id));
+    return result[0];
+  }
+
+  async createDepartmentFile(file: InsertDepartmentFile): Promise<DepartmentFile> {
+    const result = await db.insert(departmentFiles).values(file).returning();
+    return result[0];
+  }
+
+  async deleteDepartmentFile(id: number): Promise<boolean> {
+    const result = await db.delete(departmentFiles).where(eq(departmentFiles.id, id)).returning();
     return result.length > 0;
   }
 }
