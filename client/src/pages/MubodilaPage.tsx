@@ -256,13 +256,6 @@ export default function MubodilaPage() {
             </button>
           </PageHeaderLeft>
           <PageHeaderRight>
-            <Button
-              onClick={() => setLocation('/department/main')}
-              className="bg-white text-green-700 hover:bg-white/90 font-medium px-4 h-10 rounded-lg shadow-lg"
-              data-testid="button-back-main"
-            >
-              Бозгашт
-            </Button>
           </PageHeaderRight>
         </PageHeaderContainer>
       </PageHeader>
