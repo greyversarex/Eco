@@ -281,14 +281,21 @@ export default function ObjectUploader({
                 </Button>
               </div>
 
-              {uploadedFile.isUploading && (
-                <div className="space-y-2">
-                  <Progress value={uploadedFile.progress} data-testid={`progress-upload-${index}`} />
-                  <p className="text-xs text-center text-muted-foreground">
-                    {t.uploading} {uploadedFile.progress}%
-                  </p>
-                </div>
-              )}
+              <div className="space-y-1">
+                <Progress 
+                  value={uploadedFile.progress} 
+                  className={`h-3 ${uploadedFile.isComplete ? 'bg-primary/20' : ''}`}
+                  data-testid={`progress-upload-${index}`} 
+                />
+                <p className="text-xs text-center text-muted-foreground">
+                  {uploadedFile.isComplete 
+                    ? (language === 'tg' ? 'Бор шуд' : 'Загружено') 
+                    : uploadedFile.isUploading 
+                      ? `${t.uploading} ${uploadedFile.progress}%`
+                      : (language === 'tg' ? 'Дар навбат...' : 'В очереди...')
+                  }
+                </p>
+              </div>
             </div>
           ))}
 
