@@ -52,6 +52,8 @@ export default function ComposeMessage() {
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [fileUploadProgress, setFileUploadProgress] = useState<Record<number, number>>({});
   const [currentUploadIndex, setCurrentUploadIndex] = useState<number>(-1);
+  const [fileReadProgress, setFileReadProgress] = useState<Record<number, number>>({});
+  const [isReadingFiles, setIsReadingFiles] = useState(false);
   const [recipientSearch, setRecipientSearch] = useState('');
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showDocumentEditor, setShowDocumentEditor] = useState(false);
@@ -452,7 +454,7 @@ export default function ComposeMessage() {
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
     
@@ -467,28 +469,82 @@ export default function ComposeMessage() {
           description: `Файл ${file.name} аз 100МБ калонтар аст`,
           variant: 'destructive',
         });
+        e.target.value = '';
         return;
       }
     }
     
     // Check total files
-    const newFiles = [...selectedFiles, ...fileArray];
-    if (newFiles.length > 5) {
+    const currentCount = selectedFiles.length;
+    if (currentCount + fileArray.length > 5) {
       toast({
         title: 'Хато',
         description: 'Шумо наметавонед зиёда аз 5 файл илова кунед',
         variant: 'destructive',
       });
+      e.target.value = '';
       return;
     }
     
-    setSelectedFiles(newFiles);
-    // Reset input
+    // Reset input early
     e.target.value = '';
+    
+    // Add files immediately with 0% progress
+    setSelectedFiles(prev => [...prev, ...fileArray]);
+    setIsReadingFiles(true);
+    
+    // Read files with progress tracking
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
+      const fileIndex = currentCount + i;
+      
+      // Initialize progress for this file
+      setFileReadProgress(prev => ({ ...prev, [fileIndex]: 0 }));
+      
+      // Read file with progress
+      await new Promise<void>((resolve) => {
+        const reader = new FileReader();
+        
+        reader.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            setFileReadProgress(prev => ({ ...prev, [fileIndex]: percent }));
+          }
+        };
+        
+        reader.onload = () => {
+          setFileReadProgress(prev => ({ ...prev, [fileIndex]: 100 }));
+          resolve();
+        };
+        
+        reader.onerror = () => {
+          console.error('Error reading file:', file.name);
+          setFileReadProgress(prev => ({ ...prev, [fileIndex]: -1 })); // -1 indicates error
+          resolve();
+        };
+        
+        reader.readAsArrayBuffer(file);
+      });
+    }
+    
+    setIsReadingFiles(false);
   };
 
   const removeFile = (index: number) => {
     setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+    // Clean up progress states and re-index
+    setFileReadProgress(prev => {
+      const newProgress: Record<number, number> = {};
+      Object.keys(prev).forEach(key => {
+        const k = parseInt(key);
+        if (k < index) {
+          newProgress[k] = prev[k];
+        } else if (k > index) {
+          newProgress[k - 1] = prev[k];
+        }
+      });
+      return newProgress;
+    });
   };
 
   const handleSaveDraft = async () => {
@@ -931,15 +987,19 @@ export default function ComposeMessage() {
                   {selectedFiles.length > 0 && (
                     <div className="space-y-2">
                       {selectedFiles.map((file, index) => {
-                        const progress = fileUploadProgress[index];
+                        const uploadProgress = fileUploadProgress[index];
+                        const readProgress = fileReadProgress[index];
                         const isCurrentlyUploading = currentUploadIndex === index;
-                        const isWaiting = isUploadingFiles && currentUploadIndex < index;
-                        const isComplete = progress === 100;
+                        const isWaitingUpload = isUploadingFiles && currentUploadIndex < index;
+                        const isUploadComplete = uploadProgress === 100;
+                        const isReading = readProgress !== undefined && readProgress < 100 && readProgress >= 0;
+                        const isReadComplete = readProgress === 100;
+                        const hasReadError = readProgress === -1;
                         
                         return (
                           <div key={index} className="rounded-md border border-border bg-muted/30 p-3">
                             <div className="flex items-center gap-3">
-                              {isCurrentlyUploading ? (
+                              {(isReading || isCurrentlyUploading) ? (
                                 <Loader2 className="h-4 w-4 text-green-600 animate-spin flex-shrink-0" />
                               ) : (
                                 <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -950,11 +1010,20 @@ export default function ComposeMessage() {
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                   {(file.size / 1024 / 1024).toFixed(2)} МБ
-                                  {isWaiting && <span className="ml-2 text-amber-600">Дар навбат...</span>}
-                                  {isCurrentlyUploading && progress !== undefined && (
-                                    <span className="ml-2 text-green-600">{progress}%</span>
+                                  {isReading && (
+                                    <span className="ml-2 text-blue-600">Хондан... {readProgress}%</span>
                                   )}
-                                  {isComplete && <span className="ml-2 text-green-600">✓ Бор шуд</span>}
+                                  {isReadComplete && !isUploadingFiles && !isUploadComplete && (
+                                    <span className="ml-2 text-green-600">✓ Омода</span>
+                                  )}
+                                  {hasReadError && (
+                                    <span className="ml-2 text-red-600">Хато!</span>
+                                  )}
+                                  {isWaitingUpload && <span className="ml-2 text-amber-600">Дар навбат...</span>}
+                                  {isCurrentlyUploading && uploadProgress !== undefined && (
+                                    <span className="ml-2 text-green-600">Боргузорӣ... {uploadProgress}%</span>
+                                  )}
+                                  {isUploadComplete && <span className="ml-2 text-green-600">✓ Бор шуд</span>}
                                 </p>
                               </div>
                               <Button
@@ -963,14 +1032,19 @@ export default function ComposeMessage() {
                                 size="sm"
                                 onClick={() => removeFile(index)}
                                 data-testid={`button-remove-file-${index}`}
-                                disabled={sendMessageMutation.isPending || isUploadingFiles}
+                                disabled={sendMessageMutation.isPending || isUploadingFiles || isReadingFiles}
                               >
                                 <X className="h-4 w-4" />
                               </Button>
                             </div>
-                            {isCurrentlyUploading && progress !== undefined && (
+                            {isReading && (
                               <div className="mt-2">
-                                <Progress value={progress} className="h-2" />
+                                <Progress value={readProgress} className="h-2" />
+                              </div>
+                            )}
+                            {isCurrentlyUploading && uploadProgress !== undefined && (
+                              <div className="mt-2">
+                                <Progress value={uploadProgress} className="h-2" />
                               </div>
                             )}
                           </div>
@@ -995,7 +1069,7 @@ export default function ComposeMessage() {
                 <Button 
                   type="submit" 
                   data-testid="button-send" 
-                  disabled={sendMessageMutation.isPending || isUploadingFiles || !isOnline}
+                  disabled={sendMessageMutation.isPending || isUploadingFiles || isReadingFiles || !isOnline}
                   className="w-full sm:w-auto"
                 >
                   {!isOnline 
