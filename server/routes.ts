@@ -29,6 +29,22 @@ const ALLOWED_MIME_TYPES = [
   'image/webp',
   'image/bmp',
   'image/tiff',
+  // Videos
+  'video/mp4',
+  'video/mpeg',
+  'video/quicktime',
+  'video/x-msvideo',
+  'video/x-ms-wmv',
+  'video/webm',
+  'video/3gpp',
+  'video/x-flv',
+  // Audio
+  'audio/mpeg',
+  'audio/mp3',
+  'audio/wav',
+  'audio/ogg',
+  'audio/webm',
+  'audio/aac',
   // Archives
   'application/zip',
   'application/x-rar-compressed',

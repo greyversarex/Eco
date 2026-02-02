@@ -974,13 +974,13 @@ export default function ComposeMessage() {
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                   {isUploading ? (
-                                    <span className="text-blue-600">
+                                    <span className="text-green-500 font-semibold">
                                       {formatBytes(loaded)} / {formatBytes(file.size)} ({progress}%)
                                     </span>
                                   ) : error ? (
                                     <span className="text-red-600">Хато дар боркунӣ!</span>
                                   ) : isComplete ? (
-                                    <span className="text-green-600">✓ {formatBytes(file.size)} - Бор шуд</span>
+                                    <span className="text-green-500 font-semibold">✓ {formatBytes(file.size)} - Бор шуд</span>
                                   ) : (
                                     formatBytes(file.size)
                                   )}
