@@ -347,15 +347,6 @@ export default function DepartmentMain() {
                   </span>
                 )}
               </Button>
-              <Button
-                size="lg"
-                className="shrink-0 bg-[#4a9d4a] hover:bg-[#3d8a3d] text-white font-medium h-11 rounded-md shadow-sm pl-[36px] pr-[36px] gap-2"
-                data-testid="button-mubodila"
-                onClick={() => setLocation('/department/mubodila')}
-              >
-                <FolderSync className="h-4 w-4" />
-                Мубодила
-              </Button>
               <div className="relative flex-1 min-w-[150px] max-w-[280px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -367,6 +358,15 @@ export default function DepartmentMain() {
                   data-testid="input-search"
                 />
               </div>
+              <Button
+                size="lg"
+                className="shrink-0 bg-[#4a9d4a] hover:bg-[#3d8a3d] text-white font-medium h-11 rounded-md shadow-sm pl-[36px] pr-[36px] gap-2"
+                data-testid="button-mubodila"
+                onClick={() => setLocation('/department/mubodila')}
+              >
+                <FolderSync className="h-4 w-4" />
+                Мубодила
+              </Button>
               {user?.userType === 'department' && user.department?.canMonitor && (
                 <Button
                   size="lg"
