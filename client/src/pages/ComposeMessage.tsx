@@ -48,12 +48,16 @@ export default function ComposeMessage() {
   const [documentTypeId, setDocumentTypeId] = useState<string>('');
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
   const [content, setContent] = useState('');
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  // Track files with their upload status
+  interface UploadedFile {
+    file: File;
+    attachmentId: number | null; // null = uploading, number = uploaded
+    progress: number; // 0-100
+    loaded: number; // bytes loaded
+    error: boolean;
+  }
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
-  const [fileUploadProgress, setFileUploadProgress] = useState<Record<number, number>>({});
-  const [currentUploadIndex, setCurrentUploadIndex] = useState<number>(-1);
-  const [fileReadProgress, setFileReadProgress] = useState<Record<number, number>>({});
-  const [isReadingFiles, setIsReadingFiles] = useState(false);
   const [recipientSearch, setRecipientSearch] = useState('');
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showDocumentEditor, setShowDocumentEditor] = useState(false);
@@ -174,82 +178,20 @@ export default function ComposeMessage() {
         }
       }
       
-      // Upload files if any selected
-      if (selectedFiles.length > 0) {
-        setIsUploadingFiles(true);
-        setFileUploadProgress({});
-        let uploadSuccess = true;
-        let failedFiles: string[] = [];
-        
+      // Link pre-uploaded attachments to message
+      const successfulUploads = uploadedFiles.filter(f => f.attachmentId !== null);
+      if (successfulUploads.length > 0) {
         try {
-          for (let i = 0; i < selectedFiles.length; i++) {
-            const file = selectedFiles[i];
-            setCurrentUploadIndex(i);
-            setFileUploadProgress(prev => ({ ...prev, [i]: 0 }));
-            
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            // Use XMLHttpRequest for progress tracking
-            const uploadResult = await new Promise<boolean>((resolve) => {
-              const xhr = new XMLHttpRequest();
-              xhr.open('POST', `/api/messages/${messageId}/attachments`);
-              xhr.withCredentials = true;
-              
-              xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                  const percent = Math.round((event.loaded / event.total) * 100);
-                  setFileUploadProgress(prev => ({ ...prev, [i]: percent }));
-                }
-              };
-              
-              xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                  setFileUploadProgress(prev => ({ ...prev, [i]: 100 }));
-                  resolve(true);
-                } else {
-                  console.error(`Failed to upload ${file.name}:`, xhr.status, xhr.responseText);
-                  resolve(false);
-                }
-              };
-              
-              xhr.onerror = () => {
-                console.error(`Error uploading ${file.name}`);
-                resolve(false);
-              };
-              
-              xhr.send(formData);
+          for (const uploadedFile of successfulUploads) {
+            await fetch(`/api/messages/${messageId}/attachments/link`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ attachmentId: uploadedFile.attachmentId }),
             });
-            
-            if (!uploadResult) {
-              uploadSuccess = false;
-              failedFiles.push(file.name);
-            }
           }
         } catch (error) {
-          console.error('Failed to upload files:', error);
-          uploadSuccess = false;
-        } finally {
-          setIsUploadingFiles(false);
-          setCurrentUploadIndex(-1);
-        }
-        
-        if (!uploadSuccess) {
-          // Redirect to message view where user can upload files via ObjectUploader
-          queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/by-department'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
-          toast({
-            title: 'Огоҳӣ',
-            description: failedFiles.length > 0 
-              ? `Паём фиристода шуд, вале файлҳо бор нашуданд: ${failedFiles.join(', ')}. Шумо метавонед онҳоро дар саҳифаи паём илова кунед.` 
-              : 'Паём фиристода шуд, вале файлҳо бор нашуданд. Шумо метавонед онҳоро дар саҳифаи паём илова кунед.',
-            variant: 'destructive',
-          });
-          // Redirect to message view where files can be uploaded
-          setLocation(`/department/message/${messageId}`);
-          return;
+          console.error('Failed to link attachments:', error);
         }
       }
       
@@ -258,10 +200,10 @@ export default function ComposeMessage() {
       queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/by-department'] });
       queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
-      setSelectedFiles([]); // Clear files only on success
+      setUploadedFiles([]); // Clear files only on success
       toast({
         title: 'Муваффақият',
-        description: selectedFiles.length > 0 
+        description: uploadedFiles.length > 0 
           ? 'Паём ва файлҳо фиристода шуданд'
           : 'Паём фиристода шуд',
       });
@@ -327,9 +269,10 @@ export default function ComposeMessage() {
         formData.append('senderId', user.department.id.toString());
         formData.append('documentDate', new Date().toISOString());
         
-        // Attach all files
-        selectedFiles.forEach(file => {
-          formData.append('files', file);
+        // Attach pre-uploaded attachment IDs
+        const successfulUploads = uploadedFiles.filter(f => f.attachmentId !== null);
+        successfulUploads.forEach(f => {
+          formData.append('attachmentIds', f.attachmentId!.toString());
         });
 
         const response = await apiFetch('/api/messages/broadcast', {
@@ -361,7 +304,7 @@ export default function ComposeMessage() {
         
         toast({
           title: 'Муваффақият',
-          description: `${result.messagesCreated} паём${selectedFiles.length > 0 ? ' ва файлҳо' : ''} фиристода ${selectedFiles.length > 0 ? 'шуданд' : 'шуд'}`,
+          description: `${result.messagesCreated} паём${uploadedFiles.length > 0 ? ' ва файлҳо' : ''} фиристода ${uploadedFiles.length > 0 ? 'шуданд' : 'шуд'}`,
         });
       } else {
         // Single recipient - use original endpoint
@@ -393,30 +336,28 @@ export default function ComposeMessage() {
           }
         }
 
-        // Upload files if any
-        if (selectedFiles.length > 0) {
-          let uploadSuccess = true;
-          let failedFiles: string[] = [];
+        // Link pre-uploaded files to message
+        const successfulUploads = uploadedFiles.filter(f => f.attachmentId !== null);
+        if (successfulUploads.length > 0) {
+          let linkSuccess = true;
           
-          for (const file of selectedFiles) {
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            const response = await apiFetch(`/api/messages/${message.id}/attachments`, {
-              method: 'POST',
-              body: formData,
-            });
-            
-            if (!response.ok) {
-              uploadSuccess = false;
-              failedFiles.push(file.name);
+          for (const uploadedFile of successfulUploads) {
+            try {
+              await fetch(`/api/messages/${message.id}/attachments/link`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ attachmentId: uploadedFile.attachmentId }),
+              });
+            } catch {
+              linkSuccess = false;
             }
           }
           
-          if (!uploadSuccess) {
+          if (!linkSuccess) {
             toast({
               title: 'Огоҳӣ',
-              description: 'Паём фиристода шуд, вале баъзе файлҳо бор нашуданд',
+              description: 'Паём фиристода шуд, вале баъзе файлҳо пайваст нашуданд',
               variant: 'destructive',
             });
           } else {
@@ -441,7 +382,7 @@ export default function ComposeMessage() {
       setSvDirection(null);
       setDocumentTypeId('');
       setSelectedRecipients([]);
-      setSelectedFiles([]);
+      setUploadedFiles([]);
       setLocation('/department/outbox');
     } catch (error: any) {
       toast({
@@ -475,7 +416,7 @@ export default function ComposeMessage() {
     }
     
     // Check total files
-    const currentCount = selectedFiles.length;
+    const currentCount = uploadedFiles.length;
     if (currentCount + fileArray.length > 5) {
       toast({
         title: 'Хато',
@@ -489,62 +430,82 @@ export default function ComposeMessage() {
     // Reset input early
     e.target.value = '';
     
-    // Add files immediately with 0% progress
-    setSelectedFiles(prev => [...prev, ...fileArray]);
-    setIsReadingFiles(true);
+    setIsUploadingFiles(true);
     
-    // Read files with progress tracking
+    // Upload files immediately with progress tracking
     for (let i = 0; i < fileArray.length; i++) {
       const file = fileArray[i];
       const fileIndex = currentCount + i;
       
-      // Initialize progress for this file
-      setFileReadProgress(prev => ({ ...prev, [fileIndex]: 0 }));
+      // Add file to list with 0% progress
+      setUploadedFiles(prev => [...prev, {
+        file,
+        attachmentId: null,
+        progress: 0,
+        loaded: 0,
+        error: false
+      }]);
       
-      // Read file with progress
-      await new Promise<void>((resolve) => {
-        const reader = new FileReader();
+      // Upload file with XHR for progress tracking
+      try {
+        const attachmentId = await new Promise<number>((resolve, reject) => {
+          const formData = new FormData();
+          formData.append('file', file);
+          
+          const xhr = new XMLHttpRequest();
+          
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const percent = Math.round((event.loaded / event.total) * 100);
+              setUploadedFiles(prev => prev.map((f, idx) => 
+                idx === fileIndex ? { ...f, progress: percent, loaded: event.loaded } : f
+              ));
+            }
+          };
+          
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const response = JSON.parse(xhr.responseText);
+                resolve(response.id);
+              } catch {
+                reject(new Error('Invalid response'));
+              }
+            } else {
+              reject(new Error(`Upload failed: ${xhr.status}`));
+            }
+          };
+          
+          xhr.onerror = () => reject(new Error('Network error'));
+          
+          xhr.open('POST', '/api/attachments/upload');
+          xhr.withCredentials = true;
+          xhr.send(formData);
+        });
         
-        reader.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
-            setFileReadProgress(prev => ({ ...prev, [fileIndex]: percent }));
-          }
-        };
+        // Update with attachment ID
+        setUploadedFiles(prev => prev.map((f, idx) => 
+          idx === fileIndex ? { ...f, attachmentId, progress: 100, loaded: file.size } : f
+        ));
         
-        reader.onload = () => {
-          setFileReadProgress(prev => ({ ...prev, [fileIndex]: 100 }));
-          resolve();
-        };
-        
-        reader.onerror = () => {
-          console.error('Error reading file:', file.name);
-          setFileReadProgress(prev => ({ ...prev, [fileIndex]: -1 })); // -1 indicates error
-          resolve();
-        };
-        
-        reader.readAsArrayBuffer(file);
-      });
+      } catch (error) {
+        console.error('Upload error:', error);
+        setUploadedFiles(prev => prev.map((f, idx) => 
+          idx === fileIndex ? { ...f, error: true } : f
+        ));
+        toast({
+          title: 'Хато',
+          description: `Файл ${file.name} бор нашуд`,
+          variant: 'destructive',
+        });
+      }
     }
     
-    setIsReadingFiles(false);
+    setIsUploadingFiles(false);
   };
 
   const removeFile = (index: number) => {
-    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
-    // Clean up progress states and re-index
-    setFileReadProgress(prev => {
-      const newProgress: Record<number, number> = {};
-      Object.keys(prev).forEach(key => {
-        const k = parseInt(key);
-        if (k < index) {
-          newProgress[k] = prev[k];
-        } else if (k > index) {
-          newProgress[k - 1] = prev[k];
-        }
-      });
-      return newProgress;
-    });
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSaveDraft = async () => {
@@ -577,7 +538,7 @@ export default function ComposeMessage() {
         content,
         recipientIds: selectedRecipients,
         documentNumber: documentNumber || undefined,
-        attachments: selectedFiles.length > 0 ? selectedFiles : undefined,
+        attachments: uploadedFiles.length > 0 ? uploadedFiles.map(f => f.file) : undefined,
       });
 
       // Clear form
@@ -587,7 +548,7 @@ export default function ComposeMessage() {
       setSvDirection(null);
       setDocumentTypeId('');
       setSelectedRecipients([]);
-      setSelectedFiles([]);
+      setUploadedFiles([]);
 
       // Redirect to drafts page
       setLocation('/department/drafts');
@@ -932,7 +893,7 @@ export default function ComposeMessage() {
                       type="file"
                       multiple
                       onChange={handleFileSelect}
-                      disabled={selectedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
+                      disabled={uploadedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
                       data-testid="input-files"
                       className="hidden"
                     />
@@ -941,7 +902,7 @@ export default function ComposeMessage() {
                       variant="default"
                       size="sm"
                       onClick={() => document.getElementById('files')?.click()}
-                      disabled={selectedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
+                      disabled={uploadedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
                       className="gap-2"
                     >
                       <Paperclip className="h-4 w-4" />
@@ -978,28 +939,31 @@ export default function ComposeMessage() {
                       <FileEdit className="h-4 w-4" />
                       Сохтани Ҳуҷҷат
                     </Button>
-                    {selectedFiles.length > 0 && (
+                    {uploadedFiles.length > 0 && (
                       <span className="text-sm text-muted-foreground">
-                        Файлҳои интихобшуда: {selectedFiles.length}/5
+                        Файлҳои интихобшуда: {uploadedFiles.length}/5
                       </span>
                     )}
                   </div>
-                  {selectedFiles.length > 0 && (
+                  {uploadedFiles.length > 0 && (
                     <div className="space-y-2">
-                      {selectedFiles.map((file, index) => {
-                        const uploadProgress = fileUploadProgress[index];
-                        const readProgress = fileReadProgress[index];
-                        const isCurrentlyUploading = currentUploadIndex === index;
-                        const isWaitingUpload = isUploadingFiles && currentUploadIndex < index;
-                        const isUploadComplete = uploadProgress === 100;
-                        const isReading = readProgress !== undefined && readProgress < 100 && readProgress >= 0;
-                        const isReadComplete = readProgress === 100;
-                        const hasReadError = readProgress === -1;
+                      {uploadedFiles.map((uploadedFile, index) => {
+                        const { file, attachmentId, progress, loaded, error } = uploadedFile;
+                        const isUploading = attachmentId === null && !error;
+                        const isComplete = attachmentId !== null;
+                        
+                        // Format bytes to MB/GB
+                        const formatBytes = (bytes: number) => {
+                          if (bytes >= 1024 * 1024 * 1024) {
+                            return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' ГБ';
+                          }
+                          return (bytes / 1024 / 1024).toFixed(2) + ' МБ';
+                        };
                         
                         return (
                           <div key={index} className="rounded-md border border-border bg-muted/30 p-3">
                             <div className="flex items-center gap-3">
-                              {(isReading || isCurrentlyUploading) ? (
+                              {isUploading ? (
                                 <Loader2 className="h-4 w-4 text-green-600 animate-spin flex-shrink-0" />
                               ) : (
                                 <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -1009,21 +973,17 @@ export default function ComposeMessage() {
                                   {file.name}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  {(file.size / 1024 / 1024).toFixed(2)} МБ
-                                  {isReading && (
-                                    <span className="ml-2 text-blue-600">Хондан... {readProgress}%</span>
+                                  {isUploading ? (
+                                    <span className="text-blue-600">
+                                      {formatBytes(loaded)} / {formatBytes(file.size)} ({progress}%)
+                                    </span>
+                                  ) : error ? (
+                                    <span className="text-red-600">Хато дар боркунӣ!</span>
+                                  ) : isComplete ? (
+                                    <span className="text-green-600">✓ {formatBytes(file.size)} - Бор шуд</span>
+                                  ) : (
+                                    formatBytes(file.size)
                                   )}
-                                  {isReadComplete && !isUploadingFiles && !isUploadComplete && (
-                                    <span className="ml-2 text-green-600">✓ Омода</span>
-                                  )}
-                                  {hasReadError && (
-                                    <span className="ml-2 text-red-600">Хато!</span>
-                                  )}
-                                  {isWaitingUpload && <span className="ml-2 text-amber-600">Дар навбат...</span>}
-                                  {isCurrentlyUploading && uploadProgress !== undefined && (
-                                    <span className="ml-2 text-green-600">Боргузорӣ... {uploadProgress}%</span>
-                                  )}
-                                  {isUploadComplete && <span className="ml-2 text-green-600">✓ Бор шуд</span>}
                                 </p>
                               </div>
                               <Button
@@ -1032,19 +992,14 @@ export default function ComposeMessage() {
                                 size="sm"
                                 onClick={() => removeFile(index)}
                                 data-testid={`button-remove-file-${index}`}
-                                disabled={sendMessageMutation.isPending || isUploadingFiles || isReadingFiles}
+                                disabled={sendMessageMutation.isPending || isUploading}
                               >
                                 <X className="h-4 w-4" />
                               </Button>
                             </div>
-                            {isReading && (
+                            {isUploading && (
                               <div className="mt-2">
-                                <Progress value={readProgress} className="h-2" />
-                              </div>
-                            )}
-                            {isCurrentlyUploading && uploadProgress !== undefined && (
-                              <div className="mt-2">
-                                <Progress value={uploadProgress} className="h-2" />
+                                <Progress value={progress} className="h-2" />
                               </div>
                             )}
                           </div>
@@ -1069,7 +1024,7 @@ export default function ComposeMessage() {
                 <Button 
                   type="submit" 
                   data-testid="button-send" 
-                  disabled={sendMessageMutation.isPending || isUploadingFiles || isReadingFiles || !isOnline}
+                  disabled={sendMessageMutation.isPending || isUploadingFiles || !isOnline}
                   className="w-full sm:w-auto"
                 >
                   {!isOnline 

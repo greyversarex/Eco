@@ -1852,6 +1852,100 @@ export function registerRoutes(app: Express) {
 
   // File attachment routes (PostgreSQL storage)
 
+  // Upload file attachment (standalone - without linking to message)
+  // Returns attachment ID for later linking
+  app.post("/api/attachments/upload", requireAuth, upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      console.log('[ATTACHMENT_UPLOAD_STANDALONE] Starting standalone upload:', {
+        hasFile: !!req.file,
+        fileName: req.file?.originalname,
+        fileSize: req.file?.size,
+        mimeType: req.file?.mimetype,
+        departmentId: req.session.departmentId,
+      });
+      
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      // Validate MIME type
+      if (!ALLOWED_MIME_TYPES.includes(req.file.mimetype)) {
+        return res.status(400).json({ 
+          error: 'File type not allowed. Please upload documents, images, or archives only.' 
+        });
+      }
+
+      // Save file to database without messageId (will be linked later)
+      const decodedFilename = decodeFilename(req.file.originalname);
+      const attachment = await storage.createAttachment({
+        messageId: null, // Will be linked later
+        file_name: decodedFilename,
+        fileData: req.file.buffer,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+      });
+
+      console.log('[ATTACHMENT_UPLOAD_STANDALONE] Upload successful:', {
+        attachmentId: attachment.id,
+        fileName: decodedFilename,
+        fileSize: req.file.size,
+      });
+
+      res.json({ id: attachment.id, fileName: decodedFilename, fileSize: req.file.size });
+    } catch (error: any) {
+      console.error('[ATTACHMENT_UPLOAD_STANDALONE] Error:', error);
+      res.status(500).json({ error: 'Failed to upload file' });
+    }
+  });
+
+  // Link pre-uploaded attachment to a message
+  app.post("/api/messages/:id/attachments/link", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const messageId = parseInt(req.params.id);
+      const { attachmentId } = req.body;
+
+      console.log('[ATTACHMENT_LINK] Linking attachment to message:', {
+        messageId,
+        attachmentId,
+        departmentId: req.session.departmentId,
+      });
+
+      if (isNaN(messageId) || !attachmentId) {
+        return res.status(400).json({ error: 'Invalid message ID or attachment ID' });
+      }
+
+      // Verify message exists and user has access
+      const message = await storage.getMessageById(messageId);
+      if (!message) {
+        return res.status(404).json({ error: 'Message not found' });
+      }
+
+      // Check if user has access to this message
+      if (req.session.departmentId) {
+        const deptId = req.session.departmentId;
+        const isSender = message.senderId === deptId;
+        const isLegacyRecipient = message.recipientId === deptId;
+        const isArrayRecipient = message.recipientIds?.includes(deptId) ?? false;
+        const hasAccess = isSender || isLegacyRecipient || isArrayRecipient;
+        
+        if (!hasAccess) {
+          return res.status(403).json({ error: 'Access denied' });
+        }
+      } else if (!req.session.adminId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      // Link the attachment to the message
+      await storage.linkAttachmentToMessage(attachmentId, messageId);
+
+      console.log('[ATTACHMENT_LINK] Successfully linked attachment:', { attachmentId, messageId });
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('[ATTACHMENT_LINK] Error:', error);
+      res.status(500).json({ error: 'Failed to link attachment' });
+    }
+  });
+
   // Upload file attachment to message
   app.post("/api/messages/:id/attachments", requireAuth, upload.single('file'), async (req: Request, res: Response) => {
     try {
@@ -2020,6 +2114,11 @@ export function registerRoutes(app: Express) {
       const attachment = await storage.getAttachmentById(attachmentId);
       if (!attachment) {
         return res.status(404).json({ error: 'Attachment not found' });
+      }
+
+      // Check if attachment is linked to a message
+      if (!attachment.messageId) {
+        return res.status(404).json({ error: 'Attachment not linked to a message' });
       }
 
       // Verify message exists and user has access

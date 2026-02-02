@@ -67,6 +67,7 @@ export interface IStorage {
   getAttachmentsByMessageId(messageId: number): Promise<Attachment[]>;
   getAttachmentById(id: number): Promise<Attachment | undefined>;
   deleteAttachmentsByMessageId(messageId: number): Promise<boolean>;
+  linkAttachmentToMessage(attachmentId: number, messageId: number): Promise<boolean>;
   
   // Assignments
   getAssignments(): Promise<Assignment[]>;
@@ -660,6 +661,14 @@ export class DbStorage implements IStorage {
 
   async deleteAttachmentsByMessageId(messageId: number): Promise<boolean> {
     const result = await db.delete(attachments).where(eq(attachments.messageId, messageId)).returning();
+    return result.length > 0;
+  }
+
+  async linkAttachmentToMessage(attachmentId: number, messageId: number): Promise<boolean> {
+    const result = await db.update(attachments)
+      .set({ messageId })
+      .where(eq(attachments.id, attachmentId))
+      .returning();
     return result.length > 0;
   }
 

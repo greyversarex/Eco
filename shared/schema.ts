@@ -174,9 +174,10 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
 
 // Attachments table - stores files in database
+// messageId can be null for standalone uploads that will be linked later
 export const attachments = pgTable("attachments", {
   id: serial("id").primaryKey(),
-  messageId: integer("message_id").notNull().references(() => messages.id, { onDelete: 'cascade' }),
+  messageId: integer("message_id").references(() => messages.id, { onDelete: 'cascade' }),
   file_name: text("file_name").notNull(),
   fileData: bytea("file_data").notNull(),
   fileSize: integer("file_size").notNull(),
@@ -187,7 +188,7 @@ export const attachments = pgTable("attachments", {
 }));
 
 export const insertAttachmentSchema = z.object({
-  messageId: z.number(),
+  messageId: z.number().nullable(),
   file_name: z.string(),
   fileData: z.instanceof(Buffer),
   fileSize: z.number(),
