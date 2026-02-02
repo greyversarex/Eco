@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Paperclip, X, LogOut, Save, Search, FileText, FileEdit } from 'lucide-react';
+import { ArrowLeft, Paperclip, X, LogOut, Save, Search, FileText, FileEdit, Loader2 } from 'lucide-react';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -49,6 +50,8 @@ export default function ComposeMessage() {
   const [content, setContent] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+  const [fileUploadProgress, setFileUploadProgress] = useState<Record<number, number>>({});
+  const [currentUploadIndex, setCurrentUploadIndex] = useState<number>(-1);
   const [recipientSearch, setRecipientSearch] = useState('');
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showDocumentEditor, setShowDocumentEditor] = useState(false);
@@ -172,23 +175,53 @@ export default function ComposeMessage() {
       // Upload files if any selected
       if (selectedFiles.length > 0) {
         setIsUploadingFiles(true);
+        setFileUploadProgress({});
         let uploadSuccess = true;
         let failedFiles: string[] = [];
         
         try {
-          for (const file of selectedFiles) {
+          for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            setCurrentUploadIndex(i);
+            setFileUploadProgress(prev => ({ ...prev, [i]: 0 }));
+            
             const formData = new FormData();
             formData.append('file', file);
             
-            const response = await apiFetch(`/api/messages/${messageId}/attachments`, {
-              method: 'POST',
-              body: formData,
+            // Use XMLHttpRequest for progress tracking
+            const uploadResult = await new Promise<boolean>((resolve) => {
+              const xhr = new XMLHttpRequest();
+              xhr.open('POST', `/api/messages/${messageId}/attachments`);
+              xhr.withCredentials = true;
+              
+              xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                  const percent = Math.round((event.loaded / event.total) * 100);
+                  setFileUploadProgress(prev => ({ ...prev, [i]: percent }));
+                }
+              };
+              
+              xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                  setFileUploadProgress(prev => ({ ...prev, [i]: 100 }));
+                  resolve(true);
+                } else {
+                  console.error(`Failed to upload ${file.name}:`, xhr.status, xhr.responseText);
+                  resolve(false);
+                }
+              };
+              
+              xhr.onerror = () => {
+                console.error(`Error uploading ${file.name}`);
+                resolve(false);
+              };
+              
+              xhr.send(formData);
             });
             
-            if (!response.ok) {
+            if (!uploadResult) {
               uploadSuccess = false;
               failedFiles.push(file.name);
-              console.error(`Failed to upload ${file.name}:`, response.status, await response.text());
             }
           }
         } catch (error) {
@@ -196,6 +229,7 @@ export default function ComposeMessage() {
           uploadSuccess = false;
         } finally {
           setIsUploadingFiles(false);
+          setCurrentUploadIndex(-1);
         }
         
         if (!uploadSuccess) {
@@ -896,29 +930,52 @@ export default function ComposeMessage() {
                   </div>
                   {selectedFiles.length > 0 && (
                     <div className="space-y-2">
-                      {selectedFiles.map((file, index) => (
-                        <div key={index} className="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-3">
-                          <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate" data-testid={`text-selected-file-${index}`}>
-                              {file.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {(file.size / 1024 / 1024).toFixed(2)} МБ
-                            </p>
+                      {selectedFiles.map((file, index) => {
+                        const progress = fileUploadProgress[index];
+                        const isCurrentlyUploading = currentUploadIndex === index;
+                        const isWaiting = isUploadingFiles && currentUploadIndex < index;
+                        const isComplete = progress === 100;
+                        
+                        return (
+                          <div key={index} className="rounded-md border border-border bg-muted/30 p-3">
+                            <div className="flex items-center gap-3">
+                              {isCurrentlyUploading ? (
+                                <Loader2 className="h-4 w-4 text-green-600 animate-spin flex-shrink-0" />
+                              ) : (
+                                <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate" data-testid={`text-selected-file-${index}`}>
+                                  {file.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {(file.size / 1024 / 1024).toFixed(2)} МБ
+                                  {isWaiting && <span className="ml-2 text-amber-600">Дар навбат...</span>}
+                                  {isCurrentlyUploading && progress !== undefined && (
+                                    <span className="ml-2 text-green-600">{progress}%</span>
+                                  )}
+                                  {isComplete && <span className="ml-2 text-green-600">✓ Бор шуд</span>}
+                                </p>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeFile(index)}
+                                data-testid={`button-remove-file-${index}`}
+                                disabled={sendMessageMutation.isPending || isUploadingFiles}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            {isCurrentlyUploading && progress !== undefined && (
+                              <div className="mt-2">
+                                <Progress value={progress} className="h-2" />
+                              </div>
+                            )}
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeFile(index)}
-                            data-testid={`button-remove-file-${index}`}
-                            disabled={sendMessageMutation.isPending || isUploadingFiles}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
