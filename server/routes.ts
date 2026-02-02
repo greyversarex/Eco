@@ -12,7 +12,7 @@ import DOMPurify from "isomorphic-dompurify";
 
 // Allowed MIME types for file uploads
 const ALLOWED_MIME_TYPES = [
-  // Documents
+  // Documents - Microsoft Office
   'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -20,15 +20,28 @@ const ALLOWED_MIME_TYPES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'application/vnd.ms-powerpoint',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  // Documents - OpenDocument (LibreOffice)
+  'application/vnd.oasis.opendocument.text',
+  'application/vnd.oasis.opendocument.spreadsheet',
+  'application/vnd.oasis.opendocument.presentation',
+  // Documents - Text
   'text/plain',
   'application/rtf',
-  // Images
+  'text/html',
+  'text/xml',
+  'application/xml',
+  // Images - Common
   'image/jpeg',
   'image/png',
   'image/gif',
   'image/webp',
   'image/bmp',
   'image/tiff',
+  'image/svg+xml',
+  // Images - iPhone/Modern
+  'image/heic',
+  'image/heif',
+  'image/avif',
   // Videos
   'video/mp4',
   'video/mpeg',
@@ -38,6 +51,7 @@ const ALLOWED_MIME_TYPES = [
   'video/webm',
   'video/3gpp',
   'video/x-flv',
+  'video/x-matroska',
   // Audio
   'audio/mpeg',
   'audio/mp3',
@@ -45,14 +59,19 @@ const ALLOWED_MIME_TYPES = [
   'audio/ogg',
   'audio/webm',
   'audio/aac',
+  'audio/x-m4a',
+  'audio/flac',
   // Archives
   'application/zip',
   'application/x-rar-compressed',
+  'application/vnd.rar',
   'application/x-7z-compressed',
   'application/gzip',
+  'application/x-tar',
   // Other
   'application/json',
   'text/csv',
+  'application/octet-stream',
 ];
 
 // Helper function to properly decode filename with UTF-8 support
