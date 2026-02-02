@@ -232,7 +232,7 @@ export default function MubodilaPage() {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-fixed relative"
+      className="min-h-screen bg-cover bg-center bg-fixed relative flex flex-col"
       style={{ backgroundImage: `url(${bgImage})` }}
     >
       <div className="absolute inset-0" style={{ background: 'rgba(255, 255, 255, 0.92)' }} />
@@ -267,7 +267,7 @@ export default function MubodilaPage() {
         </PageHeaderContainer>
       </PageHeader>
 
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 relative z-10 flex-1">
         <div className="space-y-6">
           <Card className="bg-white shadow-lg">
             <CardHeader>
