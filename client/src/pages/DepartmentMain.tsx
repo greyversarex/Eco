@@ -347,7 +347,7 @@ export default function DepartmentMain() {
                   </span>
                 )}
               </Button>
-              <div className="relative flex-1 min-w-[150px] max-w-[280px]">
+              <div className="relative flex-1 min-w-[200px] max-w-[400px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
