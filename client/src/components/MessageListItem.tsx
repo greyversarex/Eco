@@ -1,4 +1,4 @@
-import { Paperclip, CheckCheck, Check, XCircle } from 'lucide-react';
+import { Paperclip, CheckCheck, Check, XCircle, Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -148,7 +148,13 @@ export default function MessageListItem({
               )}
               <span>{documentNumber || '—'}</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {!isRead && !isSentMessage && (
+                <Badge variant="outline" className="gap-1 bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-600 text-xs py-0">
+                  <Mail className="h-3 w-3" />
+                  Нав
+                </Badge>
+              )}
               {approvalStatus === 'approved' && (
                 <Badge variant="outline" className="gap-1 bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-600 text-xs py-0">
                   <Check className="h-3 w-3" />
@@ -239,6 +245,12 @@ export default function MessageListItem({
         
         {/* Icons */}
         <div className="flex flex-col items-end gap-1">
+          {!isRead && !isSentMessage && (
+            <Badge variant="outline" className="gap-1 bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-600" data-testid={`badge-new-${id}`}>
+              <Mail className="h-3 w-3" />
+              <span className="text-xs">Паёми нав</span>
+            </Badge>
+          )}
           {approvalStatus === 'approved' && (
             <Badge variant="outline" className="gap-1 bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-600" data-testid={`badge-approved-${id}`}>
               <Check className="h-3 w-3" />
