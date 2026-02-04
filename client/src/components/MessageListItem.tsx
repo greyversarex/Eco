@@ -109,10 +109,12 @@ export default function MessageListItem({
     <>
       {/* Mobile View */}
       <div
-        className={`sm:hidden border border-border px-4 py-3 transition-all duration-200 rounded-lg mb-2 ${
+        className={`sm:hidden border px-4 py-3 transition-all duration-200 rounded-lg mb-2 ${
           !selectable && !isSelected ? 'cursor-pointer hover:border-primary hover:shadow-lg hover:bg-primary/10' : ''
         } ${
-          !isRead && !isSentMessage ? 'bg-primary/5' : 'bg-background'
+          !isRead && !isSentMessage 
+            ? 'bg-green-50 dark:bg-green-950/40 border-green-200 dark:border-green-800' 
+            : 'bg-background border-border'
         } ${isSelected ? 'bg-primary/10' : ''}`}
         onClick={handleItemClick}
         data-testid={`message-item-${id}`}
@@ -167,10 +169,12 @@ export default function MessageListItem({
 
       {/* Desktop View - Grid Layout */}
       <div
-        className={`hidden sm:grid border border-border px-6 py-4 transition-all duration-200 rounded-lg mb-2 items-center gap-x-4 ${
+        className={`hidden sm:grid border px-6 py-4 transition-all duration-200 rounded-lg mb-2 items-center gap-x-4 ${
           !selectable && !isSelected ? 'cursor-pointer hover:border-primary hover:shadow-lg hover:bg-primary/10 hover:scale-[1.01]' : ''
         } ${
-          !isRead && !isSentMessage ? 'bg-primary/5' : 'bg-background'
+          !isRead && !isSentMessage 
+            ? 'bg-green-50 dark:bg-green-950/40 border-green-200 dark:border-green-800' 
+            : 'bg-background border-border'
         } ${isSelected ? 'bg-primary/10' : ''}`}
         style={{
           gridTemplateColumns: selectable 
