@@ -4,6 +4,7 @@ import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Image from '@tiptap/extension-image';
 import { mergeAttributes, Node } from '@tiptap/core';
+import { DOMParser as ProseMirrorDOMParser } from '@tiptap/pm/model';
 import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
@@ -37,6 +38,82 @@ const PageBreak = Extension.create({
     };
   },
 });
+
+const cleanWordHtml = (html: string): string => {
+  let cleaned = html;
+  cleaned = cleaned.replace(/<o:p[^>]*>[\s\S]*?<\/o:p>/gi, '');
+  cleaned = cleaned.replace(/<\/?o:[^>]*>/gi, '');
+  cleaned = cleaned.replace(/<\/?w:[^>]*>/gi, '');
+  cleaned = cleaned.replace(/<\/?m:[^>]*>/gi, '');
+  cleaned = cleaned.replace(/<\/?v:[^>]*>/gi, '');
+  cleaned = cleaned.replace(/<!--\[if[^>]*>[\s\S]*?<!\[endif\]-->/gi, '');
+  cleaned = cleaned.replace(/<!--[\s\S]*?-->/g, '');
+  cleaned = cleaned.replace(/<xml[^>]*>[\s\S]*?<\/xml>/gi, '');
+  cleaned = cleaned.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+  cleaned = cleaned.replace(/class="Mso[^"]*"/gi, '');
+  cleaned = cleaned.replace(/class='Mso[^']*'/gi, '');
+  cleaned = cleaned.replace(/\s*mso-[^;":]+:[^;":]+;?/gi, '');
+  cleaned = cleaned.replace(/\s*font-family:\s*["']?Symbol["']?[^;]*;?/gi, '');
+  cleaned = cleaned.replace(/lang="[^"]*"/gi, '');
+  const fontStylePattern = /style="([^"]*)"/gi;
+  cleaned = cleaned.replace(fontStylePattern, (match, styleContent) => {
+    const preservedStyles: string[] = [];
+    const fontFamilyMatch = styleContent.match(/font-family:\s*([^;]+)/i);
+    if (fontFamilyMatch) {
+      let fontFamily = fontFamilyMatch[1].trim();
+      fontFamily = fontFamily.replace(/["']/g, '').split(',')[0].trim();
+      if (fontFamily && !fontFamily.toLowerCase().includes('symbol')) {
+        preservedStyles.push(`font-family: '${fontFamily}'`);
+      }
+    }
+    const fontSizeMatch = styleContent.match(/font-size:\s*([^;]+)/i);
+    if (fontSizeMatch) {
+      let fontSize = fontSizeMatch[1].trim();
+      const ptMatch = fontSize.match(/(\d+(?:\.\d+)?)\s*pt/i);
+      if (ptMatch) {
+        preservedStyles.push(`font-size: ${ptMatch[1]}pt`);
+      }
+    }
+    const fontWeightMatch = styleContent.match(/font-weight:\s*([^;]+)/i);
+    if (fontWeightMatch) {
+      preservedStyles.push(`font-weight: ${fontWeightMatch[1].trim()}`);
+    }
+    const fontStyleMatch = styleContent.match(/font-style:\s*([^;]+)/i);
+    if (fontStyleMatch) {
+      preservedStyles.push(`font-style: ${fontStyleMatch[1].trim()}`);
+    }
+    const textDecorationMatch = styleContent.match(/text-decoration:\s*([^;]+)/i);
+    if (textDecorationMatch) {
+      preservedStyles.push(`text-decoration: ${textDecorationMatch[1].trim()}`);
+    }
+    const colorMatch = styleContent.match(/(?:^|[^-])color:\s*([^;]+)/i);
+    if (colorMatch) {
+      preservedStyles.push(`color: ${colorMatch[1].trim()}`);
+    }
+    const bgColorMatch = styleContent.match(/background(?:-color)?:\s*([^;]+)/i);
+    if (bgColorMatch) {
+      preservedStyles.push(`background-color: ${bgColorMatch[1].trim()}`);
+    }
+    const textAlignMatch = styleContent.match(/text-align:\s*([^;]+)/i);
+    if (textAlignMatch) {
+      preservedStyles.push(`text-align: ${textAlignMatch[1].trim()}`);
+    }
+    const lineHeightMatch = styleContent.match(/line-height:\s*([^;]+)/i);
+    if (lineHeightMatch) {
+      preservedStyles.push(`line-height: ${lineHeightMatch[1].trim()}`);
+    }
+    if (preservedStyles.length > 0) {
+      return `style="${preservedStyles.join('; ')}"`;
+    }
+    return '';
+  });
+  cleaned = cleaned.replace(/<span[^>]*>\s*<\/span>/gi, '');
+  cleaned = cleaned.replace(/<p[^>]*>\s*(&nbsp;|\u00A0)?\s*<\/p>/gi, '<p><br></p>');
+  cleaned = cleaned.replace(/\s+/g, ' ');
+  cleaned = cleaned.replace(/>\s+</g, '><');
+  return cleaned.trim();
+};
+
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -132,14 +209,19 @@ const LINE_SPACINGS = [
 ];
 
 const FONT_FAMILIES = [
-  { value: 'Arial', label: 'Arial' },
   { value: 'Times New Roman', label: 'Times New Roman' },
+  { value: 'Arial', label: 'Arial' },
   { value: 'Calibri', label: 'Calibri' },
   { value: 'Georgia', label: 'Georgia' },
   { value: 'Verdana', label: 'Verdana' },
-  { value: 'Courier New', label: 'Courier New' },
   { value: 'Tahoma', label: 'Tahoma' },
   { value: 'Trebuchet MS', label: 'Trebuchet MS' },
+  { value: 'Courier New', label: 'Courier New' },
+  { value: 'Segoe UI', label: 'Segoe UI' },
+  { value: 'Noto Sans', label: 'Noto Sans (Тоҷикӣ)' },
+  { value: 'Noto Serif', label: 'Noto Serif (Тоҷикӣ)' },
+  { value: 'Roboto', label: 'Roboto' },
+  { value: 'Open Sans', label: 'Open Sans (Тоҷикӣ)' },
 ];
 
 const FONT_SIZES = [
@@ -294,6 +376,23 @@ export function DocumentEditor({
     editable: !readOnly,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
+    },
+    editorProps: {
+      handlePaste: (view, event, slice) => {
+        const html = event.clipboardData?.getData('text/html');
+        if (html && (html.includes('mso-') || html.includes('MsoNormal') || html.includes('xmlns:w=') || html.includes('urn:schemas-microsoft-com'))) {
+          event.preventDefault();
+          const cleanedHtml = cleanWordHtml(html);
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = cleanedHtml;
+          const parser = ProseMirrorDOMParser.fromSchema(view.state.schema);
+          const parsedDoc = parser.parse(tempDiv);
+          const newTr = view.state.tr.replaceSelection(parsedDoc.slice(0));
+          view.dispatch(newTr);
+          return true;
+        }
+        return false;
+      },
     },
   });
 
