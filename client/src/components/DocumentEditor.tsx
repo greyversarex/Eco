@@ -598,11 +598,11 @@ export function DocumentEditor({
     if (!departmentName) return;
     const date = new Date().toLocaleDateString('ru-RU');
     const deptLines = wrapText(departmentName, 20);
-    const deptTextY = 80;
+    const deptTextY = 40;
     const deptTexts = deptLines.map((line, i) =>
-      `<text x="110" y="${deptTextY + i * 16}" text-anchor="middle" font-size="12" font-weight="bold" fill="#166534" font-family="Arial, sans-serif">${line}</text>`
+      `<text x="110" y="${deptTextY + i * 18}" text-anchor="middle" font-size="16" font-weight="bold" fill="#166534" font-family="Arial, sans-serif">${line}</text>`
     ).join('');
-    const lineAfterDeptY = deptTextY + deptLines.length * 16 + 5;
+    const lineAfterDeptY = deptTextY + deptLines.length * 18 + 5;
     const dateY = lineAfterDeptY + 18;
     const totalHeight = dateY + 25;
     const stampSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="${totalHeight}" viewBox="0 0 220 ${totalHeight}">
@@ -615,8 +615,6 @@ export function DocumentEditor({
       <g filter="url(#roughEdgeDept)" transform="rotate(-3, 110, ${totalHeight / 2})">
         <rect x="5" y="5" width="210" height="${totalHeight - 10}" rx="6" ry="6" fill="rgba(22, 101, 52, 0.05)" stroke="#166534" stroke-width="4"/>
         <rect x="12" y="12" width="196" height="${totalHeight - 24}" rx="4" ry="4" fill="none" stroke="#166534" stroke-width="2"/>
-        <text x="110" y="45" text-anchor="middle" font-size="22" font-weight="bold" fill="#166534" font-family="Arial, sans-serif">МӮҲР</text>
-        <line x1="25" y1="55" x2="195" y2="55" stroke="#166534" stroke-width="1.5"/>
         ${deptTexts}
         <line x1="25" y1="${lineAfterDeptY}" x2="195" y2="${lineAfterDeptY}" stroke="#166534" stroke-width="1.5"/>
         <text x="110" y="${dateY}" text-anchor="middle" font-size="14" font-weight="bold" fill="#166534" font-family="Arial, sans-serif">${date}</text>
