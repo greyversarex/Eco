@@ -17,15 +17,15 @@ export function DocumentStamp({
 }: DocumentStampProps) {
   const isApproved = status === 'approved';
   const sizeClasses = {
-    sm: 'w-24 h-24 text-xs',
-    md: 'w-32 h-32 text-sm',
-    lg: 'w-40 h-40 text-base'
+    sm: 'w-28 text-xs px-3 py-2',
+    md: 'w-36 text-sm px-4 py-3',
+    lg: 'w-44 text-base px-5 py-4'
   };
   
   const iconSizes = {
-    sm: 'h-6 w-6',
-    md: 'h-8 w-8',
-    lg: 'h-10 w-10'
+    sm: 'h-5 w-5',
+    md: 'h-7 w-7',
+    lg: 'h-9 w-9'
   };
 
   const formattedDate = approvedAt 
@@ -37,23 +37,23 @@ export function DocumentStamp({
       className={`
         ${sizeClasses[size]}
         relative flex flex-col items-center justify-center
-        rounded-full border-4 
+        rounded-md border-4 
         ${isApproved 
           ? 'border-green-600 text-green-700 dark:border-green-500 dark:text-green-400' 
           : 'border-red-600 text-red-700 dark:border-red-500 dark:text-red-400'
         }
-        transform rotate-[-12deg]
+        transform rotate-[-3deg]
         shadow-lg
         bg-white/90 dark:bg-gray-900/90
-        p-2
       `}
       style={{
         boxShadow: isApproved 
           ? '0 0 0 3px rgba(22, 163, 74, 0.3), inset 0 0 0 2px rgba(22, 163, 74, 0.2)'
           : '0 0 0 3px rgba(220, 38, 38, 0.3), inset 0 0 0 2px rgba(220, 38, 38, 0.2)'
       }}
+      data-testid={`stamp-${status}`}
     >
-      <div className="absolute inset-2 rounded-full border-2 border-current opacity-50" />
+      <div className="absolute inset-2 rounded border-2 border-current opacity-50" />
       
       <div className="text-center z-10 flex flex-col items-center gap-0.5">
         {isApproved ? (
@@ -63,10 +63,10 @@ export function DocumentStamp({
         )}
         
         <div className="font-bold uppercase tracking-wide">
-          {isApproved ? 'ИҶРО ШУД' : 'РАД ШУД'}
+          {isApproved ? 'ИҶОЗАТ' : 'РАДШУДА'}
         </div>
         
-        <div className="text-[0.65em] opacity-80 max-w-[80%] text-center truncate">
+        <div className="text-[0.65em] opacity-80 max-w-[90%] text-center line-clamp-2">
           {departmentName}
         </div>
         
@@ -94,7 +94,7 @@ export function StampButtons({ onApprove, onReject, isPending }: StampButtonsPro
         data-testid="stamp-button-approve"
       >
         <Check className="h-4 w-4" />
-        Иҷро шуд
+        Иҷозат
       </Button>
       <Button
         onClick={onReject}
@@ -103,7 +103,7 @@ export function StampButtons({ onApprove, onReject, isPending }: StampButtonsPro
         data-testid="stamp-button-reject"
       >
         <X className="h-4 w-4" />
-        Рад шуд
+        Радшуда
       </Button>
     </div>
   );
