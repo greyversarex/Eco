@@ -1457,19 +1457,36 @@ export function registerRoutes(app: Express) {
       
       const message = await storage.createMessage(fullMessageData);
 
-      // Attach files to this single message
+      // Link pre-uploaded attachments to this message (attachmentIds from standalone uploads)
+      const attachmentIdsRaw = req.body.attachmentIds;
+      const preUploadedIds: number[] = [];
+      if (attachmentIdsRaw) {
+        const ids = Array.isArray(attachmentIdsRaw) ? attachmentIdsRaw : [attachmentIdsRaw];
+        for (const id of ids) {
+          const numId = parseInt(String(id), 10);
+          if (!isNaN(numId)) {
+            preUploadedIds.push(numId);
+          }
+        }
+      }
+
+      if (preUploadedIds.length > 0) {
+        for (const attachmentId of preUploadedIds) {
+          await storage.linkAttachmentToMessage(attachmentId, message.id);
+        }
+      }
+
+      // Attach files sent directly in this request
       if (files.length > 0) {
-        await Promise.all(
-          files.map(file =>
-            storage.createAttachment({
-              messageId: message.id,
-              fileData: file.buffer,
-              file_name: file.originalname,
-              fileSize: file.size,
-              mimeType: file.mimetype,
-            })
-          )
-        );
+        for (const file of files) {
+          await storage.createAttachment({
+            messageId: message.id,
+            fileData: file.buffer,
+            file_name: file.originalname,
+            fileSize: file.size,
+            mimeType: file.mimetype,
+          });
+        }
       }
 
       // Send push notifications to recipients
@@ -1510,7 +1527,7 @@ export function registerRoutes(app: Express) {
         messagesCreated: 1,
         messageIds: [message.id], // Single message with multiple recipients
         failedRecipients: [],
-        filesAttached: files.length,
+        filesAttached: files.length + preUploadedIds.length,
       });
     } catch (error: any) {
       console.error('Error in broadcast:', error);
