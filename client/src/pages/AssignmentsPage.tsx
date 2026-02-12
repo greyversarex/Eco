@@ -476,10 +476,12 @@ export default function AssignmentsPage() {
     setContent(assignment.content || '');
     setDocumentNumber(assignment.documentNumber || '');
     setSelectedRecipients(assignment.recipientIds || []);
-    setSelectedExecutorIds([
+    const allIds = [
       ...(assignment.executorIds || []),
       ...(assignment.allDepartmentExecutorIds || []),
-    ]);
+    ];
+    const peopleIds = new Set(allPeople.map(p => p.id));
+    setSelectedExecutorIds(allIds.filter(id => peopleIds.has(id)));
     if (assignment.deadline) {
       const d = new Date(assignment.deadline);
       const yyyy = d.getFullYear();

@@ -1,0 +1,55 @@
+root@5862137-le73231:~/Eco# pm2 logs
+[TAILING] Tailing last 15 lines for [all] processes (change the value with --lines option)
+/root/.pm2/pm2.log last 15 lines:
+PM2        | 2026-02-11T11:41:05: PM2 log: pid=1679176 msg=process killed
+PM2        | 2026-02-11T11:41:05: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-02-11T11:41:05: PM2 log: App [ecotajikistan:0] online
+PM2        | 2026-02-12T09:41:59: PM2 log: [PM2] This PM2 is not UP TO DATE
+PM2        | 2026-02-12T09:41:59: PM2 log: [PM2] Upgrade to version 6.0.14
+PM2        | 2026-02-12T14:29:16: PM2 log: Stopping app:ecotajikistan id:0
+PM2        | 2026-02-12T14:29:16: PM2 log: App [ecotajikistan:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-02-12T14:29:16: PM2 log: pid=1741577 msg=process killed
+PM2        | 2026-02-12T14:29:16: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-02-12T14:29:16: PM2 log: App [ecotajikistan:0] online
+PM2        | 2026-02-12T14:32:30: PM2 log: Stopping app:ecotajikistan id:0
+PM2        | 2026-02-12T14:32:30: PM2 log: App [ecotajikistan:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-02-12T14:32:30: PM2 log: pid=1776543 msg=process killed
+PM2        | 2026-02-12T14:32:30: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-02-12T14:32:30: PM2 log: App [ecotajikistan:0] online
+
+/root/.pm2/logs/ecotajikistan-error.log last 15 lines:
+0|ecotajik | }
+0|ecotajik | [AUTH_MIDDLEWARE] Rejected: No session or user ID {
+0|ecotajik |   hasDepartmentId: false,
+0|ecotajik |   hasAdminId: false,
+0|ecotajik |   sessionExists: true,
+0|ecotajik |   path: '/api/counters',
+0|ecotajik |   method: 'GET'
+0|ecotajik | }
+0|ecotajik | [AUTH_MIDDLEWARE] Rejected: No session or user ID {
+0|ecotajik |   hasDepartmentId: false,
+0|ecotajik |   hasAdminId: false,
+0|ecotajik |   sessionExists: true,
+0|ecotajik |   path: '/api/messages/unread/by-department',
+0|ecotajik |   method: 'GET'
+0|ecotajik | }
+
+/root/.pm2/logs/ecotajikistan-out.log last 15 lines:
+0|ecotajik | [ASSIGNMENTS] Total assignments from DB: 23
+0|ecotajik | [ASSIGNMENTS] Filtered assignments for department: 22
+0|ecotajik | 4:32:38 PM [express] GET /api/document-types 200 in 42ms :: [{"id":1,"name":"Гузориш","description":…
+0|ecotajik | 4:32:38 PM [express] GET /api/assignments 200 in 137ms :: [{"id":107,"senderId":1,"topic":null,"docu…
+0|ecotajik | 4:32:41 PM [express] GET /api/messages/unread/by-department 200 in 8ms :: {"14":1,"17":2,"29":1}
+0|ecotajik | 4:32:41 PM [express] GET /api/counters 200 in 5ms :: {"unreadAnnouncements":0,"uncompletedAssignment…
+0|ecotajik | 4:33:08 PM [express] GET /api/messages/unread/by-department 200 in 19ms :: {"14":1,"17":2,"29":1}
+0|ecotajik | 4:33:08 PM [express] GET /api/counters 200 in 22ms :: {"unreadAnnouncements":0,"uncompletedAssignmen…
+0|ecotajik | 4:33:11 PM [express] GET /api/messages/unread/by-department 200 in 14ms :: {"14":1,"17":2,"29":1}
+0|ecotajik | 4:33:11 PM [express] GET /api/counters 200 in 9ms :: {"unreadAnnouncements":0,"uncompletedAssignment…
+0|ecotajik | 4:33:30 PM [express] PATCH /api/assignments/105 400 in 14ms :: {"error":"Some executor IDs are inval…
+0|ecotajik | 4:33:38 PM [express] GET /api/counters 200 in 14ms :: {"unreadAnnouncements":0,"uncompletedAssignmen…
+0|ecotajik | 4:33:38 PM [express] GET /api/messages/unread/by-department 200 in 5ms :: {"14":1,"17":2,"29":1}
+0|ecotajik | 4:33:41 PM [express] GET /api/messages/unread/by-department 200 in 9ms :: {"14":1,"17":2,"29":1}
+0|ecotajik | 4:33:41 PM [express] GET /api/counters 200 in 5ms :: {"unreadAnnouncements":0,"uncompletedAssignment…
+
+0|ecotajikistan  | 4:34:11 PM [express] GET /api/messages/unread/by-department 200 in 4ms :: {"14":1,"17":2,"29":1}
+0|ecotajikistan  | 4:34:11 PM [express] GET /api/counters 200 in 5ms :: {"unreadAnnouncements":0,"uncompletedAssignment…
