@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock, CheckCircle2, MessageSquare, Check, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock, CheckCircle2, MessageSquare, Check, Upload, ChevronDown, ChevronUp, Pencil } from 'lucide-react';
 import { DocumentEditor } from '@/components/DocumentEditor';
 import DOMPurify from 'isomorphic-dompurify';
 import bgImage from '@assets/eco-background-light.webp';
@@ -236,6 +236,7 @@ export default function AssignmentsPage() {
   const [recipientSearch, setRecipientSearch] = useState('');
   const [composeMessageDialogOpen, setComposeMessageDialogOpen] = useState(false);
   const [composeForAssignment, setComposeForAssignment] = useState<Assignment | null>(null);
+  const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
 
   const { data: assignments = [], isLoading } = useQuery<Assignment[]>({
     queryKey: ['/api/assignments'],
@@ -431,6 +432,113 @@ export default function AssignmentsPage() {
     },
   });
 
+  const updateAssignmentMutation = useMutation({
+    mutationFn: async ({ id, formData }: { id: number; formData: FormData }) => {
+      const res = await apiFetch(`/api/assignments/${id}`, {
+        method: 'PATCH',
+        body: formData,
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to update assignment');
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      toast({
+        title: 'Муваффақият',
+        description: 'Супориш нигоҳ дошта шуд',
+      });
+      setIsDialogOpen(false);
+      setEditingAssignment(null);
+      setDocumentTypeId('');
+      setContent('');
+      setDocumentNumber('');
+      setSelectedRecipients([]);
+      setSelectedExecutorIds([]);
+      setDeadline('');
+      setSelectedFiles([]);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Хато',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleEditClick = (assignment: Assignment) => {
+    setEditingAssignment(assignment);
+    setDocumentTypeId(assignment.documentTypeId?.toString() || '');
+    setContent(assignment.content || '');
+    setDocumentNumber(assignment.documentNumber || '');
+    setSelectedRecipients(assignment.recipientIds || []);
+    setSelectedExecutorIds([
+      ...(assignment.executorIds || []),
+      ...(assignment.allDepartmentExecutorIds || []),
+    ]);
+    if (assignment.deadline) {
+      const d = new Date(assignment.deadline);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      setDeadline(`${yyyy}-${mm}-${dd}`);
+    } else {
+      setDeadline('');
+    }
+    setSelectedFiles([]);
+    setIsDialogOpen(true);
+  };
+
+  const handleEditSubmit = () => {
+    if (!editingAssignment) return;
+    if (!documentTypeId) {
+      toast({
+        title: 'Хато',
+        description: 'Намуди ҳуҷҷатро интихоб кунед',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (selectedRecipients.length === 0) {
+      toast({
+        title: 'Хато',
+        description: 'Ҳадди ақал як қабулкунанда интихоб кунед',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (!deadline) {
+      toast({
+        title: 'Хато',
+        description: 'Мӯҳлати иҷроро муайян кунед',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('documentTypeId', documentTypeId);
+    if (content) {
+      formData.append('content', content);
+    }
+    if (documentNumber) {
+      formData.append('documentNumber', documentNumber);
+    }
+    formData.append('recipientIds', JSON.stringify(selectedRecipients));
+    formData.append('executorIds', JSON.stringify(selectedExecutorIds));
+    formData.append('deadline', deadline);
+
+    selectedFiles.forEach((file) => {
+      formData.append('files', file);
+    });
+
+    updateAssignmentMutation.mutate({ id: editingAssignment.id, formData });
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
@@ -557,16 +665,31 @@ export default function AssignmentsPage() {
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-2xl font-bold">Рӯйхати супоришҳо</h2>
           {canCreate && (
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2" data-testid="button-create-assignment">
-                  <Plus className="h-4 w-4" />
-                  Супориш
-                </Button>
-              </DialogTrigger>
+            <Button className="gap-2" data-testid="button-create-assignment" onClick={() => {
+              setEditingAssignment(null);
+              setDocumentTypeId('');
+              setContent('');
+              setDocumentNumber('');
+              setSelectedRecipients([]);
+              setSelectedExecutorIds([]);
+              setDeadline('');
+              setSelectedFiles([]);
+              setIsDialogOpen(true);
+            }}>
+              <Plus className="h-4 w-4" />
+              Супориш
+            </Button>
+          )}
+
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              setEditingAssignment(null);
+            }
+          }}>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Вазифагузорӣ</DialogTitle>
+                  <DialogTitle>{editingAssignment ? 'Таҳрири супориш' : 'Вазифагузорӣ'}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div className="space-y-2">
@@ -876,19 +999,21 @@ export default function AssignmentsPage() {
                   </div>
 
                   <div className="flex justify-end gap-2 pt-4">
-                    <Button onClick={handleSubmit} disabled={createAssignmentMutation.isPending}>
-                      {createAssignmentMutation.isPending
-                        ? 'Эҷод шуда истодааст...'
-                        : 'Эҷод кардан'}
+                    <Button 
+                      onClick={editingAssignment ? handleEditSubmit : handleSubmit} 
+                      disabled={editingAssignment ? updateAssignmentMutation.isPending : createAssignmentMutation.isPending}
+                    >
+                      {editingAssignment
+                        ? (updateAssignmentMutation.isPending ? 'Нигоҳ дошта истодааст...' : 'Нигоҳ доштан')
+                        : (createAssignmentMutation.isPending ? 'Эҷод шуда истодааст...' : 'Эҷод кардан')}
                     </Button>
-                    <Button variant="destructive" onClick={() => setIsDialogOpen(false)}>
+                    <Button variant="destructive" onClick={() => { setIsDialogOpen(false); setEditingAssignment(null); }}>
                       Бекор кардан
                     </Button>
                   </div>
                 </div>
               </DialogContent>
-            </Dialog>
-          )}
+          </Dialog>
 
           {/* Reply Dialog with Document Editor */}
           <Dialog open={replyDialogOpen} onOpenChange={(open) => {
@@ -1289,18 +1414,31 @@ export default function AssignmentsPage() {
                         </div>
                       )}
                     </div>
-                    {canDelete && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteAssignmentMutation.mutate(assignment.id)}
-                        disabled={deleteAssignmentMutation.isPending}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                        data-testid={`button-delete-assignment-${assignment.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditClick(assignment)}
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                          data-testid={`button-edit-assignment-${assignment.id}`}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteAssignmentMutation.mutate(assignment.id)}
+                          disabled={deleteAssignmentMutation.isPending}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          data-testid={`button-delete-assignment-${assignment.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1637,17 +1775,30 @@ export default function AssignmentsPage() {
                         </div>
                       )}
                     </div>
-                    {canDelete && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteAssignmentMutation.mutate(assignment.id)}
-                        disabled={deleteAssignmentMutation.isPending}
-                        data-testid={`button-delete-${assignment.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditClick(assignment)}
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                          data-testid={`button-edit-overdue-${assignment.id}`}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteAssignmentMutation.mutate(assignment.id)}
+                          disabled={deleteAssignmentMutation.isPending}
+                          data-testid={`button-delete-${assignment.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1908,18 +2059,31 @@ export default function AssignmentsPage() {
                             </div>
                           )}
                         </div>
-                        {canDelete && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteAssignmentMutation.mutate(assignment.id)}
-                            disabled={deleteAssignmentMutation.isPending}
-                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            data-testid={`button-delete-assignment-${assignment.id}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-1">
+                          {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditClick(assignment)}
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              data-testid={`button-edit-completed-${assignment.id}`}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteAssignmentMutation.mutate(assignment.id)}
+                              disabled={deleteAssignmentMutation.isPending}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              data-testid={`button-delete-assignment-${assignment.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">

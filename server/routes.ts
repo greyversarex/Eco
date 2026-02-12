@@ -1579,8 +1579,11 @@ export function registerRoutes(app: Express) {
           recipientIds: recipientIds,
           recipientId: null,
           executor: originalMessage.executor,
-          documentDate: originalMessage.documentDate,
+          documentDate: new Date(originalMessage.documentDate),
           documentNumber: originalMessage.documentNumber,
+          svNumber: originalMessage.svNumber || null,
+          svDirection: originalMessage.svDirection || null,
+          documentTypeId: originalMessage.documentTypeId || null,
           replyToId: null,
           originalSenderId: originalMessage.originalSenderId || originalMessage.senderId, // Track original sender
           forwardedById: senderId, // Track who forwarded it
@@ -1593,15 +1596,19 @@ export function registerRoutes(app: Express) {
         if (originalAttachments.length > 0) {
           await Promise.all(
             originalAttachments.map(async (attachment) => {
-              const fullAttachment = await storage.getAttachmentById(attachment.id);
-              if (fullAttachment) {
-                await storage.createAttachment({
-                  messageId: forwardedMessage.id,
-                  fileData: fullAttachment.fileData,
-                  file_name: fullAttachment.file_name,
-                  fileSize: fullAttachment.fileSize,
-                  mimeType: fullAttachment.mimeType,
-                });
+              try {
+                const fullAttachment = await storage.getAttachmentById(attachment.id);
+                if (fullAttachment && fullAttachment.fileData) {
+                  await storage.createAttachment({
+                    messageId: forwardedMessage.id,
+                    fileData: fullAttachment.fileData,
+                    file_name: fullAttachment.file_name,
+                    fileSize: fullAttachment.fileSize,
+                    mimeType: fullAttachment.mimeType,
+                  });
+                }
+              } catch (attachErr) {
+                console.error('Failed to copy attachment:', attachment.id, attachErr);
               }
             })
           );
@@ -2497,6 +2504,142 @@ export function registerRoutes(app: Express) {
 
       res.json(assignment);
     } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Edit assignment (creator department or admin)
+  app.patch("/api/assignments/:id", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const assignment = await storage.getAssignmentById(id);
+      if (!assignment) {
+        return res.status(404).json({ error: 'Assignment not found' });
+      }
+
+      if (req.session.departmentId) {
+        if (assignment.senderId !== req.session.departmentId) {
+          return res.status(403).json({ error: 'Only the creator department can edit this assignment' });
+        }
+      } else if (!req.session.adminId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      const executorIdsRaw = JSON.parse(req.body.executorIds || '[]');
+      if (!Array.isArray(executorIdsRaw)) {
+        return res.status(400).json({ error: 'ExecutorIds must be an array' });
+      }
+      const executorIds = Array.from(new Set(executorIdsRaw.map((eid: any) => parseInt(String(eid), 10)).filter((eid: number) => !isNaN(eid))));
+
+      const recipientIdsRaw = JSON.parse(req.body.recipientIds || '[]');
+      if (!Array.isArray(recipientIdsRaw)) {
+        return res.status(400).json({ error: 'RecipientIds must be an array' });
+      }
+      const recipientIds = recipientIdsRaw.map((rid: any) => parseInt(String(rid), 10)).filter((rid: number) => !isNaN(rid));
+
+      const allPeople = await storage.getPeople();
+
+      const executors: string[] = [];
+      if (executorIds.length > 0) {
+        const selectedPeople = allPeople.filter((p: any) => executorIds.includes(p.id));
+        for (const person of selectedPeople) {
+          if (!person.departmentId || !recipientIds.includes(person.departmentId)) {
+            return res.status(400).json({ 
+              error: `Executor ${person.name} does not belong to selected departments` 
+            });
+          }
+          executors.push(person.name);
+        }
+        if (selectedPeople.length !== executorIds.length) {
+          return res.status(400).json({ error: 'Some executor IDs are invalid' });
+        }
+      }
+
+      const allDepartments = await storage.getDepartments();
+      const recipientDepts = allDepartments.filter((d: any) => recipientIds.includes(d.id));
+
+      let allDepartmentExecutorIds: number[] = [];
+      let allDepartmentExecutors: string[] = [];
+      let finalExecutors = executors;
+      let finalExecutorIds = executorIds;
+
+      if (executorIds.length > 0) {
+        const selectedPeople = allPeople.filter((p: any) => executorIds.includes(p.id));
+        const orderedPeople: any[] = executorIds
+          .map((eid: number) => selectedPeople.find((p: any) => p.id === eid))
+          .filter(Boolean) as any[];
+
+        if (orderedPeople.length > 0) {
+          const firstPerson = orderedPeople[0];
+          finalExecutors = [firstPerson.name];
+          finalExecutorIds = [firstPerson.id];
+
+          if (orderedPeople.length > 1) {
+            allDepartmentExecutors = orderedPeople.slice(1).map((p: any) => p.name);
+            allDepartmentExecutorIds = orderedPeople.slice(1).map((p: any) => p.id);
+          } else {
+            const personDeptId = firstPerson.departmentId;
+            const otherDepts = recipientDepts.filter((d: any) => d.id !== personDeptId);
+            allDepartmentExecutors = otherDepts.map((d: any) => d.name);
+            allDepartmentExecutorIds = otherDepts.map((d: any) => d.id);
+          }
+        }
+      } else {
+        if (recipientDepts.length > 0) {
+          finalExecutors = [recipientDepts[0].name];
+          finalExecutorIds = [recipientDepts[0].id];
+
+          if (recipientDepts.length > 1) {
+            allDepartmentExecutors = recipientDepts.slice(1).map((d: any) => d.name);
+            allDepartmentExecutorIds = recipientDepts.slice(1).map((d: any) => d.id);
+          }
+        }
+      }
+
+      const updatedData: any = {
+        documentTypeId: req.body.documentTypeId ? parseInt(req.body.documentTypeId) : null,
+        content: req.body.content || null,
+        documentNumber: req.body.documentNumber || null,
+        executors: finalExecutors,
+        executorIds: finalExecutorIds,
+        allDepartmentExecutors: allDepartmentExecutors,
+        allDepartmentExecutorIds: allDepartmentExecutorIds,
+        recipientIds: recipientIds,
+        deadline: new Date(req.body.deadline),
+      };
+
+      const updated = await storage.updateAssignment(id, updatedData);
+      if (!updated) {
+        return res.status(404).json({ error: 'Assignment not found' });
+      }
+
+      const files = req.files as Express.Multer.File[] || [];
+      for (const file of files) {
+        if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+          return res.status(400).json({ 
+            error: `File type not allowed: ${file.originalname}` 
+          });
+        }
+      }
+
+      if (files.length > 0) {
+        await Promise.all(
+          files.map(file =>
+            storage.createAssignmentAttachment({
+              assignmentId: id,
+              fileData: file.buffer,
+              file_name: decodeFilename(file.originalname),
+              fileSize: file.size,
+              mimeType: file.mimetype,
+            })
+          )
+        );
+      }
+
+      const finalAssignment = await storage.getAssignmentById(id);
+      res.json(finalAssignment);
+    } catch (error: any) {
+      console.error('Error updating assignment:', error);
       res.status(500).json({ error: error.message });
     }
   });
