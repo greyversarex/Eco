@@ -1894,6 +1894,57 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  app.get("/api/monitoring/department/:deptId/messages", requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (!req.session.departmentId) {
+        return res.status(403).json({ error: 'Only departments can access this endpoint' });
+      }
+
+      const depts = await storage.getDepartments();
+      const dept = depts.find(d => d.id === req.session.departmentId);
+      if (!dept?.canMonitor) {
+        return res.status(403).json({ error: 'No monitoring permission' });
+      }
+
+      const deptId = parseInt(req.params.deptId);
+      if (isNaN(deptId)) {
+        return res.status(400).json({ error: 'Invalid department ID' });
+      }
+
+      const messages = await storage.getAllMessagesForDepartment(deptId);
+      res.json(messages);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/monitoring/department/:deptId/assignments", requireAuth, async (req: Request, res: Response) => {
+    try {
+      if (!req.session.departmentId) {
+        return res.status(403).json({ error: 'Only departments can access this endpoint' });
+      }
+
+      const depts = await storage.getDepartments();
+      const dept = depts.find(d => d.id === req.session.departmentId);
+      if (!dept?.canMonitor) {
+        return res.status(403).json({ error: 'No monitoring permission' });
+      }
+
+      const deptId = parseInt(req.params.deptId);
+      if (isNaN(deptId)) {
+        return res.status(400).json({ error: 'Invalid department ID' });
+      }
+
+      const allAssignments = await storage.getAssignments();
+      const deptAssignments = allAssignments.filter(a => 
+        a.senderId === deptId || (a.recipientIds && a.recipientIds.includes(deptId))
+      );
+      res.json(deptAssignments);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Get messages between current department and another department
   app.get("/api/messages/department/:deptId", requireAuth, async (req: Request, res: Response) => {
     try {

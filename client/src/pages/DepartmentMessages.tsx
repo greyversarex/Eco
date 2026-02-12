@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MessageListItem from '@/components/MessageListItem';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, PenSquare, Building2, ChevronRight } from 'lucide-react';
+import { ArrowLeft, PenSquare, Building2, ChevronRight, ClipboardList } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { Message, Department } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
@@ -64,15 +64,20 @@ export default function DepartmentMessages() {
   
   const department = departments.find((d) => d.id === departmentId);
   
-  // Determine back URL: subdepartment → parent department, otherwise → main or monitoring
   const backUrl = department?.parentDepartmentId 
-    ? `/department/messages/${department.parentDepartmentId}`
+    ? (fromMonitoring 
+        ? `/department/messages/${department.parentDepartmentId}?from=monitoring`
+        : `/department/messages/${department.parentDepartmentId}`)
     : fromMonitoring 
       ? '/department/monitoring' 
       : '/department/main';
 
+  const messagesUrl = fromMonitoring 
+    ? `/api/monitoring/department/${departmentId}/messages`
+    : `/api/messages/department/${departmentId}`;
+
   const { data: messages, isLoading } = useQuery<{ received: Message[]; sent: Message[] }>({
-    queryKey: ['/api/messages/department', departmentId],
+    queryKey: [messagesUrl],
     enabled: !!departmentId,
   });
 
@@ -127,15 +132,28 @@ export default function DepartmentMessages() {
             </button>
           </PageHeaderLeft>
           <PageHeaderRight className="gap-2">
-            <Button
-              size="sm"
-              onClick={() => setLocation('/department/compose')}
-              data-testid="button-compose"
-              className="hidden md:flex items-center gap-2 bg-white/20 text-white hover:bg-white/30 border border-white/30"
-            >
-              <PenSquare className="h-4 w-4" />
-              <span>Ҳуҷҷати нав</span>
-            </Button>
+            {fromMonitoring && (
+              <Button
+                size="sm"
+                onClick={() => setLocation(`/department/monitoring/assignments/${departmentId}`)}
+                data-testid="button-monitoring-assignments"
+                className="flex items-center gap-2 bg-white/20 text-white hover:bg-white/30 border border-white/30"
+              >
+                <ClipboardList className="h-4 w-4" />
+                <span className="hidden sm:inline">Супоришҳо</span>
+              </Button>
+            )}
+            {!fromMonitoring && (
+              <Button
+                size="sm"
+                onClick={() => setLocation('/department/compose')}
+                data-testid="button-compose"
+                className="hidden md:flex items-center gap-2 bg-white/20 text-white hover:bg-white/30 border border-white/30"
+              >
+                <PenSquare className="h-4 w-4" />
+                <span>Ҳуҷҷати нав</span>
+              </Button>
+            )}
           </PageHeaderRight>
         </PageHeaderContainer>
       </PageHeader>
@@ -347,7 +365,7 @@ export default function DepartmentMessages() {
                 <SubdepartmentCard
                   key={subdept.id}
                   department={subdept}
-                  onClick={() => setLocation(`/department/messages/${subdept.id}`)}
+                  onClick={() => setLocation(`/department/messages/${subdept.id}${fromMonitoring ? '?from=monitoring' : ''}`)}
                 />
               ))}
             </div>

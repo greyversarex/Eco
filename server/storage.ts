@@ -50,6 +50,7 @@ export interface IStorage {
   getMessageById(id: number): Promise<Message | undefined>;
   getMessagesByDepartment(departmentId: number): Promise<{ inbox: Message[]; outbox: Message[] }>;
   getMessagesByDepartmentPair(currentDeptId: number, otherDeptId: number): Promise<{ received: Message[]; sent: Message[] }>;
+  getAllMessagesForDepartment(deptId: number): Promise<{ received: Message[]; sent: Message[] }>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessageAsRead(id: number): Promise<Message | undefined>;
   deleteMessage(id: number): Promise<boolean>;
@@ -457,6 +458,28 @@ export class DbStorage implements IStorage {
         sql`NOT (COALESCE(${messages.deletedByRecipientIds}, ARRAY[]::integer[]) @> ARRAY[${departmentId}]::integer[])`
       ));
     return result.length;
+  }
+
+  async getAllMessagesForDepartment(deptId: number): Promise<{ received: Message[]; sent: Message[] }> {
+    const received = await db.select().from(messages)
+      .where(and(
+        or(
+          sql`${messages.recipientIds} @> ARRAY[${deptId}]::integer[]`,
+          eq(messages.recipientId, deptId)
+        ),
+        eq(messages.isDeleted, false),
+        sql`NOT (COALESCE(${messages.deletedByRecipientIds}, ARRAY[]::integer[]) @> ARRAY[${deptId}]::integer[])`
+      ))
+      .orderBy(desc(messages.createdAt));
+    
+    const sent = await db.select().from(messages)
+      .where(and(
+        eq(messages.senderId, deptId),
+        eq(messages.isDeleted, false),
+        eq(messages.isDeletedBySender, false)
+      ))
+      .orderBy(desc(messages.createdAt));
+    return { received, sent };
   }
 
   async getMessagesByDepartmentPair(currentDeptId: number, otherDeptId: number): Promise<{ received: Message[]; sent: Message[] }> {
