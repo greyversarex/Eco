@@ -43,7 +43,7 @@ import {
 import { ComposeMessageModal } from '@/components/ComposeMessageModal';
 
 // Progress indicator component with segmented daily view
-function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: Date; deadline: Date; isCompleted: boolean }) {
+function AssignmentProgress({ createdAt, deadline, isCompleted, approvalStatus }: { createdAt: Date; deadline: Date; isCompleted: boolean; approvalStatus?: string | null }) {
   const now = new Date();
   
   // Normalize dates to start of day for accurate day counting
@@ -63,7 +63,8 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
   const daysPassed = Math.max(0, Math.ceil((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
   const daysLeft = Math.max(0, Math.ceil((endDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)));
   
-  const isOverdue = currentDate > endDate && !isCompleted;
+  const isRejected = approvalStatus === 'rejected';
+  const isOverdue = (currentDate > endDate && !isCompleted) || isRejected;
 
   const formatDate = (date: Date) => {
     const monthsTajik = [
@@ -201,7 +202,10 @@ function AssignmentProgress({ createdAt, deadline, isCompleted }: { createdAt: D
       {isCompleted && (
         <div className="text-green-600 font-semibold">Иҷрошуда!</div>
       )}
-      {isOverdue && !isCompleted && (
+      {isRejected && !isCompleted && (
+        <div className="text-red-600 font-semibold">Рад шуд!</div>
+      )}
+      {isOverdue && !isCompleted && !isRejected && (
         <div className="text-red-600 font-semibold">Иҷронашуда!</div>
       )}
     </div>
@@ -1267,7 +1271,7 @@ export default function AssignmentsPage() {
               data-testid="tab-all-assignments"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
             >
-              Ҳама ({filteredAssignments.filter(a => !a.isCompleted && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length})
+              Ҳама ({filteredAssignments.filter(a => !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length})
             </Button>
             <Button
               variant={activeFilter === 'overdue' ? 'default' : 'outline'}
@@ -1275,7 +1279,7 @@ export default function AssignmentsPage() {
               data-testid="tab-overdue-assignments"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
             >
-              Иҷронашуда ({filteredAssignments.filter(a => !a.isCompleted && new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0))).length})
+              Иҷронашуда ({filteredAssignments.filter(a => !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length})
             </Button>
             <Button
               variant={activeFilter === 'completed' ? 'default' : 'outline'}
@@ -1283,7 +1287,7 @@ export default function AssignmentsPage() {
               data-testid="tab-completed-assignments"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
             >
-              Иҷрошуда ({filteredAssignments.filter(a => a.isCompleted).length})
+              Иҷрошуда ({filteredAssignments.filter(a => a.isCompleted || a.approvalStatus === 'approved').length})
             </Button>
             <div className="ml-auto">
               <Select
@@ -1314,7 +1318,7 @@ export default function AssignmentsPage() {
                   <p className="text-muted-foreground">Боргирӣ...</p>
                 </div>
               </div>
-            ) : filteredAssignments.filter(a => !a.isCompleted && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length === 0 ? (
+            ) : filteredAssignments.filter(a => !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length === 0 ? (
               <Card className="p-12 text-center bg-white">
                 <p className="text-muted-foreground">
                   Ҳанӯз супоришҳо нестанд
@@ -1322,7 +1326,7 @@ export default function AssignmentsPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {filteredAssignments.filter(a => !a.isCompleted && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).map((assignment) => (
+                {filteredAssignments.filter(a => !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).map((assignment) => (
               <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
@@ -1444,7 +1448,7 @@ export default function AssignmentsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} approvalStatus={assignment.approvalStatus} />
                   
                   {assignment.attachments && assignment.attachments.length > 0 && (
                     <div className="pt-3 border-t">
@@ -1675,7 +1679,7 @@ export default function AssignmentsPage() {
                   <p className="text-muted-foreground">Боргирӣ...</p>
                 </div>
               </div>
-            ) : filteredAssignments.filter(a => !a.isCompleted && new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0))).length === 0 ? (
+            ) : filteredAssignments.filter(a => !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length === 0 ? (
               <Card className="p-12 text-center bg-white">
                 <p className="text-muted-foreground">
                   Супоришҳои иҷронашуда нестанд
@@ -1683,7 +1687,7 @@ export default function AssignmentsPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {filteredAssignments.filter(a => !a.isCompleted && new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0))).map((assignment) => (
+                {filteredAssignments.filter(a => !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).map((assignment) => (
               <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
@@ -1804,7 +1808,7 @@ export default function AssignmentsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} approvalStatus={assignment.approvalStatus} />
                   
                   {assignment.attachments && assignment.attachments.length > 0 && (
                     <div className="pt-3 border-t">
@@ -2013,7 +2017,7 @@ export default function AssignmentsPage() {
                   <p className="text-muted-foreground">Боргирӣ...</p>
                 </div>
               </div>
-            ) : filteredAssignments.filter(a => a.isCompleted).length === 0 ? (
+            ) : filteredAssignments.filter(a => a.isCompleted || a.approvalStatus === 'approved').length === 0 ? (
               <Card className="p-12 text-center bg-white">
                 <p className="text-muted-foreground">
                   Супоришҳои иҷрошуда нестанд
@@ -2021,7 +2025,7 @@ export default function AssignmentsPage() {
               </Card>
             ) : (
               <div className="space-y-4">
-                {filteredAssignments.filter(a => a.isCompleted).map((assignment) => (
+                {filteredAssignments.filter(a => a.isCompleted || a.approvalStatus === 'approved').map((assignment) => (
                   <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between gap-4">
@@ -2089,7 +2093,7 @@ export default function AssignmentsPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} />
+                      <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} approvalStatus={assignment.approvalStatus} />
                       
                       {assignment.attachments && assignment.attachments.length > 0 && (
                         <div className="pt-3 border-t">
