@@ -42,6 +42,54 @@ import {
 } from '@/components/ui/popover';
 import { ComposeMessageModal } from '@/components/ComposeMessageModal';
 
+// Helper to determine assignment stamp status
+function getAssignmentStamp(assignment: { approvalStatus?: string | null; isCompleted: boolean; deadline: string | Date }): { show: boolean; type: 'approved' | 'rejected' | 'overdue'; label: string } | null {
+  if (assignment.approvalStatus === 'approved' || assignment.isCompleted) {
+    return { show: true, type: 'approved', label: 'ИҶРО ШУД' };
+  }
+  if (assignment.approvalStatus === 'rejected') {
+    return { show: true, type: 'rejected', label: 'РАД ШУД' };
+  }
+  const deadlineDate = new Date(assignment.deadline);
+  deadlineDate.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (today > deadlineDate) {
+    return { show: true, type: 'overdue', label: 'ИҶРОНАШУДА' };
+  }
+  return null;
+}
+
+function StampBadge({ stamp }: { stamp: { type: 'approved' | 'rejected' | 'overdue'; label: string } }) {
+  const isGreen = stamp.type === 'approved';
+  return (
+    <div 
+      className={`
+        w-14 h-14 rounded-full flex flex-col items-center justify-center
+        transform rotate-[-12deg] font-bold shrink-0
+        ${isGreen ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}
+      `}
+      style={{
+        borderWidth: '3px',
+        borderStyle: 'solid',
+        borderColor: isGreen ? '#16a34a' : '#dc2626',
+        boxShadow: isGreen
+          ? '0 0 8px rgba(22, 163, 74, 0.4)'
+          : '0 0 8px rgba(220, 38, 38, 0.4)'
+      }}
+    >
+      {isGreen ? (
+        <Check className="h-5 w-5 stroke-[3]" />
+      ) : (
+        <X className="h-5 w-5 stroke-[3]" />
+      )}
+      <span className="text-[7px] leading-tight text-center font-bold">
+        {stamp.label}
+      </span>
+    </div>
+  );
+}
+
 // Progress indicator component with segmented daily view
 function AssignmentProgress({ createdAt, deadline, isCompleted, approvalStatus }: { createdAt: Date; deadline: Date; isCompleted: boolean; approvalStatus?: string | null }) {
   const now = new Date();
@@ -1460,35 +1508,7 @@ export default function AssignmentsPage() {
                             {' '}({assignment.attachments.length})
                           </span>
                         </div>
-                        {assignment.approvalStatus && (
-                          <div 
-                            className={`
-                              w-14 h-14 rounded-full flex flex-col items-center justify-center
-                              transform rotate-[-12deg] font-bold shrink-0
-                              ${assignment.approvalStatus === 'approved' 
-                                ? 'text-green-600 bg-green-50' 
-                                : 'text-red-600 bg-red-50'
-                              }
-                            `}
-                            style={{
-                              borderWidth: '3px',
-                              borderStyle: 'solid',
-                              borderColor: assignment.approvalStatus === 'approved' ? '#16a34a' : '#dc2626',
-                              boxShadow: assignment.approvalStatus === 'approved'
-                                ? '0 0 8px rgba(22, 163, 74, 0.4)'
-                                : '0 0 8px rgba(220, 38, 38, 0.4)'
-                            }}
-                          >
-                            {assignment.approvalStatus === 'approved' ? (
-                              <Check className="h-5 w-5 stroke-[3]" />
-                            ) : (
-                              <X className="h-5 w-5 stroke-[3]" />
-                            )}
-                            <span className="text-[7px] leading-tight text-center font-bold">
-                              {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
-                            </span>
-                          </div>
-                        )}
+                        {(() => { const stamp = getAssignmentStamp(assignment); return stamp ? <StampBadge stamp={stamp} /> : null; })()}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {assignment.attachments.map((attachment) => (
@@ -1511,6 +1531,12 @@ export default function AssignmentsPage() {
                       </div>
                     </div>
                   )}
+
+                  {(!assignment.attachments || assignment.attachments.length === 0) && (() => { const stamp = getAssignmentStamp(assignment); return stamp ? (
+                    <div className="pt-3 border-t flex justify-end">
+                      <StampBadge stamp={stamp} />
+                    </div>
+                  ) : null; })()}
                   
                   <div className="flex gap-2 mt-2">
                     {!assignment.approvalStatus && user?.userType === 'department' && user.department?.id === assignment.senderId && (
@@ -1820,35 +1846,7 @@ export default function AssignmentsPage() {
                             {' '}({assignment.attachments.length})
                           </span>
                         </div>
-                        {assignment.approvalStatus && (
-                          <div 
-                            className={`
-                              w-14 h-14 rounded-full flex flex-col items-center justify-center
-                              transform rotate-[-12deg] font-bold shrink-0
-                              ${assignment.approvalStatus === 'approved' 
-                                ? 'text-green-600 bg-green-50' 
-                                : 'text-red-600 bg-red-50'
-                              }
-                            `}
-                            style={{
-                              borderWidth: '3px',
-                              borderStyle: 'solid',
-                              borderColor: assignment.approvalStatus === 'approved' ? '#16a34a' : '#dc2626',
-                              boxShadow: assignment.approvalStatus === 'approved'
-                                ? '0 0 8px rgba(22, 163, 74, 0.4)'
-                                : '0 0 8px rgba(220, 38, 38, 0.4)'
-                            }}
-                          >
-                            {assignment.approvalStatus === 'approved' ? (
-                              <Check className="h-5 w-5 stroke-[3]" />
-                            ) : (
-                              <X className="h-5 w-5 stroke-[3]" />
-                            )}
-                            <span className="text-[7px] leading-tight text-center font-bold">
-                              {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
-                            </span>
-                          </div>
-                        )}
+                        {(() => { const stamp = getAssignmentStamp(assignment); return stamp ? <StampBadge stamp={stamp} /> : null; })()}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {assignment.attachments.map((attachment) => (
@@ -1871,6 +1869,12 @@ export default function AssignmentsPage() {
                       </div>
                     </div>
                   )}
+
+                  {(!assignment.attachments || assignment.attachments.length === 0) && (() => { const stamp = getAssignmentStamp(assignment); return stamp ? (
+                    <div className="pt-3 border-t flex justify-end">
+                      <StampBadge stamp={stamp} />
+                    </div>
+                  ) : null; })()}
                   
                   <div className="flex gap-2 mt-2">
                     {!assignment.isCompleted && user?.userType === 'department' && user.department?.id !== assignment.senderId && assignment.recipientIds?.includes(user.department?.id || 0) && !assignment.replies?.some(r => r.responderDepartmentId === user.department?.id) && (
@@ -2158,37 +2162,11 @@ export default function AssignmentsPage() {
                       )}
 
                       {/* Show stamp even when no attachments */}
-                      {(!assignment.attachments || assignment.attachments.length === 0) && assignment.approvalStatus && (
+                      {(!assignment.attachments || assignment.attachments.length === 0) && (() => { const stamp = getAssignmentStamp(assignment); return stamp ? (
                         <div className="pt-3 border-t flex justify-end">
-                          <div 
-                            className={`
-                              w-14 h-14 rounded-full flex flex-col items-center justify-center
-                              transform rotate-[-12deg] font-bold shrink-0
-                              ${assignment.approvalStatus === 'approved' 
-                                ? 'text-green-600 bg-green-50' 
-                                : 'text-red-600 bg-red-50'
-                              }
-                            `}
-                            style={{
-                              borderWidth: '3px',
-                              borderStyle: 'solid',
-                              borderColor: assignment.approvalStatus === 'approved' ? '#16a34a' : '#dc2626',
-                              boxShadow: assignment.approvalStatus === 'approved'
-                                ? '0 0 8px rgba(22, 163, 74, 0.4)'
-                                : '0 0 8px rgba(220, 38, 38, 0.4)'
-                            }}
-                          >
-                            {assignment.approvalStatus === 'approved' ? (
-                              <Check className="h-5 w-5 stroke-[3]" />
-                            ) : (
-                              <X className="h-5 w-5 stroke-[3]" />
-                            )}
-                            <span className="text-[7px] leading-tight text-center font-bold">
-                              {assignment.approvalStatus === 'approved' ? 'ИҶРО ШУД' : 'РАД ШУД'}
-                            </span>
-                          </div>
+                          <StampBadge stamp={stamp} />
                         </div>
-                      )}
+                      ) : null; })()}
                       
                       {/* Show reply status for completed assignments */}
                       {user?.userType === 'department' && assignment.replies?.some(r => r.responderDepartmentId === user?.department?.id) && (
