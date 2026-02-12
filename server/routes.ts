@@ -1936,8 +1936,11 @@ export function registerRoutes(app: Express) {
       }
 
       const allAssignments = await storage.getAssignments();
-      const deptAssignments = allAssignments.filter(a => 
-        a.senderId === deptId || (a.recipientIds && a.recipientIds.includes(deptId))
+      const deptAssignments = allAssignments.filter(assignment => 
+        assignment.senderId === deptId ||
+        (assignment.recipientIds && assignment.recipientIds.includes(deptId)) ||
+        (!assignment.recipientIds || assignment.recipientIds.length === 0) ||
+        (assignment.senderId === null)
       );
       res.json(deptAssignments);
     } catch (error: any) {

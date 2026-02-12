@@ -260,10 +260,11 @@ function AssignmentProgress({ createdAt, deadline, isCompleted, approvalStatus }
   );
 }
 
-export default function AssignmentsPage() {
+export default function AssignmentsPage({ monitoringDepartmentId }: { monitoringDepartmentId?: number }) {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
+  const isMonitoringMode = !!monitoringDepartmentId;
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [documentTypeId, setDocumentTypeId] = useState<string>('');
@@ -290,8 +291,12 @@ export default function AssignmentsPage() {
   const [composeForAssignment, setComposeForAssignment] = useState<Assignment | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
 
+  const assignmentsUrl = isMonitoringMode 
+    ? `/api/monitoring/department/${monitoringDepartmentId}/assignments`
+    : '/api/assignments';
+
   const { data: assignments = [], isLoading } = useQuery<Assignment[]>({
-    queryKey: ['/api/assignments'],
+    queryKey: [assignmentsUrl],
   });
 
   const { data: allDepartments = [], isLoading: loadingDepartments, dataUpdatedAt } = useQuery<Department[]>({
@@ -658,8 +663,8 @@ export default function AssignmentsPage() {
   };
 
   // Check permissions from database
-  const canCreate = user?.userType === 'department' && user.department?.canCreateAssignment;
-  const canDelete = user?.userType === 'department' && user.department?.canCreateAssignment;
+  const canCreate = !isMonitoringMode && user?.userType === 'department' && user.department?.canCreateAssignment;
+  const canDelete = !isMonitoringMode && user?.userType === 'department' && user.department?.canCreateAssignment;
 
   // Helper to get document type name
   const getDocTypeName = (assignment: Assignment) => {
@@ -683,34 +688,39 @@ export default function AssignmentsPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setLocation('/department/main')}
+              onClick={() => setLocation(isMonitoringMode ? `/department/messages/${monitoringDepartmentId}?from=monitoring` : '/department/main')}
               className="text-white hover:bg-white/20"
               data-testid="button-back"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <button onClick={() => setLocation('/department/main')} className="flex items-center gap-3">
+            <button onClick={() => setLocation(isMonitoringMode ? `/department/messages/${monitoringDepartmentId}?from=monitoring` : '/department/main')} className="flex items-center gap-3">
               <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain drop-shadow-md" />
               <div>
                 <h1 className="text-lg font-semibold text-white drop-shadow-md">
-                  Супоришҳо
+                  {isMonitoringMode 
+                    ? `${allDepartments.find(d => d.id === monitoringDepartmentId)?.name || 'Шуъба'} - Супоришҳо`
+                    : 'Супоришҳо'
+                  }
                 </h1>
                 <p className="text-xs text-white/90 drop-shadow-sm">EcoDoc - Портали электронӣ</p>
               </div>
             </button>
           </PageHeaderLeft>
           <PageHeaderRight>
-            <Button
-              size="sm"
-              onClick={() => {
-                apiFetch('/api/auth/logout', { method: 'POST' }).then(() => setLocation('/'));
-              }}
-              className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white"
-              data-testid="button-logout"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Баромад</span>
-            </Button>
+            {!isMonitoringMode && (
+              <Button
+                size="sm"
+                onClick={() => {
+                  apiFetch('/api/auth/logout', { method: 'POST' }).then(() => setLocation('/'));
+                }}
+                className="flex items-center gap-2 bg-red-500/90 hover:bg-red-600 text-white"
+                data-testid="button-logout"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Баромад</span>
+              </Button>
+            )}
           </PageHeaderRight>
         </PageHeaderContainer>
       </PageHeader>
