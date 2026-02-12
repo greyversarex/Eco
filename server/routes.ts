@@ -2845,6 +2845,16 @@ export function registerRoutes(app: Express) {
         }
       }
       
+      // Auto-complete assignment if all recipient departments have replied
+      if (!assignment.isCompleted && assignment.recipientIds && assignment.recipientIds.length > 0) {
+        const allReplies = await storage.getAssignmentReplies(assignmentId);
+        const repliedDeptIds = new Set(allReplies.map(r => r.responderDepartmentId));
+        const allReplied = assignment.recipientIds.every((rid: number) => repliedDeptIds.has(rid));
+        if (allReplied) {
+          await storage.markAssignmentAsCompleted(assignmentId);
+        }
+      }
+
       res.status(201).json({ ...reply, attachments: attachmentsResult });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
