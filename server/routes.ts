@@ -1536,7 +1536,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Forward message endpoint (supports multiple recipients)
-  app.post("/api/messages/:id/forward", requireAuth, upload.none(), async (req: Request, res: Response) => {
+  app.post("/api/messages/:id/forward", requireAuth, async (req: Request, res: Response) => {
     try {
       const messageId = parseInt(req.params.id);
       
@@ -1557,11 +1557,27 @@ export function registerRoutes(app: Express) {
         }
       }
       
-      // Parse recipient IDs from array
-      const recipientIdsRaw = req.body['recipientIds[]'];
-      const recipientIds = Array.isArray(recipientIdsRaw) 
-        ? recipientIdsRaw.map(id => parseInt(id)).filter(id => !isNaN(id))
-        : [parseInt(recipientIdsRaw)].filter(id => !isNaN(id));
+      // Parse recipient IDs from array (handle both recipientIds[] and recipientIds field names)
+      const recipientIdsRaw = req.body['recipientIds[]'] || req.body['recipientIds'];
+      let recipientIds: number[] = [];
+      if (recipientIdsRaw) {
+        if (Array.isArray(recipientIdsRaw)) {
+          recipientIds = recipientIdsRaw.map((id: any) => parseInt(String(id))).filter((id: number) => !isNaN(id));
+        } else if (typeof recipientIdsRaw === 'string') {
+          try {
+            const parsed = JSON.parse(recipientIdsRaw);
+            if (Array.isArray(parsed)) {
+              recipientIds = parsed.map((id: any) => parseInt(String(id))).filter((id: number) => !isNaN(id));
+            } else {
+              const num = parseInt(recipientIdsRaw);
+              if (!isNaN(num)) recipientIds = [num];
+            }
+          } catch {
+            const num = parseInt(recipientIdsRaw);
+            if (!isNaN(num)) recipientIds = [num];
+          }
+        }
+      }
       
       if (recipientIds.length === 0) {
         return res.status(400).json({ error: 'At least one valid recipient ID required' });

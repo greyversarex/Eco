@@ -76,6 +76,7 @@ export default function MessageView() {
   // Forward modal state
   const [isForwardDialogOpen, setIsForwardDialogOpen] = useState(false);
   const [forwardRecipientIds, setForwardRecipientIds] = useState<number[]>([]);
+  const [forwardSearchQuery, setForwardSearchQuery] = useState('');
   
   // Document editor state
   const [editingDocument, setEditingDocument] = useState<MessageDocument | null>(null);
@@ -221,14 +222,10 @@ export default function MessageView() {
         throw new Error('At least one recipient required');
       }
       
-      const formData = new FormData();
-      forwardRecipientIds.forEach(recipientId => {
-        formData.append('recipientIds[]', recipientId.toString());
-      });
-      
       const res = await apiFetch(`/api/messages/${id}/forward`, {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipientIds: forwardRecipientIds }),
         credentials: 'include',
       });
       
@@ -246,6 +243,7 @@ export default function MessageView() {
       });
       setIsForwardDialogOpen(false);
       setForwardRecipientIds([]);
+      setForwardSearchQuery('');
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
       if (id) {
         queryClient.invalidateQueries({ queryKey: ['/api/messages', id] });
@@ -1089,9 +1087,16 @@ export default function MessageView() {
                                     : 'Ҳамаро қайд кардан'}
                                 </Button>
                               </div>
+                              <Input
+                                placeholder="Ҷустуҷӯи шуъба..."
+                                value={forwardSearchQuery}
+                                onChange={(e) => setForwardSearchQuery(e.target.value)}
+                                data-testid="input-forward-search"
+                              />
                               <div className="space-y-2 max-h-96 overflow-y-auto border rounded-lg p-4">
                                 {departments
                                   .filter(dept => dept.id !== user?.department?.id && !dept.parentDepartmentId)
+                                  .filter(dept => !forwardSearchQuery || dept.name.toLowerCase().includes(forwardSearchQuery.toLowerCase()))
                                   .map(dept => (
                                     <div key={dept.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-accent">
                                       <Checkbox
@@ -1122,6 +1127,7 @@ export default function MessageView() {
                                 onClick={() => {
                                   setIsForwardDialogOpen(false);
                                   setForwardRecipientIds([]);
+                                  setForwardSearchQuery('');
                                 }}
                                 data-testid="button-cancel-forward"
                               >
