@@ -68,6 +68,7 @@ export const departments: any = pgTable("departments", {
   canCreateAssignment: boolean("can_create_assignment").default(false).notNull(), // Право создавать супориши
   canCreateAnnouncement: boolean("can_create_announcement").default(false).notNull(), // Право создавать эълонҳо
   canApprove: boolean("can_approve").default(false).notNull(), // Право давать иҷозат/рад на сообщения
+  monitoredAssignmentDeptIds: integer("monitored_assignment_dept_ids").array(), // IDs департаментов для назорати супоришхо
   icon: text("icon").default('building-2').notNull(), // Legacy field for backward compatibility, new icons use department_icons table
   parentDepartmentId: integer("parent_department_id").references((): any => departments.id, { onDelete: 'cascade' }), // Поддепартаменты - ссылка на родительский департамент
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -79,12 +80,14 @@ export const insertDepartmentSchema = createInsertSchema(departments).omit({
   id: true,
   createdAt: true,
 }).extend({
-  icon: z.string().optional(), // Optional - database default handles it
-  parentDepartmentId: z.number().int().positive().nullable().optional(), // Nullable - null for top-level departments
+  icon: z.string().optional(),
+  parentDepartmentId: z.number().int().positive().nullable().optional(),
+  monitoredAssignmentDeptIds: z.array(z.number().int()).nullable().optional(),
 });
 export type InsertDepartment = z.infer<typeof insertDepartmentSchema>;
 export type Department = typeof departments.$inferSelect & {
   parentDepartmentId?: number | null;
+  monitoredAssignmentDeptIds?: number[] | null;
 };
 
 // Admin users table
