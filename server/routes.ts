@@ -2330,17 +2330,26 @@ export function registerRoutes(app: Express) {
       }
       const recipientIds = recipientIdsRaw.map(id => parseInt(String(id), 10)).filter(id => !isNaN(id));
 
-      // Get all people
+      // Get all people and departments
       const allPeople = await storage.getPeople();
+      const allDepartments = await storage.getDepartments();
       
       // Validate and get invited executor names from executorIds (Даъват - приглашенные)
       const executors: string[] = [];
       if (executorIds.length > 0) {
         const selectedPeople = allPeople.filter((p: any) => executorIds.includes(p.id));
         
-        // Validate that all executorIds belong to selected departments
+        // Validate that all executorIds belong to selected departments (or their parent)
         for (const person of selectedPeople) {
-          if (!person.departmentId || !recipientIds.includes(person.departmentId)) {
+          if (!person.departmentId) {
+            return res.status(400).json({ 
+              error: `Executor ${person.name} does not belong to selected departments` 
+            });
+          }
+          const personDept = allDepartments.find((d: any) => d.id === person.departmentId);
+          const deptOrParentInRecipients = recipientIds.includes(person.departmentId) || 
+            (personDept?.parentDepartmentId && recipientIds.includes(personDept.parentDepartmentId));
+          if (!deptOrParentInRecipients) {
             return res.status(400).json({ 
               error: `Executor ${person.name} does not belong to selected departments` 
             });
@@ -2353,9 +2362,6 @@ export function registerRoutes(app: Express) {
           return res.status(400).json({ error: 'Some executor IDs are invalid' });
         }
       }
-      
-      // Get all departments for fallback
-      const allDepartments = await storage.getDepartments();
       const recipientDepts = allDepartments.filter((d: any) => recipientIds.includes(d.id));
       
       let allDepartmentExecutorIds: number[] = [];
@@ -2554,12 +2560,21 @@ export function registerRoutes(app: Express) {
       const recipientIds = recipientIdsRaw.map((rid: any) => parseInt(String(rid), 10)).filter((rid: number) => !isNaN(rid));
 
       const allPeople = await storage.getPeople();
+      const allDepartments = await storage.getDepartments();
 
       const executors: string[] = [];
       if (executorIds.length > 0) {
         const selectedPeople = allPeople.filter((p: any) => executorIds.includes(p.id));
         for (const person of selectedPeople) {
-          if (!person.departmentId || !recipientIds.includes(person.departmentId)) {
+          if (!person.departmentId) {
+            return res.status(400).json({ 
+              error: `Executor ${person.name} does not belong to selected departments` 
+            });
+          }
+          const personDept = allDepartments.find((d: any) => d.id === person.departmentId);
+          const deptOrParentInRecipients = recipientIds.includes(person.departmentId) || 
+            (personDept?.parentDepartmentId && recipientIds.includes(personDept.parentDepartmentId));
+          if (!deptOrParentInRecipients) {
             return res.status(400).json({ 
               error: `Executor ${person.name} does not belong to selected departments` 
             });
@@ -2571,7 +2586,6 @@ export function registerRoutes(app: Express) {
         }
       }
 
-      const allDepartments = await storage.getDepartments();
       const recipientDepts = allDepartments.filter((d: any) => recipientIds.includes(d.id));
 
       let allDepartmentExecutorIds: number[] = [];
