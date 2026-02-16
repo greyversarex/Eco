@@ -45,7 +45,7 @@ import { ComposeMessageModal } from '@/components/ComposeMessageModal';
 // Helper to determine assignment stamp status
 function getAssignmentStamp(assignment: { approvalStatus?: string | null; isCompleted: boolean; deadline: string | Date; isRestored?: boolean }): { show: boolean; type: 'approved' | 'rejected' | 'overdue' | 'restored'; label: string } | null {
   if (assignment.isRestored && !assignment.isCompleted && assignment.approvalStatus !== 'approved' && assignment.approvalStatus !== 'rejected') {
-    return { show: true, type: 'restored', label: 'ТАЪХИР' };
+    return { show: true, type: 'restored', label: 'ТАЪХИРШУДА' };
   }
   if (assignment.approvalStatus === 'approved' || assignment.isCompleted) {
     return { show: true, type: 'approved', label: 'ИҶРО ШУД' };
@@ -1434,7 +1434,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                           </span>
                         )}
                         {assignment.isRestored && (
-                          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">Таъхир</span>
+                          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">Таъхиршуда</span>
                         )}
                       </div>
                       {assignment.content && (
@@ -2364,8 +2364,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
             ) : filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length === 0 ? (
               <Card className="p-12 text-center bg-white">
                 <p className="text-muted-foreground">
-                  Супоришҳои таъхиршуда нестанд
-                </p>
+                  Супоришҳои таъхиршуда нестанд                </p>
               </Card>
             ) : (
               <div className="space-y-4">
@@ -2381,7 +2380,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                                 <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                               </span>
                             )}
-                            <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">Таъхир</span>
+                            <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">Таъхиршуда</span>
                           </div>
                           {assignment.content && (
                             <div className="text-sm text-muted-foreground line-clamp-2"
