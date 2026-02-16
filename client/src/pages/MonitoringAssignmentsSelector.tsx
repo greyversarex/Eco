@@ -26,7 +26,7 @@ export default function MonitoringAssignmentsSelector() {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-fixed relative"
+      className="min-h-screen bg-cover bg-center bg-fixed relative flex flex-col"
       style={{ backgroundImage: `url(${bgImage})` }}
     >
       <div 
@@ -70,7 +70,7 @@ export default function MonitoringAssignmentsSelector() {
         </PageHeaderContainer>
       </PageHeader>
 
-      <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+      <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8 relative z-10 flex-1">
         <p className="text-muted-foreground text-sm mb-6 text-center">
           Шуъбаро интихоб кунед барои дидани супоришҳо
         </p>
