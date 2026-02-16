@@ -79,6 +79,7 @@ export interface IStorage {
   markAssignmentAsCompleted(id: number): Promise<Assignment | undefined>;
   listDeletedAssignments(): Promise<Assignment[]>;
   restoreAssignment(id: number): Promise<boolean>;
+  reactivateAssignment(id: number): Promise<Assignment | undefined>;
   permanentDeleteAssignment(id: number): Promise<boolean>;
   
   // Assignment Attachments
@@ -870,6 +871,28 @@ export class DbStorage implements IStorage {
       .where(eq(assignments.id, id))
       .returning();
     return result.length > 0;
+  }
+
+  async reactivateAssignment(id: number): Promise<Assignment | undefined> {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(23, 59, 59, 999);
+    
+    const result = await db
+      .update(assignments)
+      .set({
+        isCompleted: false,
+        completedAt: null,
+        approvalStatus: null,
+        approvedByDepartmentId: null,
+        approvedAt: null,
+        isRestored: true,
+        restoredAt: new Date(),
+        deadline: tomorrow,
+      })
+      .where(eq(assignments.id, id))
+      .returning();
+    return result[0];
   }
 
   async permanentDeleteAssignment(id: number): Promise<boolean> {

@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock, CheckCircle2, MessageSquare, Check, Upload, ChevronDown, ChevronUp, Pencil } from 'lucide-react';
+import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock, CheckCircle2, MessageSquare, Check, Upload, ChevronDown, ChevronUp, Pencil, RotateCcw } from 'lucide-react';
 import { DocumentEditor } from '@/components/DocumentEditor';
 import DOMPurify from 'isomorphic-dompurify';
 import bgImage from '@assets/eco-background-light.webp';
@@ -275,7 +275,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
   const [deadline, setDeadline] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showAllInvited, setShowAllInvited] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'overdue' | 'completed'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'overdue' | 'completed' | 'restored'>('all');
   const [documentTypeFilterId, setDocumentTypeFilterId] = useState<string>('');
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [replyAssignmentId, setReplyAssignmentId] = useState<number | null>(null);
@@ -463,6 +463,26 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
       toast({
         title: 'Хато',
         description: error.message || 'Хатогӣ ҳангоми тасдиқ',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const restoreAssignmentMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return await apiRequest('PATCH', `/api/assignments/${id}/restore`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      toast({
+        title: 'Барқарор карда шуд',
+        description: 'Супориш барқарор карда шуд. Мӯҳлат: +1 рӯз',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Хато',
+        description: error.message || 'Хатогӣ ҳангоми барқарор кардан',
         variant: 'destructive',
       });
     },
@@ -1347,6 +1367,16 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
             >
               Иҷрошуда ({filteredAssignments.filter(a => a.isCompleted || a.approvalStatus === 'approved').length})
             </Button>
+            {filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length > 0 && (
+              <Button
+                variant={activeFilter === 'restored' ? 'default' : 'outline'}
+                onClick={() => setActiveFilter('restored')}
+                data-testid="tab-restored-assignments"
+                className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+              >
+                Тахриршуда ({filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
+              </Button>
+            )}
             <div className="ml-auto">
               <Select
                 value={documentTypeFilterId}
@@ -1395,6 +1425,9 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                           <span className="text-sm text-muted-foreground">
                             <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                           </span>
+                        )}
+                        {assignment.isRestored && (
+                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">Тахриршуда</span>
                         )}
                       </div>
                       {assignment.content && (
@@ -1829,6 +1862,25 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                           <Pencil className="h-4 w-4" />
                         </Button>
                       )}
+                      {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => restoreAssignmentMutation.mutate(assignment.id)}
+                                disabled={restoreAssignmentMutation.isPending}
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                data-testid={`button-restore-overdue-${assignment.id}`}
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Барқарор кардан (+1 рӯз)</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                       {canDelete && (
                         <Button
                           variant="ghost"
@@ -2091,6 +2143,25 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                               <Pencil className="h-4 w-4" />
                             </Button>
                           )}
+                          {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => restoreAssignmentMutation.mutate(assignment.id)}
+                                    disabled={restoreAssignmentMutation.isPending}
+                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                    data-testid={`button-restore-completed-${assignment.id}`}
+                                  >
+                                    <RotateCcw className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Барқарор кардан (+1 рӯз)</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                           {canDelete && (
                             <Button
                               variant="ghost"
@@ -2283,6 +2354,132 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                         )}
                       </div>
                     )}
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+          )}
+
+          {activeFilter === 'restored' && (
+          <div>
+            {isLoading ? (
+              <div className="flex items-center justify-center p-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+                  <p className="text-muted-foreground">Боргирӣ...</p>
+                </div>
+              </div>
+            ) : filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length === 0 ? (
+              <Card className="p-12 text-center bg-white">
+                <p className="text-muted-foreground">
+                  Супоришҳои тахриршуда нестанд
+                </p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').map((assignment) => (
+                  <Card key={assignment.id} className="bg-white" data-testid={`assignment-restored-${assignment.id}`}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-baseline gap-3 flex-wrap mb-2">
+                            <h3 className="text-lg font-semibold">{getDocTypeName(assignment)}</h3>
+                            {assignment.documentNumber && (
+                              <span className="text-sm text-muted-foreground">
+                                <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
+                              </span>
+                            )}
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">Тахриршуда</span>
+                          </div>
+                          {assignment.content && (
+                            <div className="text-sm text-muted-foreground line-clamp-2"
+                              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(assignment.content) }}
+                            />
+                          )}
+                          {assignment.executors && assignment.executors.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              <span className="text-xs text-muted-foreground">Даъват:</span>
+                              {assignment.executors.map((name, idx) => (
+                                <span key={idx} className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">{name}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {(() => { const stamp = getAssignmentStamp(assignment); return stamp ? <StampBadge stamp={stamp} /> : null; })()}
+                        <div className="flex items-center gap-1">
+                          {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditClick(assignment)}
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              data-testid={`button-edit-restored-${assignment.id}`}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteAssignmentMutation.mutate(assignment.id)}
+                              disabled={deleteAssignmentMutation.isPending}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              data-testid={`button-delete-restored-${assignment.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} approvalStatus={assignment.approvalStatus} />
+                      
+                      {assignment.attachments && assignment.attachments.length > 0 && (
+                        <div className="pt-3 border-t">
+                          <p className="text-sm font-medium mb-2">Файлҳо:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {assignment.attachments.map((att) => (
+                              <a
+                                key={att.id}
+                                href={`/api/assignment-attachments/${att.id}`}
+                                className="flex items-center gap-1 text-sm bg-gray-50 border rounded px-3 py-1.5 hover:bg-gray-100"
+                                data-testid={`button-download-restored-attachment-${att.id}`}
+                              >
+                                <Download className="h-3 w-3" />
+                                {att.file_name}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {user?.userType === 'department' && user.department?.id === assignment.senderId && !assignment.isCompleted && (
+                        <div className="flex gap-2 pt-2 border-t">
+                          <Button
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                            onClick={() => approveAssignmentMutation.mutate({ id: assignment.id, status: 'approved' })}
+                            disabled={approveAssignmentMutation.isPending}
+                            data-testid={`button-approve-restored-${assignment.id}`}
+                          >
+                            <Check className="h-4 w-4 mr-1" /> Иҷро шуд
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600 border-red-300 hover:bg-red-50"
+                            onClick={() => approveAssignmentMutation.mutate({ id: assignment.id, status: 'rejected' })}
+                            disabled={approveAssignmentMutation.isPending}
+                            data-testid={`button-reject-restored-${assignment.id}`}
+                          >
+                            <X className="h-4 w-4 mr-1" /> Рад шуд
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
                   </Card>
                 ))}
               </div>

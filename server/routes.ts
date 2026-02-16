@@ -2789,6 +2789,42 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  app.patch("/api/assignments/:id/restore", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      const assignment = await storage.getAssignmentById(id);
+      if (!assignment) {
+        return res.status(404).json({ error: 'Assignment not found' });
+      }
+      
+      const userDepartmentId = req.session.userType === 'department' ? req.session.departmentId : null;
+      if (!userDepartmentId || assignment.senderId !== userDepartmentId) {
+        return res.status(403).json({ error: 'Only the assignment creator can restore it' });
+      }
+      
+      const deadlineDate = new Date(assignment.deadline);
+      deadlineDate.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const isOverdue = today > deadlineDate && !assignment.isCompleted;
+      const isEligible = assignment.isCompleted || assignment.approvalStatus === 'approved' || assignment.approvalStatus === 'rejected' || isOverdue;
+      
+      if (!isEligible) {
+        return res.status(400).json({ error: 'Assignment is not in a restorable state' });
+      }
+      
+      const updated = await storage.reactivateAssignment(id);
+      if (!updated) {
+        return res.status(500).json({ error: 'Failed to restore assignment' });
+      }
+      
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Create assignment reply with attachments (Чавоб додан)
   app.post("/api/assignments/:id/replies", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
     try {

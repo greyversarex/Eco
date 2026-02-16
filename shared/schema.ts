@@ -222,6 +222,8 @@ export const assignments = pgTable("assignments", {
   approvalStatus: text("approval_status"), // 'approved' | 'rejected' | null
   approvedByDepartmentId: integer("approved_by_department_id").references(() => departments.id, { onDelete: 'set null' }),
   approvedAt: timestamp("approved_at"),
+  isRestored: boolean("is_restored").default(false).notNull(),
+  restoredAt: timestamp("restored_at"),
 }, (table) => ({
   deletedIdx: index("assignments_is_deleted_idx").on(table.isDeleted),
   senderIdx: index("assignments_sender_id_idx").on(table.senderId),
@@ -238,6 +240,8 @@ export const insertAssignmentSchema = createInsertSchema(assignments).omit({
   approvalStatus: true,
   approvedByDepartmentId: true,
   approvedAt: true,
+  isRestored: true,
+  restoredAt: true,
 }).extend({
   senderId: z.number().int().positive(), // Required для новых assignments
   deadline: z.coerce.date(),
