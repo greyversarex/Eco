@@ -18,8 +18,7 @@ export default function MonitoringPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const { user, logout } = useAuth();
 
-  // Only allow Rohbariyat department to access monitoring
-  const isAuthorized = user?.userType === 'department' && user.department?.code === 'ROHBAR001';
+  const isAuthorized = user?.userType === 'department' && user.department?.canMonitor;
 
   const { data: departments = [], isLoading: deptLoading } = useQuery<Omit<Department, 'accessCode'>[]>({
     queryKey: ['/api/departments/all'],
