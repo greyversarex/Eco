@@ -95,7 +95,7 @@ function StampBadge({ stamp }: { stamp: { type: 'approved' | 'rejected' | 'overd
 }
 
 // Progress indicator component with segmented daily view
-function AssignmentProgress({ createdAt, deadline, isCompleted, approvalStatus }: { createdAt: Date; deadline: Date; isCompleted: boolean; approvalStatus?: string | null }) {
+function AssignmentProgress({ createdAt, deadline, isCompleted, approvalStatus, isRestored }: { createdAt: Date; deadline: Date; isCompleted: boolean; approvalStatus?: string | null; isRestored?: boolean }) {
   const now = new Date();
   
   // Normalize dates to start of day for accurate day counting
@@ -137,7 +137,7 @@ function AssignmentProgress({ createdAt, deadline, isCompleted, approvalStatus }
       <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
         <div>
           <div className="text-sm text-muted-foreground font-bold mb-1.5">Мӯҳлати иҷро:</div>
-          <div className="px-4 py-2 rounded-lg bg-gradient-to-br from-green-500 to-green-600 shadow-md hover:shadow-lg transition-all duration-200 inline-flex items-center gap-2.5 mt-[0px] mb-[0px] ml-[0px] mr-[0px] pl-[16px] pr-[16px] pt-[7px] pb-[7px]">
+          <div className={`px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 inline-flex items-center gap-2.5 mt-[0px] mb-[0px] ml-[0px] mr-[0px] pl-[16px] pr-[16px] pt-[7px] pb-[7px] ${isRestored ? 'bg-gradient-to-br from-orange-500 to-orange-600' : 'bg-gradient-to-br from-green-500 to-green-600'}`}>
             <CalendarDays className="w-4 h-4 text-white" />
             <div className="text-sm font-semibold text-white">{formatDate(deadline)}</div>
           </div>
@@ -145,7 +145,7 @@ function AssignmentProgress({ createdAt, deadline, isCompleted, approvalStatus }
         
         <div>
           <div className="text-sm text-muted-foreground font-bold mb-1.5">Боқӣ монд:</div>
-          <div className="px-4 py-2 rounded-lg bg-gradient-to-br from-green-500 to-green-600 shadow-md hover:shadow-lg transition-all duration-200 inline-flex items-center gap-2.5 pt-[7px] pb-[7px]">
+          <div className={`px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 inline-flex items-center gap-2.5 pt-[7px] pb-[7px] ${isRestored ? 'bg-gradient-to-br from-orange-500 to-orange-600' : 'bg-gradient-to-br from-green-500 to-green-600'}`}>
             <Clock className="w-4 h-4 text-white" />
             <div className="text-sm font-semibold text-white">{isCompleted ? '-' : (isOverdue ? '0' : daysLeft)} рӯз</div>
           </div>
@@ -154,6 +154,17 @@ function AssignmentProgress({ createdAt, deadline, isCompleted, approvalStatus }
         <div className="flex-1 min-w-[200px]">
           <div className="text-sm text-muted-foreground font-bold mb-1.5">Индикатори иҷроиш</div>
           {(() => {
+            if (isRestored && !isCompleted && approvalStatus !== 'approved' && approvalStatus !== 'rejected') {
+              return (
+                <div 
+                  className="h-8 rounded-lg shadow-lg transition-all duration-700 ease-out"
+                  style={{
+                    background: '#f97316',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
+                  }}
+                />
+              );
+            }
             // Special cases: completed or overdue
             if (isCompleted) {
               return (
@@ -1540,7 +1551,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} approvalStatus={assignment.approvalStatus} />
+                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} approvalStatus={assignment.approvalStatus} isRestored={assignment.isRestored} />
                   
                   {assignment.attachments && assignment.attachments.length > 0 && (
                     <div className="pt-3 border-t">
@@ -1889,7 +1900,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} approvalStatus={assignment.approvalStatus} />
+                  <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} approvalStatus={assignment.approvalStatus} isRestored={assignment.isRestored} />
                   
                   {assignment.attachments && assignment.attachments.length > 0 && (
                     <div className="pt-3 border-t">
@@ -2163,7 +2174,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} approvalStatus={assignment.approvalStatus} />
+                      <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} approvalStatus={assignment.approvalStatus} isRestored={assignment.isRestored} />
                       
                       {assignment.attachments && assignment.attachments.length > 0 && (
                         <div className="pt-3 border-t">
@@ -2419,7 +2430,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} approvalStatus={assignment.approvalStatus} />
+                      <AssignmentProgress createdAt={new Date(assignment.createdAt)} deadline={new Date(assignment.deadline)} isCompleted={assignment.isCompleted} approvalStatus={assignment.approvalStatus} isRestored={assignment.isRestored} />
                       
                       {assignment.attachments && assignment.attachments.length > 0 && (
                         <div className="pt-3 border-t">
