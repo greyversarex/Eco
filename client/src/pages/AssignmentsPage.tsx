@@ -43,7 +43,10 @@ import {
 import { ComposeMessageModal } from '@/components/ComposeMessageModal';
 
 // Helper to determine assignment stamp status
-function getAssignmentStamp(assignment: { approvalStatus?: string | null; isCompleted: boolean; deadline: string | Date }): { show: boolean; type: 'approved' | 'rejected' | 'overdue'; label: string } | null {
+function getAssignmentStamp(assignment: { approvalStatus?: string | null; isCompleted: boolean; deadline: string | Date; isRestored?: boolean }): { show: boolean; type: 'approved' | 'rejected' | 'overdue' | 'restored'; label: string } | null {
+  if (assignment.isRestored && !assignment.isCompleted && assignment.approvalStatus !== 'approved' && assignment.approvalStatus !== 'rejected') {
+    return { show: true, type: 'restored', label: 'ТАЪХИР' };
+  }
   if (assignment.approvalStatus === 'approved' || assignment.isCompleted) {
     return { show: true, type: 'approved', label: 'ИҶРО ШУД' };
   }
@@ -60,26 +63,30 @@ function getAssignmentStamp(assignment: { approvalStatus?: string | null; isComp
   return null;
 }
 
-function StampBadge({ stamp }: { stamp: { type: 'approved' | 'rejected' | 'overdue'; label: string } }) {
+function StampBadge({ stamp }: { stamp: { type: 'approved' | 'rejected' | 'overdue' | 'restored'; label: string } }) {
   const isGreen = stamp.type === 'approved';
+  const isOrange = stamp.type === 'restored';
+  const colorClass = isGreen ? 'text-green-600 bg-green-50' : isOrange ? 'text-orange-600 bg-orange-50' : 'text-red-600 bg-red-50';
+  const borderColor = isGreen ? '#16a34a' : isOrange ? '#ea580c' : '#dc2626';
+  const shadowColor = isGreen ? 'rgba(22, 163, 74, 0.4)' : isOrange ? 'rgba(234, 88, 12, 0.4)' : 'rgba(220, 38, 38, 0.4)';
   return (
     <div 
       className={`
         w-14 h-14 rounded-full flex flex-col items-center justify-center
         transform rotate-[-12deg] font-bold shrink-0
-        ${isGreen ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}
+        ${colorClass}
       `}
       style={{
         borderWidth: '3px',
         borderStyle: 'solid',
-        borderColor: isGreen ? '#16a34a' : '#dc2626',
-        boxShadow: isGreen
-          ? '0 0 8px rgba(22, 163, 74, 0.4)'
-          : '0 0 8px rgba(220, 38, 38, 0.4)'
+        borderColor: borderColor,
+        boxShadow: `0 0 8px ${shadowColor}`
       }}
     >
       {isGreen ? (
         <Check className="h-5 w-5 stroke-[3]" />
+      ) : isOrange ? (
+        <RotateCcw className="h-5 w-5 stroke-[3]" />
       ) : (
         <X className="h-5 w-5 stroke-[3]" />
       )}
@@ -1374,7 +1381,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                 data-testid="tab-restored-assignments"
                 className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
               >
-                Тахриршуда ({filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
+                Таъхир ({filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
               </Button>
             )}
             <div className="ml-auto">
@@ -1427,7 +1434,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                           </span>
                         )}
                         {assignment.isRestored && (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">Тахриршуда</span>
+                          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">Таъхир</span>
                         )}
                       </div>
                       {assignment.content && (
@@ -1862,25 +1869,6 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                           <Pencil className="h-4 w-4" />
                         </Button>
                       )}
-                      {user?.userType === 'department' && user.department?.id === assignment.senderId && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => restoreAssignmentMutation.mutate(assignment.id)}
-                                disabled={restoreAssignmentMutation.isPending}
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                data-testid={`button-restore-overdue-${assignment.id}`}
-                              >
-                                <RotateCcw className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Барқарор кардан (+1 рӯз)</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
                       {canDelete && (
                         <Button
                           variant="ghost"
@@ -1890,6 +1878,17 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                           data-testid={`button-delete-${assignment.id}`}
                         >
                           <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                        <Button
+                          size="sm"
+                          onClick={() => restoreAssignmentMutation.mutate(assignment.id)}
+                          disabled={restoreAssignmentMutation.isPending}
+                          className="bg-orange-500 hover:bg-orange-600 text-white"
+                          data-testid={`button-restore-overdue-${assignment.id}`}
+                        >
+                          <RotateCcw className="h-4 w-4 mr-1" /> Таъхир
                         </Button>
                       )}
                     </div>
@@ -2143,25 +2142,6 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                               <Pencil className="h-4 w-4" />
                             </Button>
                           )}
-                          {user?.userType === 'department' && user.department?.id === assignment.senderId && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => restoreAssignmentMutation.mutate(assignment.id)}
-                                    disabled={restoreAssignmentMutation.isPending}
-                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                    data-testid={`button-restore-completed-${assignment.id}`}
-                                  >
-                                    <RotateCcw className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Барқарор кардан (+1 рӯз)</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
                           {canDelete && (
                             <Button
                               variant="ghost"
@@ -2172,6 +2152,17 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                               data-testid={`button-delete-assignment-${assignment.id}`}
                             >
                               <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                            <Button
+                              size="sm"
+                              onClick={() => restoreAssignmentMutation.mutate(assignment.id)}
+                              disabled={restoreAssignmentMutation.isPending}
+                              className="bg-orange-500 hover:bg-orange-600 text-white"
+                              data-testid={`button-restore-completed-${assignment.id}`}
+                            >
+                              <RotateCcw className="h-4 w-4 mr-1" /> Таъхир
                             </Button>
                           )}
                         </div>
@@ -2373,7 +2364,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
             ) : filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length === 0 ? (
               <Card className="p-12 text-center bg-white">
                 <p className="text-muted-foreground">
-                  Супоришҳои тахриршуда нестанд
+                  Супоришҳои таъхиршуда нестанд
                 </p>
               </Card>
             ) : (
@@ -2390,7 +2381,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                                 <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                               </span>
                             )}
-                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">Тахриршуда</span>
+                            <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">Таъхир</span>
                           </div>
                           {assignment.content && (
                             <div className="text-sm text-muted-foreground line-clamp-2"
