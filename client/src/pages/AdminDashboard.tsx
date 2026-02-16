@@ -509,7 +509,7 @@ export default function AdminDashboard() {
         name: newDeptName, 
         block: newDeptBlock || '',
         canMonitor: newCanMonitor,
-        monitoredAssignmentDeptIds: newCanMonitor ? newMonitoredAssignmentDeptIds : null,
+        monitoredAssignmentDeptIds: newMonitoredAssignmentDeptIds.length > 0 ? newMonitoredAssignmentDeptIds : null,
         canCreateAssignmentFromMessage: newCanCreateAssignmentFromMessage,
         canCreateAssignment: newCanCreateAssignment,
         canCreateAnnouncement: newCanCreateAnnouncement,
@@ -558,7 +558,7 @@ export default function AdminDashboard() {
           block: isSubdepartment ? '' : editDeptBlock, 
           accessCode: editDeptCode,
           canMonitor: editCanMonitor,
-          monitoredAssignmentDeptIds: editCanMonitor ? editMonitoredAssignmentDeptIds : null,
+          monitoredAssignmentDeptIds: editMonitoredAssignmentDeptIds.length > 0 ? editMonitoredAssignmentDeptIds : null,
           canCreateAssignmentFromMessage: editCanCreateAssignmentFromMessage,
           canCreateAssignment: editCanCreateAssignment,
           canCreateAnnouncement: editCanCreateAnnouncement,
@@ -849,40 +849,13 @@ export default function AdminDashboard() {
                       <Checkbox
                         id="new-can-monitor"
                         checked={newCanMonitor}
-                        onCheckedChange={(checked) => {
-                          setNewCanMonitor(checked as boolean);
-                          if (!checked) setNewMonitoredAssignmentDeptIds([]);
-                        }}
+                        onCheckedChange={(checked) => setNewCanMonitor(checked as boolean)}
                         data-testid="checkbox-new-can-monitor"
                       />
                       <label htmlFor="new-can-monitor" className="text-sm cursor-pointer">
                         Назорат (кнопка мониторинг)
                       </label>
                     </div>
-                    {newCanMonitor && (
-                      <div className="ml-6 space-y-2">
-                        <Label className="text-xs text-muted-foreground">Назорати Супоришҳо (интихоби шуъбаҳо)</Label>
-                        <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
-                          {allDepartments.map((dept) => (
-                            <div key={dept.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`new-monitor-dept-${dept.id}`}
-                                checked={newMonitoredAssignmentDeptIds.includes(dept.id)}
-                                onCheckedChange={(checked) => {
-                                  setNewMonitoredAssignmentDeptIds(prev =>
-                                    checked ? [...prev, dept.id] : prev.filter(id => id !== dept.id)
-                                  );
-                                }}
-                                data-testid={`checkbox-new-monitor-dept-${dept.id}`}
-                              />
-                              <label htmlFor={`new-monitor-dept-${dept.id}`} className="text-xs cursor-pointer">
-                                {dept.name}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="new-can-create-assignment-from-message"
@@ -915,6 +888,30 @@ export default function AdminDashboard() {
                       <label htmlFor="new-can-create-announcement" className="text-sm cursor-pointer">
                         Эълонҳо (эҷоди эълон дар саҳифаи супоришҳо)
                       </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 border-t pt-3">
+                    <Label className="text-base font-semibold">Назорати Супоришҳо</Label>
+                    <p className="text-xs text-muted-foreground">Интихоби шуъбаҳо барои назорати супоришҳо</p>
+                    <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+                      {allDepartments.map((dept) => (
+                        <div key={dept.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`new-monitor-dept-${dept.id}`}
+                            checked={newMonitoredAssignmentDeptIds.includes(dept.id)}
+                            onCheckedChange={(checked) => {
+                              setNewMonitoredAssignmentDeptIds(prev =>
+                                checked ? [...prev, dept.id] : prev.filter(id => id !== dept.id)
+                              );
+                            }}
+                            data-testid={`checkbox-new-monitor-dept-${dept.id}`}
+                          />
+                          <label htmlFor={`new-monitor-dept-${dept.id}`} className="text-xs cursor-pointer">
+                            {dept.name}
+                          </label>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -1028,40 +1025,13 @@ export default function AdminDashboard() {
                       <Checkbox
                         id="edit-can-monitor"
                         checked={editCanMonitor}
-                        onCheckedChange={(checked) => {
-                          setEditCanMonitor(checked as boolean);
-                          if (!checked) setEditMonitoredAssignmentDeptIds([]);
-                        }}
+                        onCheckedChange={(checked) => setEditCanMonitor(checked as boolean)}
                         data-testid="checkbox-edit-can-monitor"
                       />
                       <label htmlFor="edit-can-monitor" className="text-sm cursor-pointer">
                         Назорат (кнопка мониторинг)
                       </label>
                     </div>
-                    {editCanMonitor && (
-                      <div className="ml-6 space-y-2">
-                        <Label className="text-xs text-muted-foreground">Назорати Супоришҳо (интихоби шуъбаҳо)</Label>
-                        <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
-                          {allDepartments.filter(d => d.id !== editingDept?.id).map((dept) => (
-                            <div key={dept.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`edit-monitor-dept-${dept.id}`}
-                                checked={editMonitoredAssignmentDeptIds.includes(dept.id)}
-                                onCheckedChange={(checked) => {
-                                  setEditMonitoredAssignmentDeptIds(prev =>
-                                    checked ? [...prev, dept.id] : prev.filter(id => id !== dept.id)
-                                  );
-                                }}
-                                data-testid={`checkbox-edit-monitor-dept-${dept.id}`}
-                              />
-                              <label htmlFor={`edit-monitor-dept-${dept.id}`} className="text-xs cursor-pointer">
-                                {dept.name}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         id="edit-can-create-assignment-from-message"
@@ -1105,6 +1075,30 @@ export default function AdminDashboard() {
                       <label htmlFor="edit-can-approve" className="text-sm cursor-pointer">
                         Иҷозат (тасдиқ ё радкунии паёмҳо)
                       </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 border-t pt-3">
+                    <Label className="text-base font-semibold">Назорати Супоришҳо</Label>
+                    <p className="text-xs text-muted-foreground">Интихоби шуъбаҳо барои назорати супоришҳо</p>
+                    <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
+                      {allDepartments.filter(d => d.id !== editingDept?.id).map((dept) => (
+                        <div key={dept.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`edit-monitor-dept-${dept.id}`}
+                            checked={editMonitoredAssignmentDeptIds.includes(dept.id)}
+                            onCheckedChange={(checked) => {
+                              setEditMonitoredAssignmentDeptIds(prev =>
+                                checked ? [...prev, dept.id] : prev.filter(id => id !== dept.id)
+                              );
+                            }}
+                            data-testid={`checkbox-edit-monitor-dept-${dept.id}`}
+                          />
+                          <label htmlFor={`edit-monitor-dept-${dept.id}`} className="text-xs cursor-pointer">
+                            {dept.name}
+                          </label>
+                        </div>
+                      ))}
                     </div>
                   </div>
 

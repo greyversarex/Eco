@@ -1926,15 +1926,17 @@ export function registerRoutes(app: Express) {
         return res.status(403).json({ error: 'Only departments can access this endpoint' });
       }
 
-      const depts = await storage.getDepartments();
-      const dept = depts.find(d => d.id === req.session.departmentId);
-      if (!dept?.canMonitor) {
-        return res.status(403).json({ error: 'No monitoring permission' });
-      }
-
       const deptId = parseInt(req.params.deptId);
       if (isNaN(deptId)) {
         return res.status(400).json({ error: 'Invalid department ID' });
+      }
+
+      const depts = await storage.getDepartments();
+      const dept = depts.find(d => d.id === req.session.departmentId);
+      const hasMonitoredAccess = dept?.monitoredAssignmentDeptIds && dept.monitoredAssignmentDeptIds.includes(deptId);
+      const hasGeneralMonitor = dept?.canMonitor;
+      if (!hasMonitoredAccess && !hasGeneralMonitor) {
+        return res.status(403).json({ error: 'No monitoring permission for this department' });
       }
 
       const allAssignments = await storage.getAssignments();

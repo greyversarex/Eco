@@ -378,7 +378,7 @@ export default function DepartmentMain() {
                   Назорат
                 </Button>
               )}
-              {user?.userType === 'department' && user.department?.canMonitor && user.department?.monitoredAssignmentDeptIds && user.department.monitoredAssignmentDeptIds.length > 0 && (
+              {user?.userType === 'department' && user.department?.monitoredAssignmentDeptIds && user.department.monitoredAssignmentDeptIds.length > 0 && (
                 <Button
                   size="lg"
                   className="shrink-0 bg-[#2d7d9a] hover:bg-[#246b85] text-white font-medium px-8 h-11 rounded-md shadow-sm pl-[36px] pr-[36px] gap-2"
