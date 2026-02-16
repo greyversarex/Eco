@@ -44,9 +44,6 @@ import { ComposeMessageModal } from '@/components/ComposeMessageModal';
 
 // Helper to determine assignment stamp status
 function getAssignmentStamp(assignment: { approvalStatus?: string | null; isCompleted: boolean; deadline: string | Date; isRestored?: boolean }): { show: boolean; type: 'approved' | 'rejected' | 'overdue' | 'restored'; label: string } | null {
-  if (assignment.isRestored && !assignment.isCompleted && assignment.approvalStatus !== 'approved' && assignment.approvalStatus !== 'rejected') {
-    return { show: true, type: 'restored', label: 'ТАЪХИРШУДА' };
-  }
   if (assignment.approvalStatus === 'approved' || assignment.isCompleted) {
     return { show: true, type: 'approved', label: 'ИҶРО ШУД' };
   }
@@ -1356,7 +1353,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
               data-testid="tab-all-assignments"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
             >
-              Ҳама ({filteredAssignments.filter(a => !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length})
+              Ҳама ({filteredAssignments.filter(a => !a.isRestored && !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length})
             </Button>
             <Button
               variant={activeFilter === 'overdue' ? 'default' : 'outline'}
@@ -1364,7 +1361,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
               data-testid="tab-overdue-assignments"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
             >
-              Иҷронашуда ({filteredAssignments.filter(a => !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length})
+              Иҷронашуда ({filteredAssignments.filter(a => !a.isRestored && !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length})
             </Button>
             <Button
               variant={activeFilter === 'completed' ? 'default' : 'outline'}
@@ -1381,7 +1378,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                 data-testid="tab-restored-assignments"
                 className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
               >
-                Таъхир ({filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
+                Таъхиршуда ({filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
               </Button>
             )}
             <div className="ml-auto">
@@ -1413,7 +1410,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                   <p className="text-muted-foreground">Боргирӣ...</p>
                 </div>
               </div>
-            ) : filteredAssignments.filter(a => !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length === 0 ? (
+            ) : filteredAssignments.filter(a => !a.isRestored && !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length === 0 ? (
               <Card className="p-12 text-center bg-white">
                 <p className="text-muted-foreground">
                   Ҳанӯз супоришҳо нестанд
@@ -1421,7 +1418,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
               </Card>
             ) : (
               <div className="space-y-4">
-                {filteredAssignments.filter(a => !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).map((assignment) => (
+                {filteredAssignments.filter(a => !a.isRestored && !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).map((assignment) => (
               <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
@@ -1432,9 +1429,6 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                           <span className="text-sm text-muted-foreground">
                             <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                           </span>
-                        )}
-                        {assignment.isRestored && (
-                          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">Таъхиршуда</span>
                         )}
                       </div>
                       {assignment.content && (
@@ -1755,7 +1749,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                   <p className="text-muted-foreground">Боргирӣ...</p>
                 </div>
               </div>
-            ) : filteredAssignments.filter(a => !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length === 0 ? (
+            ) : filteredAssignments.filter(a => !a.isRestored && !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length === 0 ? (
               <Card className="p-12 text-center bg-white">
                 <p className="text-muted-foreground">
                   Супоришҳои иҷронашуда нестанд
@@ -1763,7 +1757,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
               </Card>
             ) : (
               <div className="space-y-4">
-                {filteredAssignments.filter(a => !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).map((assignment) => (
+                {filteredAssignments.filter(a => !a.isRestored && !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).map((assignment) => (
               <Card key={assignment.id} className="bg-white" data-testid={`assignment-${assignment.id}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
