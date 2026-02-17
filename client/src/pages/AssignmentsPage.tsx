@@ -283,6 +283,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [documentTypeId, setDocumentTypeId] = useState<string>('');
+  const [assignmentType, setAssignmentType] = useState<string>('');
   const [content, setContent] = useState('');
   const [documentNumber, setDocumentNumber] = useState('');
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
@@ -292,6 +293,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
   const [showAllInvited, setShowAllInvited] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'overdue' | 'completed' | 'restored'>('all');
   const [documentTypeFilterId, setDocumentTypeFilterId] = useState<string>('');
+  const [assignmentTypeFilter, setAssignmentTypeFilter] = useState<string>('');
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [replyAssignmentId, setReplyAssignmentId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
@@ -335,10 +337,13 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
     queryKey: ['/api/document-templates'],
   });
 
-  // Filter assignments by document type
-  const filteredAssignments = documentTypeFilterId && documentTypeFilterId !== 'all'
+  // Filter assignments by document type and assignment type
+  let filteredAssignments = documentTypeFilterId && documentTypeFilterId !== 'all'
     ? assignments.filter(a => a.documentTypeId?.toString() === documentTypeFilterId)
     : assignments;
+  if (assignmentTypeFilter && assignmentTypeFilter !== 'all') {
+    filteredAssignments = filteredAssignments.filter(a => a.assignmentType === assignmentTypeFilter);
+  }
 
   const createAssignmentMutation = useMutation({
     mutationFn: async (formData: FormData) => {
@@ -361,6 +366,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
       });
       setIsDialogOpen(false);
       setDocumentTypeId('');
+      setAssignmentType('');
       setContent('');
       setDocumentNumber('');
       setSelectedRecipients([]);
@@ -546,6 +552,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
       setIsDialogOpen(false);
       setEditingAssignment(null);
       setDocumentTypeId('');
+      setAssignmentType('');
       setContent('');
       setDocumentNumber('');
       setSelectedRecipients([]);
@@ -565,6 +572,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
   const handleEditClick = (assignment: Assignment) => {
     setEditingAssignment(assignment);
     setDocumentTypeId(assignment.documentTypeId?.toString() || '');
+    setAssignmentType(assignment.assignmentType || '');
     setContent(assignment.content || '');
     setDocumentNumber(assignment.documentNumber || '');
     setSelectedRecipients(assignment.recipientIds || []);
@@ -616,6 +624,9 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
 
     const formData = new FormData();
     formData.append('documentTypeId', documentTypeId);
+    if (assignmentType) {
+      formData.append('assignmentType', assignmentType);
+    }
     if (content) {
       formData.append('content', content);
     }
@@ -680,6 +691,9 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
 
     const formData = new FormData();
     formData.append('documentTypeId', documentTypeId);
+    if (assignmentType) {
+      formData.append('assignmentType', assignmentType);
+    }
     if (content) {
       formData.append('content', content);
     }
@@ -707,6 +721,15 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
       return docType?.name || 'Номаълум';
     }
     return assignment.topic || 'Номаълум';
+  };
+
+  const getAssignmentTypeName = (type: string | null | undefined) => {
+    switch (type) {
+      case 'protocol_supervisory': return 'Протоколҳои ҷаласаи назоратӣ';
+      case 'protocol_advisory': return 'Протоколҳои ҳайати мушовара';
+      case 'action_plan': return 'Иҷрои нақшаю чорабиниҳо';
+      default: return null;
+    }
   };
 
   return (
@@ -766,6 +789,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
             <Button className="gap-2" data-testid="button-create-assignment" onClick={() => {
               setEditingAssignment(null);
               setDocumentTypeId('');
+              setAssignmentType('');
               setContent('');
               setDocumentNumber('');
               setSelectedRecipients([]);
@@ -808,6 +832,24 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                             {docType.name}
                           </SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Намуди Супориш</Label>
+                    <Select 
+                      value={assignmentType} 
+                      onValueChange={(val) => setAssignmentType(val === 'none' ? '' : val)}
+                    >
+                      <SelectTrigger data-testid="select-assignment-type">
+                        <SelectValue placeholder="Намуди супоришро интихоб кунед" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">-- Интихоб нашудааст --</SelectItem>
+                        <SelectItem value="protocol_supervisory">Протоколҳои ҷаласаи назоратӣ</SelectItem>
+                        <SelectItem value="protocol_advisory">Протоколҳои ҳайати мушовара</SelectItem>
+                        <SelectItem value="action_plan">Иҷрои нақшаю чорабиниҳо</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1391,7 +1433,21 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                 Таъхиршуда ({filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
               </Button>
             )}
-            <div className="ml-auto">
+            <div className="ml-auto flex gap-2">
+              <Select
+                value={assignmentTypeFilter}
+                onValueChange={setAssignmentTypeFilter}
+              >
+                <SelectTrigger className="w-48" data-testid="select-assignment-type-filter">
+                  <SelectValue placeholder="Намуди Супориш" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Ҳама</SelectItem>
+                  <SelectItem value="protocol_supervisory">Протоколҳои ҷаласаи назоратӣ</SelectItem>
+                  <SelectItem value="protocol_advisory">Протоколҳои ҳайати мушовара</SelectItem>
+                  <SelectItem value="action_plan">Иҷрои нақшаю чорабиниҳо</SelectItem>
+                </SelectContent>
+              </Select>
               <Select
                 value={documentTypeFilterId}
                 onValueChange={setDocumentTypeFilterId}
@@ -1438,6 +1494,11 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                         {assignment.documentNumber && (
                           <span className="text-sm text-muted-foreground">
                             <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
+                          </span>
+                        )}
+                        {getAssignmentTypeName(assignment.assignmentType) && (
+                          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
+                            {getAssignmentTypeName(assignment.assignmentType)}
                           </span>
                         )}
                       </div>
@@ -1779,6 +1840,11 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                             <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                           </span>
                         )}
+                        {getAssignmentTypeName(assignment.assignmentType) && (
+                          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
+                            {getAssignmentTypeName(assignment.assignmentType)}
+                          </span>
+                        )}
                       </div>
                       {assignment.content && (
                         <div className="mt-3">
@@ -2106,6 +2172,11 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                                 <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                               </span>
                             )}
+                            {getAssignmentTypeName(assignment.assignmentType) && (
+                              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
+                                {getAssignmentTypeName(assignment.assignmentType)}
+                              </span>
+                            )}
                           </div>
                           {assignment.content && (
                             <div className="mt-3">
@@ -2382,6 +2453,11 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                             {assignment.documentNumber && (
                               <span className="text-sm text-muted-foreground">
                                 <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
+                              </span>
+                            )}
+                            {getAssignmentTypeName(assignment.assignmentType) && (
+                              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
+                                {getAssignmentTypeName(assignment.assignmentType)}
                               </span>
                             )}
                             <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">Таъхиршуда</span>
