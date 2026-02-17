@@ -2515,15 +2515,16 @@ export function registerRoutes(app: Express) {
 
       // Prepare assignment data
       const assignmentData = {
-        senderId: senderId, // Creator department ID
+        senderId: senderId,
         documentTypeId: req.body.documentTypeId ? parseInt(req.body.documentTypeId) : null,
-        topic: null, // deprecated, use documentTypeId
+        topic: null,
         content: req.body.content || null,
         documentNumber: req.body.documentNumber || null,
-        executors: finalExecutors, // Invited executors (Даъват) - people or first department
-        executorIds: finalExecutorIds, // Invited executor IDs (Даъват)
-        allDepartmentExecutors: allDepartmentExecutors, // All department people or remaining departments (Иҷрокунандагон)
-        allDepartmentExecutorIds: allDepartmentExecutorIds, // All department people IDs or remaining department IDs (Иҷрокунандагон)
+        assignmentType: req.body.assignmentType || null,
+        executors: finalExecutors,
+        executorIds: finalExecutorIds,
+        allDepartmentExecutors: allDepartmentExecutors,
+        allDepartmentExecutorIds: allDepartmentExecutorIds,
         recipientIds: recipientIds,
         deadline: new Date(req.body.deadline),
       };
@@ -2711,6 +2712,7 @@ export function registerRoutes(app: Express) {
         documentTypeId: req.body.documentTypeId ? parseInt(req.body.documentTypeId) : null,
         content: req.body.content || null,
         documentNumber: req.body.documentNumber || null,
+        assignmentType: req.body.assignmentType || null,
         executors: finalExecutors,
         executorIds: finalExecutorIds,
         allDepartmentExecutors: allDepartmentExecutors,

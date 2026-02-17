@@ -222,6 +222,7 @@ export const assignments = pgTable("assignments", {
   approvalStatus: text("approval_status"), // 'approved' | 'rejected' | null
   approvedByDepartmentId: integer("approved_by_department_id").references(() => departments.id, { onDelete: 'set null' }),
   approvedAt: timestamp("approved_at"),
+  assignmentType: text("assignment_type"),
   isRestored: boolean("is_restored").default(false).notNull(),
   restoredAt: timestamp("restored_at"),
 }, (table) => ({
@@ -246,6 +247,7 @@ export const insertAssignmentSchema = createInsertSchema(assignments).omit({
   senderId: z.number().int().positive(), // Required для новых assignments
   deadline: z.coerce.date(),
   documentTypeId: z.number().int().positive().nullable().optional(), // Намуди ҳуҷҷат
+  assignmentType: z.string().nullable().optional(), // Намуди Супориш
 });
 export type InsertAssignment = z.infer<typeof insertAssignmentSchema>;
 export type Assignment = typeof assignments.$inferSelect & {
