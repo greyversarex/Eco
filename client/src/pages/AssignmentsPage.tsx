@@ -697,9 +697,8 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
     createAssignmentMutation.mutate(formData);
   };
 
-  // Check permissions from database
   const canCreate = !isMonitoringMode && user?.userType === 'department' && user.department?.canCreateAssignment;
-  const canDelete = !isMonitoringMode && user?.userType === 'department' && user.department?.canCreateAssignment;
+  const canDelete = user?.userType === 'department' && (user.department?.canCreateAssignment || isMonitoringMode);
 
   // Helper to get document type name
   const getDocTypeName = (assignment: Assignment) => {
@@ -1524,7 +1523,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -1594,7 +1593,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                   ) : null; })()}
                   
                   <div className="flex gap-2 mt-2">
-                    {!assignment.approvalStatus && user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                    {!assignment.approvalStatus && user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
                       <>
                         <Button
                           onClick={() => approveAssignmentMutation.mutate({ id: assignment.id, status: 'approved' })}
@@ -1863,7 +1862,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -1885,7 +1884,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
-                      {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
                         <Button
                           size="sm"
                           onClick={() => restoreAssignmentMutation.mutate(assignment.id)}
@@ -2136,7 +2135,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                           )}
                         </div>
                         <div className="flex items-center gap-1">
-                          {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                          {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -2159,7 +2158,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
-                          {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                          {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
                             <Button
                               size="sm"
                               onClick={() => restoreAssignmentMutation.mutate(assignment.id)}
@@ -2403,7 +2402,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                         </div>
                         {(() => { const stamp = getAssignmentStamp(assignment); return stamp ? <StampBadge stamp={stamp} /> : null; })()}
                         <div className="flex items-center gap-1">
-                          {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                          {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -2451,7 +2450,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                         </div>
                       )}
 
-                      {user?.userType === 'department' && user.department?.id === assignment.senderId && !assignment.isCompleted && (
+                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && !assignment.isCompleted && (
                         <div className="flex gap-2 pt-2 border-t">
                           <Button
                             size="sm"
