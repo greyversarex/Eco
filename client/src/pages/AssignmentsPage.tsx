@@ -597,14 +597,6 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
 
   const handleEditSubmit = () => {
     if (!editingAssignment) return;
-    if (!documentTypeId) {
-      toast({
-        title: 'Хато',
-        description: 'Намуди ҳуҷҷатро интихоб кунед',
-        variant: 'destructive',
-      });
-      return;
-    }
     if (selectedRecipients.length === 0) {
       toast({
         title: 'Хато',
@@ -623,7 +615,9 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
     }
 
     const formData = new FormData();
-    formData.append('documentTypeId', documentTypeId);
+    if (documentTypeId) {
+      formData.append('documentTypeId', documentTypeId);
+    }
     if (assignmentType) {
       formData.append('assignmentType', assignmentType);
     }
@@ -664,14 +658,6 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
   };
 
   const handleSubmit = () => {
-    if (!documentTypeId) {
-      toast({
-        title: 'Хато',
-        description: 'Намуди ҳуҷҷатро интихоб кунед',
-        variant: 'destructive',
-      });
-      return;
-    }
     if (selectedRecipients.length === 0) {
       toast({
         title: 'Хато',
@@ -690,7 +676,9 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
     }
 
     const formData = new FormData();
-    formData.append('documentTypeId', documentTypeId);
+    if (documentTypeId) {
+      formData.append('documentTypeId', documentTypeId);
+    }
     if (assignmentType) {
       formData.append('assignmentType', assignmentType);
     }
@@ -815,15 +803,16 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label>Намуди ҳуҷҷат <span className="text-destructive">*</span></Label>
+                    <Label>Намуди ҳуҷҷат</Label>
                     <Select 
                       value={documentTypeId} 
-                      onValueChange={setDocumentTypeId}
+                      onValueChange={(val) => setDocumentTypeId(val === 'none' ? '' : val)}
                     >
                       <SelectTrigger data-testid="select-document-type">
                         <SelectValue placeholder="Намуди ҳуҷҷатро интихоб кунед" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="none">-- Интихоб нашудааст --</SelectItem>
                         {documentTypes.map((docType) => (
                           <SelectItem 
                             key={docType.id} 
