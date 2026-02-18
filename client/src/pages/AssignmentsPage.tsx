@@ -1410,7 +1410,7 @@ export default function AssignmentsPage() {
                 data-testid="tab-restored-assignments"
                 className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
               >
-                Таъхиршуда ({filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
+                Иҷрошуда бо таъхир ({filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
               </Button>
             )}
             <div className="ml-auto">
