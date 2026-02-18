@@ -1400,16 +1400,40 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
         <div className="space-y-4">
           <div className="flex gap-3 flex-wrap items-center">
             <Button
-              variant={activeFilter === 'all' ? 'default' : 'outline'}
-              onClick={() => setActiveFilter('all')}
+              variant={activeFilter === 'all' && !assignmentTypeFilter ? 'default' : 'outline'}
+              onClick={() => { setActiveFilter('all'); setAssignmentTypeFilter(''); }}
               data-testid="tab-all-assignments"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
             >
               Ҳама ({filteredAssignments.filter(a => !a.isRestored && !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length})
             </Button>
             <Button
+              variant={activeFilter === 'all' && assignmentTypeFilter === 'protocol_supervisory' ? 'default' : 'outline'}
+              onClick={() => { setActiveFilter('all'); setAssignmentTypeFilter('protocol_supervisory'); }}
+              data-testid="tab-protocol-supervisory"
+              className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+            >
+              Протоколҳои ҷаласаи назоратӣ ({assignments.filter(a => a.assignmentType === 'protocol_supervisory' && !a.isRestored && !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length})
+            </Button>
+            <Button
+              variant={activeFilter === 'all' && assignmentTypeFilter === 'protocol_advisory' ? 'default' : 'outline'}
+              onClick={() => { setActiveFilter('all'); setAssignmentTypeFilter('protocol_advisory'); }}
+              data-testid="tab-protocol-advisory"
+              className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+            >
+              Протоколҳои ҳайати мушовара ({assignments.filter(a => a.assignmentType === 'protocol_advisory' && !a.isRestored && !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length})
+            </Button>
+            <Button
+              variant={activeFilter === 'all' && assignmentTypeFilter === 'action_plan' ? 'default' : 'outline'}
+              onClick={() => { setActiveFilter('all'); setAssignmentTypeFilter('action_plan'); }}
+              data-testid="tab-action-plan"
+              className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+            >
+              Иҷрои нақшаю чорабиниҳо ({assignments.filter(a => a.assignmentType === 'action_plan' && !a.isRestored && !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length})
+            </Button>
+            <Button
               variant={activeFilter === 'overdue' ? 'default' : 'outline'}
-              onClick={() => setActiveFilter('overdue')}
+              onClick={() => { setActiveFilter('overdue'); setAssignmentTypeFilter(''); }}
               data-testid="tab-overdue-assignments"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
             >
@@ -1417,7 +1441,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
             </Button>
             <Button
               variant={activeFilter === 'completed' ? 'default' : 'outline'}
-              onClick={() => setActiveFilter('completed')}
+              onClick={() => { setActiveFilter('completed'); setAssignmentTypeFilter(''); }}
               data-testid="tab-completed-assignments"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
             >
@@ -1426,28 +1450,14 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
             {filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length > 0 && (
               <Button
                 variant={activeFilter === 'restored' ? 'default' : 'outline'}
-                onClick={() => setActiveFilter('restored')}
+                onClick={() => { setActiveFilter('restored'); setAssignmentTypeFilter(''); }}
                 data-testid="tab-restored-assignments"
                 className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
               >
                 Таъхиршуда ({filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
               </Button>
             )}
-            <div className="ml-auto flex gap-2">
-              <Select
-                value={assignmentTypeFilter}
-                onValueChange={setAssignmentTypeFilter}
-              >
-                <SelectTrigger className="w-48" data-testid="select-assignment-type-filter">
-                  <SelectValue placeholder="Намуди Супориш" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Ҳама</SelectItem>
-                  <SelectItem value="protocol_supervisory">Протоколҳои ҷаласаи назоратӣ</SelectItem>
-                  <SelectItem value="protocol_advisory">Протоколҳои ҳайати мушовара</SelectItem>
-                  <SelectItem value="action_plan">Иҷрои нақшаю чорабиниҳо</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="ml-auto">
               <Select
                 value={documentTypeFilterId}
                 onValueChange={setDocumentTypeFilterId}
