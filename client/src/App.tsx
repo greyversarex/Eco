@@ -32,8 +32,6 @@ const AdminDocumentTemplates = lazy(() => import("@/pages/AdminDocumentTemplates
 const AssignmentsPage = lazy(() => import("@/pages/AssignmentsPage"));
 const AnnouncementsPage = lazy(() => import("@/pages/AnnouncementsPage"));
 const MonitoringPage = lazy(() => import("@/pages/MonitoringPage"));
-const MonitoringAssignments = lazy(() => import("@/pages/MonitoringAssignments"));
-const MonitoringAssignmentsSelector = lazy(() => import("@/pages/MonitoringAssignmentsSelector"));
 const TrashPage = lazy(() => import("@/pages/TrashPage"));
 const DraftsPage = lazy(() => import("@/pages/DraftsPage"));
 const MubodilaPage = lazy(() => import("@/pages/MubodilaPage"));
@@ -134,16 +132,6 @@ function Router() {
         <Route path="/department/monitoring">
           <DepartmentRoute>
             <MonitoringPage />
-          </DepartmentRoute>
-        </Route>
-        <Route path="/department/monitoring/assignments-select">
-          <DepartmentRoute>
-            <MonitoringAssignmentsSelector />
-          </DepartmentRoute>
-        </Route>
-        <Route path="/department/monitoring/assignments/:id">
-          <DepartmentRoute>
-            <MonitoringAssignments />
           </DepartmentRoute>
         </Route>
         <Route path="/department/trash">

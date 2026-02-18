@@ -275,11 +275,12 @@ function AssignmentProgress({ createdAt, deadline, isCompleted, approvalStatus, 
   );
 }
 
-export default function AssignmentsPage({ monitoringDepartmentId }: { monitoringDepartmentId?: number }) {
+export default function AssignmentsPage() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const isMonitoringMode = !!monitoringDepartmentId;
+  const monitoredIds = (user?.userType === 'department' ? user.department?.monitoredAssignmentDeptIds : null) || [];
+  const hasMonitorRole = monitoredIds.length > 0;
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [documentTypeId, setDocumentTypeId] = useState<string>('');
@@ -308,12 +309,8 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
   const [composeForAssignment, setComposeForAssignment] = useState<Assignment | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
 
-  const assignmentsUrl = isMonitoringMode 
-    ? `/api/monitoring/department/${monitoringDepartmentId}/assignments`
-    : '/api/assignments';
-
   const { data: assignments = [], isLoading } = useQuery<Assignment[]>({
-    queryKey: [assignmentsUrl],
+    queryKey: ['/api/assignments'],
   });
 
   const { data: allDepartments = [], isLoading: loadingDepartments, dataUpdatedAt } = useQuery<Department[]>({
@@ -699,8 +696,19 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
     createAssignmentMutation.mutate(formData);
   };
 
-  const canCreate = !isMonitoringMode && user?.userType === 'department' && user.department?.canCreateAssignment;
-  const canDelete = user?.userType === 'department' && (user.department?.canCreateAssignment || isMonitoringMode);
+  const hasMonitorAccess = (assignment: Assignment) => {
+    if (!hasMonitorRole) return false;
+    if (assignment.senderId && monitoredIds.includes(assignment.senderId)) return true;
+    if (assignment.recipientIds) {
+      for (const rid of assignment.recipientIds) {
+        if (monitoredIds.includes(rid)) return true;
+      }
+    }
+    return false;
+  };
+
+  const canCreate = user?.userType === 'department' && (user.department?.canCreateAssignment || hasMonitorRole);
+  const canDelete = user?.userType === 'department' && (user.department?.canCreateAssignment || hasMonitorRole);
 
   // Helper to get document type name
   const getDocTypeName = (assignment: Assignment) => {
@@ -733,28 +741,24 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setLocation(isMonitoringMode ? `/department/messages/${monitoringDepartmentId}?from=monitoring` : '/department/main')}
+              onClick={() => setLocation('/department/main')}
               className="text-white hover:bg-white/20"
               data-testid="button-back"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <button onClick={() => setLocation(isMonitoringMode ? `/department/messages/${monitoringDepartmentId}?from=monitoring` : '/department/main')} className="flex items-center gap-3">
+            <button onClick={() => setLocation('/department/main')} className="flex items-center gap-3">
               <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain drop-shadow-md" />
               <div>
                 <h1 className="text-lg font-semibold text-white drop-shadow-md">
-                  {isMonitoringMode 
-                    ? `${allDepartments.find(d => d.id === monitoringDepartmentId)?.name || 'Шуъба'} - Супоришҳо`
-                    : 'Супоришҳо'
-                  }
+                  Супоришҳо
                 </h1>
                 <p className="text-xs text-white/90 drop-shadow-sm">EcoDoc - Портали электронӣ</p>
               </div>
             </button>
           </PageHeaderLeft>
           <PageHeaderRight>
-            {!isMonitoringMode && (
-              <Button
+            <Button
                 size="sm"
                 onClick={() => {
                   apiFetch('/api/auth/logout', { method: 'POST' }).then(() => setLocation('/'));
@@ -764,8 +768,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
               >
                 <LogOut className="h-4 w-4" />
                 <span>Баромад</span>
-              </Button>
-            )}
+            </Button>
           </PageHeaderRight>
         </PageHeaderContainer>
       </PageHeader>
@@ -1583,7 +1586,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
+                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -1653,7 +1656,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                   ) : null; })()}
                   
                   <div className="flex gap-2 mt-2">
-                    {!assignment.approvalStatus && user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
+                    {!assignment.approvalStatus && user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                       <>
                         <Button
                           onClick={() => approveAssignmentMutation.mutate({ id: assignment.id, status: 'approved' })}
@@ -1927,7 +1930,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
+                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -1949,7 +1952,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
-                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
+                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                         <Button
                           size="sm"
                           onClick={() => restoreAssignmentMutation.mutate(assignment.id)}
@@ -2205,7 +2208,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                           )}
                         </div>
                         <div className="flex items-center gap-1">
-                          {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
+                          {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -2228,7 +2231,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
-                          {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
+                          {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                             <Button
                               size="sm"
                               onClick={() => restoreAssignmentMutation.mutate(assignment.id)}
@@ -2477,7 +2480,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                         </div>
                         {(() => { const stamp = getAssignmentStamp(assignment); return stamp ? <StampBadge stamp={stamp} /> : null; })()}
                         <div className="flex items-center gap-1">
-                          {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && (
+                          {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -2525,7 +2528,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                         </div>
                       )}
 
-                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || isMonitoringMode) && !assignment.isCompleted && (
+                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && !assignment.isCompleted && (
                         <div className="flex gap-2 pt-2 border-t">
                           <Button
                             size="sm"
