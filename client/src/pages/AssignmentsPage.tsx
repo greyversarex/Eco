@@ -295,7 +295,7 @@ export default function AssignmentsPage() {
   const [activeFilter, setActiveFilter] = useState<'all' | 'overdue' | 'completed' | 'restored'>('all');
   // No assignmentTypeFilter means show assignments of first type tab by default
   const [documentTypeFilterId, setDocumentTypeFilterId] = useState<string>('');
-  const [assignmentTypeFilter, setAssignmentTypeFilter] = useState<string>('protocol_supervisory');
+  const [assignmentTypeFilter, setAssignmentTypeFilter] = useState<string>('');
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [replyAssignmentId, setReplyAssignmentId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
@@ -1363,6 +1363,14 @@ export default function AssignmentsPage() {
 
         <div className="space-y-4">
           <div className="flex gap-3 flex-wrap items-center">
+            <Button
+              variant={activeFilter === 'all' && !assignmentTypeFilter ? 'default' : 'outline'}
+              onClick={() => { setActiveFilter('all'); setAssignmentTypeFilter(''); }}
+              data-testid="tab-all-assignments"
+              className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+            >
+              Ҳама ({filteredAssignments.filter(a => !a.isRestored && !a.isCompleted && a.approvalStatus !== 'rejected' && new Date(a.deadline) >= new Date(new Date().setHours(0,0,0,0))).length})
+            </Button>
             <Button
               variant={activeFilter === 'all' && assignmentTypeFilter === 'protocol_supervisory' ? 'default' : 'outline'}
               onClick={() => { setActiveFilter('all'); setAssignmentTypeFilter('protocol_supervisory'); }}
