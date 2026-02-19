@@ -1359,7 +1359,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
         <div className="space-y-4">
           <div className="flex gap-2 flex-wrap items-center">
             <Button
-              variant={(documentTypeFilterId === '' || documentTypeFilterId === 'all') && activeFilter === 'all' ? 'default' : 'outline'}
+              variant={documentTypeFilterId === '' || documentTypeFilterId === 'all' ? 'default' : 'outline'}
               onClick={() => { setDocumentTypeFilterId('all'); setActiveFilter('all'); }}
               data-testid="tab-doctype-all"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
@@ -1369,7 +1369,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
             {documentTypes.map((dt) => (
               <Button
                 key={dt.id}
-                variant={documentTypeFilterId === dt.id.toString() && activeFilter === 'all' ? 'default' : 'outline'}
+                variant={documentTypeFilterId === dt.id.toString() ? 'default' : 'outline'}
                 onClick={() => { setDocumentTypeFilterId(dt.id.toString()); setActiveFilter('all'); }}
                 data-testid={`tab-doctype-${dt.id}`}
                 className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
