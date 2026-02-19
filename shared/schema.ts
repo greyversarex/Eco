@@ -518,6 +518,7 @@ export const adminNotifications = pgTable("admin_notifications", {
   negativeButtonText: text("negative_button_text"),
   effectType: text("effect_type").default("confetti").notNull(),
   isActive: boolean("is_active").default(true).notNull(),
+  recipientDepartmentIds: integer("recipient_department_ids").array(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

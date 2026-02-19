@@ -2,8 +2,6 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { CelebrationEffects, EffectType } from './CelebrationEffects';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
 
 interface AdminNotification {
   id: number;
@@ -17,64 +15,68 @@ interface AdminNotification {
 
 interface NotificationModalProps {
   notifications: AdminNotification[];
+  onDismiss?: (id: number, response?: string) => void;
 }
 
-export function NotificationModal({ notifications }: NotificationModalProps) {
+export function NotificationModal({ notifications, onDismiss }: NotificationModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showEffect, setShowEffect] = useState(false);
   const [currentEffect, setCurrentEffect] = useState<EffectType>('confetti');
-  const [negativePos, setNegativePos] = useState({ x: 0, y: 0 });
-  const [hasEscaped, setHasEscaped] = useState(false);
+  const [negativePos, setNegativePos] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const queryClient = useQueryClient();
+  const negBtnRef = useRef<HTMLButtonElement>(null);
 
   const notification = notifications[currentIndex];
   const isOpen = !!notification;
 
-  const dismissMutation = useMutation({
-    mutationFn: async ({ id, response }: { id: number; response?: string }) => {
-      await apiRequest('POST', `/api/notifications/${id}/dismiss`, { response });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/pending'] });
-    },
-  });
+  const handleDismissAndNext = useCallback((response?: string) => {
+    if (!notification) return;
+    onDismiss?.(notification.id, response);
+    if (currentIndex < notifications.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+      setNegativePos(null);
+    } else {
+      setCurrentIndex(notifications.length);
+    }
+  }, [notification, currentIndex, notifications.length, onDismiss]);
 
   const handlePositive = useCallback(() => {
     if (!notification) return;
     setCurrentEffect(notification.effectType as EffectType);
     setShowEffect(true);
-    dismissMutation.mutate({ id: notification.id, response: notification.positiveButtonText || 'positive' });
-    setTimeout(() => {
-      setShowEffect(false);
-      if (currentIndex < notifications.length - 1) {
-        setCurrentIndex(prev => prev + 1);
-        setHasEscaped(false);
-      }
-    }, 4000);
-  }, [notification, currentIndex, notifications.length, dismissMutation]);
+    handleDismissAndNext(notification.positiveButtonText || 'positive');
+  }, [notification, handleDismissAndNext]);
 
   const handleNegativeMouseEnter = useCallback(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
     const rect = container.getBoundingClientRect();
-    const maxX = rect.width - 150;
-    const maxY = rect.height - 50;
-    let newX = Math.random() * maxX;
-    let newY = Math.random() * maxY;
-    if (Math.abs(newX - negativePos.x) < 100) {
-      newX = (newX + maxX / 2) % maxX;
-    }
-    if (Math.abs(newY - negativePos.y) < 50) {
-      newY = (newY + maxY / 2) % maxY;
-    }
+    const btnWidth = 140;
+    const btnHeight = 40;
+    const padding = 10;
+    const headerHeight = 60;
+    const maxX = rect.width - btnWidth - padding;
+    const maxY = rect.height - btnHeight - padding;
+    const minY = headerHeight;
+
+    let attempts = 0;
+    let newX: number, newY: number;
+    do {
+      newX = padding + Math.random() * (maxX - padding);
+      newY = minY + Math.random() * (maxY - minY);
+      attempts++;
+    } while (
+      negativePos &&
+      Math.abs(newX - negativePos.x) < 80 &&
+      Math.abs(newY - negativePos.y) < 40 &&
+      attempts < 10
+    );
+
     setNegativePos({ x: newX, y: newY });
-    setHasEscaped(true);
   }, [negativePos]);
 
   useEffect(() => {
-    setHasEscaped(false);
-    setNegativePos({ x: 0, y: 0 });
+    setNegativePos(null);
   }, [currentIndex]);
 
   if (!isOpen) return null;
@@ -97,7 +99,7 @@ export function NotificationModal({ notifications }: NotificationModalProps) {
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
-          <div ref={containerRef} className="relative min-h-[300px]">
+          <div ref={containerRef} className="relative" style={{ minHeight: '280px' }}>
             <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
               <h2 className="text-xl font-bold text-white" data-testid="text-notification-title">
                 {notification.title}
@@ -110,12 +112,12 @@ export function NotificationModal({ notifications }: NotificationModalProps) {
               </p>
             </div>
 
-            <div className="px-6 pb-6 relative" style={{ minHeight: hasNegative ? '120px' : '60px' }}>
+            <div className="px-6 pb-6">
               <div className="flex justify-center gap-3">
                 {hasPositive && (
                   <Button
                     onClick={handlePositive}
-                    className="bg-green-600 hover:bg-green-700 text-white px-8"
+                    className="bg-green-600 text-white px-8"
                     data-testid="button-notification-positive"
                   >
                     {notification.positiveButtonText}
@@ -123,23 +125,12 @@ export function NotificationModal({ notifications }: NotificationModalProps) {
                 )}
               </div>
 
-              {hasNegative && (
-                <div
-                  className="transition-all duration-300 ease-out"
-                  style={hasEscaped ? {
-                    position: 'absolute',
-                    left: `${negativePos.x}px`,
-                    top: `${negativePos.y}px`,
-                    zIndex: 10,
-                  } : {
-                    display: 'flex',
-                    justifyContent: 'center',
-                    marginTop: '12px',
-                  }}
-                >
+              {hasNegative && !negativePos && (
+                <div className="flex justify-center mt-3">
                   <Button
-                    variant="outline"
-                    className="border-red-300 text-red-600 hover:bg-red-50 px-8"
+                    ref={negBtnRef}
+                    variant="destructive"
+                    className="px-8"
                     onMouseEnter={handleNegativeMouseEnter}
                     onTouchStart={handleNegativeMouseEnter}
                     data-testid="button-notification-negative"
@@ -152,12 +143,7 @@ export function NotificationModal({ notifications }: NotificationModalProps) {
               {!hasPositive && !hasNegative && (
                 <div className="flex justify-center">
                   <Button
-                    onClick={() => {
-                      dismissMutation.mutate({ id: notification.id });
-                      if (currentIndex < notifications.length - 1) {
-                        setCurrentIndex(prev => prev + 1);
-                      }
-                    }}
+                    onClick={() => handleDismissAndNext()}
                     data-testid="button-notification-dismiss"
                   >
                     OK
@@ -165,6 +151,28 @@ export function NotificationModal({ notifications }: NotificationModalProps) {
                 </div>
               )}
             </div>
+
+            {hasNegative && negativePos && (
+              <div
+                className="transition-all duration-300 ease-out"
+                style={{
+                  position: 'absolute',
+                  left: `${negativePos.x}px`,
+                  top: `${negativePos.y}px`,
+                  zIndex: 50,
+                }}
+              >
+                <Button
+                  variant="destructive"
+                  className="px-8 shadow-lg"
+                  onMouseEnter={handleNegativeMouseEnter}
+                  onTouchStart={handleNegativeMouseEnter}
+                  data-testid="button-notification-negative"
+                >
+                  {notification.negativeButtonText}
+                </Button>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

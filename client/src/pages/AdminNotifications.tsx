@@ -5,6 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -22,9 +24,8 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/auth';
 import { useLocation } from 'wouter';
-import { Plus, Pencil, Trash2, Bell, ArrowLeft, Sparkles } from 'lucide-react';
+import { Plus, Pencil, Trash2, Bell, ArrowLeft, Sparkles, Building2 } from 'lucide-react';
 import { EFFECT_TYPES, EffectType } from '@/components/CelebrationEffects';
 import { CelebrationEffects } from '@/components/CelebrationEffects';
 import bgImage from '@assets/eco-background-light.webp';
@@ -39,12 +40,19 @@ interface AdminNotification {
   negativeButtonText: string | null;
   effectType: string;
   isActive: boolean;
+  recipientDepartmentIds: number[] | null;
   createdAt: string;
+}
+
+interface Department {
+  id: number;
+  name: string;
+  shortName: string | null;
+  sortOrder: number;
 }
 
 export default function AdminNotifications() {
   const [, setLocation] = useLocation();
-  const { user, logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -55,10 +63,16 @@ export default function AdminNotifications() {
   const [negativeButtonText, setNegativeButtonText] = useState('');
   const [effectType, setEffectType] = useState<string>('confetti');
   const [isActive, setIsActive] = useState(true);
+  const [selectedDeptIds, setSelectedDeptIds] = useState<number[]>([]);
+  const [allDepartments, setAllDepartments] = useState(true);
   const [previewEffect, setPreviewEffect] = useState<EffectType | null>(null);
 
   const { data: notifications = [], isLoading } = useQuery<AdminNotification[]>({
     queryKey: ['/api/admin/notifications'],
+  });
+
+  const { data: departments = [] } = useQuery<Department[]>({
+    queryKey: ['/api/departments/all'],
   });
 
   const createMutation = useMutation({
@@ -120,6 +134,8 @@ export default function AdminNotifications() {
     setNegativeButtonText('');
     setEffectType('confetti');
     setIsActive(true);
+    setSelectedDeptIds([]);
+    setAllDepartments(true);
   };
 
   const openEdit = (n: AdminNotification) => {
@@ -130,6 +146,9 @@ export default function AdminNotifications() {
     setNegativeButtonText(n.negativeButtonText || '');
     setEffectType(n.effectType);
     setIsActive(n.isActive);
+    const isAll = !n.recipientDepartmentIds || n.recipientDepartmentIds.length === 0;
+    setAllDepartments(isAll);
+    setSelectedDeptIds(isAll ? [] : n.recipientDepartmentIds || []);
     setDialogOpen(true);
   };
 
@@ -141,12 +160,31 @@ export default function AdminNotifications() {
       negativeButtonText: negativeButtonText.trim() || null,
       effectType,
       isActive,
+      recipientDepartmentIds: allDepartments ? null : selectedDeptIds,
     };
     if (editingNotification) {
       updateMutation.mutate({ id: editingNotification.id, data });
     } else {
       createMutation.mutate(data);
     }
+  };
+
+  const toggleDept = (deptId: number) => {
+    setSelectedDeptIds(prev =>
+      prev.includes(deptId) ? prev.filter(id => id !== deptId) : [...prev, deptId]
+    );
+  };
+
+  const sortedDepartments = [...departments].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
+  const getDeptNames = (ids: number[] | null) => {
+    if (!ids || ids.length === 0) return 'Ҳама департаментҳо';
+    const names = ids.map(id => {
+      const dept = departments.find(d => d.id === id);
+      return dept ? (dept.shortName || dept.name) : `#${id}`;
+    });
+    if (names.length <= 3) return names.join(', ');
+    return `${names.slice(0, 3).join(', ')} +${names.length - 3}`;
   };
 
   return (
@@ -209,14 +247,14 @@ export default function AdminNotifications() {
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
                         <h3 className="font-semibold text-sm">{n.title}</h3>
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${n.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                           {n.isActive ? 'Фаъол' : 'Ғайрифаъол'}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground line-clamp-2">{n.message}</p>
-                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-3 flex-wrap mt-2 text-xs text-muted-foreground">
                         {n.positiveButtonText && (
                           <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded">
                             {n.positiveButtonText}
@@ -230,6 +268,10 @@ export default function AdminNotifications() {
                         <span className="flex items-center gap-1">
                           <Sparkles className="h-3 w-3" />
                           {EFFECT_TYPES.find(e => e.id === n.effectType)?.name || n.effectType}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Building2 className="h-3 w-3" />
+                          {getDeptNames(n.recipientDepartmentIds)}
                         </span>
                       </div>
                     </div>
@@ -270,7 +312,7 @@ export default function AdminNotifications() {
       </main>
 
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) closeDialog(); }}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingNotification ? 'Тағйир додани огоҳинома' : 'Огоҳиномаи нав'}
@@ -310,7 +352,7 @@ export default function AdminNotifications() {
             </div>
 
             <div>
-              <Label>Тугмаи манфӣ (ҷавоби манфӣ - ускользает!)</Label>
+              <Label>Тугмаи манфӣ (ҷавоби манфӣ - мегурезад!)</Label>
               <Input
                 value={negativeButtonText}
                 onChange={(e) => setNegativeButtonText(e.target.value)}
@@ -344,6 +386,53 @@ export default function AdminNotifications() {
                   <Sparkles className="h-4 w-4" />
                 </Button>
               </div>
+            </div>
+
+            <div>
+              <Label className="mb-2 block">Департаментҳо</Label>
+              <div className="flex items-center gap-2 mb-2">
+                <Checkbox
+                  checked={allDepartments}
+                  onCheckedChange={(checked) => {
+                    setAllDepartments(!!checked);
+                    if (checked) setSelectedDeptIds([]);
+                  }}
+                  data-testid="checkbox-all-departments"
+                />
+                <Label className="text-sm font-normal cursor-pointer" onClick={() => {
+                  setAllDepartments(!allDepartments);
+                  if (!allDepartments) setSelectedDeptIds([]);
+                }}>
+                  Ҳама департаментҳо
+                </Label>
+              </div>
+
+              {!allDepartments && (
+                <ScrollArea className="h-48 border rounded-md p-2">
+                  <div className="space-y-1">
+                    {sortedDepartments.map((dept) => (
+                      <div
+                        key={dept.id}
+                        className="flex items-center gap-2 py-1 px-1 rounded hover-elevate cursor-pointer"
+                        onClick={() => toggleDept(dept.id)}
+                        data-testid={`checkbox-dept-${dept.id}`}
+                      >
+                        <Checkbox
+                          checked={selectedDeptIds.includes(dept.id)}
+                          onCheckedChange={() => toggleDept(dept.id)}
+                        />
+                        <span className="text-sm truncate">{dept.shortName || dept.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+
+              {!allDepartments && selectedDeptIds.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Интихоб шуд: {selectedDeptIds.length} департамент
+                </p>
+              )}
             </div>
 
             <div className="flex items-center gap-2">

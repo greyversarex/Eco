@@ -158,10 +158,29 @@ export default function DepartmentMain() {
     setWelcomeDone(true);
   }, []);
 
-  const { data: pendingNotifications = [] } = useQuery<any[]>({
+  const { data: allPendingNotifications = [] } = useQuery<any[]>({
     queryKey: ['/api/notifications/pending'],
     enabled: welcomeDone && user?.userType === 'department',
   });
+
+  const [dismissedThisSession, setDismissedThisSession] = useState<number[]>(() => {
+    try {
+      const stored = sessionStorage.getItem('dismissed_notifications');
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
+
+  const pendingNotifications = allPendingNotifications.filter(
+    (n: any) => !dismissedThisSession.includes(n.id)
+  );
+
+  const handleNotificationDismiss = useCallback((id: number, response?: string) => {
+    setDismissedThisSession(prev => {
+      const updated = [...prev, id];
+      try { sessionStorage.setItem('dismissed_notifications', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  }, []);
 
   // Check if current user is a subdepartment
   const isSubdepartment = user?.userType === 'department' && user.department?.isSubdepartment;
@@ -229,7 +248,7 @@ export default function DepartmentMain() {
       />
     )}
     {welcomeDone && pendingNotifications.length > 0 && (
-      <NotificationModal notifications={pendingNotifications} />
+      <NotificationModal notifications={pendingNotifications} onDismiss={handleNotificationDismiss} />
     )}
     <div 
       className="min-h-screen bg-cover bg-center bg-fixed relative"

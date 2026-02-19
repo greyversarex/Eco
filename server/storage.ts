@@ -1393,17 +1393,14 @@ export class DbStorage implements IStorage {
   }
 
   async getUndismissedNotifications(departmentId: number): Promise<AdminNotification[]> {
-    const dismissed = await db.select({ notificationId: notificationDismissals.notificationId })
-      .from(notificationDismissals)
-      .where(eq(notificationDismissals.departmentId, departmentId));
-    
-    const dismissedIds = dismissed.map(d => d.notificationId);
-    
     const active = await db.select().from(adminNotifications)
       .where(eq(adminNotifications.isActive, true))
       .orderBy(desc(adminNotifications.createdAt));
     
-    return active.filter(n => !dismissedIds.includes(n.id));
+    return active.filter(n => {
+      if (!n.recipientDepartmentIds || n.recipientDepartmentIds.length === 0) return true;
+      return n.recipientDepartmentIds.includes(departmentId);
+    });
   }
 
   async dismissNotification(notificationId: number, departmentId: number, response?: string): Promise<void> {
