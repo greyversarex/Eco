@@ -213,20 +213,32 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Auto-update document type categories on startup
+  // Ensure document_types has category column
   try {
-    await pool.query(`
-      UPDATE document_types SET category = 'assignment' 
-      WHERE category != 'assignment' AND name IN (
-        'Протоколҳои чаласаи назоратӣ',
-        'Протоколҳои ҳайяти мушовара',
-        'Кумита - иҷрои нақша / чорабиниҳо',
-        'Ҳукумат - иҷрои нақша / чорабиниҳо'
-      )
-    `);
-    log('Document type categories updated');
+    await pool.query(`ALTER TABLE document_types ADD COLUMN IF NOT EXISTS category text DEFAULT 'message' NOT NULL`);
   } catch (e) {
-    log('Could not update document type categories: ' + (e as Error).message);
+    log('Category column check: ' + (e as Error).message);
+  }
+
+  // Auto-seed assignment document types on startup
+  try {
+    const assignmentTypes = [
+      { name: 'Протоколҳои чаласаи назоратӣ', order: 1 },
+      { name: 'Протоколҳои ҳайяти мушовара', order: 2 },
+      { name: 'Кумита - иҷрои нақша / чорабиниҳо', order: 3 },
+      { name: 'Ҳукумат - иҷрои нақша / чорабиниҳо', order: 4 },
+    ];
+    for (const dt of assignmentTypes) {
+      await pool.query(
+        `INSERT INTO document_types (name, category, sort_order, is_active)
+         VALUES ($1, 'assignment', $2, true)
+         ON CONFLICT (name) DO UPDATE SET category = 'assignment'`,
+        [dt.name, dt.order]
+      );
+    }
+    log('Assignment document types seeded/updated');
+  } catch (e) {
+    log('Could not seed document types: ' + (e as Error).message);
   }
 
   // Запуск сервера
