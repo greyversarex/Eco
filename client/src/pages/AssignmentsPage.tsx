@@ -1358,6 +1358,14 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
 
         <div className="space-y-4">
           <div className="flex gap-2 flex-wrap items-center">
+            <Button
+              variant={(documentTypeFilterId === '' || documentTypeFilterId === 'all') && activeFilter === 'all' ? 'default' : 'outline'}
+              onClick={() => { setDocumentTypeFilterId('all'); setActiveFilter('all'); }}
+              data-testid="tab-doctype-all"
+              className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+            >
+              Ҳама
+            </Button>
             {documentTypes.map((dt) => (
               <Button
                 key={dt.id}
@@ -1370,7 +1378,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
               </Button>
             ))}
             <Button
-              variant={activeFilter === 'completed' && (documentTypeFilterId === '' || documentTypeFilterId === 'all') ? 'default' : 'outline'}
+              variant={activeFilter === 'completed' ? 'default' : 'outline'}
               onClick={() => { setActiveFilter('completed'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-completed-assignments"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
@@ -1378,23 +1386,21 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
               Иҷрошуда ({assignments.filter(a => a.isCompleted || a.approvalStatus === 'approved').length})
             </Button>
             <Button
-              variant={activeFilter === 'overdue' && (documentTypeFilterId === '' || documentTypeFilterId === 'all') ? 'default' : 'outline'}
+              variant={activeFilter === 'overdue' ? 'default' : 'outline'}
               onClick={() => { setActiveFilter('overdue'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-overdue-assignments"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
             >
               Иҷронашуда ({assignments.filter(a => !a.isRestored && !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length})
             </Button>
-            {assignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length > 0 && (
-              <Button
-                variant={activeFilter === 'restored' && (documentTypeFilterId === '' || documentTypeFilterId === 'all') ? 'default' : 'outline'}
-                onClick={() => { setActiveFilter('restored'); setDocumentTypeFilterId('all'); }}
-                data-testid="tab-restored-assignments"
-                className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
-              >
-                Ба таъхир иҷро гардид ({assignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
-              </Button>
-            )}
+            <Button
+              variant={activeFilter === 'restored' ? 'default' : 'outline'}
+              onClick={() => { setActiveFilter('restored'); setDocumentTypeFilterId('all'); }}
+              data-testid="tab-restored-assignments"
+              className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+            >
+              Ба таъхир иҷро гардид ({assignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
+            </Button>
           </div>
 
           {activeFilter === 'all' && (
