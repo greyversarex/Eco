@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { CelebrationEffects, EffectType } from './CelebrationEffects';
 import { CheckCircle } from 'lucide-react';
@@ -104,12 +104,12 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
     setNegativeMoving(false);
   }, [currentIndex]);
 
-  if (!notification) return null;
+  if (!notification || !isOpen) return null;
 
   const hasPositive = notification.positiveButtonText && notification.positiveButtonText.trim();
   const hasNegative = notification.negativeButtonText && notification.negativeButtonText.trim();
 
-  return (
+  const modal = (
     <>
       {showEffect && (
         <CelebrationEffects
@@ -118,42 +118,40 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
           onComplete={handleEffectComplete}
         />
       )}
-      <Dialog open={isOpen} onOpenChange={() => {}}>
-        <DialogContent
-          className="sm:max-w-lg p-0 overflow-visible [&>button]:hidden"
-          onInteractOutside={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => e.preventDefault()}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          className="w-full max-w-lg animate-in fade-in zoom-in-95 duration-200"
           style={{
-            background: 'rgba(255, 255, 255, 0.65)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            boxShadow: '0 20px 50px -10px rgba(0,0,0,0.3), 0 8px 16px -6px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.5)',
-            border: '1px solid rgba(255,255,255,0.35)',
+            background: 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            boxShadow: '0 16px 40px -8px rgba(0,0,0,0.2), 0 6px 12px -4px rgba(0,0,0,0.1)',
+            border: '1px solid rgba(255,255,255,0.5)',
             borderRadius: '16px',
           }}
         >
           {showThankYou ? (
             <div className="flex flex-col items-center justify-center py-12 px-6" style={{ minHeight: '280px' }}>
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(22,163,74,0.15)' }}>
                 <CheckCircle className="w-10 h-10 text-green-600" />
               </div>
-              <h2 className="text-xl font-bold text-foreground text-center mb-2" data-testid="text-thank-you-title">
+              <h2 className="text-xl font-bold text-gray-800 text-center mb-2" data-testid="text-thank-you-title">
                 Ташаккур!
               </h2>
-              <p className="text-base text-muted-foreground text-center" data-testid="text-thank-you-message">
+              <p className="text-base text-gray-600 text-center" data-testid="text-thank-you-message">
                 Ҷавоби Шумо қабул гардид!
               </p>
             </div>
           ) : (
             <div ref={containerRef} className="relative" style={{ minHeight: '280px' }}>
-              <div className="px-6 py-4" style={{ background: 'linear-gradient(135deg, rgba(22,163,74,0.85), rgba(5,150,105,0.85))', borderRadius: '15px 15px 0 0' }}>
+              <div className="px-6 py-4" style={{ background: 'linear-gradient(135deg, rgba(22,163,74,0.9), rgba(5,150,105,0.9))', borderRadius: '15px 15px 0 0' }}>
                 <h2 className="text-xl font-bold text-white text-center" data-testid="text-notification-title">
                   {notification.title}
                 </h2>
               </div>
 
               <div className="px-6 py-6">
-                <p className="text-base text-foreground leading-relaxed whitespace-pre-wrap" data-testid="text-notification-message">
+                <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap" data-testid="text-notification-message">
                   {notification.message}
                 </p>
               </div>
@@ -224,8 +222,10 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
               )}
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
     </>
   );
+
+  return createPortal(modal, document.body);
 }

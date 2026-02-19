@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import welcomeBg from '@assets/view-beautiful-rainbow-nature-landscape_23-2151597525_1771530736329.jpg';
+import welcomeBg from '@assets/pngtree-beautiful-green-forest-picture-image_3184540_1771530863713.jpg';
 
 interface WelcomeAnimationProps {
   departmentName: string;
