@@ -70,6 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: async () => {
       await offlineDB.clearAuthSession();
       queryClient.clear();
+      try {
+        sessionStorage.removeItem('ecodoc_welcome_shown');
+        sessionStorage.removeItem('dismissed_notifications');
+      } catch {}
       setLocation('/');
     },
   });
