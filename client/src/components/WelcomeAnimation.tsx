@@ -18,13 +18,13 @@ const LEAF_COLORS = [
 export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete }: WelcomeAnimationProps) {
   const [phase, setPhase] = useState<'enter' | 'show' | 'exit'>('enter');
 
-  const leafConfigs = useMemo(() => Array.from({ length: 45 }).map(() => {
+  const leafConfigs = useMemo(() => Array.from({ length: 70 }).map(() => {
     const color = LEAF_COLORS[Math.floor(Math.random() * LEAF_COLORS.length)];
     return {
       x: Math.random() * 100,
-      delay: Math.random() * 4,
-      duration: 5 + Math.random() * 5,
-      size: 30 + Math.random() * 35,
+      delay: Math.random() * 0.8,
+      duration: 4 + Math.random() * 4,
+      size: 26 + Math.random() * 32,
       swayDuration: 1.5 + Math.random() * 1.5,
       color,
       type: Math.floor(Math.random() * 5),
@@ -80,7 +80,6 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
               top: '-70px',
               animation: `welcomeLeafFall ${leaf.duration}s ease-in-out infinite`,
               animationDelay: `${leaf.delay}s`,
-              opacity: 0,
               transform: leaf.flipX ? 'scaleX(-1)' : 'none',
             }}
           >
@@ -256,9 +255,8 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
           50% { transform: translateY(-20px) scale(1.05); }
         }
         @keyframes welcomeLeafFall {
-          0% { transform: translateY(-70px); opacity: 0; }
-          5% { opacity: 0.9; }
-          85% { opacity: 0.9; }
+          0% { transform: translateY(-70px); opacity: 0.9; }
+          90% { opacity: 0.9; }
           100% { transform: translateY(110vh); opacity: 0; }
         }
         @keyframes welcomeLeafSway {
