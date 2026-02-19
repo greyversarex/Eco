@@ -6,22 +6,31 @@ interface WelcomeAnimationProps {
   onComplete: () => void;
 }
 
+const LEAF_COLORS = [
+  { fill: '#2d8a4e', vein: '#1a6b35', shadow: '#1a5c30' },
+  { fill: '#3a9d5e', vein: '#2a7d45', shadow: '#1f6b38' },
+  { fill: '#4aad6e', vein: '#35884f', shadow: '#2a7542' },
+  { fill: '#228b45', vein: '#186830', shadow: '#145a28' },
+  { fill: '#56b870', vein: '#3d9454', shadow: '#2f8045' },
+  { fill: '#1e7a3a', vein: '#14602c', shadow: '#0f5024' },
+];
+
 export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete }: WelcomeAnimationProps) {
   const [phase, setPhase] = useState<'enter' | 'show' | 'exit'>('enter');
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animRef = useRef<number>(0);
 
-  const leafConfigs = useMemo(() => Array.from({ length: 40 }).map(() => ({
-    x: Math.random() * 100,
-    delay: Math.random() * 4,
-    duration: 5 + Math.random() * 4,
-    size: 28 + Math.random() * 32,
-    swayAmount: 15 + Math.random() * 25,
-    rotStart: Math.random() * 360,
-    rotEnd: (Math.random() > 0.5 ? 1 : -1) * (180 + Math.random() * 360),
-    opacity: 0.3 + Math.random() * 0.4,
-    type: Math.floor(Math.random() * 4),
-  })), []);
+  const leafConfigs = useMemo(() => Array.from({ length: 45 }).map(() => {
+    const color = LEAF_COLORS[Math.floor(Math.random() * LEAF_COLORS.length)];
+    return {
+      x: Math.random() * 100,
+      delay: Math.random() * 4,
+      duration: 5 + Math.random() * 5,
+      size: 30 + Math.random() * 35,
+      swayDuration: 1.5 + Math.random() * 1.5,
+      color,
+      type: Math.floor(Math.random() * 5),
+      flipX: Math.random() > 0.5,
+    };
+  }), []);
 
   useEffect(() => {
     const enterTimer = setTimeout(() => setPhase('show'), 100);
@@ -40,7 +49,7 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
         phase === 'exit' ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
       style={{
-        background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 25%, #5eead4 55%, #99f6e4 80%, #ccfbf1 100%)',
+        background: 'linear-gradient(135deg, #065f46 0%, #047857 30%, #10b981 60%, #34d399 100%)',
       }}
     >
       <div className="absolute inset-0 overflow-hidden">
@@ -53,7 +62,7 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
               height: `${Math.random() * 250 + 80}px`,
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              background: 'rgba(255,255,255,0.15)',
+              background: 'rgba(255,255,255,0.08)',
               animation: `welcomeFloat ${3 + Math.random() * 4}s ease-in-out infinite`,
               animationDelay: `${Math.random() * 2}s`,
             }}
@@ -68,60 +77,100 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
             className="absolute"
             style={{
               left: `${leaf.x}%`,
-              top: '-60px',
+              top: '-70px',
               animation: `welcomeLeafFall ${leaf.duration}s ease-in-out infinite`,
               animationDelay: `${leaf.delay}s`,
               opacity: 0,
+              transform: leaf.flipX ? 'scaleX(-1)' : 'none',
             }}
           >
             <svg
               width={leaf.size}
               height={leaf.size}
-              viewBox="0 0 40 40"
+              viewBox="0 0 50 50"
               style={{
-                filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))',
-                animation: `welcomeLeafSway ${1.5 + Math.random()}s ease-in-out infinite alternate`,
+                filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.25))',
+                animation: `welcomeLeafSway ${leaf.swayDuration}s ease-in-out infinite alternate`,
                 animationDelay: `${leaf.delay}s`,
               }}
             >
               {leaf.type === 0 && (
                 <g>
-                  <path d="M20 4 C12 10, 6 18, 8 30 C10 32, 14 33, 20 28 C26 33, 30 32, 32 30 C34 18, 28 10, 20 4Z"
-                    fill={`rgba(255,255,255,${leaf.opacity})`} />
-                  <path d="M20 8 L20 28" stroke={`rgba(255,255,255,${leaf.opacity * 0.7})`} strokeWidth="1" fill="none" />
-                  <path d="M15 14 L20 18" stroke={`rgba(255,255,255,${leaf.opacity * 0.5})`} strokeWidth="0.8" fill="none" />
-                  <path d="M25 14 L20 18" stroke={`rgba(255,255,255,${leaf.opacity * 0.5})`} strokeWidth="0.8" fill="none" />
-                  <path d="M14 20 L20 23" stroke={`rgba(255,255,255,${leaf.opacity * 0.5})`} strokeWidth="0.8" fill="none" />
-                  <path d="M26 20 L20 23" stroke={`rgba(255,255,255,${leaf.opacity * 0.5})`} strokeWidth="0.8" fill="none" />
+                  <path d="M25 3 C15 10, 6 20, 9 35 C11 38, 16 40, 25 33 C34 40, 39 38, 41 35 C44 20, 35 10, 25 3Z"
+                    fill={leaf.color.fill} />
+                  <path d="M25 3 C15 10, 6 20, 9 35 C11 38, 16 40, 25 33 C34 40, 39 38, 41 35 C44 20, 35 10, 25 3Z"
+                    fill="url(#leafGrad0)" opacity="0.3" />
+                  <path d="M25 7 L25 33" stroke={leaf.color.vein} strokeWidth="1.2" fill="none" />
+                  <path d="M18 14 L25 19" stroke={leaf.color.vein} strokeWidth="0.8" fill="none" opacity="0.7" />
+                  <path d="M32 14 L25 19" stroke={leaf.color.vein} strokeWidth="0.8" fill="none" opacity="0.7" />
+                  <path d="M15 22 L25 26" stroke={leaf.color.vein} strokeWidth="0.8" fill="none" opacity="0.6" />
+                  <path d="M35 22 L25 26" stroke={leaf.color.vein} strokeWidth="0.8" fill="none" opacity="0.6" />
+                  <path d="M17 29 L25 31" stroke={leaf.color.vein} strokeWidth="0.6" fill="none" opacity="0.5" />
+                  <path d="M33 29 L25 31" stroke={leaf.color.vein} strokeWidth="0.6" fill="none" opacity="0.5" />
                 </g>
               )}
               {leaf.type === 1 && (
                 <g>
-                  <path d="M20 2 C8 8, 4 20, 10 32 C14 36, 20 34, 20 34 C20 34, 26 36, 30 32 C36 20, 32 8, 20 2Z"
-                    fill={`rgba(255,255,255,${leaf.opacity})`} />
-                  <path d="M20 6 Q18 20, 20 32" stroke={`rgba(255,255,255,${leaf.opacity * 0.6})`} strokeWidth="1" fill="none" />
+                  <path d="M25 2 C10 10, 4 22, 12 38 C16 42, 22 40, 25 40 C28 40, 34 42, 38 38 C46 22, 40 10, 25 2Z"
+                    fill={leaf.color.fill} />
+                  <path d="M25 2 C10 10, 4 22, 12 38 C16 42, 22 40, 25 40 C28 40, 34 42, 38 38 C46 22, 40 10, 25 2Z"
+                    fill="url(#leafGrad1)" opacity="0.25" />
+                  <path d="M25 5 Q23 22, 25 38" stroke={leaf.color.vein} strokeWidth="1.1" fill="none" />
+                  <path d="M16 13 Q21 17, 25 18" stroke={leaf.color.vein} strokeWidth="0.7" fill="none" opacity="0.6" />
+                  <path d="M34 13 Q29 17, 25 18" stroke={leaf.color.vein} strokeWidth="0.7" fill="none" opacity="0.6" />
+                  <path d="M12 24 Q19 26, 24 27" stroke={leaf.color.vein} strokeWidth="0.7" fill="none" opacity="0.5" />
+                  <path d="M38 24 Q31 26, 26 27" stroke={leaf.color.vein} strokeWidth="0.7" fill="none" opacity="0.5" />
                 </g>
               )}
               {leaf.type === 2 && (
                 <g>
-                  <ellipse cx="20" cy="18" rx="12" ry="14"
-                    fill={`rgba(255,255,255,${leaf.opacity})`} transform="rotate(-15 20 18)" />
-                  <path d="M20 6 L18 30" stroke={`rgba(255,255,255,${leaf.opacity * 0.6})`} strokeWidth="0.8" fill="none" />
-                  <path d="M13 12 L19 16" stroke={`rgba(255,255,255,${leaf.opacity * 0.5})`} strokeWidth="0.6" fill="none" />
-                  <path d="M14 20 L19 22" stroke={`rgba(255,255,255,${leaf.opacity * 0.5})`} strokeWidth="0.6" fill="none" />
+                  <ellipse cx="25" cy="22" rx="15" ry="18"
+                    fill={leaf.color.fill} transform="rotate(-10 25 22)" />
+                  <ellipse cx="25" cy="22" rx="15" ry="18"
+                    fill="url(#leafGrad2)" opacity="0.2" transform="rotate(-10 25 22)" />
+                  <path d="M25 5 Q23 22, 24 38" stroke={leaf.color.vein} strokeWidth="1" fill="none" />
+                  <path d="M15 12 L24 17" stroke={leaf.color.vein} strokeWidth="0.7" fill="none" opacity="0.6" />
+                  <path d="M14 22 L23 25" stroke={leaf.color.vein} strokeWidth="0.6" fill="none" opacity="0.5" />
+                  <path d="M16 30 L23 31" stroke={leaf.color.vein} strokeWidth="0.6" fill="none" opacity="0.5" />
+                  <path d="M34 14 L25 18" stroke={leaf.color.vein} strokeWidth="0.7" fill="none" opacity="0.6" />
+                  <path d="M35 24 L25 26" stroke={leaf.color.vein} strokeWidth="0.6" fill="none" opacity="0.5" />
                 </g>
               )}
               {leaf.type === 3 && (
                 <g>
-                  <path d="M20 3 C10 8, 5 15, 7 25 C9 30, 15 35, 20 35 L20 35 C25 35, 31 30, 33 25 C35 15, 30 8, 20 3Z"
-                    fill={`rgba(255,255,255,${leaf.opacity})`} />
-                  <path d="M20 5 L20 33" stroke={`rgba(255,255,255,${leaf.opacity * 0.6})`} strokeWidth="1" fill="none" />
-                  <path d="M12 15 L20 19" stroke={`rgba(255,255,255,${leaf.opacity * 0.4})`} strokeWidth="0.7" fill="none" />
-                  <path d="M28 15 L20 19" stroke={`rgba(255,255,255,${leaf.opacity * 0.4})`} strokeWidth="0.7" fill="none" />
-                  <path d="M10 23 L20 26" stroke={`rgba(255,255,255,${leaf.opacity * 0.4})`} strokeWidth="0.7" fill="none" />
-                  <path d="M30 23 L20 26" stroke={`rgba(255,255,255,${leaf.opacity * 0.4})`} strokeWidth="0.7" fill="none" />
+                  <path d="M25 2 C12 8, 5 18, 8 30 C10 36, 18 44, 25 44 C32 44, 40 36, 42 30 C45 18, 38 8, 25 2Z"
+                    fill={leaf.color.fill} />
+                  <path d="M25 2 C12 8, 5 18, 8 30 C10 36, 18 44, 25 44 C32 44, 40 36, 42 30 C45 18, 38 8, 25 2Z"
+                    fill="url(#leafGrad3)" opacity="0.25" />
+                  <path d="M25 5 L25 42" stroke={leaf.color.vein} strokeWidth="1.2" fill="none" />
+                  <path d="M14 14 L25 20" stroke={leaf.color.vein} strokeWidth="0.8" fill="none" opacity="0.6" />
+                  <path d="M36 14 L25 20" stroke={leaf.color.vein} strokeWidth="0.8" fill="none" opacity="0.6" />
+                  <path d="M11 24 L25 28" stroke={leaf.color.vein} strokeWidth="0.7" fill="none" opacity="0.5" />
+                  <path d="M39 24 L25 28" stroke={leaf.color.vein} strokeWidth="0.7" fill="none" opacity="0.5" />
+                  <path d="M14 33 L25 35" stroke={leaf.color.vein} strokeWidth="0.6" fill="none" opacity="0.4" />
+                  <path d="M36 33 L25 35" stroke={leaf.color.vein} strokeWidth="0.6" fill="none" opacity="0.4" />
                 </g>
               )}
+              {leaf.type === 4 && (
+                <g>
+                  <path d="M8 25 C8 12, 18 3, 25 3 C32 3, 42 12, 42 25 C42 32, 38 38, 33 42 L25 46 L17 42 C12 38, 8 32, 8 25Z"
+                    fill={leaf.color.fill} />
+                  <path d="M8 25 C8 12, 18 3, 25 3 C32 3, 42 12, 42 25 C42 32, 38 38, 33 42 L25 46 L17 42 C12 38, 8 32, 8 25Z"
+                    fill="url(#leafGrad4)" opacity="0.2" />
+                  <path d="M25 6 L25 44" stroke={leaf.color.vein} strokeWidth="1" fill="none" />
+                  <path d="M13 16 L25 22" stroke={leaf.color.vein} strokeWidth="0.7" fill="none" opacity="0.5" />
+                  <path d="M37 16 L25 22" stroke={leaf.color.vein} strokeWidth="0.7" fill="none" opacity="0.5" />
+                  <path d="M10 28 L25 30" stroke={leaf.color.vein} strokeWidth="0.6" fill="none" opacity="0.4" />
+                  <path d="M40 28 L25 30" stroke={leaf.color.vein} strokeWidth="0.6" fill="none" opacity="0.4" />
+                </g>
+              )}
+              <defs>
+                <radialGradient id="leafGrad0" cx="30%" cy="30%"><stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="transparent" /></radialGradient>
+                <radialGradient id="leafGrad1" cx="30%" cy="30%"><stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="transparent" /></radialGradient>
+                <radialGradient id="leafGrad2" cx="30%" cy="30%"><stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="transparent" /></radialGradient>
+                <radialGradient id="leafGrad3" cx="30%" cy="30%"><stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="transparent" /></radialGradient>
+                <radialGradient id="leafGrad4" cx="30%" cy="30%"><stop offset="0%" stopColor="#fff" /><stop offset="100%" stopColor="transparent" /></radialGradient>
+              </defs>
             </svg>
           </div>
         ))}
@@ -162,7 +211,7 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
         <h1
           className="text-5xl sm:text-6xl font-bold text-white mb-3 drop-shadow-lg"
           style={{
-            textShadow: '0 0 40px rgba(255,255,255,0.4), 0 4px 12px rgba(0,0,0,0.15)',
+            textShadow: '0 0 40px rgba(255,255,255,0.3), 0 4px 12px rgba(0,0,0,0.3)',
             fontFamily: "'Inter', 'Roboto', sans-serif",
           }}
         >
@@ -207,14 +256,14 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
           50% { transform: translateY(-20px) scale(1.05); }
         }
         @keyframes welcomeLeafFall {
-          0% { transform: translateY(-60px); opacity: 0; }
-          5% { opacity: 1; }
-          85% { opacity: 1; }
+          0% { transform: translateY(-70px); opacity: 0; }
+          5% { opacity: 0.9; }
+          85% { opacity: 0.9; }
           100% { transform: translateY(110vh); opacity: 0; }
         }
         @keyframes welcomeLeafSway {
-          0% { transform: rotate(-25deg) translateX(-15px); }
-          100% { transform: rotate(25deg) translateX(15px); }
+          0% { transform: rotate(-30deg) translateX(-18px); }
+          100% { transform: rotate(30deg) translateX(18px); }
         }
         @keyframes welcomePulse {
           0%, 100% { transform: scale(1); }
