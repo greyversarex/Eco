@@ -213,6 +213,22 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
+  // Auto-update document type categories on startup
+  try {
+    await pool.query(`
+      UPDATE document_types SET category = 'assignment' 
+      WHERE category != 'assignment' AND name IN (
+        'Протоколҳои чаласаи назоратӣ',
+        'Протоколҳои ҳайяти мушовара',
+        'Кумита - иҷрои нақша / чорабиниҳо',
+        'Ҳукумат - иҷрои нақша / чорабиниҳо'
+      )
+    `);
+    log('Document type categories updated');
+  } catch (e) {
+    log('Could not update document type categories: ' + (e as Error).message);
+  }
+
   // Запуск сервера
   const port = parseInt(process.env.PORT || '5000', 10);
   server.listen({
