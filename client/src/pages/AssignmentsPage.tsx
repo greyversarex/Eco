@@ -587,8 +587,15 @@ export default function AssignmentsPage() {
 
   const handleEditClick = (assignment: Assignment) => {
     setEditingAssignment(assignment);
-    setDocumentTypeId(assignment.documentTypeId?.toString() || '');
-    setAssignmentType(assignment.assignmentType || '');
+    let dtId = assignment.documentTypeId?.toString() || '';
+    if (!dtId && assignment.assignmentType) {
+      const mappedName = OLD_TYPE_TO_DOCTYPE_NAME[assignment.assignmentType];
+      if (mappedName) {
+        const found = documentTypes.find(dt => dt.name === mappedName);
+        if (found) dtId = found.id.toString();
+      }
+    }
+    setDocumentTypeId(dtId);
     setContent(assignment.content || '');
     setDocumentNumber(assignment.documentNumber || '');
     setSelectedRecipients(assignment.recipientIds || []);
@@ -631,8 +638,8 @@ export default function AssignmentsPage() {
     }
 
     const formData = new FormData();
-    if (assignmentType) {
-      formData.append('assignmentType', assignmentType);
+    if (documentTypeId) {
+      formData.append('documentTypeId', documentTypeId);
     }
     if (content) {
       formData.append('content', content);
@@ -689,8 +696,8 @@ export default function AssignmentsPage() {
     }
 
     const formData = new FormData();
-    if (assignmentType) {
-      formData.append('assignmentType', assignmentType);
+    if (documentTypeId) {
+      formData.append('documentTypeId', documentTypeId);
     }
     if (content) {
       formData.append('content', content);
@@ -821,17 +828,17 @@ export default function AssignmentsPage() {
                   <div className="space-y-2">
                     <Label>Намуди Супориш</Label>
                     <Select 
-                      value={assignmentType} 
-                      onValueChange={(val) => setAssignmentType(val === 'none' ? '' : val)}
+                      value={documentTypeId} 
+                      onValueChange={(val) => setDocumentTypeId(val === 'none' ? '' : val)}
                     >
                       <SelectTrigger data-testid="select-assignment-type">
                         <SelectValue placeholder="Намуди супоришро интихоб кунед" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">-- Интихоб нашудааст --</SelectItem>
-                        <SelectItem value="protocol_supervisory">Протоколҳои ҷаласаи назоратӣ</SelectItem>
-                        <SelectItem value="protocol_advisory">Протоколҳои ҳайати мушовара</SelectItem>
-                        <SelectItem value="action_plan">Иҷрои нақшаю чорабиниҳо</SelectItem>
+                        {documentTypes.map((dt) => (
+                          <SelectItem key={dt.id} value={dt.id.toString()}>{dt.name}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -2467,29 +2474,6 @@ export default function AssignmentsPage() {
                         </div>
                       )}
 
-                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && !assignment.isCompleted && (
-                        <div className="flex gap-2 pt-2 border-t">
-                          <Button
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                            onClick={() => approveAssignmentMutation.mutate({ id: assignment.id, status: 'approved' })}
-                            disabled={approveAssignmentMutation.isPending}
-                            data-testid={`button-approve-restored-${assignment.id}`}
-                          >
-                            <Check className="h-4 w-4 mr-1" /> Иҷро шуд
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-600 border-red-300 hover:bg-red-50"
-                            onClick={() => approveAssignmentMutation.mutate({ id: assignment.id, status: 'rejected' })}
-                            disabled={approveAssignmentMutation.isPending}
-                            data-testid={`button-reject-restored-${assignment.id}`}
-                          >
-                            <X className="h-4 w-4 mr-1" /> Рад шуд
-                          </Button>
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 ))}
