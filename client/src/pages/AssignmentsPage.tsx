@@ -329,7 +329,13 @@ export default function AssignmentsPage() {
     refetchOnMount: 'always',
   });
 
-  const documentTypes = allDocumentTypes.filter(dt => (dt as any).category === 'assignment');
+  const ASSIGNMENT_TYPE_NAMES = [
+    'Протоколҳои чаласаи назоратӣ',
+    'Протоколҳои ҳайяти мушовара',
+    'Кумита - иҷрои нақша / чорабиниҳо',
+    'Ҳукумат - иҷрои нақша / чорабиниҳо',
+  ];
+  const documentTypes = allDocumentTypes.filter(dt => ASSIGNMENT_TYPE_NAMES.includes(dt.name));
 
   const { data: documentTemplates = [] } = useQuery<DocumentTemplate[]>({
     queryKey: ['/api/document-templates'],
