@@ -25,7 +25,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
-import { Plus, Pencil, Trash2, Bell, ArrowLeft, Sparkles, Building2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Bell, ArrowLeft, Sparkles, Building2, ImagePlus, X } from 'lucide-react';
 import { EFFECT_TYPES, EffectType } from '@/components/CelebrationEffects';
 import { CelebrationEffects } from '@/components/CelebrationEffects';
 import bgImage from '@assets/eco-background-light.webp';
@@ -36,6 +36,8 @@ interface AdminNotification {
   id: number;
   title: string;
   message: string;
+  imageData: string | null;
+  imageMimeType: string | null;
   positiveButtonText: string | null;
   negativeButtonText: string | null;
   effectType: string;
@@ -66,6 +68,8 @@ export default function AdminNotifications() {
   const [selectedDeptIds, setSelectedDeptIds] = useState<number[]>([]);
   const [allDepartments, setAllDepartments] = useState(true);
   const [previewEffect, setPreviewEffect] = useState<EffectType | null>(null);
+  const [imageData, setImageData] = useState<string | null>(null);
+  const [imageMimeType, setImageMimeType] = useState<string | null>(null);
 
   const { data: notifications = [], isLoading } = useQuery<AdminNotification[]>({
     queryKey: ['/api/admin/notifications'],
@@ -136,6 +140,8 @@ export default function AdminNotifications() {
     setIsActive(true);
     setSelectedDeptIds([]);
     setAllDepartments(true);
+    setImageData(null);
+    setImageMimeType(null);
   };
 
   const openEdit = (n: AdminNotification) => {
@@ -146,16 +152,36 @@ export default function AdminNotifications() {
     setNegativeButtonText(n.negativeButtonText || '');
     setEffectType(n.effectType);
     setIsActive(n.isActive);
+    setImageData(n.imageData || null);
+    setImageMimeType(n.imageMimeType || null);
     const isAll = !n.recipientDepartmentIds || n.recipientDepartmentIds.length === 0;
     setAllDepartments(isAll);
     setSelectedDeptIds(isAll ? [] : n.recipientDepartmentIds || []);
     setDialogOpen(true);
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Андозаи файл зиёд аст', description: 'Ҳадди аксар 5 МБ', variant: 'destructive' });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = (reader.result as string).split(',')[1];
+      setImageData(base64);
+      setImageMimeType(file.type);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = () => {
     const data = {
       title,
       message,
+      imageData: imageData || null,
+      imageMimeType: imageMimeType || null,
       positiveButtonText: positiveButtonText.trim() || null,
       negativeButtonText: negativeButtonText.trim() || null,
       effectType,
@@ -339,6 +365,40 @@ export default function AdminNotifications() {
                 rows={4}
                 data-testid="input-notification-message"
               />
+            </div>
+
+            <div>
+              <Label>Расм (ихтиёрӣ)</Label>
+              {imageData ? (
+                <div className="relative mt-1">
+                  <img
+                    src={`data:${imageMimeType};base64,${imageData}`}
+                    alt="Preview"
+                    className="w-full max-h-40 object-cover rounded-md border"
+                  />
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    className="absolute top-1 right-1 h-6 w-6"
+                    onClick={() => { setImageData(null); setImageMimeType(null); }}
+                    data-testid="button-remove-image"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <label className="flex items-center gap-2 mt-1 cursor-pointer border border-dashed rounded-md p-3 text-sm text-muted-foreground hover:bg-muted/50 transition-colors">
+                  <ImagePlus className="h-5 w-5" />
+                  <span>Интихоби расм (то 5 МБ)</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                    data-testid="input-notification-image"
+                  />
+                </label>
+              )}
             </div>
 
             <div>

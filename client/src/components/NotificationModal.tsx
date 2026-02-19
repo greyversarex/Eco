@@ -2,12 +2,14 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { CelebrationEffects, EffectType } from './CelebrationEffects';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, X } from 'lucide-react';
 
 interface AdminNotification {
   id: number;
   title: string;
   message: string;
+  imageData: string | null;
+  imageMimeType: string | null;
   positiveButtonText: string | null;
   negativeButtonText: string | null;
   effectType: string;
@@ -122,9 +124,9 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
         <div
           className="w-full max-w-lg animate-in fade-in zoom-in-95 duration-200"
           style={{
-            background: 'rgba(255, 255, 255, 0.45)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            background: 'rgba(255, 255, 255, 0.25)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
             boxShadow: '0 16px 40px -8px rgba(0,0,0,0.2), 0 6px 12px -4px rgba(0,0,0,0.1)',
             border: '1px solid rgba(255,255,255,0.5)',
             borderRadius: '16px',
@@ -150,7 +152,19 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
                 </h2>
               </div>
 
-              <div className="px-6 py-6">
+              {notification.imageData && notification.imageMimeType && (
+                <div className="px-6 pt-4">
+                  <img
+                    src={`data:${notification.imageMimeType};base64,${notification.imageData}`}
+                    alt=""
+                    className="w-full rounded-md object-cover"
+                    style={{ maxHeight: '200px' }}
+                    data-testid="img-notification-image"
+                  />
+                </div>
+              )}
+
+              <div className="px-6 py-4">
                 <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap" data-testid="text-notification-message">
                   {notification.message}
                 </p>
@@ -183,20 +197,22 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
                   </div>
                 )}
 
-                {!hasPositive && !hasNegative && (
-                  <div className="flex justify-center">
-                    <Button
-                      onClick={() => {
-                        onDismiss?.(notification.id);
-                        advanceToNext();
-                      }}
-                      data-testid="button-notification-dismiss"
-                    >
-                      OK
-                    </Button>
-                  </div>
-                )}
               </div>
+
+              {!hasPositive && !hasNegative && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => {
+                    onDismiss?.(notification.id);
+                    advanceToNext();
+                  }}
+                  className="absolute top-2 right-2 text-white hover:bg-white/20 rounded-full"
+                  data-testid="button-notification-close"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              )}
 
               {hasNegative && negativePos && (
                 <div

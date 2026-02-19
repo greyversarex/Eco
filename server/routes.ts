@@ -4159,7 +4159,7 @@ export function registerRoutes(app: Express) {
     }
     try {
       const id = parseInt(req.params.id);
-      const allowedFields = ['title', 'message', 'positiveButtonText', 'negativeButtonText', 'effectType', 'isActive', 'recipientDepartmentIds'];
+      const allowedFields = ['title', 'message', 'positiveButtonText', 'negativeButtonText', 'effectType', 'isActive', 'recipientDepartmentIds', 'imageData', 'imageMimeType'];
       const validEffectTypes = ['confetti', 'fireworks', 'stars', 'hearts', 'snowflakes', 'bubbles', 'sparkles', 'ribbons', 'flowers', 'rainbowRain', 'coins', 'butterflies', 'leaves', 'lightning', 'balloons', 'diamonds', 'music', 'fire', 'matrix', 'aurora'];
       const updateData: Record<string, any> = {};
       for (const key of allowedFields) {

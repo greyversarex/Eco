@@ -124,8 +124,8 @@ app.use('/api/auth', (req, res, next) => {
 // ============================================================================
 // BODY PARSERS - ПОСЛЕ session middleware
 // ============================================================================
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // ============================================================================
 // REQUEST LOGGING

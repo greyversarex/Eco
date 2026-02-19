@@ -514,6 +514,8 @@ export const adminNotifications = pgTable("admin_notifications", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   message: text("message").notNull(),
+  imageData: text("image_data"),
+  imageMimeType: text("image_mime_type"),
   positiveButtonText: text("positive_button_text"),
   negativeButtonText: text("negative_button_text"),
   effectType: text("effect_type").default("confetti").notNull(),
