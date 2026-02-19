@@ -337,13 +337,28 @@ export default function AssignmentsPage() {
   ];
   const documentTypes = allDocumentTypes.filter(dt => ASSIGNMENT_TYPE_NAMES.includes(dt.name));
 
+  const OLD_TYPE_TO_DOCTYPE_NAME: Record<string, string> = {
+    'protocol_supervisory': 'Протоколҳои чаласаи назоратӣ',
+    'protocol_advisory': 'Протоколҳои ҳайяти мушовара',
+    'action_plan': 'Кумита - иҷрои нақша / чорабиниҳо',
+  };
+
+  const matchesDocType = (assignment: Assignment, dtId: number) => {
+    if (assignment.documentTypeId === dtId) return true;
+    const dt = documentTypes.find(d => d.id === dtId);
+    if (dt && assignment.assignmentType) {
+      return OLD_TYPE_TO_DOCTYPE_NAME[assignment.assignmentType] === dt.name;
+    }
+    return false;
+  };
+
   const { data: documentTemplates = [] } = useQuery<DocumentTemplate[]>({
     queryKey: ['/api/document-templates'],
   });
 
   // Filter assignments by document type
   const filteredAssignments = documentTypeFilterId && documentTypeFilterId !== 'all'
-    ? assignments.filter(a => a.documentTypeId?.toString() === documentTypeFilterId)
+    ? assignments.filter(a => matchesDocType(a, parseInt(documentTypeFilterId)))
     : assignments;
 
   const createAssignmentMutation = useMutation({
@@ -1382,7 +1397,7 @@ export default function AssignmentsPage() {
                 data-testid={`tab-doctype-${dt.id}`}
                 className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
               >
-                {dt.name} ({assignments.filter(a => a.documentTypeId === dt.id).length})
+                {dt.name} ({assignments.filter(a => matchesDocType(a, dt.id)).length})
               </Button>
             ))}
             <Button

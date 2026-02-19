@@ -237,6 +237,21 @@ app.use((req, res, next) => {
       );
     }
     log('Assignment document types seeded/updated');
+
+    // Migrate old assignmentType field to documentTypeId
+    const typeMapping = [
+      { oldType: 'protocol_supervisory', name: 'Протоколҳои чаласаи назоратӣ' },
+      { oldType: 'protocol_advisory', name: 'Протоколҳои ҳайяти мушовара' },
+      { oldType: 'action_plan', name: 'Кумита - иҷрои нақша / чорабиниҳо' },
+    ];
+    for (const mapping of typeMapping) {
+      await pool.query(
+        `UPDATE assignments SET document_type_id = (SELECT id FROM document_types WHERE name = $1)
+         WHERE assignment_type = $2 AND document_type_id IS NULL`,
+        [mapping.name, mapping.oldType]
+      );
+    }
+    log('Assignments migrated to document type IDs');
   } catch (e) {
     log('Could not seed document types: ' + (e as Error).message);
   }
