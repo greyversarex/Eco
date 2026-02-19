@@ -11,7 +11,7 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
 
-  const leafConfigs = useMemo(() => Array.from({ length: 25 }).map(() => ({
+  const leafConfigs = useMemo(() => Array.from({ length: 40 }).map(() => ({
     x: Math.random() * 100,
     delay: Math.random() * 4,
     duration: 5 + Math.random() * 4,
@@ -19,7 +19,7 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
     swayAmount: 15 + Math.random() * 25,
     rotStart: Math.random() * 360,
     rotEnd: (Math.random() > 0.5 ? 1 : -1) * (180 + Math.random() * 360),
-    opacity: 0.25 + Math.random() * 0.35,
+    opacity: 0.3 + Math.random() * 0.4,
     type: Math.floor(Math.random() * 4),
   })), []);
 
@@ -40,7 +40,7 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
         phase === 'exit' ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
       style={{
-        background: 'linear-gradient(135deg, #065f46 0%, #047857 30%, #10b981 60%, #34d399 100%)',
+        background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 25%, #5eead4 55%, #99f6e4 80%, #ccfbf1 100%)',
       }}
     >
       <div className="absolute inset-0 overflow-hidden">
@@ -53,7 +53,7 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
               height: `${Math.random() * 250 + 80}px`,
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              background: 'rgba(255,255,255,0.08)',
+              background: 'rgba(255,255,255,0.15)',
               animation: `welcomeFloat ${3 + Math.random() * 4}s ease-in-out infinite`,
               animationDelay: `${Math.random() * 2}s`,
             }}
@@ -162,7 +162,7 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
         <h1
           className="text-5xl sm:text-6xl font-bold text-white mb-3 drop-shadow-lg"
           style={{
-            textShadow: '0 0 40px rgba(255,255,255,0.3), 0 4px 12px rgba(0,0,0,0.3)',
+            textShadow: '0 0 40px rgba(255,255,255,0.4), 0 4px 12px rgba(0,0,0,0.15)',
             fontFamily: "'Inter', 'Roboto', sans-serif",
           }}
         >

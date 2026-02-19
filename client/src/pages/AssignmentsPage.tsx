@@ -1407,14 +1407,14 @@ export default function AssignmentsPage() {
               data-testid="tab-completed-assignments"
               className="flex-1 min-w-0 rounded-md border text-[10px] leading-tight py-0.5 px-1 text-center font-medium transition-colors bg-green-600 text-white border-green-600 hover:bg-green-700"
             >
-              Иҷрошуда ({assignments.filter(a => a.isCompleted || a.approvalStatus === 'approved').length})
+              <span className="block">Иҷрошуда</span><span className="block">({assignments.filter(a => a.isCompleted || a.approvalStatus === 'approved').length})</span>
             </button>
             <button
               onClick={() => { setActiveFilter('overdue'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-overdue-assignments"
               className="flex-1 min-w-0 rounded-md border text-[10px] leading-tight py-0.5 px-1 text-center font-medium transition-colors bg-red-600 text-white border-red-600 hover:bg-red-700"
             >
-              Иҷронашуда ({assignments.filter(a => !a.isRestored && !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length})
+              <span className="block">Иҷронашуда</span><span className="block">({assignments.filter(a => !a.isRestored && !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length})</span>
             </button>
             <button
               onClick={() => { setActiveFilter('restored'); setDocumentTypeFilterId('all'); }}
