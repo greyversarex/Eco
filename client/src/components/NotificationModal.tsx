@@ -122,9 +122,9 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
         <div
           className="w-full max-w-lg animate-in fade-in zoom-in-95 duration-200"
           style={{
-            background: 'rgba(255, 255, 255, 0.7)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
+            background: 'rgba(255, 255, 255, 0.45)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
             boxShadow: '0 16px 40px -8px rgba(0,0,0,0.2), 0 6px 12px -4px rgba(0,0,0,0.1)',
             border: '1px solid rgba(255,255,255,0.5)',
             borderRadius: '16px',
