@@ -293,7 +293,7 @@ export default function AssignmentsPage() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showAllInvited, setShowAllInvited] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'overdue' | 'completed' | 'restored'>('all');
-  const [documentTypeFilterId, setDocumentTypeFilterId] = useState<string>('');
+  const [documentTypeFilterId, setDocumentTypeFilterId] = useState<string>('all');
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [replyAssignmentId, setReplyAssignmentId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
@@ -1387,49 +1387,45 @@ export default function AssignmentsPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="flex gap-2 flex-wrap items-center">
-            <Button
-              variant={documentTypeFilterId === '' || documentTypeFilterId === 'all' ? 'default' : 'outline'}
-              onClick={() => { setDocumentTypeFilterId('all'); setActiveFilter('all'); }}
-              data-testid="tab-doctype-all"
-              className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
-            >
-              Ҳама ({assignments.length})
-            </Button>
+          <div className="flex gap-1.5 items-center overflow-x-auto pb-1">
             {documentTypes.map((dt) => (
               <Button
                 key={dt.id}
-                variant={documentTypeFilterId === dt.id.toString() ? 'default' : 'outline'}
+                variant={documentTypeFilterId === dt.id.toString() && activeFilter === 'all' ? 'default' : 'outline'}
                 onClick={() => { setDocumentTypeFilterId(dt.id.toString()); setActiveFilter('all'); }}
                 data-testid={`tab-doctype-${dt.id}`}
-                className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+                size="sm"
+                className="whitespace-nowrap text-xs"
               >
-                {dt.name} ({assignments.filter(a => matchesDocType(a, dt.id)).length})
+                {dt.name}
               </Button>
             ))}
             <Button
-              variant={activeFilter === 'completed' ? 'default' : 'outline'}
+              variant="outline"
               onClick={() => { setActiveFilter('completed'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-completed-assignments"
-              className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+              size="sm"
+              className={`whitespace-nowrap text-xs no-default-hover-elevate no-default-active-elevate ${activeFilter === 'completed' ? 'bg-green-600 text-white border-green-600 hover:bg-green-700' : 'bg-green-600 text-white border-green-600 hover:bg-green-700'}`}
             >
-              Иҷрошуда ({assignments.filter(a => a.isCompleted || a.approvalStatus === 'approved').length})
+              Иҷрошуда
             </Button>
             <Button
-              variant={activeFilter === 'overdue' ? 'default' : 'outline'}
+              variant="outline"
               onClick={() => { setActiveFilter('overdue'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-overdue-assignments"
-              className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+              size="sm"
+              className={`whitespace-nowrap text-xs no-default-hover-elevate no-default-active-elevate ${activeFilter === 'overdue' ? 'bg-red-600 text-white border-red-600 hover:bg-red-700' : 'bg-red-600 text-white border-red-600 hover:bg-red-700'}`}
             >
-              Иҷронашуда ({assignments.filter(a => !a.isRestored && !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length})
+              Иҷронашуда
             </Button>
             <Button
               variant={activeFilter === 'restored' ? 'default' : 'outline'}
               onClick={() => { setActiveFilter('restored'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-restored-assignments"
-              className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+              size="sm"
+              className="whitespace-nowrap text-xs"
             >
-              Ба таъхир иҷро гардид ({assignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
+              Ба таъхир иҷро гардид
             </Button>
           </div>
 
