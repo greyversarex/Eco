@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import welcomeBg from '@assets/340bec8e1cd98a4a7283ae46e3ddbd5d_1771528408992.jpg';
+import welcomeBg from '@assets/img_24_9fa1c3a5_1771528685602.jpg';
 
 interface WelcomeAnimationProps {
   departmentName: string;
@@ -35,8 +35,8 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
 
   useEffect(() => {
     const enterTimer = setTimeout(() => setPhase('show'), 50);
-    const showTimer = setTimeout(() => setPhase('exit'), 4500);
-    const exitTimer = setTimeout(() => onComplete(), 5500);
+    const showTimer = setTimeout(() => setPhase('exit'), 4000);
+    const exitTimer = setTimeout(() => onComplete(), 5000);
     return () => {
       clearTimeout(enterTimer);
       clearTimeout(showTimer);
