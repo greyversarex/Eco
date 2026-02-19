@@ -1387,46 +1387,42 @@ export default function AssignmentsPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-7 gap-1.5">
+          <div className="flex gap-1.5 items-stretch">
             {documentTypes.map((dt) => (
-              <Button
+              <button
                 key={dt.id}
-                variant={documentTypeFilterId === dt.id.toString() && activeFilter === 'all' ? 'default' : 'outline'}
                 onClick={() => { setDocumentTypeFilterId(dt.id.toString()); setActiveFilter('all'); }}
                 data-testid={`tab-doctype-${dt.id}`}
-                size="sm"
-                className="text-xs h-auto py-1.5 px-2 text-center leading-tight"
+                className={`flex-1 min-w-0 rounded-md border text-[11px] leading-tight py-2 px-1.5 text-center font-medium transition-colors ${
+                  documentTypeFilterId === dt.id.toString() && activeFilter === 'all'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background text-foreground border-border hover:bg-muted'
+                }`}
               >
                 {dt.name}
-              </Button>
+              </button>
             ))}
-            <Button
-              variant="outline"
+            <button
               onClick={() => { setActiveFilter('completed'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-completed-assignments"
-              size="sm"
-              className="text-xs h-auto py-1.5 px-2 text-center leading-tight no-default-hover-elevate no-default-active-elevate bg-green-600 text-white border-green-600 hover:bg-green-700"
+              className="flex-1 min-w-0 rounded-md border text-[11px] leading-tight py-2 px-1.5 text-center font-medium transition-colors bg-green-600 text-white border-green-600 hover:bg-green-700"
             >
               Иҷрошуда
-            </Button>
-            <Button
-              variant="outline"
+            </button>
+            <button
               onClick={() => { setActiveFilter('overdue'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-overdue-assignments"
-              size="sm"
-              className="text-xs h-auto py-1.5 px-2 text-center leading-tight no-default-hover-elevate no-default-active-elevate bg-red-600 text-white border-red-600 hover:bg-red-700"
+              className="flex-1 min-w-0 rounded-md border text-[11px] leading-tight py-2 px-1.5 text-center font-medium transition-colors bg-red-600 text-white border-red-600 hover:bg-red-700"
             >
               Иҷронашуда
-            </Button>
-            <Button
-              variant="outline"
+            </button>
+            <button
               onClick={() => { setActiveFilter('restored'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-restored-assignments"
-              size="sm"
-              className="text-xs h-auto py-1.5 px-2 text-center leading-tight no-default-hover-elevate no-default-active-elevate bg-orange-500 text-white border-orange-500 hover:bg-orange-600"
+              className="flex-1 min-w-0 rounded-md border text-[11px] leading-tight py-2 px-1.5 text-center font-medium transition-colors bg-orange-500 text-white border-orange-500 hover:bg-orange-600"
             >
-              Ба таъхир иҷро гардид
-            </Button>
+              {"Ба таъхир\nиҷро гардид".split('\n').map((line, i) => <span key={i} className="block">{line}</span>)}
+            </button>
           </div>
 
           {activeFilter === 'all' && (
