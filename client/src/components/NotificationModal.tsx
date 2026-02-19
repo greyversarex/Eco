@@ -153,12 +153,12 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
               </div>
 
               {notification.imageData && notification.imageMimeType && (
-                <div className="px-6 pt-4">
+                <div className="px-4 pt-4">
                   <img
                     src={`data:${notification.imageMimeType};base64,${notification.imageData}`}
                     alt=""
-                    className="w-full rounded-md object-cover"
-                    style={{ maxHeight: '200px' }}
+                    className="w-full rounded-md object-contain"
+                    style={{ maxHeight: '300px' }}
                     data-testid="img-notification-image"
                   />
                 </div>
