@@ -1364,7 +1364,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
               data-testid="tab-doctype-all"
               className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
             >
-              Ҳама
+              Ҳама ({assignments.length})
             </Button>
             {documentTypes.map((dt) => (
               <Button
@@ -1374,7 +1374,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                 data-testid={`tab-doctype-${dt.id}`}
                 className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
               >
-                {dt.name}
+                {dt.name} ({assignments.filter(a => a.documentTypeId === dt.id).length})
               </Button>
             ))}
             <Button
