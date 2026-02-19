@@ -25,7 +25,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
-import { Plus, Pencil, Trash2, Bell, ArrowLeft, Sparkles, Building2, ImagePlus, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Bell, ArrowLeft, Sparkles, Building2, ImagePlus, X, Crop } from 'lucide-react';
+import ImageCropDialog from '@/components/ImageCropDialog';
 import { EFFECT_TYPES, EffectType } from '@/components/CelebrationEffects';
 import { CelebrationEffects } from '@/components/CelebrationEffects';
 import bgImage from '@assets/eco-background-light.webp';
@@ -70,6 +71,8 @@ export default function AdminNotifications() {
   const [previewEffect, setPreviewEffect] = useState<EffectType | null>(null);
   const [imageData, setImageData] = useState<string | null>(null);
   const [imageMimeType, setImageMimeType] = useState<string | null>(null);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
 
   const { data: notifications = [], isLoading } = useQuery<AdminNotification[]>({
     queryKey: ['/api/admin/notifications'],
@@ -169,11 +172,30 @@ export default function AdminNotifications() {
     }
     const reader = new FileReader();
     reader.onload = () => {
-      const base64 = (reader.result as string).split(',')[1];
-      setImageData(base64);
-      setImageMimeType(file.type);
+      setRawImageSrc(reader.result as string);
+      setCropDialogOpen(true);
     };
     reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = (reader.result as string).split(',')[1];
+      setImageData(base64);
+      setImageMimeType(croppedBlob.type || 'image/png');
+    };
+    reader.readAsDataURL(croppedBlob);
+    setCropDialogOpen(false);
+    setRawImageSrc(null);
+  };
+
+  const handleRecrop = () => {
+    if (imageData && imageMimeType) {
+      setRawImageSrc(`data:${imageMimeType};base64,${imageData}`);
+      setCropDialogOpen(true);
+    }
   };
 
   const handleSubmit = () => {
@@ -374,17 +396,29 @@ export default function AdminNotifications() {
                   <img
                     src={`data:${imageMimeType};base64,${imageData}`}
                     alt="Preview"
-                    className="w-full max-h-40 object-cover rounded-md border"
+                    className="w-full max-h-40 object-contain rounded-md border bg-muted/30"
                   />
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    className="absolute top-1 right-1 h-6 w-6"
-                    onClick={() => { setImageData(null); setImageMimeType(null); }}
-                    data-testid="button-remove-image"
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
+                  <div className="absolute top-1 right-1 flex gap-1">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-7 w-7 bg-white/80 backdrop-blur-sm"
+                      onClick={handleRecrop}
+                      title="Танзими расм"
+                      data-testid="button-recrop-image"
+                    >
+                      <Crop className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="h-7 w-7"
+                      onClick={() => { setImageData(null); setImageMimeType(null); }}
+                      data-testid="button-remove-image"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <label className="flex items-center gap-2 mt-1 cursor-pointer border border-dashed rounded-md p-3 text-sm text-muted-foreground hover:bg-muted/50 transition-colors">
@@ -519,6 +553,17 @@ export default function AdminNotifications() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {rawImageSrc && (
+        <ImageCropDialog
+          open={cropDialogOpen}
+          onClose={() => { setCropDialogOpen(false); setRawImageSrc(null); }}
+          imageSrc={rawImageSrc}
+          onCropComplete={handleCropComplete}
+          aspect={16 / 9}
+          title="Танзими расм"
+        />
+      )}
     </div>
   );
 }

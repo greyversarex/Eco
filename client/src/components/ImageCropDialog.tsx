@@ -10,6 +10,8 @@ interface ImageCropDialogProps {
   onClose: () => void;
   imageSrc: string;
   onCropComplete: (croppedImageBlob: Blob) => void;
+  aspect?: number;
+  title?: string;
 }
 
 interface CropArea {
@@ -19,9 +21,9 @@ interface CropArea {
   height: number;
 }
 
-export default function ImageCropDialog({ open, onClose, imageSrc, onCropComplete }: ImageCropDialogProps) {
+export default function ImageCropDialog({ open, onClose, imageSrc, onCropComplete, aspect = 1, title = 'Танзими расм' }: ImageCropDialogProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(0.3);
+  const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(null);
 
   const onCropChange = useCallback((location: { x: number; y: number }) => {
@@ -99,7 +101,7 @@ export default function ImageCropDialog({ open, onClose, imageSrc, onCropComplet
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Танзими иконка</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
@@ -109,7 +111,7 @@ export default function ImageCropDialog({ open, onClose, imageSrc, onCropComplet
               image={imageSrc}
               crop={crop}
               zoom={zoom}
-              aspect={1}
+              aspect={aspect}
               onCropChange={onCropChange}
               onZoomChange={onZoomChange}
               onCropComplete={onCropCompleteCallback}
