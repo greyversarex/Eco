@@ -1434,11 +1434,6 @@ export default function AssignmentsPage() {
                             <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                           </span>
                         )}
-                        {getAssignmentTypeName(assignment.assignmentType) && (
-                          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
-                            {getAssignmentTypeName(assignment.assignmentType)}
-                          </span>
-                        )}
                       </div>
                       {assignment.content && (
                         <div className="mt-3">
@@ -1778,11 +1773,6 @@ export default function AssignmentsPage() {
                             <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                           </span>
                         )}
-                        {getAssignmentTypeName(assignment.assignmentType) && (
-                          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
-                            {getAssignmentTypeName(assignment.assignmentType)}
-                          </span>
-                        )}
                       </div>
                       {assignment.content && (
                         <div className="mt-3">
@@ -2110,11 +2100,7 @@ export default function AssignmentsPage() {
                                 <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                               </span>
                             )}
-                            {getAssignmentTypeName(assignment.assignmentType) && (
-                              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
-                                {getAssignmentTypeName(assignment.assignmentType)}
-                              </span>
-                            )}
+
                           </div>
                           {assignment.content && (
                             <div className="mt-3">
@@ -2393,11 +2379,7 @@ export default function AssignmentsPage() {
                                 <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                               </span>
                             )}
-                            {getAssignmentTypeName(assignment.assignmentType) && (
-                              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
-                                {getAssignmentTypeName(assignment.assignmentType)}
-                              </span>
-                            )}
+
                             <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">Таъхиршуда</span>
                           </div>
                           {assignment.content && (
