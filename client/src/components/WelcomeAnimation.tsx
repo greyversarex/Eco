@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import welcomeBg from '@assets/340bec8e1cd98a4a7283ae46e3ddbd5d_1771528408992.jpg';
 
 interface WelcomeAnimationProps {
   departmentName: string;
@@ -49,9 +50,13 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
         phase === 'exit' ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
       style={{
-        background: 'linear-gradient(135deg, #065f46 0%, #047857 30%, #10b981 60%, #34d399 100%)',
+        backgroundImage: `url(${welcomeBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
+      <div className="absolute inset-0 bg-black/35" />
+
       <div className="absolute inset-0 overflow-hidden">
         {Array.from({ length: 15 }).map((_, i) => (
           <div
