@@ -124,13 +124,12 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
           style={{
-            background: 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            boxShadow: '0 25px 60px -12px rgba(0,0,0,0.35), 0 10px 20px -8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.6)',
-            border: '1px solid rgba(255,255,255,0.4)',
+            background: 'rgba(255, 255, 255, 0.65)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            boxShadow: '0 20px 50px -10px rgba(0,0,0,0.3), 0 8px 16px -6px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.5)',
+            border: '1px solid rgba(255,255,255,0.35)',
             borderRadius: '16px',
-            transform: 'perspective(800px) rotateX(1deg)',
           }}
         >
           {showThankYou ? (
@@ -147,8 +146,8 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
             </div>
           ) : (
             <div ref={containerRef} className="relative" style={{ minHeight: '280px' }}>
-              <div className="px-6 py-4" style={{ background: 'linear-gradient(135deg, rgba(22,163,74,0.9), rgba(5,150,105,0.9))', borderRadius: '15px 15px 0 0' }}>
-                <h2 className="text-xl font-bold text-white" data-testid="text-notification-title">
+              <div className="px-6 py-4" style={{ background: 'linear-gradient(135deg, rgba(22,163,74,0.85), rgba(5,150,105,0.85))', borderRadius: '15px 15px 0 0' }}>
+                <h2 className="text-xl font-bold text-white text-center" data-testid="text-notification-title">
                   {notification.title}
                 </h2>
               </div>
