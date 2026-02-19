@@ -928,14 +928,14 @@ export default function AdminDashboard() {
             </Dialog>
 
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-              <DialogContent>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 <DialogHeader>
                   <DialogTitle>Таҳрир кардани шуъба</DialogTitle>
                   <DialogDescription>
                     Маълумоти шуъбаро тағйир диҳед
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4">
+                <div className="space-y-4 overflow-y-auto flex-1 pr-2">
                   <div className="space-y-2">
                     <Label htmlFor="edit-dept-name">{t.departmentName}</Label>
                     <Input
