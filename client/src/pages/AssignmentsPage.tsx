@@ -707,7 +707,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
       const docType = documentTypes.find(dt => dt.id === assignment.documentTypeId);
       return docType?.name || 'Номаълум';
     }
-    return assignment.topic || 'Номаълум';
+    return assignment.topic || 'Супориш';
   };
 
   return (
