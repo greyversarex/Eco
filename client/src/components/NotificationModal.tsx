@@ -21,31 +21,40 @@ interface NotificationModalProps {
 export function NotificationModal({ notifications, onDismiss }: NotificationModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showEffect, setShowEffect] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [currentEffect, setCurrentEffect] = useState<EffectType>('confetti');
   const [negativePos, setNegativePos] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const negBtnRef = useRef<HTMLButtonElement>(null);
+  const pendingDismissRef = useRef<{ id: number; response?: string } | null>(null);
 
-  const notification = notifications[currentIndex];
-  const isOpen = !!notification;
+  const notification = currentIndex < notifications.length ? notifications[currentIndex] : null;
+  const isOpen = !!notification && !dismissed;
 
-  const handleDismissAndNext = useCallback((response?: string) => {
-    if (!notification) return;
-    onDismiss?.(notification.id, response);
+  const advanceToNext = useCallback(() => {
+    if (pendingDismissRef.current) {
+      onDismiss?.(pendingDismissRef.current.id, pendingDismissRef.current.response);
+      pendingDismissRef.current = null;
+    }
     if (currentIndex < notifications.length - 1) {
       setCurrentIndex(prev => prev + 1);
       setNegativePos(null);
+      setShowEffect(false);
     } else {
-      setCurrentIndex(notifications.length);
+      setDismissed(true);
     }
-  }, [notification, currentIndex, notifications.length, onDismiss]);
+  }, [currentIndex, notifications.length, onDismiss]);
 
   const handlePositive = useCallback(() => {
     if (!notification) return;
     setCurrentEffect(notification.effectType as EffectType);
     setShowEffect(true);
-    handleDismissAndNext(notification.positiveButtonText || 'positive');
-  }, [notification, handleDismissAndNext]);
+    pendingDismissRef.current = { id: notification.id, response: notification.positiveButtonText || 'positive' };
+  }, [notification]);
+
+  const handleEffectComplete = useCallback(() => {
+    setShowEffect(false);
+    advanceToNext();
+  }, [advanceToNext]);
 
   const handleNegativeMouseEnter = useCallback(() => {
     if (!containerRef.current) return;
@@ -79,7 +88,7 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
     setNegativePos(null);
   }, [currentIndex]);
 
-  if (!isOpen) return null;
+  if (!notification) return null;
 
   const hasPositive = notification.positiveButtonText && notification.positiveButtonText.trim();
   const hasNegative = notification.negativeButtonText && notification.negativeButtonText.trim();
@@ -90,7 +99,7 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
         <CelebrationEffects
           effectType={currentEffect}
           duration={4000}
-          onComplete={() => setShowEffect(false)}
+          onComplete={handleEffectComplete}
         />
       )}
       <Dialog open={isOpen && !showEffect} onOpenChange={() => {}}>
@@ -128,7 +137,6 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
               {hasNegative && !negativePos && (
                 <div className="flex justify-center mt-3">
                   <Button
-                    ref={negBtnRef}
                     variant="destructive"
                     className="px-8"
                     onMouseEnter={handleNegativeMouseEnter}
@@ -143,7 +151,10 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
               {!hasPositive && !hasNegative && (
                 <div className="flex justify-center">
                   <Button
-                    onClick={() => handleDismissAndNext()}
+                    onClick={() => {
+                      onDismiss?.(notification.id);
+                      advanceToNext();
+                    }}
                     data-testid="button-notification-dismiss"
                   >
                     OK

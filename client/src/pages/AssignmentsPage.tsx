@@ -1393,7 +1393,7 @@ export default function AssignmentsPage() {
                 key={dt.id}
                 onClick={() => { setDocumentTypeFilterId(dt.id.toString()); setActiveFilter('all'); }}
                 data-testid={`tab-doctype-${dt.id}`}
-                className={`flex-1 min-w-0 rounded-md border text-[11px] leading-tight py-1 px-1.5 text-center font-medium transition-colors ${
+                className={`flex-1 min-w-0 rounded-md border text-[10px] leading-tight py-0.5 px-1 text-center font-medium transition-colors ${
                   documentTypeFilterId === dt.id.toString() && activeFilter === 'all'
                     ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-background text-foreground border-border hover:bg-muted'
@@ -1405,21 +1405,21 @@ export default function AssignmentsPage() {
             <button
               onClick={() => { setActiveFilter('completed'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-completed-assignments"
-              className="flex-1 min-w-0 rounded-md border text-[11px] leading-tight py-1 px-1.5 text-center font-medium transition-colors bg-green-600 text-white border-green-600 hover:bg-green-700"
+              className="flex-1 min-w-0 rounded-md border text-[10px] leading-tight py-0.5 px-1 text-center font-medium transition-colors bg-green-600 text-white border-green-600 hover:bg-green-700"
             >
               Иҷрошуда ({assignments.filter(a => a.isCompleted || a.approvalStatus === 'approved').length})
             </button>
             <button
               onClick={() => { setActiveFilter('overdue'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-overdue-assignments"
-              className="flex-1 min-w-0 rounded-md border text-[11px] leading-tight py-1 px-1.5 text-center font-medium transition-colors bg-red-600 text-white border-red-600 hover:bg-red-700"
+              className="flex-1 min-w-0 rounded-md border text-[10px] leading-tight py-0.5 px-1 text-center font-medium transition-colors bg-red-600 text-white border-red-600 hover:bg-red-700"
             >
               Иҷронашуда ({assignments.filter(a => !a.isRestored && !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length})
             </button>
             <button
               onClick={() => { setActiveFilter('restored'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-restored-assignments"
-              className="flex-1 min-w-0 rounded-md border text-[11px] leading-tight py-1 px-1.5 text-center font-medium transition-colors bg-orange-500 text-white border-orange-500 hover:bg-orange-600"
+              className="flex-1 min-w-0 rounded-md border text-[10px] leading-tight py-0.5 px-1 text-center font-medium transition-colors bg-orange-500 text-white border-orange-500 hover:bg-orange-600"
             >
               {"Ба таъхир\nиҷро гардид".split('\n').map((line, i) => <span key={i} className="block">{line}</span>)} ({assignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
             </button>

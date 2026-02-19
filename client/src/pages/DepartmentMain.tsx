@@ -142,6 +142,8 @@ export default function DepartmentMain() {
   const { user, logout } = useAuth();
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeDone, setWelcomeDone] = useState(false);
+  const currentDeptId = user?.userType === 'department' ? user.department?.id : null;
+  const { iconUrl: welcomeIconUrl } = useDepartmentIcon(currentDeptId || 0);
 
   useEffect(() => {
     const sessionKey = 'ecodoc_welcome_shown';
@@ -244,6 +246,7 @@ export default function DepartmentMain() {
     {showWelcome && user?.userType === 'department' && (
       <WelcomeAnimation
         departmentName={user.department.name}
+        departmentIconUrl={welcomeIconUrl}
         onComplete={handleWelcomeComplete}
       />
     )}

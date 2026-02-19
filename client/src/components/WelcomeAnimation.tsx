@@ -1,12 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 
 interface WelcomeAnimationProps {
   departmentName: string;
+  departmentIconUrl?: string | null;
   onComplete: () => void;
 }
 
-export function WelcomeAnimation({ departmentName, onComplete }: WelcomeAnimationProps) {
+export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete }: WelcomeAnimationProps) {
   const [phase, setPhase] = useState<'enter' | 'show' | 'exit'>('enter');
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animRef = useRef<number>(0);
+
+  const leafConfigs = useMemo(() => Array.from({ length: 25 }).map(() => ({
+    x: Math.random() * 100,
+    delay: Math.random() * 4,
+    duration: 5 + Math.random() * 4,
+    size: 28 + Math.random() * 32,
+    swayAmount: 15 + Math.random() * 25,
+    rotStart: Math.random() * 360,
+    rotEnd: (Math.random() > 0.5 ? 1 : -1) * (180 + Math.random() * 360),
+    opacity: 0.25 + Math.random() * 0.35,
+    type: Math.floor(Math.random() * 4),
+  })), []);
 
   useEffect(() => {
     const enterTimer = setTimeout(() => setPhase('show'), 100);
@@ -29,16 +44,16 @@ export function WelcomeAnimation({ departmentName, onComplete }: WelcomeAnimatio
       }}
     >
       <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: 20 }).map((_, i) => (
+        {Array.from({ length: 15 }).map((_, i) => (
           <div
             key={i}
-            className="absolute rounded-full opacity-10"
+            className="absolute rounded-full"
             style={{
-              width: `${Math.random() * 200 + 50}px`,
-              height: `${Math.random() * 200 + 50}px`,
+              width: `${Math.random() * 250 + 80}px`,
+              height: `${Math.random() * 250 + 80}px`,
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              background: 'rgba(255,255,255,0.15)',
+              background: 'rgba(255,255,255,0.08)',
               animation: `welcomeFloat ${3 + Math.random() * 4}s ease-in-out infinite`,
               animationDelay: `${Math.random() * 2}s`,
             }}
@@ -47,22 +62,66 @@ export function WelcomeAnimation({ departmentName, onComplete }: WelcomeAnimatio
       </div>
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {leafConfigs.map((leaf, i) => (
           <div
             key={`leaf-${i}`}
             className="absolute"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: '-50px',
-              animation: `welcomeLeafFall ${4 + Math.random() * 3}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 3}s`,
-              fontSize: '24px',
-              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+              left: `${leaf.x}%`,
+              top: '-60px',
+              animation: `welcomeLeafFall ${leaf.duration}s ease-in-out infinite`,
+              animationDelay: `${leaf.delay}s`,
+              opacity: 0,
             }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2">
-              <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 1 8-1 3.5-3.5 5-6 6.5" />
-              <path d="M10.7 20.7a7 7 0 0 0 1.2-13.8" />
+            <svg
+              width={leaf.size}
+              height={leaf.size}
+              viewBox="0 0 40 40"
+              style={{
+                filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))',
+                animation: `welcomeLeafSway ${1.5 + Math.random()}s ease-in-out infinite alternate`,
+                animationDelay: `${leaf.delay}s`,
+              }}
+            >
+              {leaf.type === 0 && (
+                <g>
+                  <path d="M20 4 C12 10, 6 18, 8 30 C10 32, 14 33, 20 28 C26 33, 30 32, 32 30 C34 18, 28 10, 20 4Z"
+                    fill={`rgba(255,255,255,${leaf.opacity})`} />
+                  <path d="M20 8 L20 28" stroke={`rgba(255,255,255,${leaf.opacity * 0.7})`} strokeWidth="1" fill="none" />
+                  <path d="M15 14 L20 18" stroke={`rgba(255,255,255,${leaf.opacity * 0.5})`} strokeWidth="0.8" fill="none" />
+                  <path d="M25 14 L20 18" stroke={`rgba(255,255,255,${leaf.opacity * 0.5})`} strokeWidth="0.8" fill="none" />
+                  <path d="M14 20 L20 23" stroke={`rgba(255,255,255,${leaf.opacity * 0.5})`} strokeWidth="0.8" fill="none" />
+                  <path d="M26 20 L20 23" stroke={`rgba(255,255,255,${leaf.opacity * 0.5})`} strokeWidth="0.8" fill="none" />
+                </g>
+              )}
+              {leaf.type === 1 && (
+                <g>
+                  <path d="M20 2 C8 8, 4 20, 10 32 C14 36, 20 34, 20 34 C20 34, 26 36, 30 32 C36 20, 32 8, 20 2Z"
+                    fill={`rgba(255,255,255,${leaf.opacity})`} />
+                  <path d="M20 6 Q18 20, 20 32" stroke={`rgba(255,255,255,${leaf.opacity * 0.6})`} strokeWidth="1" fill="none" />
+                </g>
+              )}
+              {leaf.type === 2 && (
+                <g>
+                  <ellipse cx="20" cy="18" rx="12" ry="14"
+                    fill={`rgba(255,255,255,${leaf.opacity})`} transform="rotate(-15 20 18)" />
+                  <path d="M20 6 L18 30" stroke={`rgba(255,255,255,${leaf.opacity * 0.6})`} strokeWidth="0.8" fill="none" />
+                  <path d="M13 12 L19 16" stroke={`rgba(255,255,255,${leaf.opacity * 0.5})`} strokeWidth="0.6" fill="none" />
+                  <path d="M14 20 L19 22" stroke={`rgba(255,255,255,${leaf.opacity * 0.5})`} strokeWidth="0.6" fill="none" />
+                </g>
+              )}
+              {leaf.type === 3 && (
+                <g>
+                  <path d="M20 3 C10 8, 5 15, 7 25 C9 30, 15 35, 20 35 L20 35 C25 35, 31 30, 33 25 C35 15, 30 8, 20 3Z"
+                    fill={`rgba(255,255,255,${leaf.opacity})`} />
+                  <path d="M20 5 L20 33" stroke={`rgba(255,255,255,${leaf.opacity * 0.6})`} strokeWidth="1" fill="none" />
+                  <path d="M12 15 L20 19" stroke={`rgba(255,255,255,${leaf.opacity * 0.4})`} strokeWidth="0.7" fill="none" />
+                  <path d="M28 15 L20 19" stroke={`rgba(255,255,255,${leaf.opacity * 0.4})`} strokeWidth="0.7" fill="none" />
+                  <path d="M10 23 L20 26" stroke={`rgba(255,255,255,${leaf.opacity * 0.4})`} strokeWidth="0.7" fill="none" />
+                  <path d="M30 23 L20 26" stroke={`rgba(255,255,255,${leaf.opacity * 0.4})`} strokeWidth="0.7" fill="none" />
+                </g>
+              )}
             </svg>
           </div>
         ))}
@@ -80,13 +139,23 @@ export function WelcomeAnimation({ departmentName, onComplete }: WelcomeAnimatio
               animation: phase === 'show' ? 'welcomePulse 1.5s ease-in-out infinite' : 'none',
             }}
           >
-            <svg className="w-20 h-20 mx-auto drop-shadow-lg" viewBox="0 0 80 80" fill="none">
-              <circle cx="40" cy="40" r="36" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.5)" strokeWidth="2"/>
-              <path d="M40 18c-2 4-8 10-8 18s6 14 8 16c2-2 8-8 8-16s-6-14-8-18z" fill="rgba(255,255,255,0.8)"/>
-              <path d="M33 42c-4-2-10-2-14 2" stroke="rgba(255,255,255,0.6)" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M47 42c4-2 10-2 14 2" stroke="rgba(255,255,255,0.6)" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M40 36v20" stroke="rgba(255,255,255,0.6)" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+            {departmentIconUrl ? (
+              <div className="w-24 h-24 mx-auto rounded-full overflow-hidden border-3 border-white/50 shadow-lg bg-white/15">
+                <img
+                  src={departmentIconUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <svg className="w-20 h-20 mx-auto drop-shadow-lg" viewBox="0 0 80 80" fill="none">
+                <circle cx="40" cy="40" r="36" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.5)" strokeWidth="2"/>
+                <rect x="25" y="28" width="30" height="24" rx="2" fill="rgba(255,255,255,0.8)"/>
+                <rect x="28" y="22" width="24" height="10" rx="2" fill="rgba(255,255,255,0.6)"/>
+                <circle cx="40" cy="38" r="5" fill="rgba(16,185,129,0.6)"/>
+                <rect x="30" y="46" width="20" height="2" rx="1" fill="rgba(16,185,129,0.4)"/>
+              </svg>
+            )}
           </div>
         </div>
 
@@ -138,10 +207,14 @@ export function WelcomeAnimation({ departmentName, onComplete }: WelcomeAnimatio
           50% { transform: translateY(-20px) scale(1.05); }
         }
         @keyframes welcomeLeafFall {
-          0% { transform: translateY(-50px) rotate(0deg); opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+          0% { transform: translateY(-60px); opacity: 0; }
+          5% { opacity: 1; }
+          85% { opacity: 1; }
+          100% { transform: translateY(110vh); opacity: 0; }
+        }
+        @keyframes welcomeLeafSway {
+          0% { transform: rotate(-25deg) translateX(-15px); }
+          100% { transform: rotate(25deg) translateX(15px); }
         }
         @keyframes welcomePulse {
           0%, 100% { transform: scale(1); }
