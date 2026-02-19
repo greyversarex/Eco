@@ -34,9 +34,9 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
   }), []);
 
   useEffect(() => {
-    const enterTimer = setTimeout(() => setPhase('show'), 100);
-    const showTimer = setTimeout(() => setPhase('exit'), 2800);
-    const exitTimer = setTimeout(() => onComplete(), 3600);
+    const enterTimer = setTimeout(() => setPhase('show'), 50);
+    const showTimer = setTimeout(() => setPhase('exit'), 4500);
+    const exitTimer = setTimeout(() => onComplete(), 5500);
     return () => {
       clearTimeout(enterTimer);
       clearTimeout(showTimer);
@@ -46,8 +46,8 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-700 ${
-        phase === 'exit' ? 'opacity-0 pointer-events-none' : 'opacity-100'
+      className={`fixed inset-0 z-[9999] flex items-center justify-center ${
+        phase === 'exit' ? 'opacity-0 pointer-events-none transition-opacity duration-1000' : 'opacity-100'
       }`}
       style={{
         backgroundImage: `url(${welcomeBg})`,
@@ -56,24 +56,6 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
       }}
     >
       <div className="absolute inset-0 bg-black/35" />
-
-      <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: 15 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full"
-            style={{
-              width: `${Math.random() * 250 + 80}px`,
-              height: `${Math.random() * 250 + 80}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              background: 'rgba(255,255,255,0.08)',
-              animation: `welcomeFloat ${3 + Math.random() * 4}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 2}s`,
-            }}
-          />
-        ))}
-      </div>
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {leafConfigs.map((leaf, i) => (
@@ -255,10 +237,6 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
       </div>
 
       <style>{`
-        @keyframes welcomeFloat {
-          0%, 100% { transform: translateY(0) scale(1); }
-          50% { transform: translateY(-20px) scale(1.05); }
-        }
         @keyframes welcomeLeafFall {
           0% { transform: translateY(-70px); opacity: 0.9; }
           90% { opacity: 0.9; }
