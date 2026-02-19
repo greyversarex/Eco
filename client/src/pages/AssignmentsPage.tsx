@@ -1357,6 +1357,29 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
         </div>
 
         <div className="space-y-4">
+          {documentTypes.length > 0 && (
+            <div className="flex gap-2 flex-wrap items-center">
+              <Button
+                variant={documentTypeFilterId === '' || documentTypeFilterId === 'all' ? 'default' : 'outline'}
+                onClick={() => setDocumentTypeFilterId('all')}
+                data-testid="tab-doctype-all"
+                className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+              >
+                Ҳама
+              </Button>
+              {documentTypes.map((dt) => (
+                <Button
+                  key={dt.id}
+                  variant={documentTypeFilterId === dt.id.toString() ? 'default' : 'outline'}
+                  onClick={() => setDocumentTypeFilterId(dt.id.toString())}
+                  data-testid={`tab-doctype-${dt.id}`}
+                  className="transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2"
+                >
+                  {dt.name}
+                </Button>
+              ))}
+            </div>
+          )}
           <div className="flex gap-3 flex-wrap items-center">
             <Button
               variant={activeFilter === 'all' ? 'default' : 'outline'}
@@ -1392,24 +1415,6 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                 Таъхиршуда ({filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})
               </Button>
             )}
-            <div className="ml-auto">
-              <Select
-                value={documentTypeFilterId}
-                onValueChange={setDocumentTypeFilterId}
-              >
-                <SelectTrigger className="w-48" data-testid="select-assignment-document-type-filter">
-                  <SelectValue placeholder="Намуди ҳуҷҷат" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Ҳама</SelectItem>
-                  {documentTypes.map((dt) => (
-                    <SelectItem key={dt.id} value={dt.id.toString()}>
-                      {dt.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           {activeFilter === 'all' && (
