@@ -26,7 +26,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { t } from '@/lib/i18n';
-import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical, Download, ChevronDown, ChevronRight, FileText, Key } from 'lucide-react';
+import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical, Download, ChevronDown, ChevronRight, FileText, Key, Bell } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -657,6 +657,16 @@ export default function AdminDashboard() {
             >
               <FileText className="h-4 w-4" />
               <span className="hidden md:inline">Намунаҳо</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.location.href = '/royalty/notifications'}
+              data-testid="button-notifications"
+              className="gap-2 hidden sm:flex text-white hover:bg-white/20"
+            >
+              <Bell className="h-4 w-4" />
+              <span className="hidden md:inline">Огоҳиномаҳо</span>
             </Button>
             <Button
               variant="ghost"

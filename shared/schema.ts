@@ -509,3 +509,33 @@ export const insertDepartmentFileSchema = z.object({
 export type InsertDepartmentFile = z.infer<typeof insertDepartmentFileSchema>;
 export type DepartmentFile = typeof departmentFiles.$inferSelect;
 
+// Admin Notifications (Огоҳиномаҳо) - admin-created notifications with effects
+export const adminNotifications = pgTable("admin_notifications", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  positiveButtonText: text("positive_button_text"),
+  negativeButtonText: text("negative_button_text"),
+  effectType: text("effect_type").default("confetti").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAdminNotificationSchema = createInsertSchema(adminNotifications).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertAdminNotification = z.infer<typeof insertAdminNotificationSchema>;
+export type AdminNotification = typeof adminNotifications.$inferSelect;
+
+// Track which departments have seen which notifications
+export const notificationDismissals = pgTable("notification_dismissals", {
+  id: serial("id").primaryKey(),
+  notificationId: integer("notification_id").notNull().references(() => adminNotifications.id, { onDelete: 'cascade' }),
+  departmentId: integer("department_id").notNull().references(() => departments.id, { onDelete: 'cascade' }),
+  response: text("response"),
+  dismissedAt: timestamp("dismissed_at").defaultNow().notNull(),
+}, (table) => ({
+  notifDeptIdx: index("notification_dismissals_notif_dept_idx").on(table.notificationId, table.departmentId),
+}));
+

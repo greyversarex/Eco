@@ -15,7 +15,8 @@ import type {
   DocumentType, InsertDocumentType,
   DocumentTemplate, InsertDocumentTemplate,
   MessageDocument, InsertMessageDocument,
-  DepartmentFile, InsertDepartmentFile
+  DepartmentFile, InsertDepartmentFile,
+  AdminNotification, InsertAdminNotification
 } from "@shared/schema";
 
 export interface IStorage {
@@ -163,11 +164,21 @@ export interface IStorage {
   getDepartmentFileById(id: number): Promise<DepartmentFile | undefined>;
   createDepartmentFile(file: InsertDepartmentFile): Promise<DepartmentFile>;
   deleteDepartmentFile(id: number): Promise<boolean>;
+  
+  // Admin Notifications (Огоҳиномаҳо)
+  getAdminNotifications(): Promise<AdminNotification[]>;
+  getActiveAdminNotifications(): Promise<AdminNotification[]>;
+  getAdminNotificationById(id: number): Promise<AdminNotification | undefined>;
+  createAdminNotification(notification: InsertAdminNotification): Promise<AdminNotification>;
+  updateAdminNotification(id: number, notification: Partial<InsertAdminNotification>): Promise<AdminNotification | undefined>;
+  deleteAdminNotification(id: number): Promise<boolean>;
+  getUndismissedNotifications(departmentId: number): Promise<AdminNotification[]>;
+  dismissNotification(notificationId: number, departmentId: number, response?: string): Promise<void>;
 }
 
 // Database storage implementation
 import { db } from './db';
-import { departments, admins, messages, attachments, assignments, assignmentAttachments, assignmentReplies, assignmentReplyAttachments, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes, documentTemplates, messageDocuments, departmentFiles } from '@shared/schema';
+import { departments, admins, messages, attachments, assignments, assignmentAttachments, assignmentReplies, assignmentReplyAttachments, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes, documentTemplates, messageDocuments, departmentFiles, adminNotifications, notificationDismissals } from '@shared/schema';
 import { eq, or, and, desc, asc, sql } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
@@ -1350,6 +1361,63 @@ export class DbStorage implements IStorage {
   async deleteDepartmentFile(id: number): Promise<boolean> {
     const result = await db.delete(departmentFiles).where(eq(departmentFiles.id, id)).returning();
     return result.length > 0;
+  }
+
+  // Admin Notifications
+  async getAdminNotifications(): Promise<AdminNotification[]> {
+    return await db.select().from(adminNotifications).orderBy(desc(adminNotifications.createdAt));
+  }
+
+  async getActiveAdminNotifications(): Promise<AdminNotification[]> {
+    return await db.select().from(adminNotifications).where(eq(adminNotifications.isActive, true)).orderBy(desc(adminNotifications.createdAt));
+  }
+
+  async getAdminNotificationById(id: number): Promise<AdminNotification | undefined> {
+    const result = await db.select().from(adminNotifications).where(eq(adminNotifications.id, id));
+    return result[0];
+  }
+
+  async createAdminNotification(notification: InsertAdminNotification): Promise<AdminNotification> {
+    const result = await db.insert(adminNotifications).values(notification).returning();
+    return result[0];
+  }
+
+  async updateAdminNotification(id: number, notification: Partial<InsertAdminNotification>): Promise<AdminNotification | undefined> {
+    const result = await db.update(adminNotifications).set(notification).where(eq(adminNotifications.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteAdminNotification(id: number): Promise<boolean> {
+    const result = await db.delete(adminNotifications).where(eq(adminNotifications.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getUndismissedNotifications(departmentId: number): Promise<AdminNotification[]> {
+    const dismissed = await db.select({ notificationId: notificationDismissals.notificationId })
+      .from(notificationDismissals)
+      .where(eq(notificationDismissals.departmentId, departmentId));
+    
+    const dismissedIds = dismissed.map(d => d.notificationId);
+    
+    const active = await db.select().from(adminNotifications)
+      .where(eq(adminNotifications.isActive, true))
+      .orderBy(desc(adminNotifications.createdAt));
+    
+    return active.filter(n => !dismissedIds.includes(n.id));
+  }
+
+  async dismissNotification(notificationId: number, departmentId: number, response?: string): Promise<void> {
+    const existing = await db.select().from(notificationDismissals)
+      .where(and(
+        eq(notificationDismissals.notificationId, notificationId),
+        eq(notificationDismissals.departmentId, departmentId)
+      ));
+    if (existing.length > 0) return;
+    await db.insert(notificationDismissals).values({
+      notificationId,
+      departmentId,
+      response: response || null,
+    });
   }
 }
 

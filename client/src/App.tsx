@@ -35,6 +35,7 @@ const MonitoringPage = lazy(() => import("@/pages/MonitoringPage"));
 const TrashPage = lazy(() => import("@/pages/TrashPage"));
 const DraftsPage = lazy(() => import("@/pages/DraftsPage"));
 const MubodilaPage = lazy(() => import("@/pages/MubodilaPage"));
+const AdminNotifications = lazy(() => import("@/pages/AdminNotifications"));
 
 // Loading fallback component
 function PageLoader() {
@@ -87,6 +88,11 @@ function Router() {
         <Route path="/royalty/document-templates">
           <AdminRoute>
             <AdminDocumentTemplates />
+          </AdminRoute>
+        </Route>
+        <Route path="/royalty/notifications">
+          <AdminRoute>
+            <AdminNotifications />
           </AdminRoute>
         </Route>
         <Route path="/department/main">

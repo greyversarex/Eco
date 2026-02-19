@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,8 @@ import { Footer } from '@/components/Footer';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
 import { useDepartmentIcon } from '@/hooks/use-department-icon';
 import { ChangeAccessCodeDialog } from '@/components/ChangeAccessCodeDialog';
+import { WelcomeAnimation } from '@/components/WelcomeAnimation';
+import { NotificationModal } from '@/components/NotificationModal';
 
 // Parent Department Card for Subdepartments view - styled to match DepartmentCard
 function ParentDepartmentCard({ department, unreadCount, onClick }: { 
@@ -138,6 +140,28 @@ export default function DepartmentMain() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const { user, logout } = useAuth();
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [welcomeDone, setWelcomeDone] = useState(false);
+
+  useEffect(() => {
+    const sessionKey = 'ecodoc_welcome_shown';
+    if (!sessionStorage.getItem(sessionKey) && user?.userType === 'department') {
+      setShowWelcome(true);
+      sessionStorage.setItem(sessionKey, 'true');
+    } else {
+      setWelcomeDone(true);
+    }
+  }, [user]);
+
+  const handleWelcomeComplete = useCallback(() => {
+    setShowWelcome(false);
+    setWelcomeDone(true);
+  }, []);
+
+  const { data: pendingNotifications = [] } = useQuery<any[]>({
+    queryKey: ['/api/notifications/pending'],
+    enabled: welcomeDone && user?.userType === 'department',
+  });
 
   // Check if current user is a subdepartment
   const isSubdepartment = user?.userType === 'department' && user.department?.isSubdepartment;
@@ -197,6 +221,16 @@ export default function DepartmentMain() {
   };
 
   return (
+    <>
+    {showWelcome && user?.userType === 'department' && (
+      <WelcomeAnimation
+        departmentName={user.department.name}
+        onComplete={handleWelcomeComplete}
+      />
+    )}
+    {welcomeDone && pendingNotifications.length > 0 && (
+      <NotificationModal notifications={pendingNotifications} />
+    )}
     <div 
       className="min-h-screen bg-cover bg-center bg-fixed relative"
       style={{ 
@@ -591,5 +625,6 @@ export default function DepartmentMain() {
       </main>
       <Footer />
     </div>
+    </>
   );
 }

@@ -4,7 +4,7 @@ import { db } from "./db";
 import { assignments } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
-import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema, insertAssignmentSchema, insertAnnouncementSchema, insertPersonSchema, insertPushSubscriptionSchema } from "@shared/schema";
+import { insertDepartmentSchema, insertMessageSchema, insertAdminSchema, insertAssignmentSchema, insertAnnouncementSchema, insertPersonSchema, insertPushSubscriptionSchema, insertAdminNotificationSchema } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 import webpush from "web-push";
@@ -4119,6 +4119,110 @@ export function registerRoutes(app: Express) {
       }
     } catch (error: any) {
       console.error('Error deleting department file:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============ Admin Notifications (Огоҳиномаҳо) ============
+  
+  // Get all notifications (admin only)
+  app.get('/api/admin/notifications', async (req: Request, res: Response) => {
+    if (!(req.session as any)?.adminId) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    try {
+      const notifications = await storage.getAdminNotifications();
+      res.json(notifications);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Create notification (admin only)
+  app.post('/api/admin/notifications', async (req: Request, res: Response) => {
+    if (!(req.session as any)?.adminId) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    try {
+      const data = insertAdminNotificationSchema.parse(req.body);
+      const notification = await storage.createAdminNotification(data);
+      res.json(notification);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Update notification (admin only)
+  app.patch('/api/admin/notifications/:id', async (req: Request, res: Response) => {
+    if (!(req.session as any)?.adminId) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    try {
+      const id = parseInt(req.params.id);
+      const allowedFields = ['title', 'message', 'positiveButtonText', 'negativeButtonText', 'effectType', 'isActive'];
+      const validEffectTypes = ['confetti', 'fireworks', 'stars', 'hearts', 'snowflakes', 'bubbles', 'sparkles', 'ribbons', 'flowers', 'rainbowRain', 'coins', 'butterflies', 'leaves', 'lightning', 'balloons', 'diamonds', 'music', 'fire', 'matrix', 'aurora'];
+      const updateData: Record<string, any> = {};
+      for (const key of allowedFields) {
+        if (key in req.body) {
+          updateData[key] = req.body[key];
+        }
+      }
+      if (updateData.effectType && !validEffectTypes.includes(updateData.effectType)) {
+        return res.status(400).json({ error: 'Invalid effect type' });
+      }
+      const notification = await storage.updateAdminNotification(id, updateData);
+      if (!notification) {
+        return res.status(404).json({ error: 'Notification not found' });
+      }
+      res.json(notification);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Delete notification (admin only)
+  app.delete('/api/admin/notifications/:id', async (req: Request, res: Response) => {
+    if (!(req.session as any)?.adminId) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteAdminNotification(id);
+      if (!deleted) {
+        return res.status(404).json({ error: 'Notification not found' });
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get undismissed notifications for current department
+  app.get('/api/notifications/pending', async (req: Request, res: Response) => {
+    const departmentId = (req.session as any)?.departmentId;
+    if (!departmentId) {
+      return res.status(403).json({ error: 'Department access required' });
+    }
+    try {
+      const notifications = await storage.getUndismissedNotifications(departmentId);
+      res.json(notifications);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Dismiss a notification
+  app.post('/api/notifications/:id/dismiss', async (req: Request, res: Response) => {
+    const departmentId = (req.session as any)?.departmentId;
+    if (!departmentId) {
+      return res.status(403).json({ error: 'Department access required' });
+    }
+    try {
+      const notificationId = parseInt(req.params.id);
+      const { response } = req.body;
+      await storage.dismissNotification(notificationId, departmentId, response);
+      res.json({ success: true });
+    } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
   });
