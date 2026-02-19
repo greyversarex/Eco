@@ -1357,7 +1357,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
         </div>
 
         <div className="space-y-4">
-          {documentTypes.length > 0 && !canCreate && (
+          {documentTypes.length > 0 && (
             <div className="flex gap-2 flex-wrap items-center">
               <Button
                 variant={documentTypeFilterId === '' || documentTypeFilterId === 'all' ? 'default' : 'outline'}
