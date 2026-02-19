@@ -16,8 +16,12 @@ const LEAF_COLORS = [
   { fill: '#1e7a3a', vein: '#14602c', shadow: '#0f5024' },
 ];
 
+const preloadedImg = new Image();
+preloadedImg.src = welcomeBg;
+
 export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete }: WelcomeAnimationProps) {
   const [phase, setPhase] = useState<'enter' | 'show' | 'exit'>('enter');
+  const [bgReady, setBgReady] = useState(preloadedImg.complete);
 
   const leafConfigs = useMemo(() => Array.from({ length: 70 }).map(() => {
     const color = LEAF_COLORS[Math.floor(Math.random() * LEAF_COLORS.length)];
@@ -34,9 +38,15 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
   }), []);
 
   useEffect(() => {
+    if (!bgReady) {
+      preloadedImg.onload = () => setBgReady(true);
+    }
+  }, [bgReady]);
+
+  useEffect(() => {
     const enterTimer = setTimeout(() => setPhase('show'), 50);
-    const showTimer = setTimeout(() => setPhase('exit'), 4000);
-    const exitTimer = setTimeout(() => onComplete(), 5000);
+    const showTimer = setTimeout(() => setPhase('exit'), 5000);
+    const exitTimer = setTimeout(() => onComplete(), 6000);
     return () => {
       clearTimeout(enterTimer);
       clearTimeout(showTimer);
@@ -49,13 +59,18 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
       className={`fixed inset-0 z-[9999] flex items-center justify-center ${
         phase === 'exit' ? 'opacity-0 pointer-events-none transition-opacity duration-1000' : 'opacity-100'
       }`}
-      style={{
-        backgroundImage: `url(${welcomeBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
+      style={{ background: '#065f46' }}
     >
-      <div className="absolute inset-0 bg-black/35" />
+      <div
+        className="absolute inset-0 transition-opacity duration-500"
+        style={{
+          backgroundImage: `url(${welcomeBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: bgReady ? 1 : 0,
+        }}
+      />
+      <div className="absolute inset-0 bg-black/30" />
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {leafConfigs.map((leaf, i) => (
