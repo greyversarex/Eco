@@ -1920,37 +1920,26 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.get("/api/monitoring/department/:deptId/assignments", requireAuth, async (req: Request, res: Response) => {
-    try {
-      if (!req.session.departmentId) {
-        return res.status(403).json({ error: 'Only departments can access this endpoint' });
-      }
-
-      const deptId = parseInt(req.params.deptId);
-      if (isNaN(deptId)) {
-        return res.status(400).json({ error: 'Invalid department ID' });
-      }
-
-      const depts = await storage.getDepartments();
-      const dept = depts.find(d => d.id === req.session.departmentId);
-      const hasMonitoredAccess = dept?.monitoredAssignmentDeptIds && dept.monitoredAssignmentDeptIds.includes(deptId);
-      const hasGeneralMonitor = dept?.canMonitor;
-      if (!hasMonitoredAccess && !hasGeneralMonitor) {
-        return res.status(403).json({ error: 'No monitoring permission for this department' });
-      }
-
-      const allAssignments = await storage.getAssignments();
-      const deptAssignments = allAssignments.filter(assignment => 
-        assignment.senderId === deptId ||
-        (assignment.recipientIds && assignment.recipientIds.includes(deptId)) ||
-        (!assignment.recipientIds || assignment.recipientIds.length === 0) ||
-        (assignment.senderId === null)
-      );
-      res.json(deptAssignments);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
+  async function hasMonitoringPermission(sessionDeptId: number, assignmentId: number): Promise<boolean> {
+    const depts = await storage.getDepartments();
+    const dept = depts.find(d => d.id === sessionDeptId);
+    if (!dept?.canMonitor && (!dept?.monitoredAssignmentDeptIds || dept.monitoredAssignmentDeptIds.length === 0)) {
+      return false;
     }
-  });
+    const assignment = await storage.getAssignmentById(assignmentId);
+    if (!assignment) return false;
+    const relatedDeptIds = new Set<number>();
+    if (assignment.senderId) relatedDeptIds.add(assignment.senderId);
+    if (assignment.recipientIds) assignment.recipientIds.forEach(id => relatedDeptIds.add(id));
+    if (dept.canMonitor) return true;
+    if (dept.monitoredAssignmentDeptIds) {
+      for (const deptId of dept.monitoredAssignmentDeptIds) {
+        if (relatedDeptIds.has(deptId)) return true;
+      }
+    }
+    return false;
+  }
+
 
   // Get messages between current department and another department
   app.get("/api/messages/department/:deptId", requireAuth, async (req: Request, res: Response) => {
@@ -2320,18 +2309,32 @@ export function registerRoutes(app: Express) {
       const allAssignments = await storage.getAssignments();
       console.log('[ASSIGNMENTS] Total assignments from DB:', allAssignments.length);
       
-      // Filter assignments: show if department is creator OR recipient
+      // Filter assignments: show if department is creator OR recipient OR monitored
       if (req.session.departmentId) {
-        const filteredAssignments = allAssignments.filter(assignment => 
+        const depts = await storage.getDepartments();
+        const currentDept = depts.find(d => d.id === req.session.departmentId);
+        const monitoredIds = currentDept?.monitoredAssignmentDeptIds || [];
+        
+        const filteredAssignments = allAssignments.filter(assignment => {
           // Show if department is the creator (sender)
-          assignment.senderId === req.session.departmentId ||
+          if (assignment.senderId === req.session.departmentId) return true;
           // OR if department is in recipients list
-          (assignment.recipientIds && assignment.recipientIds.includes(req.session.departmentId as number)) ||
+          if (assignment.recipientIds && assignment.recipientIds.includes(req.session.departmentId as number)) return true;
           // OR if no recipients specified (legacy backward compatibility - show to all)
-          (!assignment.recipientIds || assignment.recipientIds.length === 0) ||
-          // OR if senderId is NULL (legacy assignments before migration - show to departments with create permission)
-          (assignment.senderId === null && req.session.departmentId)
-        );
+          if (!assignment.recipientIds || assignment.recipientIds.length === 0) return true;
+          // OR if senderId is NULL (legacy assignments before migration)
+          if (assignment.senderId === null && req.session.departmentId) return true;
+          // OR if any monitored department is related to this assignment (sender or recipient)
+          if (monitoredIds.length > 0) {
+            if (assignment.senderId && monitoredIds.includes(assignment.senderId)) return true;
+            if (assignment.recipientIds) {
+              for (const rid of assignment.recipientIds) {
+                if (monitoredIds.includes(rid)) return true;
+              }
+            }
+          }
+          return false;
+        });
         console.log('[ASSIGNMENTS] Filtered assignments for department:', filteredAssignments.length);
         return res.json(filteredAssignments);
       }
@@ -2495,15 +2498,16 @@ export function registerRoutes(app: Express) {
 
       // Prepare assignment data
       const assignmentData = {
-        senderId: senderId, // Creator department ID
+        senderId: senderId,
         documentTypeId: req.body.documentTypeId ? parseInt(req.body.documentTypeId) : null,
-        topic: null, // deprecated, use documentTypeId
+        topic: null,
         content: req.body.content || null,
         documentNumber: req.body.documentNumber || null,
-        executors: finalExecutors, // Invited executors (Даъват) - people or first department
-        executorIds: finalExecutorIds, // Invited executor IDs (Даъват)
-        allDepartmentExecutors: allDepartmentExecutors, // All department people or remaining departments (Иҷрокунандагон)
-        allDepartmentExecutorIds: allDepartmentExecutorIds, // All department people IDs or remaining department IDs (Иҷрокунандагон)
+        assignmentType: req.body.assignmentType || null,
+        executors: finalExecutors,
+        executorIds: finalExecutorIds,
+        allDepartmentExecutors: allDepartmentExecutors,
+        allDepartmentExecutorIds: allDepartmentExecutorIds,
         recipientIds: recipientIds,
         deadline: new Date(req.body.deadline),
       };
@@ -2599,7 +2603,10 @@ export function registerRoutes(app: Express) {
 
       if (req.session.departmentId) {
         if (assignment.senderId !== req.session.departmentId) {
-          return res.status(403).json({ error: 'Only the creator department can edit this assignment' });
+          const canMonitorAssignment = await hasMonitoringPermission(req.session.departmentId, id);
+          if (!canMonitorAssignment) {
+            return res.status(403).json({ error: 'Only the creator department can edit this assignment' });
+          }
         }
       } else if (!req.session.adminId) {
         return res.status(403).json({ error: 'Access denied' });
@@ -2688,6 +2695,7 @@ export function registerRoutes(app: Express) {
         documentTypeId: req.body.documentTypeId ? parseInt(req.body.documentTypeId) : null,
         content: req.body.content || null,
         documentNumber: req.body.documentNumber || null,
+        assignmentType: req.body.assignmentType || null,
         executors: finalExecutors,
         executorIds: finalExecutorIds,
         allDepartmentExecutors: allDepartmentExecutors,
@@ -2761,10 +2769,15 @@ export function registerRoutes(app: Express) {
         return res.status(404).json({ error: 'Assignment not found' });
       }
       
-      // Check if user is the sender (creator) of the assignment
       const userDepartmentId = req.session.userType === 'department' ? req.session.departmentId : null;
-      if (!userDepartmentId || assignment.senderId !== userDepartmentId) {
-        return res.status(403).json({ error: 'Only the assignment creator can approve or reject it' });
+      if (!userDepartmentId) {
+        return res.status(403).json({ error: 'Only departments can approve or reject assignments' });
+      }
+      if (assignment.senderId !== userDepartmentId) {
+        const canMonitorAssignment = await hasMonitoringPermission(userDepartmentId, id);
+        if (!canMonitorAssignment) {
+          return res.status(403).json({ error: 'Only the assignment creator can approve or reject it' });
+        }
       }
       
       // Update the assignment with approval status
@@ -2799,8 +2812,14 @@ export function registerRoutes(app: Express) {
       }
       
       const userDepartmentId = req.session.userType === 'department' ? req.session.departmentId : null;
-      if (!userDepartmentId || assignment.senderId !== userDepartmentId) {
-        return res.status(403).json({ error: 'Only the assignment creator can restore it' });
+      if (!userDepartmentId) {
+        return res.status(403).json({ error: 'Only departments can restore assignments' });
+      }
+      if (assignment.senderId !== userDepartmentId) {
+        const canMonitorAssignment = await hasMonitoringPermission(userDepartmentId, id);
+        if (!canMonitorAssignment) {
+          return res.status(403).json({ error: 'Only the assignment creator can restore it' });
+        }
       }
       
       const deadlineDate = new Date(assignment.deadline);
@@ -3000,17 +3019,20 @@ export function registerRoutes(app: Express) {
         return res.status(404).json({ error: 'Assignment not found' });
       }
 
-      // Check permissions: only creator department or admins can delete
       if (req.session.departmentId) {
-        // If senderId is null (legacy), allow any recipient with permission to delete
         if (assignment.senderId && assignment.senderId !== req.session.departmentId) {
-          return res.status(403).json({ error: 'Only the creator can delete this assignment' });
+          const canMonitorAssignment = await hasMonitoringPermission(req.session.departmentId, id);
+          if (!canMonitorAssignment) {
+            return res.status(403).json({ error: 'Only the creator can delete this assignment' });
+          }
         }
-        // For null senderId (legacy), check if user has permission to create assignments
         if (!assignment.senderId) {
           const dept = await storage.getDepartmentById(req.session.departmentId);
           if (!dept || !dept.canCreateAssignment) {
-            return res.status(403).json({ error: 'Access denied' });
+            const canMonitorAssignment = await hasMonitoringPermission(req.session.departmentId, id);
+            if (!canMonitorAssignment) {
+              return res.status(403).json({ error: 'Access denied' });
+            }
           }
         }
       } else if (!req.session.adminId) {

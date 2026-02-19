@@ -275,14 +275,16 @@ function AssignmentProgress({ createdAt, deadline, isCompleted, approvalStatus, 
   );
 }
 
-export default function AssignmentsPage({ monitoringDepartmentId }: { monitoringDepartmentId?: number }) {
+export default function AssignmentsPage() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const isMonitoringMode = !!monitoringDepartmentId;
+  const monitoredIds = (user?.userType === 'department' ? user.department?.monitoredAssignmentDeptIds : null) || [];
+  const hasMonitorRole = monitoredIds.length > 0;
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [documentTypeId, setDocumentTypeId] = useState<string>('');
+  const [assignmentType, setAssignmentType] = useState<string>('');
   const [content, setContent] = useState('');
   const [documentNumber, setDocumentNumber] = useState('');
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
@@ -306,12 +308,8 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
   const [composeForAssignment, setComposeForAssignment] = useState<Assignment | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
 
-  const assignmentsUrl = isMonitoringMode 
-    ? `/api/monitoring/department/${monitoringDepartmentId}/assignments`
-    : '/api/assignments';
-
   const { data: assignments = [], isLoading } = useQuery<Assignment[]>({
-    queryKey: [assignmentsUrl],
+    queryKey: ['/api/assignments'],
   });
 
   const { data: allDepartments = [], isLoading: loadingDepartments, dataUpdatedAt } = useQuery<Department[]>({
@@ -361,6 +359,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
       });
       setIsDialogOpen(false);
       setDocumentTypeId('');
+      setAssignmentType('');
       setContent('');
       setDocumentNumber('');
       setSelectedRecipients([]);
@@ -546,6 +545,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
       setIsDialogOpen(false);
       setEditingAssignment(null);
       setDocumentTypeId('');
+      setAssignmentType('');
       setContent('');
       setDocumentNumber('');
       setSelectedRecipients([]);
@@ -565,6 +565,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
   const handleEditClick = (assignment: Assignment) => {
     setEditingAssignment(assignment);
     setDocumentTypeId(assignment.documentTypeId?.toString() || '');
+    setAssignmentType(assignment.assignmentType || '');
     setContent(assignment.content || '');
     setDocumentNumber(assignment.documentNumber || '');
     setSelectedRecipients(assignment.recipientIds || []);
@@ -589,14 +590,6 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
 
   const handleEditSubmit = () => {
     if (!editingAssignment) return;
-    if (!documentTypeId) {
-      toast({
-        title: 'Хато',
-        description: 'Намуди ҳуҷҷатро интихоб кунед',
-        variant: 'destructive',
-      });
-      return;
-    }
     if (selectedRecipients.length === 0) {
       toast({
         title: 'Хато',
@@ -615,7 +608,9 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
     }
 
     const formData = new FormData();
-    formData.append('documentTypeId', documentTypeId);
+    if (assignmentType) {
+      formData.append('assignmentType', assignmentType);
+    }
     if (content) {
       formData.append('content', content);
     }
@@ -653,14 +648,6 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
   };
 
   const handleSubmit = () => {
-    if (!documentTypeId) {
-      toast({
-        title: 'Хато',
-        description: 'Намуди ҳуҷҷатро интихоб кунед',
-        variant: 'destructive',
-      });
-      return;
-    }
     if (selectedRecipients.length === 0) {
       toast({
         title: 'Хато',
@@ -679,7 +666,9 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
     }
 
     const formData = new FormData();
-    formData.append('documentTypeId', documentTypeId);
+    if (assignmentType) {
+      formData.append('assignmentType', assignmentType);
+    }
     if (content) {
       formData.append('content', content);
     }
@@ -697,9 +686,19 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
     createAssignmentMutation.mutate(formData);
   };
 
-  // Check permissions from database
-  const canCreate = !isMonitoringMode && user?.userType === 'department' && user.department?.canCreateAssignment;
-  const canDelete = !isMonitoringMode && user?.userType === 'department' && user.department?.canCreateAssignment;
+  const hasMonitorAccess = (assignment: Assignment) => {
+    if (!hasMonitorRole) return false;
+    if (assignment.senderId && monitoredIds.includes(assignment.senderId)) return true;
+    if (assignment.recipientIds) {
+      for (const rid of assignment.recipientIds) {
+        if (monitoredIds.includes(rid)) return true;
+      }
+    }
+    return false;
+  };
+
+  const canCreate = user?.userType === 'department' && (user.department?.canCreateAssignment || hasMonitorRole);
+  const canDelete = user?.userType === 'department' && (user.department?.canCreateAssignment || hasMonitorRole);
 
   // Helper to get document type name
   const getDocTypeName = (assignment: Assignment) => {
@@ -708,6 +707,15 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
       return docType?.name || '*';
     }
     return '*';
+  };
+
+  const getAssignmentTypeName = (type: string | null | undefined) => {
+    switch (type) {
+      case 'protocol_supervisory': return 'Протоколҳои ҷаласаи назоратӣ';
+      case 'protocol_advisory': return 'Протоколҳои ҳайати мушовара';
+      case 'action_plan': return 'Иҷрои нақшаю чорабиниҳо';
+      default: return null;
+    }
   };
 
   return (
@@ -723,28 +731,24 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setLocation(isMonitoringMode ? `/department/messages/${monitoringDepartmentId}?from=monitoring` : '/department/main')}
+              onClick={() => setLocation('/department/main')}
               className="text-white hover:bg-white/20"
               data-testid="button-back"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <button onClick={() => setLocation(isMonitoringMode ? `/department/messages/${monitoringDepartmentId}?from=monitoring` : '/department/main')} className="flex items-center gap-3">
+            <button onClick={() => setLocation('/department/main')} className="flex items-center gap-3">
               <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain drop-shadow-md" />
               <div>
                 <h1 className="text-lg font-semibold text-white drop-shadow-md">
-                  {isMonitoringMode 
-                    ? `${allDepartments.find(d => d.id === monitoringDepartmentId)?.name || 'Шуъба'} - Супоришҳо`
-                    : 'Супоришҳо'
-                  }
+                  Супоришҳо
                 </h1>
                 <p className="text-xs text-white/90 drop-shadow-sm">EcoDoc - Портали электронӣ</p>
               </div>
             </button>
           </PageHeaderLeft>
           <PageHeaderRight>
-            {!isMonitoringMode && (
-              <Button
+            <Button
                 size="sm"
                 onClick={() => {
                   apiFetch('/api/auth/logout', { method: 'POST' }).then(() => setLocation('/'));
@@ -754,8 +758,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
               >
                 <LogOut className="h-4 w-4" />
                 <span>Баромад</span>
-              </Button>
-            )}
+            </Button>
           </PageHeaderRight>
         </PageHeaderContainer>
       </PageHeader>
@@ -767,6 +770,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
             <Button className="gap-2" data-testid="button-create-assignment" onClick={() => {
               setEditingAssignment(null);
               setDocumentTypeId('');
+              setAssignmentType('');
               setContent('');
               setDocumentNumber('');
               setSelectedRecipients([]);
@@ -792,23 +796,19 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label>Намуди ҳуҷҷат <span className="text-destructive">*</span></Label>
+                    <Label>Намуди Супориш</Label>
                     <Select 
-                      value={documentTypeId} 
-                      onValueChange={setDocumentTypeId}
+                      value={assignmentType} 
+                      onValueChange={(val) => setAssignmentType(val === 'none' ? '' : val)}
                     >
-                      <SelectTrigger data-testid="select-document-type">
-                        <SelectValue placeholder="Намуди ҳуҷҷатро интихоб кунед" />
+                      <SelectTrigger data-testid="select-assignment-type">
+                        <SelectValue placeholder="Намуди супоришро интихоб кунед" />
                       </SelectTrigger>
                       <SelectContent>
-                        {documentTypes.map((docType) => (
-                          <SelectItem 
-                            key={docType.id} 
-                            value={docType.id.toString()}
-                          >
-                            {docType.name}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="none">-- Интихоб нашудааст --</SelectItem>
+                        <SelectItem value="protocol_supervisory">Протоколҳои ҷаласаи назоратӣ</SelectItem>
+                        <SelectItem value="protocol_advisory">Протоколҳои ҳайати мушовара</SelectItem>
+                        <SelectItem value="action_plan">Иҷрои нақшаю чорабиниҳо</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1432,6 +1432,11 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                             <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                           </span>
                         )}
+                        {getAssignmentTypeName(assignment.assignmentType) && (
+                          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
+                            {getAssignmentTypeName(assignment.assignmentType)}
+                          </span>
+                        )}
                       </div>
                       {assignment.content && (
                         <div className="mt-3">
@@ -1515,7 +1520,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -1585,7 +1590,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                   ) : null; })()}
                   
                   <div className="flex gap-2 mt-2">
-                    {!assignment.approvalStatus && user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                    {!assignment.approvalStatus && user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                       <>
                         <Button
                           onClick={() => approveAssignmentMutation.mutate({ id: assignment.id, status: 'approved' })}
@@ -1771,6 +1776,11 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                             <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                           </span>
                         )}
+                        {getAssignmentTypeName(assignment.assignmentType) && (
+                          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
+                            {getAssignmentTypeName(assignment.assignmentType)}
+                          </span>
+                        )}
                       </div>
                       {assignment.content && (
                         <div className="mt-3">
@@ -1854,7 +1864,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -1876,7 +1886,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
-                      {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                         <Button
                           size="sm"
                           onClick={() => restoreAssignmentMutation.mutate(assignment.id)}
@@ -2098,6 +2108,11 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                                 <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                               </span>
                             )}
+                            {getAssignmentTypeName(assignment.assignmentType) && (
+                              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
+                                {getAssignmentTypeName(assignment.assignmentType)}
+                              </span>
+                            )}
                           </div>
                           {assignment.content && (
                             <div className="mt-3">
@@ -2127,7 +2142,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                           )}
                         </div>
                         <div className="flex items-center gap-1">
-                          {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                          {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -2150,7 +2165,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
-                          {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                          {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                             <Button
                               size="sm"
                               onClick={() => restoreAssignmentMutation.mutate(assignment.id)}
@@ -2376,6 +2391,11 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                                 <span className="font-medium">Рақами ҳуҷҷат:</span> {assignment.documentNumber}
                               </span>
                             )}
+                            {getAssignmentTypeName(assignment.assignmentType) && (
+                              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
+                                {getAssignmentTypeName(assignment.assignmentType)}
+                              </span>
+                            )}
                             <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">Таъхиршуда</span>
                           </div>
                           {assignment.content && (
@@ -2394,7 +2414,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                         </div>
                         {(() => { const stamp = getAssignmentStamp(assignment); return stamp ? <StampBadge stamp={stamp} /> : null; })()}
                         <div className="flex items-center gap-1">
-                          {user?.userType === 'department' && user.department?.id === assignment.senderId && (
+                          {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -2442,7 +2462,7 @@ export default function AssignmentsPage({ monitoringDepartmentId }: { monitoring
                         </div>
                       )}
 
-                      {user?.userType === 'department' && user.department?.id === assignment.senderId && !assignment.isCompleted && (
+                      {user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && !assignment.isCompleted && (
                         <div className="flex gap-2 pt-2 border-t">
                           <Button
                             size="sm"

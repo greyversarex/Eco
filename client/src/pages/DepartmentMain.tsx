@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import MobileNav from '@/components/MobileNav';
 import DepartmentCard from '@/components/DepartmentCard';
 import { t } from '@/lib/i18n';
-import { Inbox, Send, PenSquare, LogOut, Search, Eye, Trash2, Building2, Users, FolderSync, ClipboardList } from 'lucide-react';
+import { Inbox, Send, PenSquare, LogOut, Search, Eye, Trash2, Building2, Users, FolderSync } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import type { Department } from '@shared/schema';
@@ -376,24 +376,6 @@ export default function DepartmentMain() {
                 >
                   <Eye className="h-4 w-4" />
                   Назорат
-                </Button>
-              )}
-              {user?.userType === 'department' && user.department?.monitoredAssignmentDeptIds && user.department.monitoredAssignmentDeptIds.length > 0 && (
-                <Button
-                  size="lg"
-                  className="shrink-0 bg-[#2d7d9a] hover:bg-[#246b85] text-white font-medium px-8 h-11 rounded-md shadow-sm pl-[36px] pr-[36px] gap-2"
-                  data-testid="button-monitoring-assignments-main"
-                  onClick={() => {
-                    const ids = user.department!.monitoredAssignmentDeptIds!;
-                    if (ids.length === 1) {
-                      setLocation(`/department/monitoring/assignments/${ids[0]}`);
-                    } else {
-                      setLocation('/department/monitoring/assignments-select');
-                    }
-                  }}
-                >
-                  <ClipboardList className="h-4 w-4" />
-                  Назорати Супоришҳо
                 </Button>
               )}
             </div>

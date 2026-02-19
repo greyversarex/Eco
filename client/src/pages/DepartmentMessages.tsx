@@ -135,7 +135,7 @@ export default function DepartmentMessages() {
             {fromMonitoring && (
               <Button
                 size="sm"
-                onClick={() => setLocation(`/department/monitoring/assignments/${departmentId}`)}
+                onClick={() => setLocation('/department/assignments')}
                 data-testid="button-monitoring-assignments"
                 className="flex items-center gap-2 bg-white/20 text-white hover:bg-white/30 border border-white/30"
               >

@@ -821,19 +821,40 @@ export class DbStorage implements IStorage {
     const allAssignments = await db.select().from(assignments)
       .where(eq(assignments.isDeleted, false));
     
-    // Apply same filter as GET /api/assignments
-    const filteredAssignments = allAssignments.filter(assignment => 
-      // Show if department is the creator (sender)
-      assignment.senderId === departmentId ||
-      // OR if department is in recipients list
-      (assignment.recipientIds && assignment.recipientIds.includes(departmentId)) ||
-      // OR if no recipients specified (legacy backward compatibility - show to all)
-      (!assignment.recipientIds || assignment.recipientIds.length === 0) ||
-      // OR if senderId is NULL (legacy assignments before migration - show to departments)
-      (assignment.senderId === null)
-    );
+    const allDepts = await this.getDepartments();
+    const dept = allDepts.find(d => d.id === departmentId);
+    const monitoredIds = dept?.monitoredAssignmentDeptIds || [];
     
-    return filteredAssignments.filter(a => !a.isCompleted).length;
+    const filteredAssignments = allAssignments.filter(assignment => {
+      const isDirect = 
+        assignment.senderId === departmentId ||
+        (assignment.recipientIds && assignment.recipientIds.includes(departmentId)) ||
+        (!assignment.recipientIds || assignment.recipientIds.length === 0) ||
+        (assignment.senderId === null);
+      
+      if (isDirect) return true;
+      
+      if (monitoredIds.length > 0) {
+        const relatedDeptIds = new Set<number>();
+        if (assignment.senderId) relatedDeptIds.add(assignment.senderId);
+        if (assignment.recipientIds) assignment.recipientIds.forEach(id => relatedDeptIds.add(id));
+        for (const mid of monitoredIds) {
+          if (relatedDeptIds.has(mid)) return true;
+        }
+      }
+      
+      return false;
+    });
+    
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return filteredAssignments.filter(a => 
+      !a.isCompleted && 
+      !a.isRestored && 
+      a.approvalStatus !== 'rejected' && 
+      a.approvalStatus !== 'approved' &&
+      new Date(a.deadline) >= now
+    ).length;
   }
 
   async listDeletedAssignments(): Promise<Assignment[]> {
