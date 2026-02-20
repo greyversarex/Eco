@@ -1470,7 +1470,7 @@ export default function AssignmentsPage() {
                           <div className="text-sm font-medium text-gray-900 mb-1">
                             Мазмун:
                           </div>
-                          <div className="text-sm text-foreground bg-white p-3 rounded-md border border-primary/20 whitespace-pre-wrap">
+                          <div className="text-base text-foreground bg-white p-3 rounded-md border border-primary/20 whitespace-pre-wrap">
                             {assignment.content}
                           </div>
                         </div>
@@ -1809,7 +1809,7 @@ export default function AssignmentsPage() {
                           <div className="text-sm font-medium text-gray-900 mb-1">
                             Мазмун:
                           </div>
-                          <div className="text-sm text-foreground bg-white p-3 rounded-md border border-primary/20 whitespace-pre-wrap">
+                          <div className="text-base text-foreground bg-white p-3 rounded-md border border-primary/20 whitespace-pre-wrap">
                             {assignment.content}
                           </div>
                         </div>
