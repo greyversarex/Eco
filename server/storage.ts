@@ -140,6 +140,7 @@ export interface IStorage {
   createDocumentType(documentType: InsertDocumentType): Promise<DocumentType>;
   updateDocumentType(id: number, documentType: Partial<InsertDocumentType>): Promise<DocumentType | undefined>;
   deleteDocumentType(id: number): Promise<boolean>;
+  reorderDocumentTypes(updates: Array<{ id: number; sortOrder: number }>): Promise<void>;
   
   // Message Approval (Иҷозат)
   updateMessageApproval(id: number, status: 'approved' | 'rejected', approvedById: number): Promise<Message | undefined>;
@@ -1262,6 +1263,14 @@ export class DbStorage implements IStorage {
   async deleteDocumentType(id: number): Promise<boolean> {
     const result = await db.delete(documentTypes).where(eq(documentTypes.id, id)).returning();
     return result.length > 0;
+  }
+
+  async reorderDocumentTypes(updates: Array<{ id: number; sortOrder: number }>): Promise<void> {
+    for (const update of updates) {
+      await db.update(documentTypes)
+        .set({ sortOrder: update.sortOrder })
+        .where(eq(documentTypes.id, update.id));
+    }
   }
 
   // Message Approval (Иҷозат)

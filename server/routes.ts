@@ -848,6 +848,20 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  app.post("/api/document-types/reorder", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const reorderSchema = z.array(z.object({
+        id: z.number(),
+        sortOrder: z.number(),
+      }));
+      const updates = reorderSchema.parse(req.body);
+      await storage.reorderDocumentTypes(updates);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Document Templates routes (Намунаҳои ҳуҷҷатҳо)
   app.get("/api/document-templates", requireAuth, async (req: Request, res: Response) => {
     try {

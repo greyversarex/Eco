@@ -23,6 +23,101 @@ import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { Footer } from '@/components/Footer';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+interface SortableDocTypeCardProps {
+  docType: DocumentType;
+  onEdit: (docType: DocumentType) => void;
+  onDelete: (id: number) => void;
+}
+
+function SortableDocTypeCard({ docType, onEdit, onDelete }: SortableDocTypeCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: docType.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card
+        className={`transition-opacity ${!docType.isActive ? 'opacity-60' : ''}`}
+        data-testid={`card-doctype-${docType.id}`}
+      >
+        <CardContent className="p-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div
+              {...attributes}
+              {...listeners}
+              className="touch-none cursor-grab active:cursor-grabbing p-1"
+              data-testid={`drag-handle-${docType.id}`}
+            >
+              <GripVertical className="h-5 w-5 text-muted-foreground shrink-0" />
+            </div>
+            <FileText className="h-5 w-5 text-primary shrink-0" />
+            <div className="min-w-0">
+              <div className="font-medium truncate flex items-center gap-2">
+                {docType.name}
+                {!docType.isActive && (
+                  <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                    Ғайрифаъол
+                  </span>
+                )}
+              </div>
+              {docType.description && (
+                <p className="text-sm text-muted-foreground truncate">{docType.description}</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onEdit(docType)}
+              data-testid={`button-edit-${docType.id}`}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDelete(docType.id)}
+              className="text-destructive hover:text-destructive"
+              data-testid={`button-delete-${docType.id}`}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 interface DocumentTypeFormData {
   name: string;
@@ -48,6 +143,11 @@ export default function AdminDocumentTypes() {
   const [editingType, setEditingType] = useState<DocumentType | null>(null);
   const [formData, setFormData] = useState<DocumentTypeFormData>(initialFormData);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   const { data: documentTypes = [], isLoading } = useQuery<DocumentType[]>({
     queryKey: ['/api/document-types/all'],
@@ -134,6 +234,37 @@ export default function AdminDocumentTypes() {
     }
   };
 
+  const reorderMutation = useMutation({
+    mutationFn: async (updates: Array<{ id: number; sortOrder: number }>) => {
+      return await apiRequest('POST', '/api/document-types/reorder', updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/document-types'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/document-types/all'] });
+    },
+    onError: (error: any) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/document-types/all'] });
+      toast({ title: error.message || 'Хатогӣ дар тартибгузорӣ', variant: 'destructive' });
+    },
+  });
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = documentTypes.findIndex((dt) => dt.id === active.id);
+      const newIndex = documentTypes.findIndex((dt) => dt.id === over.id);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reordered = arrayMove(documentTypes, oldIndex, newIndex);
+        const updates = reordered.map((dt, index) => ({ id: dt.id, sortOrder: index }));
+        queryClient.setQueryData(['/api/document-types/all'], (old: DocumentType[] = []) => {
+          const newData = arrayMove(old, oldIndex, newIndex);
+          return newData.map((dt, index) => ({ ...dt, sortOrder: index }));
+        });
+        reorderMutation.mutate(updates);
+      }
+    }
+  };
+
   const handleDelete = (id: number) => {
     deleteMutation.mutate(id);
   };
@@ -203,54 +334,27 @@ export default function AdminDocumentTypes() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
-            {documentTypes.map((docType) => (
-              <Card 
-                key={docType.id} 
-                className={`transition-opacity ${!docType.isActive ? 'opacity-60' : ''}`}
-                data-testid={`card-doctype-${docType.id}`}
-              >
-                <CardContent className="p-4 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <GripVertical className="h-5 w-5 text-muted-foreground shrink-0 cursor-move" />
-                    <FileText className="h-5 w-5 text-primary shrink-0" />
-                    <div className="min-w-0">
-                      <div className="font-medium truncate flex items-center gap-2">
-                        {docType.name}
-                        {!docType.isActive && (
-                          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                            Ғайрифаъол
-                          </span>
-                        )}
-                      </div>
-                      {docType.description && (
-                        <p className="text-sm text-muted-foreground truncate">{docType.description}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openEditDialog(docType)}
-                      data-testid={`button-edit-${docType.id}`}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeleteConfirmId(docType.id)}
-                      className="text-destructive hover:text-destructive"
-                      data-testid={`button-delete-${docType.id}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={documentTypes.map(dt => dt.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-3">
+                {documentTypes.map((docType) => (
+                  <SortableDocTypeCard
+                    key={docType.id}
+                    docType={docType}
+                    onEdit={openEditDialog}
+                    onDelete={(id) => setDeleteConfirmId(id)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </main>
 
