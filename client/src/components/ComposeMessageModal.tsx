@@ -69,9 +69,10 @@ function ComposeForm({
     enabled: !!isSubdepartment && !!parentDepartmentId,
   });
 
-  const { data: documentTypes = [] } = useQuery<DocumentType[]>({
+  const { data: allDocumentTypes = [] } = useQuery<DocumentType[]>({
     queryKey: ['/api/document-types'],
   });
+  const documentTypes = allDocumentTypes.filter(dt => dt.category !== 'assignment');
 
   const availableRecipients = isSubdepartment && parentDepartmentId
     ? [

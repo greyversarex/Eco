@@ -108,11 +108,12 @@ export default function ComposeMessage() {
     queryKey: ['/api/people'],
   });
 
-  const { data: documentTypes = [] } = useQuery<DocumentType[]>({
+  const { data: allDocumentTypes = [] } = useQuery<DocumentType[]>({
     queryKey: ['/api/document-types'],
     staleTime: 0,
     refetchOnMount: 'always',
   });
+  const documentTypes = allDocumentTypes.filter(dt => dt.category !== 'assignment');
 
   const { data: documentTemplates = [] } = useQuery<DocumentTemplate[]>({
     queryKey: ['/api/document-templates'],

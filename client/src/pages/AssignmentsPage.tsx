@@ -329,14 +329,7 @@ export default function AssignmentsPage() {
     refetchOnMount: 'always',
   });
 
-  const ASSIGNMENT_TYPE_NAMES = [
-    'Супоришҳои Роҳбарият',
-    'Протоколҳои чаласаи назоратӣ',
-    'Протоколҳои ҳайяти мушовара',
-    'Кумита - иҷрои нақша / чорабиниҳо',
-    'Ҳукумат - иҷрои нақша / чорабиниҳо',
-  ];
-  const documentTypes = allDocumentTypes.filter(dt => ASSIGNMENT_TYPE_NAMES.includes(dt.name));
+  const documentTypes = allDocumentTypes.filter(dt => dt.category === 'assignment');
 
   const OLD_TYPE_TO_DOCTYPE_NAME: Record<string, string> = {
     'protocol_supervisory': 'Протоколҳои чаласаи назоратӣ',
