@@ -370,6 +370,7 @@ export default function AssignmentsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
         title: 'Муваффақият',
         description: 'Супориш эҷод шуд',
@@ -483,6 +484,7 @@ export default function AssignmentsPage() {
     },
     onSuccess: (_, { status }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
         title: status === 'approved' ? 'Иҷро шуд' : 'Рад шуд',
         description: status === 'approved' 
@@ -505,6 +507,7 @@ export default function AssignmentsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
         title: 'Барқарор карда шуд',
         description: 'Супориш барқарор карда шуд. Мӯҳлат: +1 рӯз',

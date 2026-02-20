@@ -107,6 +107,9 @@ export default function TrashPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/trash/messages'] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/by-department'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
         title: t.success,
         description: t.restoreSuccess,
@@ -121,7 +124,6 @@ export default function TrashPage() {
     },
   });
 
-  // Restore assignment mutation
   const restoreAssignmentMutation = useMutation({
     mutationFn: async (id: number) => {
       return apiRequest('POST', `/api/trash/assignments/${id}/restore`, {});
@@ -129,6 +131,7 @@ export default function TrashPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/trash/assignments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
         title: t.success,
         description: t.restoreSuccess,
@@ -143,7 +146,6 @@ export default function TrashPage() {
     },
   });
 
-  // Restore announcement mutation
   const restoreAnnouncementMutation = useMutation({
     mutationFn: async (id: number) => {
       return apiRequest('POST', `/api/trash/announcements/${id}/restore`, {});
@@ -151,6 +153,7 @@ export default function TrashPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/trash/announcements'] });
       queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
         title: t.success,
         description: t.restoreSuccess,

@@ -205,6 +205,7 @@ export default function MessageView() {
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/by-department'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       setLocation(backLocation);
     },
     onError: (error: any) => {
@@ -433,6 +434,7 @@ export default function MessageView() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
         title: 'Муваффақият',
         description: 'Супориш эҷод шуд',

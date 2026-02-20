@@ -95,6 +95,7 @@ export default function AnnouncementsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/announcements'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
         title: 'Муваффақият',
         description: 'Эълон эҷод шуд',
