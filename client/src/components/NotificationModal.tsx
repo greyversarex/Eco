@@ -200,18 +200,20 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
               </div>
 
               {!hasPositive && !hasNegative && (
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => {
-                    onDismiss?.(notification.id);
-                    advanceToNext();
-                  }}
-                  className="absolute top-2 right-2 text-white hover:bg-white/20 rounded-full"
-                  data-testid="button-notification-close"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
+                <div className="px-6 pb-5 flex justify-center">
+                  <Button
+                    onClick={() => {
+                      onDismiss?.(notification.id);
+                      advanceToNext();
+                    }}
+                    variant="outline"
+                    className="px-8 rounded-full border-gray-300 text-gray-600 hover:bg-gray-100"
+                    data-testid="button-notification-close"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Пӯшидан
+                  </Button>
+                </div>
               )}
 
               {hasNegative && negativePos && (
