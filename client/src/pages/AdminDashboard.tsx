@@ -272,6 +272,7 @@ export default function AdminDashboard() {
   const [editCanCreateAssignment, setEditCanCreateAssignment] = useState(false);
   const [editCanCreateAnnouncement, setEditCanCreateAnnouncement] = useState(false);
   const [editCanApprove, setEditCanApprove] = useState(false);
+  const [editCanApproveAssignment, setEditCanApproveAssignment] = useState(true);
   // Subdepartment support
   const [newParentDepartmentId, setNewParentDepartmentId] = useState<number | null>(null);
   const [editParentDepartmentId, setEditParentDepartmentId] = useState<number | null>(null);
@@ -540,6 +541,7 @@ export default function AdminDashboard() {
     setEditCanCreateAssignment(dept.canCreateAssignment);
     setEditCanCreateAnnouncement(dept.canCreateAnnouncement);
     setEditCanApprove(dept.canApprove || false);
+    setEditCanApproveAssignment(dept.canApproveAssignment !== false);
     setEditParentDepartmentId(dept.parentDepartmentId || null);
     setIsEditDialogOpen(true);
   };
@@ -563,6 +565,7 @@ export default function AdminDashboard() {
           canCreateAssignment: editCanCreateAssignment,
           canCreateAnnouncement: editCanCreateAnnouncement,
           canApprove: editCanApprove,
+          canApproveAssignment: editCanApproveAssignment,
           parentDepartmentId: editParentDepartmentId,
         } 
       });
@@ -1094,6 +1097,17 @@ export default function AdminDashboard() {
                       />
                       <label htmlFor="edit-can-approve" className="text-sm cursor-pointer">
                         Иҷозат (тасдиқ ё радкунии паёмҳо)
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="edit-can-approve-assignment"
+                        checked={editCanApproveAssignment}
+                        onCheckedChange={(checked) => setEditCanApproveAssignment(checked as boolean)}
+                        data-testid="checkbox-edit-can-approve-assignment"
+                      />
+                      <label htmlFor="edit-can-approve-assignment" className="text-sm cursor-pointer">
+                        Иҷро шуд / Рад шуд (тугмаҳои супоришҳо)
                       </label>
                     </div>
                   </div>

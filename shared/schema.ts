@@ -69,6 +69,7 @@ export const departments: any = pgTable("departments", {
   canCreateAssignment: boolean("can_create_assignment").default(false).notNull(), // Право создавать супориши
   canCreateAnnouncement: boolean("can_create_announcement").default(false).notNull(), // Право создавать эълонҳо
   canApprove: boolean("can_approve").default(false).notNull(), // Право давать иҷозат/рад на сообщения
+  canApproveAssignment: boolean("can_approve_assignment").default(true).notNull(), // Право давать иҷро шуд/рад шуд на супоришҳо
   monitoredAssignmentDeptIds: integer("monitored_assignment_dept_ids").array(), // IDs департаментов для назорати супоришхо
   icon: text("icon").default('building-2').notNull(), // Legacy field for backward compatibility, new icons use department_icons table
   parentDepartmentId: integer("parent_department_id").references((): any => departments.id, { onDelete: 'cascade' }), // Поддепартаменты - ссылка на родительский департамент

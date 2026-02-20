@@ -1617,7 +1617,7 @@ export default function AssignmentsPage() {
                   ) : null; })()}
                   
                   <div className="flex gap-2 mt-2">
-                    {!assignment.approvalStatus && user?.userType === 'department' && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
+                    {!assignment.approvalStatus && user?.userType === 'department' && user.department?.canApproveAssignment !== false && (user.department?.id === assignment.senderId || hasMonitorAccess(assignment)) && (
                       <>
                         <Button
                           onClick={() => approveAssignmentMutation.mutate({ id: assignment.id, status: 'approved' })}

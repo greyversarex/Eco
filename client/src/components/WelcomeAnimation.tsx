@@ -190,7 +190,7 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
             }}
           >
             {departmentIconUrl ? (
-              <div className="w-24 h-24 mx-auto rounded-full overflow-hidden border-3 border-white/50 shadow-lg bg-white/15">
+              <div className="w-72 h-72 mx-auto rounded-full overflow-hidden border-4 border-white/50 shadow-2xl bg-white/15">
                 <img
                   src={departmentIconUrl}
                   alt=""
@@ -198,7 +198,7 @@ export function WelcomeAnimation({ departmentName, departmentIconUrl, onComplete
                 />
               </div>
             ) : (
-              <svg className="w-20 h-20 mx-auto drop-shadow-lg" viewBox="0 0 80 80" fill="none">
+              <svg className="w-60 h-60 mx-auto drop-shadow-lg" viewBox="0 0 80 80" fill="none">
                 <circle cx="40" cy="40" r="36" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.5)" strokeWidth="2"/>
                 <rect x="25" y="28" width="30" height="24" rx="2" fill="rgba(255,255,255,0.8)"/>
                 <rect x="28" y="22" width="24" height="10" rx="2" fill="rgba(255,255,255,0.6)"/>

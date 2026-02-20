@@ -143,7 +143,8 @@ export default function DepartmentMain() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [welcomeDone, setWelcomeDone] = useState(false);
   const currentDeptId = user?.userType === 'department' ? user.department?.id : null;
-  const { iconUrl: welcomeIconUrl } = useDepartmentIcon(currentDeptId || 0);
+  const [iconCacheBuster] = useState(() => Date.now());
+  const { iconUrl: welcomeIconUrl } = useDepartmentIcon(currentDeptId || 0, iconCacheBuster);
 
   useEffect(() => {
     const sessionKey = 'ecodoc_welcome_shown';

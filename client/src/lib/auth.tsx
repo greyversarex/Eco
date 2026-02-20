@@ -14,6 +14,7 @@ interface Department {
   canCreateAssignmentFromMessage: boolean;
   canCreateAssignment: boolean;
   canApprove: boolean;
+  canApproveAssignment?: boolean;
   monitoredAssignmentDeptIds?: number[] | null;
   isSubdepartment?: boolean;
   parentDepartmentId?: number | null;
