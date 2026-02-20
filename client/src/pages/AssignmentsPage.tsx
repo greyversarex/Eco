@@ -1381,57 +1381,56 @@ export default function AssignmentsPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="flex flex-wrap gap-2 items-stretch">
+          <div className="flex gap-1.5 items-stretch">
             {documentTypes.map((dt) => (
               <button
                 key={dt.id}
                 onClick={() => { setDocumentTypeFilterId(dt.id.toString()); setActiveFilter('all'); }}
                 data-testid={`tab-doctype-${dt.id}`}
-                className={`rounded-lg border text-xs leading-snug py-2 px-3 text-center font-medium transition-colors ${
+                className={`flex-1 min-w-0 rounded-lg border text-xs leading-snug py-2 px-1.5 text-center font-medium transition-colors ${
                   documentTypeFilterId === dt.id.toString() && activeFilter === 'all'
                     ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                     : 'bg-background text-foreground border-border hover:bg-muted'
                 }`}
               >
-                <span className="block">{dt.name}</span>
+                {dt.name}
                 <span className="block text-[11px] opacity-80">({assignments.filter(a => matchesDocType(a, dt.id)).length})</span>
               </button>
             ))}
             <button
               onClick={() => { setActiveFilter('completed'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-completed-assignments"
-              className={`rounded-lg border text-xs leading-snug py-2 px-3 text-center font-medium transition-colors ${
+              className={`flex-1 min-w-0 rounded-lg border text-xs leading-snug py-2 px-1.5 text-center font-medium transition-colors ${
                 activeFilter === 'completed'
                   ? 'bg-green-700 text-white border-green-700 shadow-sm'
                   : 'bg-green-600 text-white border-green-600 hover:bg-green-700'
               }`}
             >
-              <span className="block">Иҷрошуда</span>
+              Иҷрошуда
               <span className="block text-[11px] opacity-80">({assignments.filter(a => a.isCompleted || a.approvalStatus === 'approved').length})</span>
             </button>
             <button
               onClick={() => { setActiveFilter('overdue'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-overdue-assignments"
-              className={`rounded-lg border text-xs leading-snug py-2 px-3 text-center font-medium transition-colors ${
+              className={`flex-1 min-w-0 rounded-lg border text-xs leading-snug py-2 px-1.5 text-center font-medium transition-colors ${
                 activeFilter === 'overdue'
                   ? 'bg-red-700 text-white border-red-700 shadow-sm'
                   : 'bg-red-600 text-white border-red-600 hover:bg-red-700'
               }`}
             >
-              <span className="block">Иҷронашуда</span>
+              Иҷронашуда
               <span className="block text-[11px] opacity-80">({assignments.filter(a => !a.isRestored && !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length})</span>
             </button>
             <button
               onClick={() => { setActiveFilter('restored'); setDocumentTypeFilterId('all'); }}
               data-testid="tab-restored-assignments"
-              className={`rounded-lg border text-xs leading-snug py-2 px-3 text-center font-medium transition-colors ${
+              className={`flex-1 min-w-0 rounded-lg border text-xs leading-snug py-2 px-1.5 text-center font-medium transition-colors ${
                 activeFilter === 'restored'
                   ? 'bg-orange-600 text-white border-orange-600 shadow-sm'
                   : 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600'
               }`}
             >
-              <span className="block">Ба таъхир</span>
-              <span className="block">иҷро гардид</span>
+              Ба таъхир иҷро гардид
               <span className="block text-[11px] opacity-80">({assignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})</span>
             </button>
           </div>
