@@ -4,6 +4,7 @@ import * as LucideIcons from 'lucide-react';
 import { Building2 } from 'lucide-react';
 import { useDepartmentIcon } from '@/hooks/use-department-icon';
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface DepartmentCardProps {
   departmentId: number;
@@ -28,6 +29,7 @@ export default function DepartmentCard({ departmentId, name, icon, unreadCount, 
   const { iconUrl } = useDepartmentIcon(departmentId, iconVersion);
   const IconComponent = getIconComponent(icon);
   const [showPreview, setShowPreview] = useState(false);
+  const [previewPos, setPreviewPos] = useState({ top: 0, left: 0 });
   const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   
@@ -38,11 +40,22 @@ export default function DepartmentCard({ departmentId, name, icon, unreadCount, 
   const handleMouseEnter = () => {
     if (!iconUrl) return;
     if (hideTimeout.current) clearTimeout(hideTimeout.current);
+    if (iconRef.current) {
+      const rect = iconRef.current.getBoundingClientRect();
+      setPreviewPos({
+        top: rect.bottom + 8,
+        left: rect.left,
+      });
+    }
     setShowPreview(true);
   };
 
   const handleMouseLeave = () => {
     hideTimeout.current = setTimeout(() => setShowPreview(false), 200);
+  };
+
+  const handlePreviewEnter = () => {
+    if (hideTimeout.current) clearTimeout(hideTimeout.current);
   };
 
   useEffect(() => {
@@ -83,20 +96,6 @@ export default function DepartmentCard({ departmentId, name, icon, unreadCount, 
               <IconComponent className="h-5 w-5" />
             </div>
           )}
-          {showPreview && iconUrl && (
-            <div
-              className="absolute z-50 left-0 top-full mt-2 rounded-xl shadow-2xl border-2 border-white/80 overflow-hidden bg-white"
-              style={{ width: 200, height: 200 }}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-            >
-              <img
-                src={iconUrl}
-                alt={name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
         </div>
         <div className="flex-1">
           <h3 className="text-base font-medium text-foreground leading-snug">
@@ -110,6 +109,21 @@ export default function DepartmentCard({ departmentId, name, icon, unreadCount, 
           </h3>
         </div>
       </div>
+      {showPreview && iconUrl && createPortal(
+        <div
+          className="fixed z-[9999] rounded-xl shadow-2xl border-2 border-white/80 overflow-hidden bg-white"
+          style={{ width: 200, height: 200, top: previewPos.top, left: previewPos.left }}
+          onMouseEnter={handlePreviewEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <img
+            src={iconUrl}
+            alt={name}
+            className="w-full h-full object-cover"
+          />
+        </div>,
+        document.body
+      )}
     </Card>
   );
 }
