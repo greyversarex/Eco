@@ -36,7 +36,7 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Independent Message Deletion:** Senders and recipients can delete messages independently - when a sender deletes a message, recipients can still see it, and vice versa. Uses `isDeletedBySender` and `deletedByRecipientIds` fields for per-user deletion tracking. Admins can perform global deletions that affect all users.
 *   **Unified Department Ordering System:** Centralized `sortOrder`-based department ordering managed via an admin panel with drag-and-drop.
 *   **People/Executors Management System:** Manages people (executors) with department associations, including CRUD API and automatic filtering in forms.
-*   **Flexible Permission System:** Database-driven permissions for `canCreateAssignment`, `canCreateAssignmentFromMessage`, and `canMonitor`.
+*   **Flexible Permission System:** Database-driven permissions for `canCreateAssignment`, `canCreateAssignmentFromMessage`, `canMonitor`, and `canApproveAssignment` (controls visibility of "Иҷро шуд" / "Рад шуд" buttons on assignments).
 *   **Assignment Monitoring (Назорати Супоришҳо):** Admin-configurable feature allowing departments with `canMonitor` permission to monitor specific departments' assignments. Configured via `monitoredAssignmentDeptIds` array in department settings. Single department opens directly; multiple departments show a selector page.
 *   **Targeted Assignments & Announcements:** Assignments and announcements can be targeted to specific departments via `recipientIds`.
 *   **Document Number Field:** Optional `documentNumber` field for Messages and Assignments.
