@@ -330,6 +330,7 @@ export default function AssignmentsPage() {
   });
 
   const ASSIGNMENT_TYPE_NAMES = [
+    'Супоришҳои Роҳбарият',
     'Протоколҳои чаласаи назоратӣ',
     'Протоколҳои ҳайяти мушовара',
     'Кумита - иҷрои нақша / чорабиниҳо',

@@ -223,6 +223,7 @@ app.use((req, res, next) => {
   // Auto-seed assignment document types on startup
   try {
     const assignmentTypes = [
+      { name: 'Супоришҳои Роҳбарият', order: 0 },
       { name: 'Протоколҳои чаласаи назоратӣ', order: 1 },
       { name: 'Протоколҳои ҳайяти мушовара', order: 2 },
       { name: 'Кумита - иҷрои нақша / чорабиниҳо', order: 3 },
