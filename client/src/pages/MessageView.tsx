@@ -134,10 +134,10 @@ export default function MessageView() {
       return await apiRequest('PATCH', `/api/messages/${messageId}/read`, undefined);
     },
     onSuccess: () => {
-      // Invalidate queries to refresh message lists
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/count'] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages/unread/by-department'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
     },
     onError: (error: any) => {
       console.error('Failed to mark message as read:', error);
@@ -246,6 +246,7 @@ export default function MessageView() {
       setForwardRecipientIds([]);
       setForwardSearchQuery('');
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       if (id) {
         queryClient.invalidateQueries({ queryKey: ['/api/messages', id] });
       }
@@ -466,6 +467,7 @@ export default function MessageView() {
     onSuccess: (_, { status }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/messages', id] });
       queryClient.invalidateQueries({ queryKey: ['/api/messages'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/counters'] });
       toast({
         title: status === 'approved' ? 'Тасдиқ шуд' : 'Рад карда шуд',
         description: status === 'approved' 
