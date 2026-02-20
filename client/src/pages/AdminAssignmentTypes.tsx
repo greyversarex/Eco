@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { t } from '@/lib/i18n';
-import { LogOut, Settings, Plus, Pencil, Trash2, FileText, GripVertical, ArrowLeft } from 'lucide-react';
+import { LogOut, Plus, Pencil, Trash2, ClipboardList, GripVertical, ArrowLeft } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -41,13 +41,13 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-interface SortableDocTypeCardProps {
+interface SortableCardProps {
   docType: DocumentType;
   onEdit: (docType: DocumentType) => void;
   onDelete: (id: number) => void;
 }
 
-function SortableDocTypeCard({ docType, onEdit, onDelete }: SortableDocTypeCardProps) {
+function SortableCard({ docType, onEdit, onDelete }: SortableCardProps) {
   const {
     attributes,
     listeners,
@@ -67,7 +67,7 @@ function SortableDocTypeCard({ docType, onEdit, onDelete }: SortableDocTypeCardP
     <div ref={setNodeRef} style={style}>
       <Card
         className={`transition-opacity ${!docType.isActive ? 'opacity-60' : ''}`}
-        data-testid={`card-doctype-${docType.id}`}
+        data-testid={`card-assigntype-${docType.id}`}
       >
         <CardContent className="p-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -75,11 +75,11 @@ function SortableDocTypeCard({ docType, onEdit, onDelete }: SortableDocTypeCardP
               {...attributes}
               {...listeners}
               className="touch-none cursor-grab active:cursor-grabbing p-1"
-              data-testid={`drag-handle-${docType.id}`}
+              data-testid={`drag-handle-assigntype-${docType.id}`}
             >
               <GripVertical className="h-5 w-5 text-muted-foreground shrink-0" />
             </div>
-            <FileText className="h-5 w-5 text-primary shrink-0" />
+            <ClipboardList className="h-5 w-5 text-primary shrink-0" />
             <div className="min-w-0">
               <div className="font-medium truncate flex items-center gap-2">
                 {docType.name}
@@ -99,7 +99,7 @@ function SortableDocTypeCard({ docType, onEdit, onDelete }: SortableDocTypeCardP
               variant="ghost"
               size="icon"
               onClick={() => onEdit(docType)}
-              data-testid={`button-edit-${docType.id}`}
+              data-testid={`button-edit-assigntype-${docType.id}`}
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -108,7 +108,7 @@ function SortableDocTypeCard({ docType, onEdit, onDelete }: SortableDocTypeCardP
               size="icon"
               onClick={() => onDelete(docType.id)}
               className="text-destructive hover:text-destructive"
-              data-testid={`button-delete-${docType.id}`}
+              data-testid={`button-delete-assigntype-${docType.id}`}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -119,29 +119,29 @@ function SortableDocTypeCard({ docType, onEdit, onDelete }: SortableDocTypeCardP
   );
 }
 
-interface DocumentTypeFormData {
+interface FormData {
   name: string;
   description: string;
   sortOrder: number;
   isActive: boolean;
 }
 
-const initialFormData: DocumentTypeFormData = {
+const initialFormData: FormData = {
   name: '',
   description: '',
   sortOrder: 0,
   isActive: true,
 };
 
-export default function AdminDocumentTypes() {
+export default function AdminAssignmentTypes() {
   const [, setLocation] = useLocation();
   const { logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingType, setEditingType] = useState<DocumentType | null>(null);
-  const [formData, setFormData] = useState<DocumentTypeFormData>(initialFormData);
+  const [formData, setFormData] = useState<FormData>(initialFormData);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   const sensors = useSensors(
@@ -152,16 +152,17 @@ export default function AdminDocumentTypes() {
   const { data: allTypes = [], isLoading } = useQuery<DocumentType[]>({
     queryKey: ['/api/document-types/all'],
   });
-  const documentTypes = allTypes.filter(dt => dt.category !== 'assignment');
+
+  const assignmentTypes = allTypes.filter(dt => dt.category === 'assignment');
 
   const createMutation = useMutation({
-    mutationFn: async (data: DocumentTypeFormData) => {
-      return await apiRequest('POST', '/api/document-types', data);
+    mutationFn: async (data: FormData) => {
+      return await apiRequest('POST', '/api/document-types', { ...data, category: 'assignment' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/document-types'] });
       queryClient.invalidateQueries({ queryKey: ['/api/document-types/all'] });
-      toast({ title: 'Намуди ҳуҷҷат илова шуд', variant: 'default' });
+      toast({ title: 'Намуди супориш илова шуд', variant: 'default' });
       closeDialog();
     },
     onError: (error: any) => {
@@ -170,13 +171,13 @@ export default function AdminDocumentTypes() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<DocumentTypeFormData> }) => {
+    mutationFn: async ({ id, data }: { id: number; data: Partial<FormData> }) => {
       return await apiRequest('PATCH', `/api/document-types/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/document-types'] });
       queryClient.invalidateQueries({ queryKey: ['/api/document-types/all'] });
-      toast({ title: 'Намуди ҳуҷҷат тағйир ёфт', variant: 'default' });
+      toast({ title: 'Намуди супориш тағйир ёфт', variant: 'default' });
       closeDialog();
     },
     onError: (error: any) => {
@@ -191,11 +192,25 @@ export default function AdminDocumentTypes() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/document-types'] });
       queryClient.invalidateQueries({ queryKey: ['/api/document-types/all'] });
-      toast({ title: 'Намуди ҳуҷҷат нест карда шуд', variant: 'default' });
+      toast({ title: 'Намуди супориш нест карда шуд', variant: 'default' });
       setDeleteConfirmId(null);
     },
     onError: (error: any) => {
       toast({ title: error.message || 'Хатогӣ', variant: 'destructive' });
+    },
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: async (updates: Array<{ id: number; sortOrder: number }>) => {
+      return await apiRequest('POST', '/api/document-types/reorder', updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/document-types'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/document-types/all'] });
+    },
+    onError: (error: any) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/document-types/all'] });
+      toast({ title: error.message || 'Хатогӣ дар тартибгузорӣ', variant: 'destructive' });
     },
   });
 
@@ -224,10 +239,9 @@ export default function AdminDocumentTypes() {
 
   const handleSubmit = () => {
     if (!formData.name.trim()) {
-      toast({ title: 'Номи намуди ҳуҷҷат ҳатмист', variant: 'destructive' });
+      toast({ title: 'Номи намуди супориш ҳатмист', variant: 'destructive' });
       return;
     }
-
     if (editingType) {
       updateMutation.mutate({ id: editingType.id, data: formData });
     } else {
@@ -235,31 +249,19 @@ export default function AdminDocumentTypes() {
     }
   };
 
-  const reorderMutation = useMutation({
-    mutationFn: async (updates: Array<{ id: number; sortOrder: number }>) => {
-      return await apiRequest('POST', '/api/document-types/reorder', updates);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/document-types'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/document-types/all'] });
-    },
-    onError: (error: any) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/document-types/all'] });
-      toast({ title: error.message || 'Хатогӣ дар тартибгузорӣ', variant: 'destructive' });
-    },
-  });
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      const oldIndex = documentTypes.findIndex((dt) => dt.id === active.id);
-      const newIndex = documentTypes.findIndex((dt) => dt.id === over.id);
+      const oldIndex = assignmentTypes.findIndex((dt) => dt.id === active.id);
+      const newIndex = assignmentTypes.findIndex((dt) => dt.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1) {
-        const reordered = arrayMove(documentTypes, oldIndex, newIndex);
+        const reordered = arrayMove(assignmentTypes, oldIndex, newIndex);
         const updates = reordered.map((dt, index) => ({ id: dt.id, sortOrder: index }));
         queryClient.setQueryData(['/api/document-types/all'], (old: DocumentType[] = []) => {
-          const newData = arrayMove(old, oldIndex, newIndex);
-          return newData.map((dt, index) => ({ ...dt, sortOrder: index }));
+          const nonAssignment = old.filter(dt => dt.category !== 'assignment');
+          const assignment = old.filter(dt => dt.category === 'assignment');
+          const newAssignment = arrayMove(assignment, oldIndex, newIndex).map((dt, index) => ({ ...dt, sortOrder: index }));
+          return [...nonAssignment, ...newAssignment];
         });
         reorderMutation.mutate(updates);
       }
@@ -271,12 +273,12 @@ export default function AdminDocumentTypes() {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-cover bg-center bg-fixed relative"
       style={{ backgroundImage: `url(${bgImage})` }}
     >
-      <div 
-        className="absolute inset-0" 
+      <div
+        className="absolute inset-0"
         style={{ background: 'rgba(255, 255, 255, 0.92)' }}
       />
       <PageHeader variant="admin">
@@ -284,8 +286,8 @@ export default function AdminDocumentTypes() {
           <PageHeaderLeft className="gap-2 sm:gap-3 min-w-0 flex-1 pt-2">
             <img src={logoImage} alt="Логотип" className="h-10 w-10 object-contain shrink-0" />
             <div className="min-w-0 text-left">
-              <h1 className="text-base sm:text-lg font-semibold text-white truncate">Намуди ҳуҷҷатҳо</h1>
-              <p className="text-xs text-white/70 hidden sm:block">Идоракунии намудҳои ҳуҷҷат</p>
+              <h1 className="text-base sm:text-lg font-semibold text-white truncate">Намуди супоришҳо</h1>
+              <p className="text-xs text-white/70 hidden sm:block">Идоракунии намудҳои супориш</p>
             </div>
           </PageHeaderLeft>
           <PageHeaderRight className="gap-2 sm:gap-4 shrink-0">
@@ -315,8 +317,8 @@ export default function AdminDocumentTypes() {
 
       <main className="relative z-10 max-w-4xl mx-auto p-4 md:p-6 space-y-6 pt-20">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Рӯйхати намуди ҳуҷҷатҳо</h2>
-          <Button onClick={openCreateDialog} className="gap-2" data-testid="button-add-type">
+          <h2 className="text-xl font-semibold">Рӯйхати намуди супоришҳо</h2>
+          <Button onClick={openCreateDialog} className="gap-2" data-testid="button-add-assigntype">
             <Plus className="h-4 w-4" />
             Илова кардан
           </Button>
@@ -326,11 +328,11 @@ export default function AdminDocumentTypes() {
           <div className="flex items-center justify-center py-12">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : documentTypes.length === 0 ? (
+        ) : assignmentTypes.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Ягон намуди ҳуҷҷат мавҷуд нест</p>
+              <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Ягон намуди супориш мавҷуд нест</p>
               <p className="text-sm mt-2">Барои илова кардан тугмаро пахш кунед</p>
             </CardContent>
           </Card>
@@ -341,12 +343,12 @@ export default function AdminDocumentTypes() {
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={documentTypes.map(dt => dt.id)}
+              items={assignmentTypes.map(dt => dt.id)}
               strategy={verticalListSortingStrategy}
             >
               <div className="space-y-3">
-                {documentTypes.map((docType) => (
-                  <SortableDocTypeCard
+                {assignmentTypes.map((docType) => (
+                  <SortableCard
                     key={docType.id}
                     docType={docType}
                     onEdit={openEditDialog}
@@ -365,10 +367,10 @@ export default function AdminDocumentTypes() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingType ? 'Тағйир додани намуди ҳуҷҷат' : 'Илова кардани намуди ҳуҷҷат'}
+              {editingType ? 'Тағйир додани намуди супориш' : 'Илова кардани намуди супориш'}
             </DialogTitle>
             <DialogDescription>
-              {editingType ? 'Маълумоти намуди ҳуҷҷатро тағйир диҳед' : 'Намуди нави ҳуҷҷат илова кунед'}
+              {editingType ? 'Маълумоти намуди супоришро тағйир диҳед' : 'Намуди нави супориш илова кунед'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -378,8 +380,8 @@ export default function AdminDocumentTypes() {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Масалан: Мактуби расмӣ"
-                data-testid="input-name"
+                placeholder="Масалан: Протоколи ҷаласа"
+                data-testid="input-assigntype-name"
               />
             </div>
           </div>
@@ -387,8 +389,8 @@ export default function AdminDocumentTypes() {
             <Button variant="outline" onClick={closeDialog} data-testid="button-cancel">
               Бекор кардан
             </Button>
-            <Button 
-              onClick={handleSubmit} 
+            <Button
+              onClick={handleSubmit}
               disabled={createMutation.isPending || updateMutation.isPending}
               data-testid="button-submit"
             >
@@ -401,17 +403,17 @@ export default function AdminDocumentTypes() {
       <Dialog open={deleteConfirmId !== null} onOpenChange={() => setDeleteConfirmId(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Нест кардани намуди ҳуҷҷат</DialogTitle>
+            <DialogTitle>Нест кардани намуди супориш</DialogTitle>
             <DialogDescription>
-              Оё шумо мутмаин ҳастед, ки мехоҳед ин намуди ҳуҷҷатро нест кунед?
+              Оё шумо мутмаин ҳастед, ки мехоҳед ин намуди супоришро нест кунед?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirmId(null)} data-testid="button-delete-cancel">
               Не
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}
               disabled={deleteMutation.isPending}
               data-testid="button-delete-confirm"

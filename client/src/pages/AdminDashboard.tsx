@@ -646,7 +646,17 @@ export default function AdminDashboard() {
               className="gap-2 hidden sm:flex text-white hover:bg-white/20"
             >
               <FileText className="h-4 w-4" />
-              <span className="hidden md:inline">Намудҳо</span>
+              <span className="hidden md:inline">Намуди ҳуҷҷат</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.location.href = '/royalty/assignment-types'}
+              data-testid="button-assignment-types"
+              className="gap-2 hidden sm:flex text-white hover:bg-white/20"
+            >
+              <FileText className="h-4 w-4" />
+              <span className="hidden md:inline">Намуди супориш</span>
             </Button>
             <Button
               variant="ghost"

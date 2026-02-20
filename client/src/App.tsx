@@ -28,6 +28,7 @@ const AdminDepartments = lazy(() => import("@/pages/AdminDepartments"));
 const AdminDepartmentMessages = lazy(() => import("@/pages/AdminDepartmentMessages"));
 const AdminPeople = lazy(() => import("@/pages/AdminPeople"));
 const AdminDocumentTypes = lazy(() => import("@/pages/AdminDocumentTypes"));
+const AdminAssignmentTypes = lazy(() => import("@/pages/AdminAssignmentTypes"));
 const AdminDocumentTemplates = lazy(() => import("@/pages/AdminDocumentTemplates"));
 const AssignmentsPage = lazy(() => import("@/pages/AssignmentsPage"));
 const AnnouncementsPage = lazy(() => import("@/pages/AnnouncementsPage"));
@@ -83,6 +84,11 @@ function Router() {
         <Route path="/royalty/document-types">
           <AdminRoute>
             <AdminDocumentTypes />
+          </AdminRoute>
+        </Route>
+        <Route path="/royalty/assignment-types">
+          <AdminRoute>
+            <AdminAssignmentTypes />
           </AdminRoute>
         </Route>
         <Route path="/royalty/document-templates">
