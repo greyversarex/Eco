@@ -3865,6 +3865,176 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Global archive download for admin - all departments, filtered by date range
+  app.get("/api/admin/global-archive", requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const JSZip = (await import('jszip')).default;
+      const { Document, Packer, Paragraph, TextRun, AlignmentType } = await import('docx');
+
+      const { from, to } = req.query;
+      if (!from || !to) {
+        return res.status(400).json({ error: 'Parameters "from" and "to" are required (YYYY-MM-DD)' });
+      }
+
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+      if (!datePattern.test(from as string) || !datePattern.test(to as string)) {
+        return res.status(400).json({ error: 'Date format must be YYYY-MM-DD' });
+      }
+
+      const dateFrom = new Date(from as string);
+      const dateTo = new Date(to as string);
+      dateTo.setHours(23, 59, 59, 999);
+
+      if (isNaN(dateFrom.getTime()) || isNaN(dateTo.getTime())) {
+        return res.status(400).json({ error: 'Invalid date format' });
+      }
+
+      if (dateFrom > dateTo) {
+        return res.status(400).json({ error: 'Start date must be before or equal to end date' });
+      }
+
+      const allDepartments = await storage.getDepartments();
+      const zip = new JSZip();
+
+      const allDeptMap = new Map(allDepartments.map(d => [d.id, d]));
+
+      const safeFrom = (from as string).replace(/[^0-9-]/g, '');
+      const safeTo = (to as string).replace(/[^0-9-]/g, '');
+      const periodFolder = safeFrom === safeTo ? safeFrom : `${safeFrom}_${safeTo}`;
+
+      for (const dept of allDepartments) {
+        const { inbox, outbox } = await storage.getMessagesByDepartment(dept.id);
+
+        const filterByDate = (msgs: any[]) => msgs.filter(msg => {
+          const msgDate = msg.documentDate ? new Date(msg.documentDate) : new Date(msg.createdAt);
+          return msgDate >= dateFrom && msgDate <= dateTo;
+        });
+
+        const filteredInbox = filterByDate(inbox);
+        const filteredOutbox = filterByDate(outbox);
+
+        if (filteredInbox.length === 0 && filteredOutbox.length === 0) continue;
+
+        const sanitizedDeptName = dept.name
+          .replace(/\.\./g, '')
+          .replace(/[/\\?%*:|"<>\x00-\x1f]/g, '_')
+          .trim()
+          .substring(0, 80);
+
+        const deptFolder = `${periodFolder}/${sanitizedDeptName}`;
+
+        const processMessages = async (messages: any[], direction: string) => {
+          for (let i = 0; i < messages.length; i++) {
+            const message = messages[i];
+            const messageDate = message.documentDate
+              ? new Date(message.documentDate)
+              : new Date(message.createdAt);
+
+            const year = messageDate.getFullYear();
+            const month = String(messageDate.getMonth() + 1).padStart(2, '0');
+            const day = String(messageDate.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+
+            const sender = allDeptMap.get(message.senderId);
+            const recipientIdsList = message.recipientIds && message.recipientIds.length > 0
+              ? message.recipientIds
+              : message.recipientId ? [message.recipientId] : [];
+            const recipients = recipientIdsList.map((id: number) => allDeptMap.get(id)).filter(Boolean);
+
+            const subject = message.subject || 'Мавзуъ нест';
+            const sanitizedSubject = subject
+              .replace(/\.\./g, '')
+              .replace(/[/\\?%*:|"<>\x00-\x1f]/g, '_')
+              .trim()
+              .substring(0, 50);
+
+            const msgFolder = `${deptFolder}/${direction}/${String(i + 1).padStart(3, '0')}_${dateStr}_${sanitizedSubject}`;
+
+            const doc = new Document({
+              sections: [{
+                properties: {},
+                children: [
+                  new Paragraph({
+                    children: [new TextRun({ text: 'ПАЁМ', bold: true, size: 32 })],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 400 },
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'Сана: ', bold: true }),
+                      new TextRun({ text: messageDate.toLocaleString('tg-TJ', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) }),
+                    ],
+                    spacing: { after: 200 },
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'Аз: ', bold: true }),
+                      new TextRun({ text: sender?.name || 'Номаълум' }),
+                    ],
+                    spacing: { after: 200 },
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'Ба: ', bold: true }),
+                      new TextRun({ text: recipients.map((r: any) => r?.name).join(', ') || 'Номаълум' }),
+                    ],
+                    spacing: { after: 200 },
+                  }),
+                  ...(message.subject ? [new Paragraph({
+                    children: [new TextRun({ text: 'Мавзуъ: ', bold: true }), new TextRun({ text: message.subject })],
+                    spacing: { after: 200 },
+                  })] : []),
+                  ...(message.documentNumber ? [new Paragraph({
+                    children: [new TextRun({ text: 'Рақами ҳуҷҷат: ', bold: true }), new TextRun({ text: message.documentNumber })],
+                    spacing: { after: 200 },
+                  })] : []),
+                  new Paragraph({ children: [new TextRun({ text: '' })], spacing: { after: 200 } }),
+                  new Paragraph({ children: [new TextRun({ text: 'Матн:', bold: true })], spacing: { after: 200 } }),
+                  new Paragraph({ children: [new TextRun({ text: message.content })], spacing: { after: 400 } }),
+                ],
+              }],
+            });
+
+            const docBuffer = await Packer.toBuffer(doc);
+            zip.folder(msgFolder)?.file('паём.docx', docBuffer);
+
+            const attachments = await storage.getAttachmentsByMessageId(message.id);
+            for (const attachment of attachments) {
+              if (attachment.fileData) {
+                const sanitizedFileName = attachment.file_name
+                  .replace(/\.\./g, '')
+                  .replace(/[/\\?%*:|"<>\x00-\x1f]/g, '_')
+                  .trim();
+                zip.folder(msgFolder)?.file(sanitizedFileName, attachment.fileData);
+              }
+            }
+          }
+        };
+
+        if (filteredInbox.length > 0) {
+          await processMessages(filteredInbox, 'Воридшуда');
+        }
+        if (filteredOutbox.length > 0) {
+          await processMessages(filteredOutbox, 'Ирсолшуда');
+        }
+      }
+
+      const zipBuffer = await zip.generateAsync({
+        type: 'nodebuffer',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 }
+      });
+
+      const filename = `Архиви_умумӣ_${periodFolder}.zip`;
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+      res.send(zipBuffer);
+    } catch (error: any) {
+      console.error('Global archive generation error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Push Notifications Endpoints
   
   // Configure VAPID details from backend environment variables

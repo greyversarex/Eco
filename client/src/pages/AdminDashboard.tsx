@@ -29,6 +29,7 @@ import { t } from '@/lib/i18n';
 import { Building2, Mail, LogOut, Plus, Pencil, Trash2, RefreshCw, Copy, Search, Users, GripVertical, Download, ChevronDown, ChevronRight, FileText, Key, Bell } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { buildApiUrl } from '@/lib/api-config';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useDepartmentIcon } from '@/hooks/use-department-icon';
@@ -254,6 +255,10 @@ function SortableCard({ department, onEdit, onCopyCode, onGenerateCode, onDelete
 export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isGlobalArchiveOpen, setIsGlobalArchiveOpen] = useState(false);
+  const [archiveDateFrom, setArchiveDateFrom] = useState('');
+  const [archiveDateTo, setArchiveDateTo] = useState('');
+  const [isArchiveDownloading, setIsArchiveDownloading] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [newDeptName, setNewDeptName] = useState('');
@@ -462,6 +467,56 @@ export default function AdminDashboard() {
       return;
     }
     changePasswordMutation.mutate({ currentPassword, newPassword });
+  };
+
+  const handleGlobalArchiveDownload = async () => {
+    if (!archiveDateFrom || !archiveDateTo) {
+      toast({
+        title: 'Хато',
+        description: 'Санаи аввал ва охирро интихоб кунед',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (archiveDateFrom > archiveDateTo) {
+      toast({
+        title: 'Хато',
+        description: 'Санаи аввал бояд пеш аз санаи охир бошад',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setIsArchiveDownloading(true);
+    try {
+      const url = buildApiUrl(`/api/admin/global-archive?from=${archiveDateFrom}&to=${archiveDateTo}`);
+      const res = await fetch(url, { credentials: 'include' });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Хатогӣ');
+      }
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      const periodLabel = archiveDateFrom === archiveDateTo ? archiveDateFrom : `${archiveDateFrom}_${archiveDateTo}`;
+      a.download = `Архиви_умумӣ_${periodLabel}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      toast({
+        title: 'Муваффақият',
+        description: 'Архив бомуваффақият боргирӣ шуд',
+      });
+      setIsGlobalArchiveOpen(false);
+    } catch (error: any) {
+      toast({
+        title: 'Хато',
+        description: error.message || 'Хатогӣ ҳангоми боргирии архив',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsArchiveDownloading(false);
+    }
   };
 
   // Drag and drop sensors
@@ -796,6 +851,69 @@ export default function AdminDashboard() {
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <h2 className="text-lg sm:text-xl font-semibold text-foreground">{t.departments}</h2>
+            <div className="flex gap-2 flex-wrap">
+              <Dialog open={isGlobalArchiveOpen} onOpenChange={(open) => {
+                setIsGlobalArchiveOpen(open);
+                if (!open) {
+                  setArchiveDateFrom('');
+                  setArchiveDateTo('');
+                }
+              }}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" data-testid="button-global-archive" className="gap-2 w-full sm:w-auto">
+                    <Download className="h-4 w-4" />
+                    <span>Боргирии архив</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[420px]">
+                  <DialogHeader>
+                    <DialogTitle>Боргирии архиви умумӣ</DialogTitle>
+                    <DialogDescription>
+                      Давраро интихоб кунед. Архив ҳамаи паёмҳои ҳамаи шуъбаҳоро дар бар мегирад.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="archive-from">Аз санаи</Label>
+                      <Input
+                        id="archive-from"
+                        type="date"
+                        value={archiveDateFrom}
+                        onChange={(e) => setArchiveDateFrom(e.target.value)}
+                        data-testid="input-archive-from"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="archive-to">То санаи</Label>
+                      <Input
+                        id="archive-to"
+                        type="date"
+                        value={archiveDateTo}
+                        onChange={(e) => setArchiveDateTo(e.target.value)}
+                        data-testid="input-archive-to"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsGlobalArchiveOpen(false)}
+                      data-testid="button-cancel-archive"
+                    >
+                      Бекор
+                    </Button>
+                    <Button
+                      onClick={handleGlobalArchiveDownload}
+                      disabled={isArchiveDownloading || !archiveDateFrom || !archiveDateTo}
+                      data-testid="button-download-archive"
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      {isArchiveDownloading ? 'Дар ҳоли тайёркунӣ...' : 'Боргирӣ'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button data-testid="button-add-department" className="gap-2 w-full sm:w-auto">
@@ -1147,6 +1265,7 @@ export default function AdminDashboard() {
                 </div>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
 
           {isLoading ? (
