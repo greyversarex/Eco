@@ -42,6 +42,7 @@ const PageBreak = Extension.create({
     return {
       insertPageBreak: () => ({ editor }: { editor: Editor }) => {
         return editor.chain()
+          .focus()
           .insertContent('<div class="page-break" contenteditable="false"><span>-- Саҳифаи нав --</span></div>')
           .run();
       },
