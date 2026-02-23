@@ -410,6 +410,9 @@ export function DocumentEditor({
       onChange(editor.getHTML());
     },
     editorProps: {
+      attributes: {
+        style: "font-family: 'Noto Sans', sans-serif;",
+      },
       handlePaste: (view, event, slice) => {
         const html = event.clipboardData?.getData('text/html');
         if (html && (html.includes('mso-') || html.includes('MsoNormal') || html.includes('xmlns:w=') || html.includes('urn:schemas-microsoft-com'))) {
