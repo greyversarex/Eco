@@ -518,7 +518,7 @@ export function DocumentEditor({
           <head>
             <title>${editableTitle}</title>
             <style>
-              body { font-family: 'Times New Roman', serif; padding: 20px; }
+              body { font-family: 'Noto Sans', sans-serif; padding: 20px; }
               @media print {
                 .page-break { page-break-after: always; }
               }
@@ -1287,7 +1287,7 @@ export function DocumentEditor({
             className={cn(
               "prose prose-sm max-w-none focus:outline-none",
               "[&_.ProseMirror]:min-h-[257mm] [&_.ProseMirror]:outline-none",
-              "[&_.ProseMirror]:font-['Times_New_Roman',serif] [&_.ProseMirror]:[font-size:14pt]",
+              "[&_.ProseMirror]:font-['Noto_Sans',sans-serif] [&_.ProseMirror]:[font-size:14pt]",
               "[&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-bold [&_.ProseMirror_h1]:my-4",
               "[&_.ProseMirror_h2]:text-xl [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_h2]:my-3",
               "[&_.ProseMirror_h3]:text-lg [&_.ProseMirror_h3]:font-bold [&_.ProseMirror_h3]:my-2",
