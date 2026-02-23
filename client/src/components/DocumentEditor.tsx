@@ -1,9 +1,9 @@
-import { useEditor, EditorContent, NodeViewWrapper, NodeViewProps, ReactNodeViewRenderer } from '@tiptap/react';
+import { useEditor, EditorContent, NodeViewWrapper, NodeViewProps, ReactNodeViewRenderer, Extension } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Image from '@tiptap/extension-image';
-import { mergeAttributes, Node } from '@tiptap/core';
+import { mergeAttributes, Node, Editor } from '@tiptap/core';
 import { DOMParser as ProseMirrorDOMParser } from '@tiptap/pm/model';
 import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
@@ -16,7 +16,17 @@ import Highlight from '@tiptap/extension-highlight';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
-import { Extension, Editor } from '@tiptap/core';
+
+const Indent = Extension.create({
+  name: 'indent',
+  addKeyboardShortcuts() {
+    return {
+      'Tab': () => {
+        return this.editor.commands.insertContent('    ');
+      },
+    };
+  },
+});
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -159,7 +169,7 @@ import {
   Superscript as SuperscriptIcon,
   Palette,
   Highlighter,
-  Indent,
+  Indent as IndentIcon,
   Outdent,
   Minus,
   ImagePlus,
@@ -181,6 +191,7 @@ import {
   FileText,
   Pencil,
   SeparatorHorizontal,
+  Printer,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useCallback, useEffect } from 'react';
@@ -222,6 +233,13 @@ const FONT_FAMILIES = [
   { value: 'Noto Serif', label: 'Noto Serif (Тоҷикӣ)' },
   { value: 'Roboto', label: 'Roboto' },
   { value: 'Open Sans', label: 'Open Sans (Тоҷикӣ)' },
+  { value: 'Inter', label: 'Inter' },
+  { value: 'Montserrat', label: 'Montserrat' },
+  { value: 'Playfair Display', label: 'Playfair Display' },
+  { value: 'Oswald', label: 'Oswald' },
+  { value: 'Lato', label: 'Lato' },
+  { value: 'Ubuntu', label: 'Ubuntu' },
+  { value: 'Merriweather', label: 'Merriweather' },
 ];
 
 const FONT_SIZES = [
@@ -371,6 +389,7 @@ export function DocumentEditor({
       Superscript,
       HorizontalRule,
       PageBreak,
+      Indent,
     ],
     content,
     editable: !readOnly,
@@ -474,6 +493,40 @@ export function DocumentEditor({
       } else {
         replaced = false;
       }
+    }
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      const contentHtml = editor.getHTML();
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${editableTitle}</title>
+            <style>
+              body { font-family: 'Times New Roman', serif; padding: 20px; }
+              @media print {
+                .page-break { page-break-after: always; }
+              }
+              img { max-width: 100%; height: auto; }
+              table { border-collapse: collapse; width: 100%; }
+              table, th, td { border: 1px solid black; }
+              th, td { padding: 8px; text-align: left; }
+            </style>
+          </head>
+          <body>
+            ${contentHtml}
+            <script>
+              window.onload = () => {
+                window.print();
+                window.close();
+              };
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
     }
   };
 
@@ -954,7 +1007,7 @@ export function DocumentEditor({
                 disabled={!editor.can().sinkListItem('listItem')}
                 title="Зиёд кардани ҷойгузорӣ"
               >
-                <Indent className="h-4 w-4" />
+                <IndentIcon className="h-4 w-4" />
               </ToolbarButton>
               <ToolbarButton
                 onClick={() => editor.chain().focus().liftListItem('listItem').run()}
@@ -1091,6 +1144,13 @@ export function DocumentEditor({
 
             {/* Undo/Redo */}
             <ToolbarGroup>
+              <ToolbarButton
+                onClick={handlePrint}
+                title="Чоп кардан"
+              >
+                <Printer className="h-4 w-4" />
+              </ToolbarButton>
+              <Separator orientation="vertical" className="h-6 mx-1" />
               <ToolbarButton
                 onClick={() => editor.chain().focus().undo().run()}
                 disabled={!editor.can().undo()}
