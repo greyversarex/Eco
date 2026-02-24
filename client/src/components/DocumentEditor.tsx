@@ -202,6 +202,7 @@ interface DocumentEditorProps {
   onChange: (html: string) => void;
   departmentName?: string;
   canApprove?: boolean;
+  canEdit?: boolean; // New prop to control editing permission
   onInsertStamp?: () => void;
   onExportDocx?: () => void;
   onExportPdf?: () => void;
@@ -321,6 +322,7 @@ export function DocumentEditor({
   onChange,
   departmentName,
   canApprove = false,
+  canEdit = true, // Default to true for backward compatibility
   onInsertStamp,
   onExportDocx,
   onExportPdf,
@@ -338,6 +340,10 @@ export function DocumentEditor({
   const [editableTitle, setEditableTitle] = useState(title || 'Ҳуҷҷати нав');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+
+  // Final read-only status is true if the component is explicitly readOnly 
+  // OR if the user doesn't have editing permissions
+  const isReadOnly = readOnly || !canEdit;
 
   useEffect(() => {
     if (title) {
@@ -406,7 +412,7 @@ export function DocumentEditor({
       Indent,
     ],
     content,
-    editable: !readOnly,
+    editable: !isReadOnly,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },

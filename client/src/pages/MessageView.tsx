@@ -82,6 +82,7 @@ export default function MessageView() {
   const [editingDocument, setEditingDocument] = useState<MessageDocument | null>(null);
   const [editedContent, setEditedContent] = useState('');
   const [isDocumentEditorOpen, setIsDocumentEditorOpen] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
   
   // Attachment editor state
   const [editingAttachment, setEditingAttachment] = useState<Attachment | null>(null);
@@ -302,6 +303,7 @@ export default function MessageView() {
   const handleOpenDocumentEditor = (doc: MessageDocument) => {
     setEditingDocument(doc);
     setEditedContent(doc.htmlContent);
+    setCanEdit(doc.canEdit);
     setIsDocumentEditorOpen(true);
   };
 
@@ -312,6 +314,13 @@ export default function MessageView() {
         htmlContent: editedContent 
       });
     }
+  };
+
+  const isReadOnly = editingDocument ? !canEdit && user?.userType === 'department' && message?.senderId !== user?.department?.id : false;
+
+  const handleDocumentChange = (content: string) => {
+    if (isReadOnly) return;
+    setEditedContent(content);
   };
 
   // Check if attachment can be edited in document editor

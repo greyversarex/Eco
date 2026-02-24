@@ -1121,6 +1121,7 @@ export function registerRoutes(app: Express) {
         templateId: templateId || null,
         title: title.trim(),
         htmlContent,
+        canEdit: req.body.canEdit === true || req.body.canEdit === 'true',
         lastEditedBy: departmentId,
       });
       
@@ -1133,7 +1134,7 @@ export function registerRoutes(app: Express) {
   app.patch("/api/message-documents/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const { title, htmlContent } = req.body;
+      const { title, htmlContent, canEdit } = req.body;
       
       // Get the document first to check authorization
       const existingDoc = await storage.getMessageDocumentById(id);
@@ -1156,6 +1157,12 @@ export function registerRoutes(app: Express) {
         }
         const isSender = message.senderId === departmentId;
         const isRecipient = message.recipientIds?.includes(departmentId);
+        
+        // If recipient, check if canEdit is enabled for this document
+        if (isRecipient && !existingDoc.canEdit && !isSender) {
+          return res.status(403).json({ error: "Шумо ҳуқуқи таҳрири ин ҳуҷҷатро надоред" });
+        }
+
         if (!isSender && !isRecipient) {
           return res.status(403).json({ error: "Танҳо фиристанда ё гиранда метавонад ҳуҷҷатро таҳрир кунад" });
         }
@@ -1164,6 +1171,7 @@ export function registerRoutes(app: Express) {
       const updates: any = {};
       if (title !== undefined) updates.title = title.trim();
       if (htmlContent !== undefined) updates.htmlContent = htmlContent;
+      if (canEdit !== undefined) updates.canEdit = canEdit === true || canEdit === 'true';
       
       if (departmentId) {
         updates.lastEditedBy = departmentId;

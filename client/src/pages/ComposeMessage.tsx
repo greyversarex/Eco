@@ -63,6 +63,7 @@ export default function ComposeMessage() {
   const [showDocumentEditor, setShowDocumentEditor] = useState(false);
   const [documentContent, setDocumentContent] = useState('');
   const [documentTitle, setDocumentTitle] = useState('');
+  const [canEditDocuments, setCanEditDocuments] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -173,6 +174,7 @@ export default function ComposeMessage() {
             templateId: selectedTemplateId,
             title: documentTitle,
             htmlContent: documentContent,
+            canEdit: canEditDocuments,
           });
         } catch (error) {
           console.error('Failed to save document:', error);
@@ -296,6 +298,7 @@ export default function ComposeMessage() {
                 templateId: selectedTemplateId,
                 title: documentTitle,
                 htmlContent: documentContent,
+                canEdit: canEditDocuments,
               });
             }
           } catch (error) {
@@ -331,6 +334,7 @@ export default function ComposeMessage() {
               templateId: selectedTemplateId,
               title: documentTitle,
               htmlContent: documentContent,
+              canEdit: canEditDocuments,
             });
           } catch (error) {
             console.error('Failed to save document:', error);
@@ -910,36 +914,64 @@ export default function ComposeMessage() {
                       Интихоб кардани файлҳо
                     </Button>
                     {documentTemplates.length > 0 && (
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowTemplateDialog(true)}
+                          disabled={sendMessageMutation.isPending || isUploadingFiles}
+                          className="gap-2"
+                          data-testid="button-create-document"
+                        >
+                          <FileText className="h-4 w-4" />
+                          Ҳуҷҷат аз намуна
+                        </Button>
+                        {documentContent && (
+                          <div className="flex items-center space-x-2 px-1">
+                            <Checkbox 
+                              id="canEditDocuments" 
+                              checked={canEditDocuments}
+                              onCheckedChange={(checked) => setCanEditDocuments(checked === true)}
+                            />
+                            <Label htmlFor="canEditDocuments" className="text-xs font-normal cursor-pointer">
+                              Иҷозати таҳрир ба қабулкунанда
+                            </Label>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-2">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => setShowTemplateDialog(true)}
+                        onClick={() => {
+                          setDocumentTitle('Ҳуҷҷати нав');
+                          setDocumentContent('<p></p>');
+                          setSelectedTemplateId(null);
+                          setShowDocumentEditor(true);
+                        }}
                         disabled={sendMessageMutation.isPending || isUploadingFiles}
                         className="gap-2"
-                        data-testid="button-create-document"
+                        data-testid="button-create-document-new"
                       >
-                        <FileText className="h-4 w-4" />
-                        Ҳуҷҷат аз намуна
+                        <FileEdit className="h-4 w-4" />
+                        Сохтани Ҳуҷҷат
                       </Button>
-                    )}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setDocumentTitle('Ҳуҷҷати нав');
-                        setDocumentContent('<p></p>');
-                        setSelectedTemplateId(null);
-                        setShowDocumentEditor(true);
-                      }}
-                      disabled={sendMessageMutation.isPending || isUploadingFiles}
-                      className="gap-2"
-                      data-testid="button-create-document-new"
-                    >
-                      <FileEdit className="h-4 w-4" />
-                      Сохтани Ҳуҷҷат
-                    </Button>
+                      {documentContent && !selectedTemplateId && (
+                        <div className="flex items-center space-x-2 px-1">
+                          <Checkbox 
+                            id="canEditDocumentsNew" 
+                            checked={canEditDocuments}
+                            onCheckedChange={(checked) => setCanEditDocuments(checked === true)}
+                          />
+                          <Label htmlFor="canEditDocumentsNew" className="text-xs font-normal cursor-pointer">
+                            Иҷозати таҳрир ба қабулкунанда
+                          </Label>
+                        </div>
+                      )}
+                    </div>
                     {uploadedFiles.length > 0 && (
                       <span className="text-sm text-muted-foreground">
                         Файлҳои интихобшуда: {uploadedFiles.length}/5
