@@ -41,6 +41,9 @@ interface AdminNotification {
   imageMimeType: string | null;
   positiveButtonText: string | null;
   negativeButtonText: string | null;
+  positiveButtonColor: string;
+  negativeButtonColor: string;
+  evasiveButton: string;
   effectType: string;
   isActive: boolean;
   recipientDepartmentIds: number[] | null;

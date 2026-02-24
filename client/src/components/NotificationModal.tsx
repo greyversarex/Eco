@@ -72,7 +72,10 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
 
   const handleMoveButton = useCallback((type: 'positive' | 'negative') => {
     if (moving || !notification) return;
-    if (notification.evasiveButton !== type) return;
+    
+    const evasiveSetting = (notification as any).evasiveButton || 'negative';
+    
+    if (evasiveSetting !== type) return;
 
     setMoving(true);
 
@@ -84,8 +87,8 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
     const rect = container.getBoundingClientRect();
     const btnWidth = 140;
     const btnHeight = 40;
-    const padding = 10;
-    const headerHeight = 60;
+    const padding = 20; 
+    const headerHeight = 80; 
     const maxX = rect.width - btnWidth - padding;
     const maxY = rect.height - btnHeight - padding;
     const minY = headerHeight;
@@ -100,9 +103,9 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
       attempts++;
     } while (
       currentPos &&
-      Math.abs(newX - currentPos.x) < 80 &&
-      Math.abs(newY - currentPos.y) < 40 &&
-      attempts < 10
+      Math.abs(newX - currentPos.x) < 150 && 
+      Math.abs(newY - currentPos.y) < 80 && 
+      attempts < 30 
     );
 
     if (type === 'positive') {
@@ -111,7 +114,7 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
       setNegativePos({ x: newX, y: newY });
     }
 
-    setTimeout(() => setMoving(false), 350);
+    setTimeout(() => setMoving(false), 100);
   }, [positivePos, negativePos, moving, notification]);
 
   useEffect(() => {
@@ -125,13 +128,14 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
   const hasPositive = notification.positiveButtonText && notification.positiveButtonText.trim();
   const hasNegative = notification.negativeButtonText && notification.negativeButtonText.trim();
 
-  const getColorClass = (color: string) => {
-    switch (color) {
-      case 'red': return 'bg-red-600 hover:bg-red-700 text-white';
-      case 'orange': return 'bg-orange-500 hover:bg-orange-600 text-white';
-      case 'yellow': return 'bg-yellow-400 hover:bg-yellow-500 text-black';
+  const getColorClass = (color: string | null | undefined) => {
+    const c = color || 'green';
+    switch (c) {
+      case 'red': return 'bg-red-600 hover:bg-red-700 text-white border-red-700';
+      case 'orange': return 'bg-orange-500 hover:bg-orange-600 text-white border-orange-600';
+      case 'yellow': return 'bg-yellow-400 hover:bg-yellow-500 text-black border-yellow-500';
       case 'green':
-      default: return 'bg-green-600 hover:bg-green-700 text-white';
+      default: return 'bg-green-600 hover:bg-green-700 text-white border-green-700';
     }
   };
 
@@ -198,7 +202,7 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
                 <div className="flex justify-center gap-3">
                   {hasPositive && (
                     <div
-                      className={positivePos ? "transition-all duration-300 ease-out absolute" : ""}
+                      className={positivePos ? "transition-all duration-300 ease-out absolute" : "relative flex justify-center"}
                       style={positivePos ? {
                         left: `${positivePos.x}px`,
                         top: `${positivePos.y}px`,
@@ -208,7 +212,7 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
                     >
                       <Button
                         onClick={handlePositive}
-                        className={`${getColorClass(notification.positiveButtonColor)} px-8`}
+                        className={`${getColorClass(notification.positiveButtonColor)} px-8 shadow-md relative z-10`}
                         onMouseEnter={() => handleMoveButton('positive')}
                         onTouchStart={() => handleMoveButton('positive')}
                         data-testid="button-notification-positive"
@@ -221,7 +225,7 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
 
                 {hasNegative && (
                   <div 
-                    className={negativePos ? "transition-all duration-300 ease-out absolute" : "flex justify-center mt-3"}
+                    className={negativePos ? "transition-all duration-300 ease-out absolute" : "flex justify-center mt-3 relative"}
                     style={negativePos ? {
                       left: `${negativePos.x}px`,
                       top: `${negativePos.y}px`,
@@ -230,7 +234,7 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
                     } : {}}
                   >
                     <Button
-                      className={`${getColorClass(notification.negativeButtonColor)} px-8`}
+                      className={`${getColorClass(notification.negativeButtonColor)} px-8 shadow-md relative z-10`}
                       onMouseEnter={() => handleMoveButton('negative')}
                       onTouchStart={() => handleMoveButton('negative')}
                       data-testid="button-notification-negative"

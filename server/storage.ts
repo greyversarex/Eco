@@ -1386,12 +1386,12 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
-  async createAdminNotification(notification: InsertAdminNotification): Promise<AdminNotification> {
+  async createAdminNotification(notification: any): Promise<AdminNotification> {
     const result = await db.insert(adminNotifications).values(notification).returning();
     return result[0];
   }
 
-  async updateAdminNotification(id: number, notification: Partial<InsertAdminNotification>): Promise<AdminNotification | undefined> {
+  async updateAdminNotification(id: number, notification: any): Promise<AdminNotification | undefined> {
     const result = await db.update(adminNotifications).set(notification).where(eq(adminNotifications.id, id)).returning();
     return result[0];
   }

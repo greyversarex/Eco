@@ -4347,10 +4347,10 @@ export function registerRoutes(app: Express) {
       return res.status(403).json({ error: 'Admin access required' });
     }
     try {
-      const data = insertAdminNotificationSchema.parse(req.body);
-      const notification = await storage.createAdminNotification(data);
+      const notification = await storage.createAdminNotification(req.body);
       res.json(notification);
     } catch (error: any) {
+      console.error('Error creating notification:', error);
       res.status(500).json({ error: error.message });
     }
   });
@@ -4362,16 +4362,12 @@ export function registerRoutes(app: Express) {
     }
     try {
       const id = parseInt(req.params.id);
-      const allowedFields = ['title', 'message', 'positiveButtonText', 'negativeButtonText', 'effectType', 'isActive', 'recipientDepartmentIds', 'imageData', 'imageMimeType'];
-      const validEffectTypes = ['confetti', 'fireworks', 'stars', 'hearts', 'snowflakes', 'bubbles', 'sparkles', 'ribbons', 'flowers', 'rainbowRain', 'coins', 'butterflies', 'leaves', 'lightning', 'balloons', 'diamonds', 'music', 'fire', 'matrix', 'aurora'];
+      const allowedFields = ['title', 'message', 'positiveButtonText', 'negativeButtonText', 'positiveButtonColor', 'negativeButtonColor', 'evasiveButton', 'effectType', 'isActive', 'recipientDepartmentIds', 'imageData', 'imageMimeType'];
       const updateData: Record<string, any> = {};
       for (const key of allowedFields) {
         if (key in req.body) {
           updateData[key] = req.body[key];
         }
-      }
-      if (updateData.effectType && !validEffectTypes.includes(updateData.effectType)) {
-        return res.status(400).json({ error: 'Invalid effect type' });
       }
       const notification = await storage.updateAdminNotification(id, updateData);
       if (!notification) {
