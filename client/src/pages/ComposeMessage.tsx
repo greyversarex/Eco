@@ -631,7 +631,13 @@ export default function ComposeMessage() {
                 </Label>
                 <Select 
                   value={documentTypeId} 
-                  onValueChange={setDocumentTypeId}
+                  onValueChange={(value) => {
+                    setDocumentTypeId(value);
+                    const selectedType = documentTypes.find(dt => dt.id.toString() === value);
+                    if (selectedType && documentContent && !selectedTemplateId) {
+                      setDocumentTitle(selectedType.name);
+                    }
+                  }}
                 >
                   <SelectTrigger id="documentType" data-testid="select-document-type">
                     <SelectValue placeholder="Намуди ҳуҷҷатро интихоб кунед" />
@@ -931,49 +937,6 @@ export default function ComposeMessage() {
                           <FileText className="h-4 w-4" />
                           Ҳуҷҷат аз намуна
                         </Button>
-                        {documentContent && (
-                          <div className="flex flex-col gap-2 px-1">
-                            <div className="flex items-center space-x-2">
-                              <Checkbox 
-                                id="canEditDocuments" 
-                                checked={canEditDocuments}
-                                onCheckedChange={(checked) => setCanEditDocuments(checked === true)}
-                              />
-                              <Label htmlFor="canEditDocuments" className="text-xs font-normal cursor-pointer">
-                                Иҷозати таҳрир ба ҳама қабулкунандагон
-                              </Label>
-                            </div>
-                            
-                            {!canEditDocuments && selectedRecipients.length > 0 && (
-                              <div className="space-y-2 mt-1 border-l-2 border-green-500 pl-3">
-                                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Кӣ метавонад таҳрир кунад:</Label>
-                                <div className="grid grid-cols-1 gap-1 max-h-32 overflow-y-auto">
-                                  {selectedRecipients.map(deptId => {
-                                    const dept = departments.find(d => d.id === deptId);
-                                    return (
-                                      <div key={deptId} className="flex items-center space-x-2">
-                                        <Checkbox 
-                                          id={`edit-dept-${deptId}`} 
-                                          checked={editableByRecipientIds.includes(deptId)}
-                                          onCheckedChange={(checked) => {
-                                            if (checked) {
-                                              setEditableByRecipientIds([...editableByRecipientIds, deptId]);
-                                            } else {
-                                              setEditableByRecipientIds(editableByRecipientIds.filter(id => id !== deptId));
-                                            }
-                                          }}
-                                        />
-                                        <Label htmlFor={`edit-dept-${deptId}`} className="text-[11px] cursor-pointer truncate">
-                                          {dept?.name}
-                                        </Label>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
                       </div>
                     )}
                     <div className="flex flex-col gap-2">
@@ -982,7 +945,8 @@ export default function ComposeMessage() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          setDocumentTitle('Ҳуҷҷати нав');
+                          const selectedType = documentTypes.find(dt => dt.id.toString() === documentTypeId);
+                          setDocumentTitle(selectedType ? selectedType.name : 'Ҳуҷҷати нав');
                           setDocumentContent('<p></p>');
                           setSelectedTemplateId(null);
                           setShowDocumentEditor(true);
@@ -994,18 +958,6 @@ export default function ComposeMessage() {
                         <FileEdit className="h-4 w-4" />
                         Сохтани Ҳуҷҷат
                       </Button>
-                      {documentContent && !selectedTemplateId && (
-                        <div className="flex items-center space-x-2 px-1">
-                          <Checkbox 
-                            id="canEditDocumentsNew" 
-                            checked={canEditDocuments}
-                            onCheckedChange={(checked) => setCanEditDocuments(checked === true)}
-                          />
-                          <Label htmlFor="canEditDocumentsNew" className="text-xs font-normal cursor-pointer">
-                            Иҷозати таҳрир ба қабулкунанда
-                          </Label>
-                        </div>
-                      )}
                     </div>
                     {uploadedFiles.length > 0 && (
                       <span className="text-sm text-muted-foreground">
@@ -1119,27 +1071,71 @@ export default function ComposeMessage() {
         </Card>
 
         {documentContent && !showDocumentEditor && (
-          <div className="mt-4 flex items-center gap-2">
-            <div
-              className="flex items-center gap-3 px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors flex-1"
-              onClick={() => setShowDocumentEditor(true)}
-              data-testid="button-open-document"
-            >
-              <FileText className="h-6 w-6 text-blue-600 shrink-0" />
-              <div className="min-w-0">
-                <p className="font-medium text-blue-900 truncate">{documentTitle}</p>
-                <p className="text-xs text-blue-600">Барои таҳрир пахш кунед</p>
+          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
+            <div className="flex items-center gap-2">
+              <div
+                className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-blue-100 transition-colors flex-1"
+                onClick={() => setShowDocumentEditor(true)}
+                data-testid="button-open-document"
+              >
+                <FileText className="h-6 w-6 text-blue-600 shrink-0" />
+                <div className="min-w-0">
+                  <p className="font-medium text-blue-900 truncate">{documentTitle}</p>
+                  <p className="text-xs text-blue-600">Барои таҳрир пахш кунед</p>
+                </div>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleCloseDocumentEditor}
+                data-testid="button-remove-document"
+                className="shrink-0 mr-2"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleCloseDocumentEditor}
-              data-testid="button-remove-document"
-              className="shrink-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="px-4 pb-3 pt-0">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="canEditDocumentInCard" 
+                  checked={canEditDocuments}
+                  onCheckedChange={(checked) => setCanEditDocuments(checked === true)}
+                  data-testid="checkbox-can-edit-document"
+                />
+                <Label htmlFor="canEditDocumentInCard" className="text-xs font-normal cursor-pointer text-blue-800">
+                  Иҷозати таҳрир ба қабулкунанда
+                </Label>
+              </div>
+              {!canEditDocuments && selectedRecipients.length > 0 && (
+                <div className="space-y-2 mt-2 border-l-2 border-blue-400 pl-3">
+                  <Label className="text-[10px] uppercase font-bold text-blue-600">Кӣ метавонад таҳрир кунад:</Label>
+                  <div className="grid grid-cols-1 gap-1 max-h-32 overflow-y-auto">
+                    {selectedRecipients.map(deptId => {
+                      const dept = departments.find(d => d.id === deptId);
+                      return (
+                        <div key={deptId} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`edit-dept-card-${deptId}`} 
+                            checked={editableByRecipientIds.includes(deptId)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setEditableByRecipientIds([...editableByRecipientIds, deptId]);
+                              } else {
+                                setEditableByRecipientIds(editableByRecipientIds.filter(id => id !== deptId));
+                              }
+                            }}
+                            data-testid={`checkbox-edit-dept-${deptId}`}
+                          />
+                          <Label htmlFor={`edit-dept-card-${deptId}`} className="text-[11px] cursor-pointer truncate text-blue-800">
+                            {dept?.name}
+                          </Label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>
