@@ -714,32 +714,45 @@ export function DocumentEditor({
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       const contentHtml = editor?.getHTML() || '';
+      // Clear title to avoid browser adding it to header
       printWindow.document.write(`
         <html>
           <head>
-            <title>${editableTitle}</title>
+            <title></title>
             <style>
               @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Noto+Serif:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&display=swap');
               @page {
                 size: A4;
                 margin: 20mm;
               }
+              html, body {
+                height: 100%;
+                margin: 0 !important;
+                padding: 0 !important;
+              }
               body { 
                 font-family: 'Noto Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-                padding: 0;
-                margin: 0;
                 line-height: 1.5;
                 font-size: 14pt;
                 color: #000;
                 background: #fff;
               }
               @media print {
-                body { padding: 0; margin: 0; }
+                @page {
+                  margin: 20mm;
+                }
+                body { 
+                  padding: 0; 
+                  margin: 0 !important; 
+                }
                 .page-break { 
                   page-break-after: always;
-                  display: none; /* Hide the visual marker in print */
+                  display: none;
                 }
                 button, .no-print { display: none !important; }
+                
+                /* Hide header and footer (date, title, URL) */
+                header, footer, .header, .footer { display: none !important; }
               }
               img { max-width: 100%; height: auto; display: block; margin: 1em 0; }
               table { border-collapse: collapse; width: 100%; margin-bottom: 1em; table-layout: fixed; }
@@ -751,7 +764,6 @@ export function DocumentEditor({
               .text-justify { text-align: justify !important; }
               .text-left { text-align: left !important; }
               
-              /* Support for Tiptap styles in print */
               .ProseMirror { white-space: pre-wrap; }
               [data-align="center"] { text-align: center !important; }
               [data-align="right"] { text-align: right !important; }
