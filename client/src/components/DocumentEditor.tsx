@@ -39,6 +39,10 @@ const CustomParagraph = Paragraph.extend({
           if (paddingLeft && paddingLeft.endsWith('px')) {
             return parseInt(paddingLeft, 10) / 40;
           }
+          const marginLeft = element.style.marginLeft;
+          if (marginLeft && marginLeft.endsWith('px')) {
+            return parseInt(marginLeft, 10) / 40;
+          }
           return 0;
         },
         renderHTML: (attributes: any) => {
@@ -178,7 +182,20 @@ const cleanWordHtml = (html: string): string => {
     }
     const marginMatch = styleContent.match(/margin(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
     if (marginMatch) {
-      marginMatch.forEach(m => preservedStyles.push(m.trim()));
+      marginMatch.forEach(m => {
+        const style = m.trim().toLowerCase();
+        if (style.startsWith('margin-left')) {
+          const val = style.split(':')[1].trim();
+          if (val.endsWith('pt')) {
+            const px = parseFloat(val) * 1.33;
+            preservedStyles.push(`padding-left: ${px}px`);
+          } else {
+            preservedStyles.push(`padding-left: ${val}`);
+          }
+        } else {
+          preservedStyles.push(style);
+        }
+      });
     }
     const paddingMatch = styleContent.match(/padding(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
     if (paddingMatch) {
@@ -199,6 +216,18 @@ const cleanWordHtml = (html: string): string => {
     const marginBottomMatch = styleContent.match(/margin-bottom:\s*([^;]+)/i);
     if (marginBottomMatch) {
       preservedStyles.push(`margin-bottom: ${marginBottomMatch[1].trim()}`);
+    }
+    const msoMarginTopMatch = styleContent.match(/mso-margin-top-alt:\s*([^;]+)/i);
+    if (msoMarginTopMatch) {
+      preservedStyles.push(`margin-top: ${msoMarginTopMatch[1].trim()}`);
+    }
+    const msoMarginBottomMatch = styleContent.match(/mso-margin-bottom-alt:\s*([^;]+)/i);
+    if (msoMarginBottomMatch) {
+      preservedStyles.push(`margin-bottom: ${msoMarginBottomMatch[1].trim()}`);
+    }
+    const msoLineHeightMatch = styleContent.match(/mso-line-height-alt:\s*([^;]+)/i);
+    if (msoLineHeightMatch) {
+      preservedStyles.push(`line-height: ${msoLineHeightMatch[1].trim()}`);
     }
     if (preservedStyles.length > 0) {
       return `style="${preservedStyles.join('; ')}"`;
