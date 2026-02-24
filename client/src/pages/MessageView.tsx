@@ -155,8 +155,8 @@ export default function MessageView() {
     if (id && message && !message.isRead && user?.userType === 'department' && !markAsReadMutation.isPending) {
       const currentDepartmentId = user.department.id;
       // Check if current user is recipient (either via recipientId or recipientIds array)
-      const isRecipient = message.recipientId === currentDepartmentId || 
-                          (message.recipientIds && message.recipientIds.includes(currentDepartmentId));
+      const isRecipient = message.recipientId === user.department.id || 
+                      (message.recipientIds && message.recipientIds.includes(user.department.id));
       
       if (isRecipient) {
         markAsReadMutation.mutate(id);
@@ -324,9 +324,9 @@ export default function MessageView() {
 
   const isReadOnly = editingDocument ? 
     !localCanEdit && 
-    !localEditableIds.includes(user?.department?.id || 0) &&
+    !(user?.userType === 'department' && user.department && localEditableIds.includes(user.department.id)) &&
     user?.userType === 'department' && 
-    message?.senderId !== user?.department?.id 
+    user.department && message?.senderId !== user.department.id 
     : false;
 
   const handleDocumentChange = (content: string) => {
@@ -949,7 +949,7 @@ export default function MessageView() {
                     </h3>
                     <div className="space-y-3">
                       {messageDocuments.map((doc, index) => {
-                        const isOwner = user?.userType === 'department' && message?.senderId === user.department.id;
+                        const isOwner = user?.userType === 'department' && user.department && message?.senderId === user.department.id;
                         const hasSpecificPerm = doc.editableByRecipientIds?.includes(user?.department?.id || 0);
                         const canEditDoc = doc.canEdit || hasSpecificPerm || isOwner || user?.userType === 'admin';
                         
@@ -1012,7 +1012,7 @@ export default function MessageView() {
                       />
                     </div>
                     <div className="flex justify-end gap-2 pt-4 flex-shrink-0 border-t">
-                      {user?.userType === 'department' && message?.senderId === user.department.id && editingDocument && (
+                      {user?.userType === 'department' && user.department && message?.senderId === user.department.id && editingDocument && (
                         <div className="mr-auto flex flex-col gap-2">
                           <div className="flex items-center space-x-2">
                             <Checkbox 
@@ -1025,20 +1025,19 @@ export default function MessageView() {
                           
                           {!localCanEdit && (message.recipientIds?.length || 0) > 0 && (
                             <div className="flex flex-wrap gap-2 mt-1">
-                              {message.recipientIds?.map(deptId => {
-                                const dept = departments.find(d => d.id === deptId);
-                                const isPermitted = localEditableIds.includes(deptId);
+                              {departments.filter((d: any) => !d.parentDepartmentId && (message?.recipientIds?.includes(d.id) || message?.recipientId === d.id)).map((dept: any) => {
+                                const isPermitted = localEditableIds.includes(dept.id);
                                 return (
                                   <Button 
-                                    key={deptId}
+                                    key={dept.id}
                                     variant={isPermitted ? "default" : "outline"}
                                     size="sm"
-                                    className={`h-7 text-[10px] px-2 ${isPermitted ? "bg-green-600 hover:bg-green-700 text-white border-green-600" : ""}`}
+                                    className={`h-7 text-[10px] px-2 ${isPermitted ? "bg-green-600 hover:bg-green-700 text-white border-green-600 shadow-[0_0_8px_rgba(22,163,74,0.5)]" : ""}`}
                                     onClick={() => {
-                                      setLocalEditableIds(prev => 
+                                      setLocalEditableIds((prev: number[]) => 
                                         isPermitted 
-                                          ? prev.filter(id => id !== deptId)
-                                          : [...prev, deptId]
+                                          ? prev.filter((id: number) => id !== dept.id)
+                                          : [...prev, dept.id]
                                       );
                                     }}
                                   >
