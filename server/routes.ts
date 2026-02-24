@@ -4347,7 +4347,14 @@ export function registerRoutes(app: Express) {
       return res.status(403).json({ error: 'Admin access required' });
     }
     try {
-      const notification = await storage.createAdminNotification(req.body);
+      const allowedFields = ['title', 'message', 'buttons', 'effectType', 'isActive', 'recipientDepartmentIds', 'imageData', 'imageMimeType'];
+      const data: Record<string, any> = {};
+      for (const key of allowedFields) {
+        if (key in req.body) {
+          data[key] = req.body[key];
+        }
+      }
+      const notification = await storage.createAdminNotification(data as any);
       res.json(notification);
     } catch (error: any) {
       console.error('Error creating notification:', error);
@@ -4362,7 +4369,7 @@ export function registerRoutes(app: Express) {
     }
     try {
       const id = parseInt(req.params.id);
-      const allowedFields = ['title', 'message', 'positiveButtonText', 'negativeButtonText', 'positiveButtonColor', 'negativeButtonColor', 'evasiveButton', 'effectType', 'isActive', 'recipientDepartmentIds', 'imageData', 'imageMimeType'];
+      const allowedFields = ['title', 'message', 'buttons', 'effectType', 'isActive', 'recipientDepartmentIds', 'imageData', 'imageMimeType'];
       const updateData: Record<string, any> = {};
       for (const key of allowedFields) {
         if (key in req.body) {

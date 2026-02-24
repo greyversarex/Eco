@@ -33,17 +33,20 @@ import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
 
+interface NotificationButton {
+  text: string;
+  color: string;
+  isEvasive: boolean;
+  effect?: string;
+}
+
 interface AdminNotification {
   id: number;
   title: string;
   message: string;
   imageData: string | null;
   imageMimeType: string | null;
-  positiveButtonText: string | null;
-  negativeButtonText: string | null;
-  positiveButtonColor: string;
-  negativeButtonColor: string;
-  evasiveButton: string;
+  buttons: NotificationButton[];
   effectType: string;
   isActive: boolean;
   recipientDepartmentIds: number[] | null;
@@ -65,11 +68,10 @@ export default function AdminNotifications() {
   const [editingNotification, setEditingNotification] = useState<AdminNotification | null>(null);
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
-  const [positiveButtonText, setPositiveButtonText] = useState('');
-  const [negativeButtonText, setNegativeButtonText] = useState('');
-  const [positiveButtonColor, setPositiveButtonColor] = useState<string>('green');
-  const [negativeButtonColor, setNegativeButtonColor] = useState<string>('red');
-  const [evasiveButton, setEvasiveButton] = useState<string>('negative');
+  const [buttons, setButtons] = useState<NotificationButton[]>([
+    { text: 'Ҳа', color: 'green', isEvasive: false },
+    { text: 'Не', color: 'red', isEvasive: true }
+  ]);
   const [effectType, setEffectType] = useState<string>('confetti');
   const [isActive, setIsActive] = useState(true);
   const [selectedDeptIds, setSelectedDeptIds] = useState<number[]>([]);
@@ -143,11 +145,10 @@ export default function AdminNotifications() {
     setEditingNotification(null);
     setTitle('');
     setMessage('');
-    setPositiveButtonText('');
-    setNegativeButtonText('');
-    setPositiveButtonColor('green');
-    setNegativeButtonColor('red');
-    setEvasiveButton('negative');
+    setButtons([
+      { text: 'Ҳа', color: 'green', isEvasive: false },
+      { text: 'Не', color: 'red', isEvasive: true }
+    ]);
     setEffectType('confetti');
     setIsActive(true);
     setSelectedDeptIds([]);
@@ -160,11 +161,7 @@ export default function AdminNotifications() {
     setEditingNotification(n);
     setTitle(n.title);
     setMessage(n.message);
-    setPositiveButtonText(n.positiveButtonText || '');
-    setNegativeButtonText(n.negativeButtonText || '');
-    setPositiveButtonColor((n as any).positiveButtonColor || 'green');
-    setNegativeButtonColor((n as any).negativeButtonColor || 'red');
-    setEvasiveButton((n as any).evasiveButton || 'negative');
+    setButtons(n.buttons || []);
     setEffectType(n.effectType);
     setIsActive(n.isActive);
     setImageData(n.imageData || null);
@@ -216,11 +213,7 @@ export default function AdminNotifications() {
       message,
       imageData: imageData || null,
       imageMimeType: imageMimeType || null,
-      positiveButtonText: positiveButtonText.trim() || null,
-      negativeButtonText: negativeButtonText.trim() || null,
-      positiveButtonColor,
-      negativeButtonColor,
-      evasiveButton,
+      buttons,
       effectType,
       isActive,
       recipientDepartmentIds: allDepartments ? null : selectedDeptIds,
@@ -256,6 +249,18 @@ export default function AdminNotifications() {
     { id: 'orange', name: 'Норинҷӣ', class: 'bg-orange-500' },
     { id: 'yellow', name: 'Зард', class: 'bg-yellow-400 text-black' },
   ];
+
+  const addButton = () => {
+    setButtons([...buttons, { text: `Тугмаи ${buttons.length + 1}`, color: 'green', isEvasive: false }]);
+  };
+
+  const removeButton = (index: number) => {
+    setButtons(buttons.filter((_, i) => i !== index));
+  };
+
+  const updateButton = (index: number, updates: Partial<NotificationButton>) => {
+    setButtons(buttons.map((btn, i) => i === index ? { ...btn, ...updates } : btn));
+  };
 
   return (
     <div
@@ -325,16 +330,11 @@ export default function AdminNotifications() {
                       </div>
                       <p className="text-sm text-muted-foreground line-clamp-2">{n.message}</p>
                       <div className="flex items-center gap-3 flex-wrap mt-2 text-xs text-muted-foreground">
-                        {n.positiveButtonText && (
-                          <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded">
-                            {n.positiveButtonText}
+                        {n.buttons?.map((btn, i) => (
+                          <span key={i} className={`px-2 py-0.5 rounded ${BUTTON_COLORS.find(c => c.id === btn.color)?.class || 'bg-gray-100'}`}>
+                            {btn.text} {btn.isEvasive && '🏃'}
                           </span>
-                        )}
-                        {n.negativeButtonText && (
-                          <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded">
-                            {n.negativeButtonText}
-                          </span>
-                        )}
+                        ))}
                         <span className="flex items-center gap-1">
                           <Sparkles className="h-3 w-3" />
                           {EFFECT_TYPES.find(e => e.id === n.effectType)?.name || n.effectType}
@@ -457,78 +457,64 @@ export default function AdminNotifications() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Тугмаи мусбат</Label>
-                <Input
-                  value={positiveButtonText}
-                  onChange={(e) => setPositiveButtonText(e.target.value)}
-                  placeholder="Масалан: Ҳа"
-                  data-testid="input-notification-positive"
-                />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Тугмаҳо</Label>
+                <Button variant="outline" size="sm" onClick={addButton} data-testid="button-add-notif-btn">
+                  <Plus className="h-3 w-3 mr-1" />
+                  Илова кардан
+                </Button>
               </div>
-              <div>
-                <Label>Ранги тугма</Label>
-                <Select value={positiveButtonColor} onValueChange={setPositiveButtonColor}>
-                  <SelectTrigger data-testid="select-positive-color">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BUTTON_COLORS.map(c => (
-                      <SelectItem key={c.id} value={c.id}>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${c.class}`} />
-                          {c.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Тугмаи манфӣ</Label>
-                <Input
-                  value={negativeButtonText}
-                  onChange={(e) => setNegativeButtonText(e.target.value)}
-                  placeholder="Масалан: Не"
-                  data-testid="input-notification-negative"
-                />
-              </div>
-              <div>
-                <Label>Ранги тугма</Label>
-                <Select value={negativeButtonColor} onValueChange={setNegativeButtonColor}>
-                  <SelectTrigger data-testid="select-negative-color">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BUTTON_COLORS.map(c => (
-                      <SelectItem key={c.id} value={c.id}>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${c.class}`} />
-                          {c.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label>Кадом тугма мегурезад?</Label>
-              <Select value={evasiveButton} onValueChange={setEvasiveButton}>
-                <SelectTrigger data-testid="select-evasive-button">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Ҳеҷ кадомаш</SelectItem>
-                  <SelectItem value="positive">Тугмаи мусбат</SelectItem>
-                  <SelectItem value="negative">Тугмаи манфӣ</SelectItem>
-                </SelectContent>
-              </Select>
+              
+              {buttons.map((btn, index) => (
+                <div key={index} className="grid grid-cols-12 gap-2 items-end border p-2 rounded-md bg-muted/10">
+                  <div className="col-span-5">
+                    <Label className="text-[10px] uppercase">Матн</Label>
+                    <Input
+                      value={btn.text}
+                      onChange={(e) => updateButton(index, { text: e.target.value })}
+                      placeholder="Матни тугма"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="col-span-3">
+                    <Label className="text-[10px] uppercase">Ранг</Label>
+                    <Select value={btn.color} onValueChange={(val) => updateButton(index, { color: val })}>
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BUTTON_COLORS.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${c.class}`} />
+                              <span className="text-xs">{c.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-3 flex flex-col items-center gap-1 pb-1">
+                    <Label className="text-[10px] uppercase">Мегурезад?</Label>
+                    <Switch
+                      checked={btn.isEvasive}
+                      onCheckedChange={(val) => updateButton(index, { isEvasive: val })}
+                      className="scale-75"
+                    />
+                  </div>
+                  <div className="col-span-1 pb-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => removeButton(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
 
             <div>

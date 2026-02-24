@@ -364,9 +364,12 @@ export const insertAnnouncementSchema = createInsertSchema(announcements).omit({
   createdAt: true,
 }).extend({
   recipientIds: z.array(z.number()).optional(),
-  evasiveButton: z.enum(['positive', 'negative', 'none']).optional(),
-  positiveButtonColor: z.enum(['green', 'red', 'orange', 'yellow']).optional(),
-  negativeButtonColor: z.enum(['green', 'red', 'orange', 'yellow']).optional(),
+  buttons: z.array(z.object({
+    text: z.string(),
+    color: z.string(),
+    isEvasive: z.boolean(),
+    effect: z.string().optional(),
+  })).optional(),
 });
 export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
 export type Announcement = typeof announcements.$inferSelect & {
@@ -525,11 +528,7 @@ export const adminNotifications = pgTable("admin_notifications", {
   message: text("message").notNull(),
   imageData: text("image_data"),
   imageMimeType: text("image_mime_type"),
-  positiveButtonText: text("positive_button_text"),
-  negativeButtonText: text("negative_button_text"),
-  positiveButtonColor: text("positive_button_color").default("green").notNull(),
-  negativeButtonColor: text("negative_button_color").default("red").notNull(),
-  evasiveButton: text("evasive_button").default("negative").notNull(),
+  buttons: jsonb("buttons").$type<Array<{ text: string; color: string; isEvasive: boolean; effect?: string }>>().default([]).notNull(),
   effectType: text("effect_type").default("confetti").notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   recipientDepartmentIds: integer("recipient_department_ids").array(),
