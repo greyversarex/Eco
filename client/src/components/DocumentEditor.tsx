@@ -17,12 +17,44 @@ import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
 
-const Indent = Extension.create({
-  name: 'indent',
-  addKeyboardShortcuts() {
+const CustomParagraph = (StarterKit.resolveExtensions(StarterKit.config).find(e => e.name === 'paragraph') as any)?.extend({
+  addAttributes() {
     return {
-      'Tab': () => {
-        return this.editor.commands.insertContent('    ');
+      textAlign: {
+        default: 'left',
+        parseHTML: (element: HTMLElement) => element.style.textAlign || 'left',
+        renderHTML: (attributes: any) => {
+          if (attributes.textAlign === 'left') return {};
+          return {
+            style: `text-align: ${attributes.textAlign}`,
+          };
+        },
+      },
+      indent: {
+        default: 0,
+        parseHTML: (element: HTMLElement) => {
+          const paddingLeft = element.style.paddingLeft;
+          if (paddingLeft && paddingLeft.endsWith('px')) {
+            return parseInt(paddingLeft, 10) / 40;
+          }
+          return 0;
+        },
+        renderHTML: (attributes: any) => {
+          if (!attributes.indent) return {};
+          return {
+            style: `padding-left: ${attributes.indent * 40}px`,
+          };
+        },
+      },
+      textIndent: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.style.textIndent,
+        renderHTML: (attributes: any) => {
+          if (!attributes.textIndent) return {};
+          return {
+            style: `text-indent: ${attributes.textIndent}`,
+          };
+        },
       },
     };
   },
@@ -395,7 +427,9 @@ export function DocumentEditor({
         heading: {
           levels: [1, 2, 3],
         },
+        paragraph: false,
       }),
+      CustomParagraph,
       Underline,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
@@ -424,7 +458,6 @@ export function DocumentEditor({
       Superscript,
       HorizontalRule,
       PageBreak,
-      Indent,
     ],
     content,
     editable: !isReadOnly,
