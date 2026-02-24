@@ -937,26 +937,40 @@ export default function MessageView() {
                       Ҳуҷҷатҳо ({messageDocuments.length})
                     </h3>
                     <div className="space-y-3">
-                      {messageDocuments.map((doc, index) => (
-                        <Card key={doc.id} className="overflow-hidden" data-testid={`document-card-${index}`}>
-                          <CardHeader className="py-3 px-4 bg-muted/30 flex flex-row items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              <FileText className="h-5 w-5 text-green-600" />
-                              <span className="font-medium">{doc.title}</span>
-                            </div>
-                            <Button 
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleOpenDocumentEditor(doc)}
-                              data-testid={`button-edit-document-${index}`}
-                              className="gap-1"
-                            >
-                              <Edit className="h-4 w-4" />
-                              Таҳрир
-                            </Button>
-                          </CardHeader>
-                        </Card>
-                      ))}
+                      {messageDocuments.map((doc, index) => {
+                        const isOwner = user?.userType === 'department' && message?.senderId === user.department.id;
+                        const canEditDoc = doc.canEdit || isOwner || user?.userType === 'admin';
+                        
+                        return (
+                          <Card key={doc.id} className="overflow-hidden" data-testid={`document-card-${index}`}>
+                            <CardHeader className="py-3 px-4 bg-muted/30 flex flex-row items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-5 w-5 text-green-600" />
+                                <span className="font-medium">{doc.title}</span>
+                              </div>
+                              <Button 
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleOpenDocumentEditor(doc)}
+                                data-testid={`button-edit-document-${index}`}
+                                className="gap-1"
+                              >
+                                {canEditDoc ? (
+                                  <>
+                                    <Edit className="h-4 w-4" />
+                                    Таҳрир
+                                  </>
+                                ) : (
+                                  <>
+                                    <Eye className="h-4 w-4" />
+                                    Дидан
+                                  </>
+                                )}
+                              </Button>
+                            </CardHeader>
+                          </Card>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -979,32 +993,47 @@ export default function MessageView() {
                     <div className="flex-1 overflow-auto min-h-[400px]">
                       <DocumentEditor
                         content={editedContent}
-                        onChange={setEditedContent}
+                        onChange={handleDocumentChange}
                         departmentName={user?.userType === 'department' ? user.department?.name : undefined}
                         canApprove={user?.userType === 'department' ? user.department?.canApprove : false}
+                        readOnly={isReadOnly}
                       />
                     </div>
                     <div className="flex justify-end gap-2 pt-4 flex-shrink-0 border-t">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setIsDocumentEditorOpen(false);
-                          setEditingDocument(null);
-                          setEditedContent('');
-                        }}
-                        data-testid="button-cancel-edit-document"
-                      >
-                        Бекор кардан
-                      </Button>
-                      <Button
-                        onClick={handleSaveDocument}
-                        disabled={updateDocumentMutation.isPending}
-                        className="gap-1"
-                        data-testid="button-save-document"
-                      >
-                        <Save className="h-4 w-4" />
-                        {updateDocumentMutation.isPending ? 'Сабт истодааст...' : 'Сабт кардан'}
-                      </Button>
+                      {!isReadOnly ? (
+                        <>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setIsDocumentEditorOpen(false);
+                              setEditingDocument(null);
+                              setEditedContent('');
+                            }}
+                            data-testid="button-cancel-edit-document"
+                          >
+                            Бекор кардан
+                          </Button>
+                          <Button
+                            onClick={handleSaveDocument}
+                            disabled={updateDocumentMutation.isPending}
+                            className="gap-1"
+                            data-testid="button-save-document"
+                          >
+                            <Save className="h-4 w-4" />
+                            {updateDocumentMutation.isPending ? 'Сабт истодааст...' : 'Сабт кардан'}
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          onClick={() => {
+                            setIsDocumentEditorOpen(false);
+                            setEditingDocument(null);
+                            setEditedContent('');
+                          }}
+                        >
+                          Пӯшидан
+                        </Button>
+                      )}
                     </div>
                   </DialogContent>
                 </Dialog>
