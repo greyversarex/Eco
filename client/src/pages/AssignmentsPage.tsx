@@ -265,13 +265,13 @@ function AssignmentProgress({ createdAt, deadline, isCompleted, approvalStatus, 
           })()}
         </div>
       </div>
-      {isCompleted && (
+      {isCompleted && !isRestored && (
         <div className="text-green-600 font-semibold">Иҷрошуда!</div>
       )}
-      {isRejected && !isCompleted && (
+      {isRejected && !isCompleted && !isRestored && (
         <div className="text-red-600 font-semibold">Рад шуд!</div>
       )}
-      {isOverdue && !isCompleted && !isRejected && (
+      {isOverdue && !isCompleted && !isRejected && !isRestored && (
         <div className="text-red-600 font-semibold">Иҷронашуда!</div>
       )}
     </div>
