@@ -58,6 +58,36 @@ const CustomParagraph = Paragraph.extend({
           };
         },
       },
+      lineHeight: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.style.lineHeight,
+        renderHTML: (attributes: any) => {
+          if (!attributes.lineHeight) return {};
+          return {
+            style: `line-height: ${attributes.lineHeight}`,
+          };
+        },
+      },
+      marginTop: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.style.marginTop,
+        renderHTML: (attributes: any) => {
+          if (!attributes.marginTop) return {};
+          return {
+            style: `margin-top: ${attributes.marginTop}`,
+          };
+        },
+      },
+      marginBottom: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.style.marginBottom,
+        renderHTML: (attributes: any) => {
+          if (!attributes.marginBottom) return {};
+          return {
+            style: `margin-bottom: ${attributes.marginBottom}`,
+          };
+        },
+      },
     };
   },
 });
@@ -146,13 +176,13 @@ const cleanWordHtml = (html: string): string => {
         preservedStyles.push(`text-align: ${alignment}`);
       }
     }
-    const marginMatch = styleContent.match(/margin(?:-left|-right|-top|-bottom)?:\s*([^;]+)/i);
+    const marginMatch = styleContent.match(/margin(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
     if (marginMatch) {
-      preservedStyles.push(marginMatch[0].trim());
+      marginMatch.forEach(m => preservedStyles.push(m.trim()));
     }
-    const paddingMatch = styleContent.match(/padding(?:-left|-right|-top|-bottom)?:\s*([^;]+)/i);
+    const paddingMatch = styleContent.match(/padding(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
     if (paddingMatch) {
-      preservedStyles.push(paddingMatch[0].trim());
+      paddingMatch.forEach(p => preservedStyles.push(p.trim()));
     }
     const textIndentMatch = styleContent.match(/text-indent:\s*([^;]+)/i);
     if (textIndentMatch) {
@@ -161,6 +191,14 @@ const cleanWordHtml = (html: string): string => {
     const lineHeightMatch = styleContent.match(/line-height:\s*([^;]+)/i);
     if (lineHeightMatch) {
       preservedStyles.push(`line-height: ${lineHeightMatch[1].trim()}`);
+    }
+    const marginTopMatch = styleContent.match(/margin-top:\s*([^;]+)/i);
+    if (marginTopMatch) {
+      preservedStyles.push(`margin-top: ${marginTopMatch[1].trim()}`);
+    }
+    const marginBottomMatch = styleContent.match(/margin-bottom:\s*([^;]+)/i);
+    if (marginBottomMatch) {
+      preservedStyles.push(`margin-bottom: ${marginBottomMatch[1].trim()}`);
     }
     if (preservedStyles.length > 0) {
       return `style="${preservedStyles.join('; ')}"`;
@@ -384,7 +422,7 @@ export function DocumentEditor({
   const [replaceText, setReplaceText] = useState('');
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [showFormattingMarks, setShowFormattingMarks] = useState(false);
-  const [lineSpacing, setLineSpacing] = useState('1.5');
+  const [lineSpacing, setLineSpacingState] = useState('1.5');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editableTitle, setEditableTitle] = useState(title || 'Ҳуҷҷати нав');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -613,6 +651,13 @@ export function DocumentEditor({
 
   const setFontSize = (size: string) => {
     editor.chain().focus().setMark('textStyle', { fontSize: size }).run();
+  };
+
+  const setLineSpacing = (spacing: string) => {
+    setLineSpacingState(spacing);
+    if (editor) {
+      editor.chain().focus().updateAttributes('paragraph', { lineHeight: spacing }).run();
+    }
   };
 
   const setFontFamily = (font: string) => {
