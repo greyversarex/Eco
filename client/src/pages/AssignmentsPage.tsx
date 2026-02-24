@@ -2419,7 +2419,7 @@ export default function AssignmentsPage() {
                             <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-medium">Таъхиршуда</span>
                           </div>
                           {assignment.content && (
-                            <div className="text-sm text-muted-foreground line-clamp-2"
+                            <div className="text-sm text-muted-foreground line-clamp-2 whitespace-pre-wrap"
                               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(assignment.content) }}
                             />
                           )}

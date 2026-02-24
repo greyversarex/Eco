@@ -31,7 +31,7 @@ const CustomParagraph = Paragraph.extend({
         renderHTML: (attributes: any) => {
           const align = attributes.textAlign || 'left';
           return {
-            style: `text-align: ${align} !important; display: block !important; width: 100% !important; min-height: 1.2em !important;`,
+            style: `text-align: ${align} !important; display: block !important; width: 100% !important; min-height: 1.2em !important; white-space: pre-wrap !important;`,
             class: `text-${align}`,
             'data-align': align,
           };
@@ -539,6 +539,9 @@ export function DocumentEditor({
     ],
     content,
     editable: !isReadOnly,
+    parseOptions: {
+      preserveWhitespace: 'full',
+    },
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
@@ -1430,7 +1433,7 @@ export function DocumentEditor({
               "prose prose-sm max-w-none focus:outline-none",
               "[&_.ProseMirror]:min-h-[257mm] [&_.ProseMirror]:outline-none",
               "[&_.ProseMirror]:font-['Noto_Sans',sans-serif] [&_.ProseMirror]:[font-size:14pt]",
-              "[&_.ProseMirror]:whitespace-pre-wrap",
+              "[&_.ProseMirror]:whitespace-pre-wrap [&_.ProseMirror_p]:whitespace-pre-wrap",
               "[&_.ProseMirror_p]:!block [&_.ProseMirror_p]:!w-full [&_.ProseMirror_p]:!min-h-[1.2em] [&_.ProseMirror_p]:!m-0",
               "[&_.ProseMirror_.text-center]:!text-center [&_.ProseMirror_.text-right]:!text-right [&_.ProseMirror_.text-justify]:!text-justify",
               "[&_.ProseMirror_[data-align=center]]:!text-center [&_.ProseMirror_[data-align=right]]:!text-right [&_.ProseMirror_[data-align=justify]]:!text-justify",
