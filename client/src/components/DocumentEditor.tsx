@@ -24,11 +24,16 @@ const CustomParagraph = Paragraph.extend({
     return {
       textAlign: {
         default: 'left',
-        parseHTML: (element: HTMLElement) => element.style.textAlign || 'left',
+        parseHTML: (element: HTMLElement) => {
+          const align = element.style.textAlign || element.getAttribute('align') || 'left';
+          return align;
+        },
         renderHTML: (attributes: any) => {
-          if (attributes.textAlign === 'left') return {};
+          const align = attributes.textAlign || 'left';
           return {
-            style: `text-align: ${attributes.textAlign}`,
+            style: `text-align: ${align} !important; display: block !important; width: 100% !important; min-height: 1em;`,
+            align: align,
+            'data-align': align,
           };
         },
       },
@@ -177,7 +182,9 @@ const cleanWordHtml = (html: string): string => {
     if (textAlignMatch) {
       const alignment = textAlignMatch[1].trim().toLowerCase();
       if (['left', 'center', 'right', 'justify'].includes(alignment)) {
-        preservedStyles.push(`text-align: ${alignment}`);
+        preservedStyles.push(`text-align: ${alignment} !important`);
+        preservedStyles.push(`display: block`);
+        preservedStyles.push(`width: 100%`);
       }
     }
     const marginMatch = styleContent.match(/margin(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
@@ -502,6 +509,8 @@ export function DocumentEditor({
       Underline,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
+        alignments: ['left', 'center', 'right', 'justify'],
+        defaultAlignment: 'left',
       }),
       Table.configure({
         resizable: true,
