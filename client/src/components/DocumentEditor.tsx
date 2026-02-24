@@ -63,7 +63,7 @@ const CustomParagraph = Paragraph.extend({
         renderHTML: (attributes: any) => {
           if (!attributes.textIndent) return {};
           return {
-            style: `text-indent: ${attributes.textIndent}`,
+            style: `text-indent: ${attributes.textIndent} !important`,
           };
         },
       },
@@ -107,8 +107,11 @@ const CustomParagraph = Paragraph.extend({
         let modified = false;
         tr.doc.nodesBetween(selection.from, selection.to, (node: any, pos: number) => {
           if (node.type.name === 'paragraph') {
-            const indent = (node.attrs.indent || 0) + 1;
-            tr.setNodeMarkup(pos, undefined, { ...node.attrs, indent });
+            // Use text-indent (first line indent) instead of padding-left
+            const currentIndentStr = node.attrs.textIndent || '0px';
+            const currentIndent = parseInt(currentIndentStr);
+            const newIndent = currentIndent + 40;
+            tr.setNodeMarkup(pos, undefined, { ...node.attrs, textIndent: `${newIndent}px` });
             modified = true;
           }
         });
@@ -119,8 +122,13 @@ const CustomParagraph = Paragraph.extend({
         let modified = false;
         tr.doc.nodesBetween(selection.from, selection.to, (node: any, pos: number) => {
           if (node.type.name === 'paragraph') {
-            const indent = Math.max(0, (node.attrs.indent || 0) - 1);
-            tr.setNodeMarkup(pos, undefined, { ...node.attrs, indent });
+            const currentIndentStr = node.attrs.textIndent || '0px';
+            const currentIndent = parseInt(currentIndentStr);
+            const newIndent = Math.max(0, currentIndent - 40);
+            tr.setNodeMarkup(pos, undefined, { 
+              ...node.attrs, 
+              textIndent: newIndent > 0 ? `${newIndent}px` : null 
+            });
             modified = true;
           }
         });
@@ -227,8 +235,8 @@ const cleanWordHtml = (html: string): string => {
       }
     }
     const marginMatch = styleContent.match(/margin(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
-    if (marginMatch && Array.isArray(marginMatch)) {
-      marginMatch.forEach((m: string) => {
+    if (marginMatch) {
+      (marginMatch as string[]).forEach((m: string) => {
         const style = m.trim().toLowerCase();
         if (style.startsWith('margin-left')) {
           const val = style.split(':')[1].trim();
@@ -244,8 +252,8 @@ const cleanWordHtml = (html: string): string => {
       });
     }
     const paddingMatch = styleContent.match(/padding(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
-    if (paddingMatch && Array.isArray(paddingMatch)) {
-      paddingMatch.forEach((p: string) => preservedStyles.push(p.trim()));
+    if (paddingMatch) {
+      (paddingMatch as string[]).forEach((p: string) => preservedStyles.push(p.trim()));
     }
     const textIndentMatch = styleContent.match(/text-indent:\s*([^;]+)/i);
     if (textIndentMatch) {
