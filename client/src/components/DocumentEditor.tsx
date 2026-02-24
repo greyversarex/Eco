@@ -141,6 +141,22 @@ const CustomParagraph = Paragraph.extend({
     return {
       Tab: () => this.editor.commands.indent(),
       'Shift-Tab': () => this.editor.commands.outdent(),
+      Backspace: () => {
+        const { selection } = this.editor.state;
+        const { $from, empty } = selection;
+
+        // Only outdent if cursor is at the very beginning of the paragraph and nothing is selected
+        if (!empty || $from.parentOffset !== 0) {
+          return false;
+        }
+
+        const { textIndent } = $from.parent.attrs;
+        if (textIndent && parseInt(textIndent) > 0) {
+          return this.editor.commands.outdent();
+        }
+
+        return false;
+      },
     };
   },
 });
