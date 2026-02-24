@@ -12,6 +12,8 @@ interface AdminNotification {
   imageMimeType: string | null;
   positiveButtonText: string | null;
   negativeButtonText: string | null;
+  positiveButtonColor: string;
+  negativeButtonColor: string;
   evasiveButton: string;
   effectType: string;
   isActive: boolean;
@@ -123,6 +125,16 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
   const hasPositive = notification.positiveButtonText && notification.positiveButtonText.trim();
   const hasNegative = notification.negativeButtonText && notification.negativeButtonText.trim();
 
+  const getColorClass = (color: string) => {
+    switch (color) {
+      case 'red': return 'bg-red-600 hover:bg-red-700 text-white';
+      case 'orange': return 'bg-orange-500 hover:bg-orange-600 text-white';
+      case 'yellow': return 'bg-yellow-400 hover:bg-yellow-500 text-black';
+      case 'green':
+      default: return 'bg-green-600 hover:bg-green-700 text-white';
+    }
+  };
+
   const modal = (
     <>
       {showEffect && (
@@ -196,7 +208,7 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
                     >
                       <Button
                         onClick={handlePositive}
-                        className="bg-green-600 text-white px-8"
+                        className={`${getColorClass(notification.positiveButtonColor)} px-8`}
                         onMouseEnter={() => handleMoveButton('positive')}
                         onTouchStart={() => handleMoveButton('positive')}
                         data-testid="button-notification-positive"
@@ -218,8 +230,7 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
                     } : {}}
                   >
                     <Button
-                      variant="destructive"
-                      className="px-8"
+                      className={`${getColorClass(notification.negativeButtonColor)} px-8`}
                       onMouseEnter={() => handleMoveButton('negative')}
                       onTouchStart={() => handleMoveButton('negative')}
                       data-testid="button-notification-negative"

@@ -64,6 +64,8 @@ export default function AdminNotifications() {
   const [message, setMessage] = useState('');
   const [positiveButtonText, setPositiveButtonText] = useState('');
   const [negativeButtonText, setNegativeButtonText] = useState('');
+  const [positiveButtonColor, setPositiveButtonColor] = useState<string>('green');
+  const [negativeButtonColor, setNegativeButtonColor] = useState<string>('red');
   const [evasiveButton, setEvasiveButton] = useState<string>('negative');
   const [effectType, setEffectType] = useState<string>('confetti');
   const [isActive, setIsActive] = useState(true);
@@ -140,6 +142,8 @@ export default function AdminNotifications() {
     setMessage('');
     setPositiveButtonText('');
     setNegativeButtonText('');
+    setPositiveButtonColor('green');
+    setNegativeButtonColor('red');
     setEvasiveButton('negative');
     setEffectType('confetti');
     setIsActive(true);
@@ -155,6 +159,8 @@ export default function AdminNotifications() {
     setMessage(n.message);
     setPositiveButtonText(n.positiveButtonText || '');
     setNegativeButtonText(n.negativeButtonText || '');
+    setPositiveButtonColor((n as any).positiveButtonColor || 'green');
+    setNegativeButtonColor((n as any).negativeButtonColor || 'red');
     setEvasiveButton((n as any).evasiveButton || 'negative');
     setEffectType(n.effectType);
     setIsActive(n.isActive);
@@ -209,6 +215,8 @@ export default function AdminNotifications() {
       imageMimeType: imageMimeType || null,
       positiveButtonText: positiveButtonText.trim() || null,
       negativeButtonText: negativeButtonText.trim() || null,
+      positiveButtonColor,
+      negativeButtonColor,
       evasiveButton,
       effectType,
       isActive,
@@ -238,6 +246,13 @@ export default function AdminNotifications() {
     if (names.length <= 3) return names.join(', ');
     return `${names.slice(0, 3).join(', ')} +${names.length - 3}`;
   };
+
+  const BUTTON_COLORS = [
+    { id: 'green', name: 'Сабз', class: 'bg-green-600' },
+    { id: 'red', name: 'Сурх', class: 'bg-red-600' },
+    { id: 'orange', name: 'Норинҷӣ', class: 'bg-orange-500' },
+    { id: 'yellow', name: 'Зард', class: 'bg-yellow-400 text-black' },
+  ];
 
   return (
     <div
@@ -439,24 +454,64 @@ export default function AdminNotifications() {
               )}
             </div>
 
-            <div>
-              <Label>Тугмаи мусбат (ҷавоби мусбат)</Label>
-              <Input
-                value={positiveButtonText}
-                onChange={(e) => setPositiveButtonText(e.target.value)}
-                placeholder="Масалан: Ҳа, розӣ / Қабул"
-                data-testid="input-notification-positive"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Тугмаи мусбат</Label>
+                <Input
+                  value={positiveButtonText}
+                  onChange={(e) => setPositiveButtonText(e.target.value)}
+                  placeholder="Масалан: Ҳа"
+                  data-testid="input-notification-positive"
+                />
+              </div>
+              <div>
+                <Label>Ранги тугма</Label>
+                <Select value={positiveButtonColor} onValueChange={setPositiveButtonColor}>
+                  <SelectTrigger data-testid="select-positive-color">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BUTTON_COLORS.map(c => (
+                      <SelectItem key={c.id} value={c.id}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 rounded-full ${c.class}`} />
+                          {c.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div>
-              <Label>Тугмаи манфӣ (ҷавоби манфӣ)</Label>
-              <Input
-                value={negativeButtonText}
-                onChange={(e) => setNegativeButtonText(e.target.value)}
-                placeholder="Масалан: Не / Рад"
-                data-testid="input-notification-negative"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Тугмаи манфӣ</Label>
+                <Input
+                  value={negativeButtonText}
+                  onChange={(e) => setNegativeButtonText(e.target.value)}
+                  placeholder="Масалан: Не"
+                  data-testid="input-notification-negative"
+                />
+              </div>
+              <div>
+                <Label>Ранги тугма</Label>
+                <Select value={negativeButtonColor} onValueChange={setNegativeButtonColor}>
+                  <SelectTrigger data-testid="select-negative-color">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BUTTON_COLORS.map(c => (
+                      <SelectItem key={c.id} value={c.id}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 rounded-full ${c.class}`} />
+                          {c.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div>
