@@ -64,6 +64,7 @@ export default function AdminNotifications() {
   const [message, setMessage] = useState('');
   const [positiveButtonText, setPositiveButtonText] = useState('');
   const [negativeButtonText, setNegativeButtonText] = useState('');
+  const [evasiveButton, setEvasiveButton] = useState<string>('negative');
   const [effectType, setEffectType] = useState<string>('confetti');
   const [isActive, setIsActive] = useState(true);
   const [selectedDeptIds, setSelectedDeptIds] = useState<number[]>([]);
@@ -139,6 +140,7 @@ export default function AdminNotifications() {
     setMessage('');
     setPositiveButtonText('');
     setNegativeButtonText('');
+    setEvasiveButton('negative');
     setEffectType('confetti');
     setIsActive(true);
     setSelectedDeptIds([]);
@@ -153,6 +155,7 @@ export default function AdminNotifications() {
     setMessage(n.message);
     setPositiveButtonText(n.positiveButtonText || '');
     setNegativeButtonText(n.negativeButtonText || '');
+    setEvasiveButton((n as any).evasiveButton || 'negative');
     setEffectType(n.effectType);
     setIsActive(n.isActive);
     setImageData(n.imageData || null);
@@ -206,6 +209,7 @@ export default function AdminNotifications() {
       imageMimeType: imageMimeType || null,
       positiveButtonText: positiveButtonText.trim() || null,
       negativeButtonText: negativeButtonText.trim() || null,
+      evasiveButton,
       effectType,
       isActive,
       recipientDepartmentIds: allDepartments ? null : selectedDeptIds,
@@ -446,13 +450,27 @@ export default function AdminNotifications() {
             </div>
 
             <div>
-              <Label>Тугмаи манфӣ (ҷавоби манфӣ - мегурезад!)</Label>
+              <Label>Тугмаи манфӣ (ҷавоби манфӣ)</Label>
               <Input
                 value={negativeButtonText}
                 onChange={(e) => setNegativeButtonText(e.target.value)}
                 placeholder="Масалан: Не / Рад"
                 data-testid="input-notification-negative"
               />
+            </div>
+
+            <div>
+              <Label>Кадом тугма мегурезад?</Label>
+              <Select value={evasiveButton} onValueChange={setEvasiveButton}>
+                <SelectTrigger data-testid="select-evasive-button">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Ҳеҷ кадомаш</SelectItem>
+                  <SelectItem value="positive">Тугмаи мусбат</SelectItem>
+                  <SelectItem value="negative">Тугмаи манфӣ</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>

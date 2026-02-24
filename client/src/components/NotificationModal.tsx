@@ -12,6 +12,7 @@ interface AdminNotification {
   imageMimeType: string | null;
   positiveButtonText: string | null;
   negativeButtonText: string | null;
+  evasiveButton: string;
   effectType: string;
   isActive: boolean;
 }
@@ -28,7 +29,8 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
   const [dismissed, setDismissed] = useState(false);
   const [currentEffect, setCurrentEffect] = useState<EffectType>('confetti');
   const [negativePos, setNegativePos] = useState<{ x: number; y: number } | null>(null);
-  const [negativeMoving, setNegativeMoving] = useState(false);
+  const [positivePos, setPositivePos] = useState<{ x: number; y: number } | null>(null);
+  const [moving, setMoving] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const pendingDismissRef = useRef<{ id: number; response?: string } | null>(null);
 
@@ -43,7 +45,8 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
     if (currentIndex < notifications.length - 1) {
       setCurrentIndex(prev => prev + 1);
       setNegativePos(null);
-      setNegativeMoving(false);
+      setPositivePos(null);
+      setMoving(false);
       setShowEffect(false);
       setShowThankYou(false);
     } else {
@@ -65,12 +68,14 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
     advanceToNext();
   }, [advanceToNext]);
 
-  const handleNegativeMouseEnter = useCallback(() => {
-    if (negativeMoving) return;
-    setNegativeMoving(true);
+  const handleMoveButton = useCallback((type: 'positive' | 'negative') => {
+    if (moving || !notification) return;
+    if (notification.evasiveButton !== type) return;
+
+    setMoving(true);
 
     if (!containerRef.current) {
-      setNegativeMoving(false);
+      setMoving(false);
       return;
     }
     const container = containerRef.current;
@@ -83,6 +88,8 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
     const maxY = rect.height - btnHeight - padding;
     const minY = headerHeight;
 
+    const currentPos = type === 'positive' ? positivePos : negativePos;
+
     let attempts = 0;
     let newX: number, newY: number;
     do {
@@ -90,20 +97,25 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
       newY = minY + Math.random() * (maxY - minY);
       attempts++;
     } while (
-      negativePos &&
-      Math.abs(newX - negativePos.x) < 80 &&
-      Math.abs(newY - negativePos.y) < 40 &&
+      currentPos &&
+      Math.abs(newX - currentPos.x) < 80 &&
+      Math.abs(newY - currentPos.y) < 40 &&
       attempts < 10
     );
 
-    setNegativePos({ x: newX, y: newY });
+    if (type === 'positive') {
+      setPositivePos({ x: newX, y: newY });
+    } else {
+      setNegativePos({ x: newX, y: newY });
+    }
 
-    setTimeout(() => setNegativeMoving(false), 350);
-  }, [negativePos, negativeMoving]);
+    setTimeout(() => setMoving(false), 350);
+  }, [positivePos, negativePos, moving, notification]);
 
   useEffect(() => {
     setNegativePos(null);
-    setNegativeMoving(false);
+    setPositivePos(null);
+    setMoving(false);
   }, [currentIndex]);
 
   if (!notification || !isOpen) return null;
@@ -173,71 +185,50 @@ export function NotificationModal({ notifications, onDismiss }: NotificationModa
               <div className="px-6 pb-6">
                 <div className="flex justify-center gap-3">
                   {hasPositive && (
-                    <Button
-                      onClick={handlePositive}
-                      className="bg-green-600 text-white px-8"
-                      data-testid="button-notification-positive"
+                    <div
+                      className={positivePos ? "transition-all duration-300 ease-out absolute" : ""}
+                      style={positivePos ? {
+                        left: `${positivePos.x}px`,
+                        top: `${positivePos.y}px`,
+                        zIndex: 50,
+                        pointerEvents: moving ? 'none' : 'auto',
+                      } : {}}
                     >
-                      {notification.positiveButtonText}
-                    </Button>
+                      <Button
+                        onClick={handlePositive}
+                        className="bg-green-600 text-white px-8"
+                        onMouseEnter={() => handleMoveButton('positive')}
+                        onTouchStart={() => handleMoveButton('positive')}
+                        data-testid="button-notification-positive"
+                      >
+                        {notification.positiveButtonText}
+                      </Button>
+                    </div>
                   )}
                 </div>
 
-                {hasNegative && !negativePos && (
-                  <div className="flex justify-center mt-3">
+                {hasNegative && (
+                  <div 
+                    className={negativePos ? "transition-all duration-300 ease-out absolute" : "flex justify-center mt-3"}
+                    style={negativePos ? {
+                      left: `${negativePos.x}px`,
+                      top: `${negativePos.y}px`,
+                      zIndex: 50,
+                      pointerEvents: moving ? 'none' : 'auto',
+                    } : {}}
+                  >
                     <Button
                       variant="destructive"
                       className="px-8"
-                      onMouseEnter={handleNegativeMouseEnter}
-                      onTouchStart={handleNegativeMouseEnter}
+                      onMouseEnter={() => handleMoveButton('negative')}
+                      onTouchStart={() => handleMoveButton('negative')}
                       data-testid="button-notification-negative"
                     >
                       {notification.negativeButtonText}
                     </Button>
                   </div>
                 )}
-
               </div>
-
-              {!hasPositive && !hasNegative && (
-                <div className="px-6 pb-5 flex justify-center">
-                  <Button
-                    onClick={() => {
-                      onDismiss?.(notification.id);
-                      advanceToNext();
-                    }}
-                    variant="outline"
-                    className="px-8 rounded-full border-gray-300 text-gray-600 hover:bg-gray-100"
-                    data-testid="button-notification-close"
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Пӯшидан
-                  </Button>
-                </div>
-              )}
-
-              {hasNegative && negativePos && (
-                <div
-                  className="transition-all duration-300 ease-out"
-                  style={{
-                    position: 'absolute',
-                    left: `${negativePos.x}px`,
-                    top: `${negativePos.y}px`,
-                    zIndex: 50,
-                    pointerEvents: negativeMoving ? 'none' : 'auto',
-                  }}
-                >
-                  <Button
-                    variant="destructive"
-                    className="px-8 shadow-lg"
-                    onMouseEnter={handleNegativeMouseEnter}
-                    onTouchStart={handleNegativeMouseEnter}
-                    data-testid="button-notification-negative"
-                  >
-                    {notification.negativeButtonText}
-                  </Button>
-                </div>
-              )}
             </div>
           )}
         </div>

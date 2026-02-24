@@ -713,20 +713,31 @@ export function DocumentEditor({
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
-      const contentHtml = editor.getHTML();
+      const contentHtml = editor?.getHTML() || '';
       printWindow.document.write(`
         <html>
           <head>
             <title>${editableTitle}</title>
             <style>
-              body { font-family: 'Noto Sans', sans-serif; padding: 20px; }
+              @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap');
+              body { 
+                font-family: 'Noto Sans', sans-serif; 
+                padding: 20mm; 
+                line-height: 1.5;
+                font-size: 14pt;
+              }
               @media print {
+                body { padding: 0; }
                 .page-break { page-break-after: always; }
               }
               img { max-width: 100%; height: auto; }
-              table { border-collapse: collapse; width: 100%; }
+              table { border-collapse: collapse; width: 100%; margin-bottom: 1em; }
               table, th, td { border: 1px solid black; }
               th, td { padding: 8px; text-align: left; }
+              p { margin: 0; min-height: 1.2em; white-space: pre-wrap; }
+              .text-center { text-align: center; }
+              .text-right { text-align: right; }
+              .text-justify { text-align: justify; }
             </style>
           </head>
           <body>
@@ -734,7 +745,7 @@ export function DocumentEditor({
             <script>
               window.onload = () => {
                 window.print();
-                window.close();
+                // Optional: window.close();
               };
             </script>
           </body>

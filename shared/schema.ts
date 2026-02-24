@@ -350,6 +350,7 @@ export const announcements = pgTable("announcements", {
   readBy: integer("read_by").array().notNull().default(sql`ARRAY[]::integer[]`),
   isDeleted: boolean("is_deleted").notNull().default(false),
   deletedAt: timestamp("deleted_at"),
+  evasiveButton: text("evasive_button").default("negative").notNull(), // 'positive', 'negative', 'none'
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -361,6 +362,7 @@ export const insertAnnouncementSchema = createInsertSchema(announcements).omit({
   createdAt: true,
 }).extend({
   recipientIds: z.array(z.number()).optional(),
+  evasiveButton: z.enum(['positive', 'negative', 'none']).optional(),
 });
 export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
 export type Announcement = typeof announcements.$inferSelect & {
