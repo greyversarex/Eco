@@ -99,10 +99,48 @@ const CustomParagraph = Paragraph.extend({
       },
     };
   },
+
+  addCommands() {
+    return {
+      indent: () => ({ tr, state }: { tr: any; state: any }) => {
+        const { selection } = state;
+        let modified = false;
+        tr.doc.nodesBetween(selection.from, selection.to, (node: any, pos: number) => {
+          if (node.type.name === 'paragraph') {
+            const indent = (node.attrs.indent || 0) + 1;
+            tr.setNodeMarkup(pos, undefined, { ...node.attrs, indent });
+            modified = true;
+          }
+        });
+        return modified;
+      },
+      outdent: () => ({ tr, state }: { tr: any; state: any }) => {
+        const { selection } = state;
+        let modified = false;
+        tr.doc.nodesBetween(selection.from, selection.to, (node: any, pos: number) => {
+          if (node.type.name === 'paragraph') {
+            const indent = Math.max(0, (node.attrs.indent || 0) - 1);
+            tr.setNodeMarkup(pos, undefined, { ...node.attrs, indent });
+            modified = true;
+          }
+        });
+        return modified;
+      },
+    };
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      Tab: () => this.editor.commands.indent(),
+      'Shift-Tab': () => this.editor.commands.outdent(),
+    };
+  },
 });
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
+    indent: () => ReturnType;
+    outdent: () => ReturnType;
     pageBreak: {
       insertPageBreak: () => ReturnType;
     };
@@ -189,7 +227,7 @@ const cleanWordHtml = (html: string): string => {
       }
     }
     const marginMatch = styleContent.match(/margin(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
-    if (marginMatch) {
+    if (marginMatch && Array.isArray(marginMatch)) {
       marginMatch.forEach((m: string) => {
         const style = m.trim().toLowerCase();
         if (style.startsWith('margin-left')) {
@@ -206,7 +244,7 @@ const cleanWordHtml = (html: string): string => {
       });
     }
     const paddingMatch = styleContent.match(/padding(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
-    if (paddingMatch) {
+    if (paddingMatch && Array.isArray(paddingMatch)) {
       paddingMatch.forEach((p: string) => preservedStyles.push(p.trim()));
     }
     const textIndentMatch = styleContent.match(/text-indent:\s*([^;]+)/i);
@@ -548,20 +586,6 @@ export function DocumentEditor({
     editorProps: {
       attributes: {
         style: "font-family: 'Noto Sans', sans-serif;",
-      },
-      handleKeyDown: (view, event) => {
-        if (event.key === 'Tab') {
-          event.preventDefault();
-          if (event.shiftKey) {
-            (view as any).dom.focus();
-            editor?.chain().focus().outdent().run();
-          } else {
-            (view as any).dom.focus();
-            editor?.chain().focus().indent().run();
-          }
-          return true;
-        }
-        return false;
       },
       handlePaste: (view, event, slice) => {
         const html = event.clipboardData?.getData('text/html');
