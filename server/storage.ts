@@ -180,7 +180,7 @@ export interface IStorage {
 // Database storage implementation
 import { db } from './db';
 import { departments, admins, messages, attachments, assignments, assignmentAttachments, assignmentReplies, assignmentReplyAttachments, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes, documentTemplates, messageDocuments, departmentFiles, adminNotifications, notificationDismissals } from '@shared/schema';
-import { eq, or, and, desc, asc, sql } from 'drizzle-orm';
+import { eq, or, and, desc, asc, sql, inArray } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
   // Departments
@@ -458,8 +458,7 @@ export class DbStorage implements IStorage {
   }
 
   async getUnreadCountByDepartment(departmentId: number): Promise<number> {
-    // Count unread messages for this department, excluding those deleted by this department
-    const result = await db.select().from(messages)
+    const result = await db.select({ count: sql<number>`count(*)::int` }).from(messages)
       .where(and(
         or(
           sql`${messages.recipientIds} @> ARRAY[${departmentId}]::integer[]`,
@@ -467,10 +466,9 @@ export class DbStorage implements IStorage {
         ),
         eq(messages.isRead, false),
         eq(messages.isDeleted, false),
-        // Exclude messages deleted by this recipient
         sql`NOT (COALESCE(${messages.deletedByRecipientIds}, ARRAY[]::integer[]) @> ARRAY[${departmentId}]::integer[])`
       ));
-    return result.length;
+    return result[0]?.count || 0;
   }
 
   async getAllMessagesForDepartment(deptId: number): Promise<{ received: Message[]; sent: Message[] }> {
@@ -708,89 +706,99 @@ export class DbStorage implements IStorage {
     return result.length > 0;
   }
 
+  private decodeFilename(filename: string): string {
+    try {
+      if (filename.includes('%')) {
+        return decodeURIComponent(filename);
+      }
+      const hasMojibake = /[Ð-Ñ]/.test(filename);
+      if (!hasMojibake) {
+        return filename;
+      }
+      const buffer = Buffer.from(filename, 'latin1');
+      const decoded = buffer.toString('utf8');
+      const stillHasMojibake = /Ð|Ñ/.test(decoded);
+      if (!stillHasMojibake || decoded.length < filename.length) {
+        return decoded;
+      }
+      return filename;
+    } catch (e) {
+      return filename;
+    }
+  }
+
   // Assignments
   async getAssignments(): Promise<Assignment[]> {
     const allAssignments = await db.select().from(assignments)
       .where(eq(assignments.isDeleted, false))
       .orderBy(desc(assignments.createdAt));
     
-    // Helper to decode filename
-    const decodeFilename = (filename: string): string => {
-      try {
-        if (filename.includes('%')) {
-          return decodeURIComponent(filename);
-        }
-        const hasMojibake = /[Ð-Ñ]/.test(filename);
-        if (!hasMojibake) {
-          return filename;
-        }
-        const buffer = Buffer.from(filename, 'latin1');
-        const decoded = buffer.toString('utf8');
-        const stillHasMojibake = /Ð|Ñ/.test(decoded);
-        if (!stillHasMojibake || decoded.length < filename.length) {
-          return decoded;
-        }
-        return filename;
-      } catch (e) {
-        return filename;
-      }
-    };
+    if (allAssignments.length === 0) return [];
+
+    const assignmentIds = allAssignments.map(a => a.id);
     
-    // Fetch attachments metadata and replies for each assignment
-    const assignmentsWithAttachmentsAndReplies = await Promise.all(
-      allAssignments.map(async (assignment) => {
-        const attachments = await db
-          .select({
-            id: assignmentAttachments.id,
-            file_name: assignmentAttachments.file_name,
-            fileSize: assignmentAttachments.fileSize,
-            mimeType: assignmentAttachments.mimeType,
-            createdAt: assignmentAttachments.createdAt,
-          })
-          .from(assignmentAttachments)
-          .where(eq(assignmentAttachments.assignmentId, assignment.id));
-        
-        // Fetch replies for this assignment
-        const replies = await db
-          .select()
-          .from(assignmentReplies)
-          .where(eq(assignmentReplies.assignmentId, assignment.id));
-        
-        // Fetch attachments for each reply
-        const repliesWithAttachments = await Promise.all(
-          replies.map(async (reply) => {
-            const replyAttachments = await db
-              .select({
-                id: assignmentReplyAttachments.id,
-                filename: assignmentReplyAttachments.filename,
-                fileSize: assignmentReplyAttachments.fileSize,
-                mimeType: assignmentReplyAttachments.mimeType,
-              })
-              .from(assignmentReplyAttachments)
-              .where(eq(assignmentReplyAttachments.replyId, reply.id));
-            
-            return {
-              ...reply,
-              attachments: replyAttachments,
-            };
-          })
-        );
-        
-        // Decode filenames before returning
-        const decodedAttachments = attachments.map(att => ({
-          ...att,
-          file_name: decodeFilename(att.file_name),
-        }));
-        
-        return {
-          ...assignment,
-          attachments: decodedAttachments,
-          replies: repliesWithAttachments,
-        };
+    const [allAttachments, allReplies] = await Promise.all([
+      db.select({
+        id: assignmentAttachments.id,
+        assignmentId: assignmentAttachments.assignmentId,
+        file_name: assignmentAttachments.file_name,
+        fileSize: assignmentAttachments.fileSize,
+        mimeType: assignmentAttachments.mimeType,
+        createdAt: assignmentAttachments.createdAt,
       })
-    );
-    
-    return assignmentsWithAttachmentsAndReplies;
+      .from(assignmentAttachments)
+      .where(inArray(assignmentAttachments.assignmentId, assignmentIds)),
+      
+      db.select()
+      .from(assignmentReplies)
+      .where(inArray(assignmentReplies.assignmentId, assignmentIds)),
+    ]);
+
+    const replyIds = allReplies.map(r => r.id);
+    const allReplyAttachments = replyIds.length > 0
+      ? await db.select({
+          id: assignmentReplyAttachments.id,
+          replyId: assignmentReplyAttachments.replyId,
+          filename: assignmentReplyAttachments.filename,
+          fileSize: assignmentReplyAttachments.fileSize,
+          mimeType: assignmentReplyAttachments.mimeType,
+        })
+        .from(assignmentReplyAttachments)
+        .where(inArray(assignmentReplyAttachments.replyId, replyIds))
+      : [];
+
+    const attachmentsByAssignment = new Map<number, typeof allAttachments>();
+    for (const att of allAttachments) {
+      const list = attachmentsByAssignment.get(att.assignmentId) || [];
+      list.push(att);
+      attachmentsByAssignment.set(att.assignmentId, list);
+    }
+
+    const replyAttachmentsByReply = new Map<number, typeof allReplyAttachments>();
+    for (const ra of allReplyAttachments) {
+      const list = replyAttachmentsByReply.get(ra.replyId) || [];
+      list.push(ra);
+      replyAttachmentsByReply.set(ra.replyId, list);
+    }
+
+    const repliesByAssignment = new Map<number, any[]>();
+    for (const reply of allReplies) {
+      const list = repliesByAssignment.get(reply.assignmentId) || [];
+      list.push({
+        ...reply,
+        attachments: replyAttachmentsByReply.get(reply.id) || [],
+      });
+      repliesByAssignment.set(reply.assignmentId, list);
+    }
+
+    return allAssignments.map(assignment => ({
+      ...assignment,
+      attachments: (attachmentsByAssignment.get(assignment.id) || []).map(att => ({
+        ...att,
+        file_name: this.decodeFilename(att.file_name),
+      })),
+      replies: repliesByAssignment.get(assignment.id) || [],
+    }));
   }
 
   async getAssignmentById(id: number): Promise<Assignment | undefined> {
@@ -830,43 +838,45 @@ export class DbStorage implements IStorage {
   }
 
   async getUncompletedAssignmentsCount(departmentId: number): Promise<number> {
-    const allAssignments = await db.select().from(assignments)
-      .where(eq(assignments.isDeleted, false));
-    
-    const allDepts = await this.getDepartments();
-    const dept = allDepts.find(d => d.id === departmentId);
-    const monitoredIds = dept?.monitoredAssignmentDeptIds || [];
-    
-    const filteredAssignments = allAssignments.filter(assignment => {
-      const isDirect = 
-        assignment.senderId === departmentId ||
-        (assignment.recipientIds && assignment.recipientIds.includes(departmentId)) ||
-        (!assignment.recipientIds || assignment.recipientIds.length === 0) ||
-        (assignment.senderId === null);
-      
-      if (isDirect) return true;
-      
-      if (monitoredIds.length > 0) {
-        const relatedDeptIds = new Set<number>();
-        if (assignment.senderId) relatedDeptIds.add(assignment.senderId);
-        if (assignment.recipientIds) assignment.recipientIds.forEach(id => relatedDeptIds.add(id));
-        for (const mid of monitoredIds) {
-          if (relatedDeptIds.has(mid)) return true;
-        }
-      }
-      
-      return false;
-    });
+    const dept = await this.getDepartmentById(departmentId);
+    const monitoredIds = (dept?.monitoredAssignmentDeptIds || []).filter((id: number) => Number.isInteger(id));
     
     const now = new Date();
     now.setHours(0, 0, 0, 0);
-    return filteredAssignments.filter(a => 
-      !a.isCompleted && 
-      !a.isRestored && 
-      a.approvalStatus !== 'rejected' && 
-      a.approvalStatus !== 'approved' &&
-      new Date(a.deadline) >= now
-    ).length;
+
+    const baseConditions = and(
+      eq(assignments.isDeleted, false),
+      eq(assignments.isCompleted, false),
+      eq(assignments.isRestored, false),
+      sql`(${assignments.approvalStatus} IS NULL OR (${assignments.approvalStatus} != 'rejected' AND ${assignments.approvalStatus} != 'approved'))`,
+      sql`${assignments.deadline} >= ${now}`
+    );
+
+    let visibilityCondition;
+    if (monitoredIds.length > 0) {
+      const monitoredArr = sql`ARRAY[${sql.join(monitoredIds.map(id => sql`${id}`), sql`, `)}]::integer[]`;
+      visibilityCondition = or(
+        eq(assignments.senderId, departmentId),
+        sql`${assignments.recipientIds} @> ARRAY[${departmentId}]::integer[]`,
+        sql`COALESCE(array_length(${assignments.recipientIds}, 1), 0) = 0`,
+        sql`${assignments.senderId} IS NULL`,
+        sql`${assignments.senderId} = ANY(${monitoredArr})`,
+        sql`${assignments.recipientIds} && ${monitoredArr}`
+      );
+    } else {
+      visibilityCondition = or(
+        eq(assignments.senderId, departmentId),
+        sql`${assignments.recipientIds} @> ARRAY[${departmentId}]::integer[]`,
+        sql`COALESCE(array_length(${assignments.recipientIds}, 1), 0) = 0`,
+        sql`${assignments.senderId} IS NULL`
+      );
+    }
+
+    const result = await db.select({ count: sql<number>`count(*)::int` })
+      .from(assignments)
+      .where(and(baseConditions, visibilityCondition));
+    
+    return result[0]?.count || 0;
   }
 
   async listDeletedAssignments(): Promise<Assignment[]> {
@@ -874,28 +884,32 @@ export class DbStorage implements IStorage {
       .where(eq(assignments.isDeleted, true))
       .orderBy(desc(assignments.deletedAt));
     
-    // Fetch attachments for each deleted assignment
-    const assignmentsWithAttachments = await Promise.all(
-      deletedAssignments.map(async (assignment) => {
-        const attachments = await db
-          .select({
-            id: assignmentAttachments.id,
-            file_name: assignmentAttachments.file_name,
-            fileSize: assignmentAttachments.fileSize,
-            mimeType: assignmentAttachments.mimeType,
-            createdAt: assignmentAttachments.createdAt,
-          })
-          .from(assignmentAttachments)
-          .where(eq(assignmentAttachments.assignmentId, assignment.id));
-        
-        return {
-          ...assignment,
-          attachments,
-        };
+    if (deletedAssignments.length === 0) return [];
+
+    const assignmentIds = deletedAssignments.map(a => a.id);
+    const allAttachments = await db
+      .select({
+        id: assignmentAttachments.id,
+        assignmentId: assignmentAttachments.assignmentId,
+        file_name: assignmentAttachments.file_name,
+        fileSize: assignmentAttachments.fileSize,
+        mimeType: assignmentAttachments.mimeType,
+        createdAt: assignmentAttachments.createdAt,
       })
-    );
-    
-    return assignmentsWithAttachments;
+      .from(assignmentAttachments)
+      .where(inArray(assignmentAttachments.assignmentId, assignmentIds));
+
+    const attachmentsByAssignment = new Map<number, typeof allAttachments>();
+    for (const att of allAttachments) {
+      const list = attachmentsByAssignment.get(att.assignmentId) || [];
+      list.push(att);
+      attachmentsByAssignment.set(att.assignmentId, list);
+    }
+
+    return deletedAssignments.map(assignment => ({
+      ...assignment,
+      attachments: attachmentsByAssignment.get(assignment.id) || [],
+    }));
   }
 
   async restoreAssignment(id: number): Promise<boolean> {
@@ -1000,56 +1014,35 @@ export class DbStorage implements IStorage {
     
     const allAnnouncements = await query.orderBy(desc(announcements.createdAt));
     
-    // Helper to decode filename
-    const decodeFilename = (filename: string): string => {
-      try {
-        if (filename.includes('%')) {
-          return decodeURIComponent(filename);
-        }
-        const hasMojibake = /[Ð-Ñ]/.test(filename);
-        if (!hasMojibake) {
-          return filename;
-        }
-        const buffer = Buffer.from(filename, 'latin1');
-        const decoded = buffer.toString('utf8');
-        const stillHasMojibake = /Ð|Ñ/.test(decoded);
-        if (!stillHasMojibake || decoded.length < filename.length) {
-          return decoded;
-        }
-        return filename;
-      } catch (e) {
-        return filename;
-      }
-    };
-    
-    // Fetch attachments metadata for each announcement
-    const announcementsWithAttachments = await Promise.all(
-      allAnnouncements.map(async (announcement) => {
-        const attachments = await db
-          .select({
-            id: announcementAttachments.id,
-            file_name: announcementAttachments.file_name,
-            fileSize: announcementAttachments.fileSize,
-            mimeType: announcementAttachments.mimeType,
-            createdAt: announcementAttachments.createdAt,
-          })
-          .from(announcementAttachments)
-          .where(eq(announcementAttachments.announcementId, announcement.id));
-        
-        // Decode filenames before returning
-        const decodedAttachments = attachments.map(att => ({
-          ...att,
-          file_name: decodeFilename(att.file_name),
-        }));
-        
-        return {
-          ...announcement,
-          attachments: decodedAttachments,
-        };
+    if (allAnnouncements.length === 0) return [];
+
+    const announcementIds = allAnnouncements.map(a => a.id);
+    const allAttachments = await db
+      .select({
+        id: announcementAttachments.id,
+        announcementId: announcementAttachments.announcementId,
+        file_name: announcementAttachments.file_name,
+        fileSize: announcementAttachments.fileSize,
+        mimeType: announcementAttachments.mimeType,
+        createdAt: announcementAttachments.createdAt,
       })
-    );
-    
-    return announcementsWithAttachments;
+      .from(announcementAttachments)
+      .where(inArray(announcementAttachments.announcementId, announcementIds));
+
+    const attachmentsByAnnouncement = new Map<number, typeof allAttachments>();
+    for (const att of allAttachments) {
+      const list = attachmentsByAnnouncement.get(att.announcementId) || [];
+      list.push(att);
+      attachmentsByAnnouncement.set(att.announcementId, list);
+    }
+
+    return allAnnouncements.map(announcement => ({
+      ...announcement,
+      attachments: (attachmentsByAnnouncement.get(announcement.id) || []).map(att => ({
+        ...att,
+        file_name: this.decodeFilename(att.file_name),
+      })),
+    }));
   }
 
   async getAnnouncementById(id: number): Promise<Announcement | undefined> {
@@ -1089,23 +1082,20 @@ export class DbStorage implements IStorage {
   }
 
   async getUnreadAnnouncementsCount(departmentId: number): Promise<number> {
-    // IMPORTANT: Must use same filtering logic as getAnnouncements()
-    // Only count announcements that are:
-    // 1. Not deleted
-    // 2. Either targeted to this department OR for everyone (recipientIds is NULL)
-    // 3. Not yet read by this department
-    const visibleAnnouncements = await db.select().from(announcements)
+    const result = await db.select({ count: sql<number>`count(*)::int` })
+      .from(announcements)
       .where(
         and(
           eq(announcements.isDeleted, false),
           or(
             sql`${announcements.recipientIds} IS NULL`,
             sql`${announcements.recipientIds} @> ARRAY[${departmentId}]::integer[]`
-          )
+          ),
+          sql`NOT (${announcements.readBy} @> ARRAY[${departmentId}]::integer[])`
         )
       );
     
-    return visibleAnnouncements.filter(a => !a.readBy.includes(departmentId)).length;
+    return result[0]?.count || 0;
   }
 
   async listDeletedAnnouncements(): Promise<Announcement[]> {
@@ -1113,28 +1103,32 @@ export class DbStorage implements IStorage {
       .where(eq(announcements.isDeleted, true))
       .orderBy(desc(announcements.deletedAt));
     
-    // Fetch attachments for each deleted announcement
-    const announcementsWithAttachments = await Promise.all(
-      deletedAnnouncements.map(async (announcement) => {
-        const attachments = await db
-          .select({
-            id: announcementAttachments.id,
-            file_name: announcementAttachments.file_name,
-            fileSize: announcementAttachments.fileSize,
-            mimeType: announcementAttachments.mimeType,
-            createdAt: announcementAttachments.createdAt,
-          })
-          .from(announcementAttachments)
-          .where(eq(announcementAttachments.announcementId, announcement.id));
-        
-        return {
-          ...announcement,
-          attachments,
-        };
+    if (deletedAnnouncements.length === 0) return [];
+
+    const announcementIds = deletedAnnouncements.map(a => a.id);
+    const allAttachments = await db
+      .select({
+        id: announcementAttachments.id,
+        announcementId: announcementAttachments.announcementId,
+        file_name: announcementAttachments.file_name,
+        fileSize: announcementAttachments.fileSize,
+        mimeType: announcementAttachments.mimeType,
+        createdAt: announcementAttachments.createdAt,
       })
-    );
-    
-    return announcementsWithAttachments;
+      .from(announcementAttachments)
+      .where(inArray(announcementAttachments.announcementId, announcementIds));
+
+    const attachmentsByAnnouncement = new Map<number, typeof allAttachments>();
+    for (const att of allAttachments) {
+      const list = attachmentsByAnnouncement.get(att.announcementId) || [];
+      list.push(att);
+      attachmentsByAnnouncement.set(att.announcementId, list);
+    }
+
+    return deletedAnnouncements.map(announcement => ({
+      ...announcement,
+      attachments: attachmentsByAnnouncement.get(announcement.id) || [],
+    }));
   }
 
   async restoreAnnouncement(id: number): Promise<boolean> {

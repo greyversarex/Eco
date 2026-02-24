@@ -44,7 +44,7 @@ Files are stored directly within the PostgreSQL database using a `bytea` column,
 *   **Web Push Notifications:** Real-time browser notifications for new messages, assignments, and announcements using W3C Push API and VAPID authentication.
 *   **App Icon Badging:** Displays unread count (messages, announcements, assignments) on app icon using Badging API. Works on PWA and native mobile apps.
 *   **Unread Messages Block (Mobile):** Special first block on mobile view showing departments with unread messages, displayed with red header "Паёмҳои нохондашуда" (Unread Messages).
-*   **Performance Optimization:** Achieves 85% data transfer reduction for slow networks through WebP image compression, gzip middleware, HTTP Cache-Control headers, and frontend code splitting.
+*   **Performance Optimization:** Achieves 85% data transfer reduction for slow networks through WebP image compression, gzip middleware, HTTP Cache-Control headers, and frontend code splitting. Database queries optimized with batch loading (eliminating N+1 patterns), SQL COUNT instead of in-memory counting, GIN indexes on array columns, and parameterized queries via Drizzle's `inArray`. Frontend uses Map-based O(1) department lookups and debounced search.
 
 ## External Dependencies
 

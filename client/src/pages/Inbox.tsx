@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,9 +29,25 @@ export default function Inbox() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleteMode, setIsDeleteMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchInputValue, setSearchInputValue] = useState('');
   const [documentTypeFilter, setDocumentTypeFilter] = useState<string>('');
   const { user } = useAuth();
   const { toast } = useToast();
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchInputValue(value);
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      setSearchQuery(value);
+    }, 300);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, []);
 
   const isOutbox = location === '/department/outbox';
   const pageTitle = isOutbox ? t.outbox : t.inbox;
@@ -48,10 +64,17 @@ export default function Inbox() {
     queryKey: ['/api/document-types'],
   });
 
-  const getDepartmentName = (deptId: number) => {
-    const dept = departments.find(d => d.id === deptId);
-    return dept?.name || '';
-  };
+  const departmentMap = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const dept of departments) {
+      map.set(dept.id, dept.name);
+    }
+    return map;
+  }, [departments]);
+
+  const getDepartmentName = useCallback((deptId: number) => {
+    return departmentMap.get(deptId) || '';
+  }, [departmentMap]);
 
   const filteredMessages = useMemo(() => {
     if (!user || user.userType !== 'department') return [];
@@ -310,8 +333,8 @@ export default function Inbox() {
                 <Input
                   type="text"
                   placeholder="Ҷустуҷӯ дар паёмҳо..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={searchInputValue}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-10"
                   data-testid="input-message-search"
                 />
@@ -344,7 +367,7 @@ export default function Inbox() {
           ) : searchedMessages.length === 0 ? (
             <div className="flex items-center justify-center p-12">
               <p className="text-muted-foreground">
-                {searchQuery.trim() ? 'Паёме ёфт нашуд' : 'Паёме нест'}
+                {searchInputValue.trim() ? 'Паёме ёфт нашуд' : 'Паёме нест'}
               </p>
             </div>
           ) : (

@@ -146,11 +146,12 @@ export const messages: any = pgTable("messages", {
 }, (table) => ({
   senderIdx: index("messages_sender_id_idx").on(table.senderId),
   recipientIdx: index("messages_recipient_id_idx").on(table.recipientId),
-  // GIN index for array membership queries (WHERE x = ANY(recipient_ids))
   recipientIdsIdx: index("messages_recipient_ids_idx").using("gin", table.recipientIds),
   deletedIdx: index("messages_is_deleted_idx").on(table.isDeleted),
   approvalIdx: index("messages_approval_status_idx").on(table.approvalStatus),
   deletedByRecipientIdsIdx: index("messages_deleted_by_recipient_ids_idx").using("gin", table.deletedByRecipientIds),
+  createdAtIdx: index("messages_created_at_idx").on(table.createdAt),
+  isReadIdx: index("messages_is_read_idx").on(table.isRead),
 }));
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
@@ -231,6 +232,12 @@ export const assignments = pgTable("assignments", {
   deletedIdx: index("assignments_is_deleted_idx").on(table.isDeleted),
   senderIdx: index("assignments_sender_id_idx").on(table.senderId),
   approvalIdx: index("assignments_approval_status_idx").on(table.approvalStatus),
+  recipientIdsIdx: index("assignments_recipient_ids_idx").using("gin", table.recipientIds),
+  executorIdsIdx: index("assignments_executor_ids_idx").using("gin", table.executorIds),
+  allDeptExecutorIdsIdx: index("assignments_all_dept_executor_ids_idx").using("gin", table.allDepartmentExecutorIds),
+  deadlineIdx: index("assignments_deadline_idx").on(table.deadline),
+  isCompletedIdx: index("assignments_is_completed_idx").on(table.isCompleted),
+  createdAtIdx: index("assignments_created_at_idx").on(table.createdAt),
 }));
 
 export const insertAssignmentSchema = createInsertSchema(assignments).omit({
@@ -350,11 +357,16 @@ export const announcements = pgTable("announcements", {
   readBy: integer("read_by").array().notNull().default(sql`ARRAY[]::integer[]`),
   isDeleted: boolean("is_deleted").notNull().default(false),
   deletedAt: timestamp("deleted_at"),
-  evasiveButton: text("evasive_button").default("negative").notNull(), // 'positive', 'negative', 'none'
-  positiveButtonColor: text("positive_button_color").default("green").notNull(), // 'green', 'red', 'orange', 'yellow'
-  negativeButtonColor: text("negative_button_color").default("red").notNull(), // 'green', 'red', 'orange', 'yellow'
+  evasiveButton: text("evasive_button").default("negative").notNull(),
+  positiveButtonColor: text("positive_button_color").default("green").notNull(),
+  negativeButtonColor: text("negative_button_color").default("red").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  isDeletedIdx: index("announcements_is_deleted_idx").on(table.isDeleted),
+  createdAtIdx: index("announcements_created_at_idx").on(table.createdAt),
+  recipientIdsIdx: index("announcements_recipient_ids_idx").using("gin", table.recipientIds),
+  readByIdx: index("announcements_read_by_idx").using("gin", table.readBy),
+}));
 
 export const insertAnnouncementSchema = createInsertSchema(announcements).omit({
   id: true,

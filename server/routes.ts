@@ -2344,8 +2344,7 @@ export function registerRoutes(app: Express) {
       
       // Filter assignments: show if department is creator OR recipient OR monitored
       if (req.session.departmentId) {
-        const depts = await storage.getDepartments();
-        const currentDept = depts.find(d => d.id === req.session.departmentId);
+        const currentDept = await storage.getDepartmentById(req.session.departmentId);
         const monitoredIds = currentDept?.monitoredAssignmentDeptIds || [];
         
         const filteredAssignments = allAssignments.filter(assignment => {
