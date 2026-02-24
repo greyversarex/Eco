@@ -719,33 +719,67 @@ export function DocumentEditor({
           <head>
             <title>${editableTitle}</title>
             <style>
-              @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap');
+              @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Noto+Serif:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&display=swap');
+              @page {
+                size: A4;
+                margin: 20mm;
+              }
               body { 
-                font-family: 'Noto Sans', sans-serif; 
-                padding: 20mm; 
+                font-family: 'Noto Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                padding: 0;
+                margin: 0;
                 line-height: 1.5;
                 font-size: 14pt;
+                color: #000;
+                background: #fff;
               }
               @media print {
-                body { padding: 0; }
-                .page-break { page-break-after: always; }
+                body { padding: 0; margin: 0; }
+                .page-break { 
+                  page-break-after: always;
+                  display: none; /* Hide the visual marker in print */
+                }
+                button, .no-print { display: none !important; }
               }
-              img { max-width: 100%; height: auto; }
-              table { border-collapse: collapse; width: 100%; margin-bottom: 1em; }
-              table, th, td { border: 1px solid black; }
-              th, td { padding: 8px; text-align: left; }
-              p { margin: 0; min-height: 1.2em; white-space: pre-wrap; }
-              .text-center { text-align: center; }
-              .text-right { text-align: right; }
-              .text-justify { text-align: justify; }
+              img { max-width: 100%; height: auto; display: block; margin: 1em 0; }
+              table { border-collapse: collapse; width: 100%; margin-bottom: 1em; table-layout: fixed; }
+              table, th, td { border: 1px solid #000; }
+              th, td { padding: 8px; text-align: left; vertical-align: top; overflow-wrap: break-word; }
+              p { margin: 0; min-height: 1.2em; white-space: pre-wrap; word-break: break-word; }
+              .text-center { text-align: center !important; }
+              .text-right { text-align: right !important; }
+              .text-justify { text-align: justify !important; }
+              .text-left { text-align: left !important; }
+              
+              /* Support for Tiptap styles in print */
+              .ProseMirror { white-space: pre-wrap; }
+              [data-align="center"] { text-align: center !important; }
+              [data-align="right"] { text-align: right !important; }
+              [data-align="justify"] { text-align: justify !important; }
             </style>
           </head>
           <body>
-            ${contentHtml}
+            <div class="ProseMirror">
+              ${contentHtml}
+            </div>
             <script>
               window.onload = () => {
-                window.print();
-                // Optional: window.close();
+                // Ensure images are loaded before printing
+                const images = document.getElementsByTagName('img');
+                const imagePromises = Array.from(images).map(img => {
+                  if (img.complete) return Promise.resolve();
+                  return new Promise(resolve => {
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                  });
+                });
+
+                Promise.all(imagePromises).then(() => {
+                  setTimeout(() => {
+                    window.print();
+                    // Optional: window.close();
+                  }, 500);
+                });
               };
             </script>
           </body>
