@@ -107,7 +107,22 @@ const cleanWordHtml = (html: string): string => {
     }
     const textAlignMatch = styleContent.match(/text-align:\s*([^;]+)/i);
     if (textAlignMatch) {
-      preservedStyles.push(`text-align: ${textAlignMatch[1].trim()}`);
+      const alignment = textAlignMatch[1].trim().toLowerCase();
+      if (['left', 'center', 'right', 'justify'].includes(alignment)) {
+        preservedStyles.push(`text-align: ${alignment}`);
+      }
+    }
+    const marginMatch = styleContent.match(/margin(?:-left|-right|-top|-bottom)?:\s*([^;]+)/i);
+    if (marginMatch) {
+      preservedStyles.push(marginMatch[0].trim());
+    }
+    const paddingMatch = styleContent.match(/padding(?:-left|-right|-top|-bottom)?:\s*([^;]+)/i);
+    if (paddingMatch) {
+      preservedStyles.push(paddingMatch[0].trim());
+    }
+    const textIndentMatch = styleContent.match(/text-indent:\s*([^;]+)/i);
+    if (textIndentMatch) {
+      preservedStyles.push(`text-indent: ${textIndentMatch[1].trim()}`);
     }
     const lineHeightMatch = styleContent.match(/line-height:\s*([^;]+)/i);
     if (lineHeightMatch) {

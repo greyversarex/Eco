@@ -950,7 +950,7 @@ export default function MessageView() {
                     <div className="space-y-3">
                       {messageDocuments.map((doc, index) => {
                         const isOwner = user?.userType === 'department' && user.department && message?.senderId === user.department.id;
-                        const hasSpecificPerm = doc.editableByRecipientIds?.includes(user?.department?.id || 0);
+                        const hasSpecificPerm = user?.userType === 'department' && user.department && doc.editableByRecipientIds?.includes(user.department.id);
                         const canEditDoc = doc.canEdit || hasSpecificPerm || isOwner || user?.userType === 'admin';
                         
                         return (
