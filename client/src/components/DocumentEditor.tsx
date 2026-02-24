@@ -17,7 +17,9 @@ import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
 
-const CustomParagraph = (StarterKit.resolveExtensions(StarterKit.config).find(e => e.name === 'paragraph') as any)?.extend({
+import Paragraph from '@tiptap/extension-paragraph';
+
+const CustomParagraph = Paragraph.extend({
   addAttributes() {
     return {
       textAlign: {
