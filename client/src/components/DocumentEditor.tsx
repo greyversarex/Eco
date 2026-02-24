@@ -244,7 +244,6 @@ const cleanWordHtml = (html: string): string => {
   });
   cleaned = cleaned.replace(/<span[^>]*>\s*<\/span>/gi, '');
   cleaned = cleaned.replace(/<p[^>]*>\s*(&nbsp;|\u00A0)?\s*<\/p>/gi, '<p><br></p>');
-  cleaned = cleaned.replace(/\s+/g, ' ');
   cleaned = cleaned.replace(/>\s+</g, '><');
   return cleaned.trim();
 };
@@ -1431,6 +1430,7 @@ export function DocumentEditor({
               "prose prose-sm max-w-none focus:outline-none",
               "[&_.ProseMirror]:min-h-[257mm] [&_.ProseMirror]:outline-none",
               "[&_.ProseMirror]:font-['Noto_Sans',sans-serif] [&_.ProseMirror]:[font-size:14pt]",
+              "[&_.ProseMirror]:whitespace-pre-wrap",
               "[&_.ProseMirror_p]:!block [&_.ProseMirror_p]:!w-full [&_.ProseMirror_p]:!min-h-[1.2em] [&_.ProseMirror_p]:!m-0",
               "[&_.ProseMirror_.text-center]:!text-center [&_.ProseMirror_.text-right]:!text-right [&_.ProseMirror_.text-justify]:!text-justify",
               "[&_.ProseMirror_[data-align=center]]:!text-center [&_.ProseMirror_[data-align=right]]:!text-right [&_.ProseMirror_[data-align=justify]]:!text-justify",
