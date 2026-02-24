@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -8,8 +8,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock, CheckCircle2, MessageSquare, Check, Upload, ChevronDown, ChevronUp, Pencil, RotateCcw } from 'lucide-react';
-import { DocumentEditor } from '@/components/DocumentEditor';
+import { ArrowLeft, Plus, LogOut, Download, Paperclip, X, Trash2, CalendarDays, Clock, CheckCircle2, MessageSquare, Check, Upload, ChevronDown, ChevronUp, Pencil, RotateCcw, Loader2 } from 'lucide-react';
+const DocumentEditor = lazy(() => import('@/components/DocumentEditor').then(m => ({ default: m.DocumentEditor })));
 import DOMPurify from 'isomorphic-dompurify';
 import bgImage from '@assets/eco-background-light.webp';
 import logoImage from '@assets/logo-optimized.webp';
@@ -1262,11 +1262,13 @@ export default function AssignmentsPage() {
                         <span className="text-sm text-muted-foreground">.docx</span>
                       </div>
                       <div className="border rounded-lg overflow-hidden">
-                        <DocumentEditor
-                          content={replyDocumentContent}
-                          onChange={setReplyDocumentContent}
-                          readOnly={false}
-                        />
+                        <Suspense fallback={<div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-green-600" /><span className="ml-2">Боргирӣ...</span></div>}>
+                          <DocumentEditor
+                            content={replyDocumentContent}
+                            onChange={setReplyDocumentContent}
+                            readOnly={false}
+                          />
+                        </Suspense>
                       </div>
                     </>
                   )}

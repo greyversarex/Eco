@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useLocation, useParams } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -15,8 +15,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X, Forward, Check, XCircle, Eye, Edit, Save } from 'lucide-react';
-import { DocumentEditor } from '@/components/DocumentEditor';
+import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X, Forward, Check, XCircle, Eye, Edit, Save, Loader2 } from 'lucide-react';
+const DocumentEditor = lazy(() => import('@/components/DocumentEditor').then(m => ({ default: m.DocumentEditor })));
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { apiFetch, buildApiUrl } from '@/lib/api-config';
@@ -1003,13 +1003,15 @@ export default function MessageView() {
                       </DialogTitle>
                     </DialogHeader>
                     <div className="flex-1 overflow-auto min-h-[400px]">
-                      <DocumentEditor
-                        content={editedContent}
-                        onChange={handleDocumentChange}
-                        departmentName={user?.userType === 'department' ? user.department?.name : undefined}
-                        canApprove={user?.userType === 'department' ? user.department?.canApprove : false}
-                        readOnly={isReadOnly}
-                      />
+                      <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin text-green-600" /><span className="ml-2">Боргирӣ...</span></div>}>
+                        <DocumentEditor
+                          content={editedContent}
+                          onChange={handleDocumentChange}
+                          departmentName={user?.userType === 'department' ? user.department?.name : undefined}
+                          canApprove={user?.userType === 'department' ? user.department?.canApprove : false}
+                          readOnly={isReadOnly}
+                        />
+                      </Suspense>
                     </div>
                     <div className="flex justify-end gap-2 pt-4 flex-shrink-0 border-t">
                       {user?.userType === 'department' && user.department && message?.senderId === user.department.id && editingDocument && (
@@ -1103,12 +1105,14 @@ export default function MessageView() {
                       </DialogTitle>
                     </DialogHeader>
                     <div className="flex-1 overflow-auto min-h-[400px]">
-                      <DocumentEditor
-                        content={attachmentContent}
-                        onChange={setAttachmentContent}
-                        departmentName={user?.userType === 'department' ? user.department?.name : undefined}
-                        canApprove={user?.userType === 'department' ? user.department?.canApprove : false}
-                      />
+                      <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin text-green-600" /><span className="ml-2">Боргирӣ...</span></div>}>
+                        <DocumentEditor
+                          content={attachmentContent}
+                          onChange={setAttachmentContent}
+                          departmentName={user?.userType === 'department' ? user.department?.name : undefined}
+                          canApprove={user?.userType === 'department' ? user.department?.canApprove : false}
+                        />
+                      </Suspense>
                     </div>
                     <div className="flex justify-end gap-2 pt-4 flex-shrink-0 border-t">
                       <Button

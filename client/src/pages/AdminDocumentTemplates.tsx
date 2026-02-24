@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, lazy, Suspense } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Plus, Pencil, Trash2, FileText, ArrowLeft, Upload, Eye, Edit3 } from 'lucide-react';
+import { LogOut, Plus, Pencil, Trash2, FileText, ArrowLeft, Upload, Eye, Edit3, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/lib/auth';
@@ -24,7 +24,7 @@ import type { DocumentTemplate } from '@shared/schema';
 import bgImage from '@assets/eco-background-light.webp';
 import { Footer } from '@/components/Footer';
 import { PageHeader, PageHeaderContainer, PageHeaderLeft, PageHeaderRight } from '@/components/PageHeader';
-import { DocumentEditor } from '@/components/DocumentEditor';
+const DocumentEditor = lazy(() => import('@/components/DocumentEditor').then(m => ({ default: m.DocumentEditor })));
 
 interface TemplateFormData {
   name: string;
@@ -450,11 +450,13 @@ export default function AdminDocumentTemplates() {
                     </Button>
                   </div>
                   <div className="max-h-[300px] overflow-y-auto">
-                    <DocumentEditor
-                      content={editorContent}
-                      onChange={setEditorContent}
-                      className="min-h-[200px]"
-                    />
+                    <Suspense fallback={<div className="flex items-center justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-green-600" /><span className="ml-2">Боргирӣ...</span></div>}>
+                      <DocumentEditor
+                        content={editorContent}
+                        onChange={setEditorContent}
+                        className="min-h-[200px]"
+                      />
+                    </Suspense>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
@@ -537,11 +539,13 @@ export default function AdminDocumentTemplates() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-hidden border rounded-lg">
-            <DocumentEditor
-              content={editorContent}
-              onChange={setEditorContent}
-              className="h-full"
-            />
+            <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin text-green-600" /><span className="ml-2">Боргирӣ...</span></div>}>
+              <DocumentEditor
+                content={editorContent}
+                onChange={setEditorContent}
+                className="h-full"
+              />
+            </Suspense>
           </div>
           <DialogFooter>
             <Button 

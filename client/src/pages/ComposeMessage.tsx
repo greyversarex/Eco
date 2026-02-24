@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { DocumentEditor } from '@/components/DocumentEditor';
+const DocumentEditor = lazy(() => import('@/components/DocumentEditor').then(m => ({ default: m.DocumentEditor })));
 import {
   Select,
   SelectContent,
@@ -1204,15 +1204,17 @@ export default function ComposeMessage() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-hidden">
-            <DocumentEditor
-              content={documentContent}
-              onChange={setDocumentContent}
-              departmentName={user?.userType === 'department' ? user.department?.name : undefined}
-              canApprove={user?.userType === 'department' ? user.department?.canApprove : false}
-              className="h-full"
-              title={documentTitle}
-              onTitleChange={setDocumentTitle}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin text-green-600" /><span className="ml-2">Боргирӣ...</span></div>}>
+              <DocumentEditor
+                content={documentContent}
+                onChange={setDocumentContent}
+                departmentName={user?.userType === 'department' ? user.department?.name : undefined}
+                canApprove={user?.userType === 'department' ? user.department?.canApprove : false}
+                className="h-full"
+                title={documentTitle}
+                onTitleChange={setDocumentTitle}
+              />
+            </Suspense>
           </div>
         </DialogContent>
       </Dialog>
