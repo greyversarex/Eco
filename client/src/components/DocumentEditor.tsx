@@ -549,6 +549,20 @@ export function DocumentEditor({
       attributes: {
         style: "font-family: 'Noto Sans', sans-serif;",
       },
+      handleKeyDown: (view, event) => {
+        if (event.key === 'Tab') {
+          event.preventDefault();
+          if (event.shiftKey) {
+            (view as any).dom.focus();
+            editor?.chain().focus().outdent().run();
+          } else {
+            (view as any).dom.focus();
+            editor?.chain().focus().indent().run();
+          }
+          return true;
+        }
+        return false;
+      },
       handlePaste: (view, event, slice) => {
         const html = event.clipboardData?.getData('text/html');
         if (html && (html.includes('mso-') || html.includes('MsoNormal') || html.includes('xmlns:w=') || html.includes('urn:schemas-microsoft-com'))) {
