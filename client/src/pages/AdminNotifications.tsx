@@ -496,11 +496,11 @@ export default function AdminNotifications() {
                     </Select>
                   </div>
                   <div className="col-span-3 flex flex-col items-center gap-1 pb-1">
-                    <Label className="text-[10px] uppercase">Мегурезад?</Label>
+                    <Label className="text-[10px] uppercase font-bold text-orange-600">Мегурезад?</Label>
                     <Switch
                       checked={btn.isEvasive}
                       onCheckedChange={(val) => updateButton(index, { isEvasive: val })}
-                      className="scale-75"
+                      className="data-[state=checked]:bg-orange-500"
                     />
                   </div>
                   <div className="col-span-1 pb-1">
