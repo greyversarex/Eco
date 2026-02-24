@@ -24,15 +24,15 @@ const CustomParagraph = Paragraph.extend({
     return {
       textAlign: {
         default: 'left',
+        keepOnSplit: true,
         parseHTML: (element: HTMLElement) => {
-          const align = element.style.textAlign || element.getAttribute('align') || 'left';
-          return align;
+          return element.style.textAlign || element.getAttribute('align') || element.getAttribute('data-align') || 'left';
         },
         renderHTML: (attributes: any) => {
           const align = attributes.textAlign || 'left';
           return {
-            style: `text-align: ${align} !important; display: block !important; width: 100% !important; min-height: 1em;`,
-            align: align,
+            style: `text-align: ${align} !important; display: block !important; width: 100% !important; min-height: 1.2em !important;`,
+            class: `text-${align}`,
             'data-align': align,
           };
         },
@@ -183,13 +183,14 @@ const cleanWordHtml = (html: string): string => {
       const alignment = textAlignMatch[1].trim().toLowerCase();
       if (['left', 'center', 'right', 'justify'].includes(alignment)) {
         preservedStyles.push(`text-align: ${alignment} !important`);
-        preservedStyles.push(`display: block`);
-        preservedStyles.push(`width: 100%`);
+        preservedStyles.push(`display: block !important`);
+        preservedStyles.push(`width: 100% !important`);
+        preservedStyles.push(`min-height: 1.2em !important`);
       }
     }
     const marginMatch = styleContent.match(/margin(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
     if (marginMatch) {
-      marginMatch.forEach(m => {
+      marginMatch.forEach((m: string) => {
         const style = m.trim().toLowerCase();
         if (style.startsWith('margin-left')) {
           const val = style.split(':')[1].trim();
@@ -206,7 +207,7 @@ const cleanWordHtml = (html: string): string => {
     }
     const paddingMatch = styleContent.match(/padding(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
     if (paddingMatch) {
-      paddingMatch.forEach(p => preservedStyles.push(p.trim()));
+      paddingMatch.forEach((p: string) => preservedStyles.push(p.trim()));
     }
     const textIndentMatch = styleContent.match(/text-indent:\s*([^;]+)/i);
     if (textIndentMatch) {
@@ -1415,10 +1416,9 @@ export function DocumentEditor({
         </div>
       )}
 
-      {/* A4 Page Container with Pagination */}
-      <div className="bg-gray-200 p-4 overflow-auto max-h-[70vh]">
+      <div className="bg-gray-200 p-4 overflow-auto max-h-[70vh] flex justify-center">
         <div 
-          className="mx-auto bg-white shadow-lg"
+          className="bg-white shadow-lg"
           style={{
             width: '210mm',
             minHeight: '297mm',
@@ -1431,6 +1431,9 @@ export function DocumentEditor({
               "prose prose-sm max-w-none focus:outline-none",
               "[&_.ProseMirror]:min-h-[257mm] [&_.ProseMirror]:outline-none",
               "[&_.ProseMirror]:font-['Noto_Sans',sans-serif] [&_.ProseMirror]:[font-size:14pt]",
+              "[&_.ProseMirror_p]:!block [&_.ProseMirror_p]:!w-full [&_.ProseMirror_p]:!min-h-[1.2em] [&_.ProseMirror_p]:!m-0",
+              "[&_.ProseMirror_.text-center]:!text-center [&_.ProseMirror_.text-right]:!text-right [&_.ProseMirror_.text-justify]:!text-justify",
+              "[&_.ProseMirror_[data-align=center]]:!text-center [&_.ProseMirror_[data-align=right]]:!text-right [&_.ProseMirror_[data-align=justify]]:!text-justify",
               "[&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-bold [&_.ProseMirror_h1]:my-4",
               "[&_.ProseMirror_h2]:text-xl [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_h2]:my-3",
               "[&_.ProseMirror_h3]:text-lg [&_.ProseMirror_h3]:font-bold [&_.ProseMirror_h3]:my-2",
