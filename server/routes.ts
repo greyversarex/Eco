@@ -1103,7 +1103,7 @@ export function registerRoutes(app: Express) {
   app.post("/api/messages/:messageId/documents", requireAuth, async (req: Request, res: Response) => {
     try {
       const messageId = parseInt(req.params.messageId);
-      const { templateId, title, htmlContent } = req.body;
+      const { templateId, title, htmlContent, canEdit, editableByRecipientIds } = req.body;
       
       if (!title || typeof title !== 'string' || title.trim().length === 0) {
         return res.status(400).json({ error: "Номи ҳуҷҷат ҳатмист" });
@@ -1121,7 +1121,8 @@ export function registerRoutes(app: Express) {
         templateId: templateId || null,
         title: title.trim(),
         htmlContent,
-        canEdit: req.body.canEdit === true || req.body.canEdit === 'true',
+        canEdit: canEdit === true || canEdit === 'true',
+        editableByRecipientIds: Array.isArray(editableByRecipientIds) ? editableByRecipientIds : [],
         lastEditedBy: departmentId,
       });
       
@@ -1134,7 +1135,7 @@ export function registerRoutes(app: Express) {
   app.patch("/api/message-documents/:id", requireAuth, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const { title, htmlContent, canEdit } = req.body;
+      const { title, htmlContent, canEdit, editableByRecipientIds } = req.body;
       
       // Get the document first to check authorization
       const existingDoc = await storage.getMessageDocumentById(id);
@@ -1158,9 +1159,14 @@ export function registerRoutes(app: Express) {
         const isSender = message.senderId === departmentId;
         const isRecipient = message.recipientIds?.includes(departmentId);
         
-        // If recipient, check if canEdit is enabled for this document
-        if (isRecipient && !existingDoc.canEdit && !isSender) {
-          return res.status(403).json({ error: "Шумо ҳуқуқи таҳрири ин ҳуҷҷатро надоред" });
+        // If recipient, check if canEdit is enabled for this document OR if they are in the specific list
+        if (isRecipient && !isSender) {
+          const hasGeneralPermission = existingDoc.canEdit;
+          const hasSpecificPermission = existingDoc.editableByRecipientIds?.includes(departmentId);
+          
+          if (!hasGeneralPermission && !hasSpecificPermission) {
+            return res.status(403).json({ error: "Шумо ҳуқуқи таҳрири ин ҳуҷҷатро надоред" });
+          }
         }
 
         if (!isSender && !isRecipient) {
@@ -1172,6 +1178,9 @@ export function registerRoutes(app: Express) {
       if (title !== undefined) updates.title = title.trim();
       if (htmlContent !== undefined) updates.htmlContent = htmlContent;
       if (canEdit !== undefined) updates.canEdit = canEdit === true || canEdit === 'true';
+      if (editableByRecipientIds !== undefined) {
+        updates.editableByRecipientIds = Array.isArray(editableByRecipientIds) ? editableByRecipientIds : [];
+      }
       
       if (departmentId) {
         updates.lastEditedBy = departmentId;

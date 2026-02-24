@@ -263,11 +263,11 @@ export default function MessageView() {
 
   // Document update mutation
   const updateDocumentMutation = useMutation({
-    mutationFn: async ({ documentId, htmlContent }: { documentId: number; htmlContent: string }) => {
+    mutationFn: async ({ documentId, htmlContent, canEdit, editableByRecipientIds }: { documentId: number; htmlContent: string; canEdit?: boolean; editableByRecipientIds?: number[] }) => {
       const res = await apiFetch(`/api/message-documents/${documentId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ htmlContent }),
+        body: JSON.stringify({ htmlContent, canEdit, editableByRecipientIds }),
         credentials: 'include',
       });
       if (!res.ok) {
@@ -316,7 +316,12 @@ export default function MessageView() {
     }
   };
 
-  const isReadOnly = editingDocument ? !canEdit && user?.userType === 'department' && message?.senderId !== user?.department?.id : false;
+  const isReadOnly = editingDocument ? 
+    !editingDocument.canEdit && 
+    !editingDocument.editableByRecipientIds?.includes(user?.department?.id || 0) &&
+    user?.userType === 'department' && 
+    message?.senderId !== user?.department?.id 
+    : false;
 
   const handleDocumentChange = (content: string) => {
     if (isReadOnly) return;
@@ -939,7 +944,8 @@ export default function MessageView() {
                     <div className="space-y-3">
                       {messageDocuments.map((doc, index) => {
                         const isOwner = user?.userType === 'department' && message?.senderId === user.department.id;
-                        const canEditDoc = doc.canEdit || isOwner || user?.userType === 'admin';
+                        const hasSpecificPerm = doc.editableByRecipientIds?.includes(user?.department?.id || 0);
+                        const canEditDoc = doc.canEdit || hasSpecificPerm || isOwner || user?.userType === 'admin';
                         
                         return (
                           <Card key={doc.id} className="overflow-hidden" data-testid={`document-card-${index}`}>
@@ -1000,6 +1006,55 @@ export default function MessageView() {
                       />
                     </div>
                     <div className="flex justify-end gap-2 pt-4 flex-shrink-0 border-t">
+                      {user?.userType === 'department' && message?.senderId === user.department.id && editingDocument && (
+                        <div className="mr-auto flex flex-col gap-2">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="toggle-can-edit"
+                              checked={editingDocument.canEdit}
+                              onCheckedChange={async (checked) => {
+                                await updateDocumentMutation.mutateAsync({
+                                  documentId: editingDocument.id,
+                                  htmlContent: editedContent,
+                                  canEdit: checked === true
+                                });
+                              }}
+                            />
+                            <Label htmlFor="toggle-can-edit" className="text-xs cursor-pointer">Иҷозати таҳрир ба ҳама</Label>
+                          </div>
+                          
+                          {!editingDocument.canEdit && (message.recipientIds?.length || 0) > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {message.recipientIds?.map(deptId => {
+                                const dept = departments.find(d => d.id === deptId);
+                                const isPermitted = editingDocument.editableByRecipientIds?.includes(deptId);
+                                return (
+                                  <Button 
+                                    key={deptId}
+                                    variant={isPermitted ? "default" : "outline"}
+                                    size="sm"
+                                    className="h-7 text-[10px] px-2"
+                                    onClick={async () => {
+                                      const currentIds = editingDocument.editableByRecipientIds || [];
+                                      const newIds = isPermitted 
+                                        ? currentIds.filter(id => id !== deptId)
+                                        : [...currentIds, deptId];
+                                      
+                                      await updateDocumentMutation.mutateAsync({
+                                        documentId: editingDocument.id,
+                                        htmlContent: editedContent,
+                                        editableByRecipientIds: newIds
+                                      });
+                                    }}
+                                  >
+                                    {dept?.name}
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {!isReadOnly ? (
                         <>
                           <Button

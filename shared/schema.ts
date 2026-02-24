@@ -466,7 +466,8 @@ export const messageDocuments = pgTable("message_documents", {
   templateId: integer("template_id").references(() => documentTemplates.id, { onDelete: 'set null' }),
   title: text("title").notNull(), // Document title
   htmlContent: text("html_content").notNull(), // Current editable HTML content
-  canEdit: boolean("can_edit").default(false).notNull(), // Whether recipients can edit this document
+  canEdit: boolean("can_edit").default(false).notNull(), // Whether recipients can edit this document (general toggle)
+  editableByRecipientIds: integer("editable_by_recipient_ids").array().default(sql`ARRAY[]::integer[]`).notNull(), // Specific recipients who can edit
   lastEditedBy: integer("last_edited_by").references(() => departments.id, { onDelete: 'set null' }),
   lastEditedAt: timestamp("last_edited_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

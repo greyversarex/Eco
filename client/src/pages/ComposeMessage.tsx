@@ -64,6 +64,7 @@ export default function ComposeMessage() {
   const [documentContent, setDocumentContent] = useState('');
   const [documentTitle, setDocumentTitle] = useState('');
   const [canEditDocuments, setCanEditDocuments] = useState(false);
+  const [editableByRecipientIds, setEditableByRecipientIds] = useState<number[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -170,12 +171,13 @@ export default function ComposeMessage() {
       // Save document if created
       if (documentContent && documentTitle) {
         try {
-          await apiRequest('POST', `/api/messages/${messageId}/documents`, {
-            templateId: selectedTemplateId,
-            title: documentTitle,
-            htmlContent: documentContent,
-            canEdit: canEditDocuments,
-          });
+            await apiRequest('POST', `/api/messages/${messageId}/documents`, {
+              templateId: selectedTemplateId,
+              title: documentTitle,
+              htmlContent: documentContent,
+              canEdit: canEditDocuments,
+              editableByRecipientIds: editableByRecipientIds,
+            });
         } catch (error) {
           console.error('Failed to save document:', error);
         }
@@ -299,6 +301,7 @@ export default function ComposeMessage() {
                 title: documentTitle,
                 htmlContent: documentContent,
                 canEdit: canEditDocuments,
+                editableByRecipientIds: editableByRecipientIds,
               });
             }
           } catch (error) {
@@ -335,6 +338,7 @@ export default function ComposeMessage() {
               title: documentTitle,
               htmlContent: documentContent,
               canEdit: canEditDocuments,
+              editableByRecipientIds: editableByRecipientIds,
             });
           } catch (error) {
             console.error('Failed to save document:', error);
@@ -928,15 +932,46 @@ export default function ComposeMessage() {
                           Ҳуҷҷат аз намуна
                         </Button>
                         {documentContent && (
-                          <div className="flex items-center space-x-2 px-1">
-                            <Checkbox 
-                              id="canEditDocuments" 
-                              checked={canEditDocuments}
-                              onCheckedChange={(checked) => setCanEditDocuments(checked === true)}
-                            />
-                            <Label htmlFor="canEditDocuments" className="text-xs font-normal cursor-pointer">
-                              Иҷозати таҳрир ба қабулкунанда
-                            </Label>
+                          <div className="flex flex-col gap-2 px-1">
+                            <div className="flex items-center space-x-2">
+                              <Checkbox 
+                                id="canEditDocuments" 
+                                checked={canEditDocuments}
+                                onCheckedChange={(checked) => setCanEditDocuments(checked === true)}
+                              />
+                              <Label htmlFor="canEditDocuments" className="text-xs font-normal cursor-pointer">
+                                Иҷозати таҳрир ба ҳама қабулкунандагон
+                              </Label>
+                            </div>
+                            
+                            {!canEditDocuments && selectedRecipients.length > 0 && (
+                              <div className="space-y-2 mt-1 border-l-2 border-green-500 pl-3">
+                                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Кӣ метавонад таҳрир кунад:</Label>
+                                <div className="grid grid-cols-1 gap-1 max-h-32 overflow-y-auto">
+                                  {selectedRecipients.map(deptId => {
+                                    const dept = departments.find(d => d.id === deptId);
+                                    return (
+                                      <div key={deptId} className="flex items-center space-x-2">
+                                        <Checkbox 
+                                          id={`edit-dept-${deptId}`} 
+                                          checked={editableByRecipientIds.includes(deptId)}
+                                          onCheckedChange={(checked) => {
+                                            if (checked) {
+                                              setEditableByRecipientIds([...editableByRecipientIds, deptId]);
+                                            } else {
+                                              setEditableByRecipientIds(editableByRecipientIds.filter(id => id !== deptId));
+                                            }
+                                          }}
+                                        />
+                                        <Label htmlFor={`edit-dept-${deptId}`} className="text-[11px] cursor-pointer truncate">
+                                          {dept?.name}
+                                        </Label>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
