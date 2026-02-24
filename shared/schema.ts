@@ -553,3 +553,5 @@ export const notificationDismissals = pgTable("notification_dismissals", {
   notifDeptIdx: index("notification_dismissals_notif_dept_idx").on(table.notificationId, table.departmentId),
 }));
 
+// Deploy fix to trigger git sync for production update
+
