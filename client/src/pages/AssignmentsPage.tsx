@@ -44,6 +44,9 @@ import { ComposeMessageModal } from '@/components/ComposeMessageModal';
 
 // Helper to determine assignment stamp status
 function getAssignmentStamp(assignment: { approvalStatus?: string | null; isCompleted: boolean; deadline: string | Date; isRestored?: boolean }): { show: boolean; type: 'approved' | 'rejected' | 'overdue' | 'restored'; label: string } | null {
+  if (assignment.isRestored && !assignment.isCompleted && assignment.approvalStatus !== 'approved' && assignment.approvalStatus !== 'rejected') {
+    return { show: true, type: 'restored', label: 'ТАЪХИРШУДА' };
+  }
   if (assignment.approvalStatus === 'approved' || assignment.isCompleted) {
     return { show: true, type: 'approved', label: 'ИҶРО ШУД' };
   }
