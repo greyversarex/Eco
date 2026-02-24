@@ -300,10 +300,14 @@ export default function MessageView() {
     },
   });
 
+  const [localCanEdit, setLocalCanEdit] = useState<boolean>(false);
+  const [localEditableIds, setLocalEditableIds] = useState<number[]>([]);
+
   const handleOpenDocumentEditor = (doc: MessageDocument) => {
     setEditingDocument(doc);
     setEditedContent(doc.htmlContent);
-    setCanEdit(doc.canEdit);
+    setLocalCanEdit(doc.canEdit);
+    setLocalEditableIds(doc.editableByRecipientIds || []);
     setIsDocumentEditorOpen(true);
   };
 
@@ -311,14 +315,16 @@ export default function MessageView() {
     if (editingDocument) {
       updateDocumentMutation.mutate({ 
         documentId: editingDocument.id, 
-        htmlContent: editedContent 
+        htmlContent: editedContent,
+        canEdit: localCanEdit,
+        editableByRecipientIds: localEditableIds
       });
     }
   };
 
   const isReadOnly = editingDocument ? 
-    !editingDocument.canEdit && 
-    !editingDocument.editableByRecipientIds?.includes(user?.department?.id || 0) &&
+    !localCanEdit && 
+    !localEditableIds.includes(user?.department?.id || 0) &&
     user?.userType === 'department' && 
     message?.senderId !== user?.department?.id 
     : false;
@@ -1011,40 +1017,29 @@ export default function MessageView() {
                           <div className="flex items-center space-x-2">
                             <Checkbox 
                               id="toggle-can-edit"
-                              checked={editingDocument.canEdit}
-                              onCheckedChange={async (checked) => {
-                                await updateDocumentMutation.mutateAsync({
-                                  documentId: editingDocument.id,
-                                  htmlContent: editedContent,
-                                  canEdit: checked === true
-                                });
-                              }}
+                              checked={localCanEdit}
+                              onCheckedChange={(checked) => setLocalCanEdit(checked === true)}
                             />
                             <Label htmlFor="toggle-can-edit" className="text-xs cursor-pointer">Иҷозати таҳрир ба ҳама</Label>
                           </div>
                           
-                          {!editingDocument.canEdit && (message.recipientIds?.length || 0) > 0 && (
+                          {!localCanEdit && (message.recipientIds?.length || 0) > 0 && (
                             <div className="flex flex-wrap gap-2 mt-1">
                               {message.recipientIds?.map(deptId => {
                                 const dept = departments.find(d => d.id === deptId);
-                                const isPermitted = editingDocument.editableByRecipientIds?.includes(deptId);
+                                const isPermitted = localEditableIds.includes(deptId);
                                 return (
                                   <Button 
                                     key={deptId}
                                     variant={isPermitted ? "default" : "outline"}
                                     size="sm"
-                                    className="h-7 text-[10px] px-2"
-                                    onClick={async () => {
-                                      const currentIds = editingDocument.editableByRecipientIds || [];
-                                      const newIds = isPermitted 
-                                        ? currentIds.filter(id => id !== deptId)
-                                        : [...currentIds, deptId];
-                                      
-                                      await updateDocumentMutation.mutateAsync({
-                                        documentId: editingDocument.id,
-                                        htmlContent: editedContent,
-                                        editableByRecipientIds: newIds
-                                      });
+                                    className={`h-7 text-[10px] px-2 ${isPermitted ? "bg-green-600 hover:bg-green-700 text-white border-green-600" : ""}`}
+                                    onClick={() => {
+                                      setLocalEditableIds(prev => 
+                                        isPermitted 
+                                          ? prev.filter(id => id !== deptId)
+                                          : [...prev, deptId]
+                                      );
                                     }}
                                   >
                                     {dept?.name}
