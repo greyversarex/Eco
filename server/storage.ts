@@ -74,6 +74,7 @@ export interface IStorage {
   // Assignments
   getAssignments(): Promise<Assignment[]>;
   getAssignmentById(id: number): Promise<Assignment | undefined>;
+  getAssignmentByIdIncludeDeleted(id: number): Promise<Assignment | undefined>;
   createAssignment(assignment: InsertAssignment): Promise<Assignment>;
   updateAssignment(id: number, assignment: Partial<InsertAssignment>): Promise<Assignment | undefined>;
   deleteAssignment(id: number): Promise<boolean>;
@@ -804,6 +805,12 @@ export class DbStorage implements IStorage {
   async getAssignmentById(id: number): Promise<Assignment | undefined> {
     const result = await db.select().from(assignments)
       .where(and(eq(assignments.id, id), eq(assignments.isDeleted, false)));
+    return result[0];
+  }
+
+  async getAssignmentByIdIncludeDeleted(id: number): Promise<Assignment | undefined> {
+    const result = await db.select().from(assignments)
+      .where(eq(assignments.id, id));
     return result[0];
   }
 

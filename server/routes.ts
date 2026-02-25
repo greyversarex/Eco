@@ -3064,16 +3064,16 @@ export function registerRoutes(app: Express) {
         return res.status(404).json({ error: 'Reply not found' });
       }
       
-      const assignment = await storage.getAssignmentById(reply.assignmentId);
-      if (!assignment) {
+      const assignmentForAuth = await storage.getAssignmentByIdIncludeDeleted(reply.assignmentId);
+      if (!assignmentForAuth) {
         return res.status(404).json({ error: 'Assignment not found' });
       }
       
       // Allow access for: admin, sender, or recipients
       const departmentId = req.session.departmentId;
       const isAdmin = req.session.userType === 'admin';
-      const isSender = assignment.senderId === departmentId;
-      const isRecipient = assignment.recipientIds?.includes(departmentId);
+      const isSender = assignmentForAuth.senderId === departmentId;
+      const isRecipient = assignmentForAuth.recipientIds?.includes(departmentId);
       
       if (!isAdmin && !isSender && !isRecipient) {
         return res.status(403).json({ error: 'Access denied to this attachment' });
@@ -3153,12 +3153,6 @@ export function registerRoutes(app: Express) {
       const attachment = await storage.getAssignmentAttachmentById(id);
       if (!attachment) {
         return res.status(404).json({ error: 'Attachment not found' });
-      }
-
-      // Verify parent assignment exists and is not deleted
-      const assignment = await storage.getAssignmentById(attachment.assignmentId);
-      if (!assignment) {
-        return res.status(404).json({ error: 'Assignment not found or has been deleted' });
       }
 
       res.setHeader('Content-Type', attachment.mimeType);
