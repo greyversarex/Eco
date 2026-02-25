@@ -2599,21 +2599,23 @@ export function registerRoutes(app: Express) {
         );
       }
 
-      // Copy message documents as assignment attachments (when creating from message)
+      // Copy message documents as .docx assignment attachments (when creating from message)
       const sourceMessageId = req.body.sourceMessageId ? parseInt(req.body.sourceMessageId) : null;
       if (sourceMessageId && !isNaN(sourceMessageId)) {
         try {
           const messageDocs = await storage.getMessageDocuments(sourceMessageId);
           if (messageDocs.length > 0) {
+            const { asBlob } = await import('html-docx-js-typescript');
             await Promise.all(
               messageDocs.map(async (doc) => {
-                const htmlBuffer = Buffer.from(doc.htmlContent, 'utf-8');
+                const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:14pt;}</style></head><body>${doc.htmlContent}</body></html>`;
+                const docxBuffer = Buffer.from(await asBlob(fullHtml) as Buffer);
                 await storage.createAssignmentAttachment({
                   assignmentId: assignment.id,
-                  fileData: htmlBuffer,
-                  file_name: `${doc.title}.html`,
-                  fileSize: htmlBuffer.length,
-                  mimeType: 'text/html',
+                  fileData: docxBuffer,
+                  file_name: `${doc.title}.docx`,
+                  fileSize: docxBuffer.length,
+                  mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                 });
               })
             );
