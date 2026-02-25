@@ -727,6 +727,10 @@ export default function MessageView() {
     formData.append('recipientIds', JSON.stringify(selectedRecipients));
     formData.append('deadline', assignmentDeadline);
     
+    if (message?.id) {
+      formData.append('sourceMessageId', message.id.toString());
+    }
+    
     assignmentFiles.forEach((file) => {
       formData.append('files', file);
     });

@@ -1664,6 +1664,27 @@ export function registerRoutes(app: Express) {
             })
           );
         }
+
+        // Copy message documents (created in built-in editor)
+        const originalDocuments = await storage.getMessageDocuments(messageId);
+        if (originalDocuments.length > 0) {
+          await Promise.all(
+            originalDocuments.map(async (doc) => {
+              try {
+                await storage.createMessageDocument({
+                  messageId: forwardedMessage.id,
+                  templateId: doc.templateId,
+                  title: doc.title,
+                  htmlContent: doc.htmlContent,
+                  canEdit: doc.canEdit,
+                  editableByRecipientIds: doc.editableByRecipientIds,
+                });
+              } catch (docErr) {
+                console.error('Failed to copy document:', doc.id, docErr);
+              }
+            })
+          );
+        }
         
         res.json({ success: true, messageId: forwardedMessage.id, recipientsCount: recipientIds.length });
       } else {
@@ -2576,6 +2597,30 @@ export function registerRoutes(app: Express) {
             })
           )
         );
+      }
+
+      // Copy message documents as assignment attachments (when creating from message)
+      const sourceMessageId = req.body.sourceMessageId ? parseInt(req.body.sourceMessageId) : null;
+      if (sourceMessageId && !isNaN(sourceMessageId)) {
+        try {
+          const messageDocs = await storage.getMessageDocuments(sourceMessageId);
+          if (messageDocs.length > 0) {
+            await Promise.all(
+              messageDocs.map(async (doc) => {
+                const htmlBuffer = Buffer.from(doc.htmlContent, 'utf-8');
+                await storage.createAssignmentAttachment({
+                  assignmentId: assignment.id,
+                  fileData: htmlBuffer,
+                  file_name: `${doc.title}.html`,
+                  fileSize: htmlBuffer.length,
+                  mimeType: 'text/html',
+                });
+              })
+            );
+          }
+        } catch (docErr) {
+          console.error('Failed to copy message documents to assignment:', docErr);
+        }
       }
 
       // Send push notifications to recipients
