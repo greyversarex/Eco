@@ -863,36 +863,37 @@ export default function MessageView() {
                   </div>
                 </div>
 
-                <div className="space-y-3 text-base border-t pt-6 px-6">
-                  {(message as any).svNumber && (
-                    <div data-testid="text-sv-number">
-                      <span className="font-medium text-[#050505]">
-                        {(message as any).svDirection === 'outgoing' ? 'Рақами содиротӣ:' : (message as any).svDirection === 'incoming' ? 'Рақами воридотӣ:' : 'Рақами тартибӣ:'}
-                      </span>
-                      <span className="ml-2 text-foreground">{(message as any).svNumber}</span>
+                <div className="border-t pt-4 px-6">
+                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                    {(message as any).svNumber && (
+                      <div data-testid="text-sv-number" className="flex items-center">
+                        <span className="font-medium text-[#050505]">
+                          {(message as any).svDirection === 'outgoing' ? 'Рақами содиротӣ:' : (message as any).svDirection === 'incoming' ? 'Рақами воридотӣ:' : 'Рақами тартибӣ:'}
+                        </span>
+                        <span className="ml-1.5 text-foreground">{(message as any).svNumber}</span>
+                      </div>
+                    )}
+                    {message.documentNumber && (
+                      <div data-testid="text-document-number" className="flex items-center">
+                        <span className="font-medium text-[#050505]">Рақами ҳуҷҷат:</span>
+                        <span className="ml-1.5 text-foreground">{message.documentNumber}</span>
+                      </div>
+                    )}
+                    <div data-testid="text-date" className="flex items-center">
+                      <span className="font-medium text-[#000000]">Сана:</span>
+                      <span className="ml-1.5 text-foreground">{formatDateTajik(new Date(message.documentDate))}</span>
                     </div>
-                  )}
-                  {message.documentNumber && (
-                    <div data-testid="text-document-number">
-                      <span className="font-medium text-[#050505]">Рақами ҳуҷҷат:</span>
-                      <span className="ml-2 text-foreground">{message.documentNumber}</span>
-                    </div>
-                  )}
-                  <div data-testid="text-date">
-                    <span className="font-medium text-[#000000]">Сана:</span>
-                    <span className="ml-2 text-foreground">{formatDateTajik(new Date(message.documentDate))}</span>
-                  </div>
-                  <div data-testid="text-sender" className="space-y-1">
-                    <div className="text-foreground">
-                      <span className="font-medium text-[#000000]">Фиристанда:</span> {getSenderName(message.senderId)}
+                    <div data-testid="text-sender" className="flex items-center">
+                      <span className="font-medium text-[#000000]">Фиристанда:</span>
+                      <span className="ml-1.5 text-foreground">{getSenderName(message.senderId)}</span>
                     </div>
                   </div>
                   {message.originalSenderId && message.forwardedById && (
-                    <div data-testid="text-forwarded-info" className="space-y-1 bg-accent/30 p-3 rounded-md">
-                      <div className="text-foreground text-sm">
+                    <div data-testid="text-forwarded-info" className="flex flex-wrap gap-x-4 gap-y-1 mt-2 bg-accent/30 px-3 py-2 rounded-md text-sm">
+                      <div className="text-foreground">
                         <span className="font-medium text-[#000000]">Муаллифи аслӣ:</span> {getSenderName(message.originalSenderId)}
                       </div>
-                      <div className="text-foreground text-sm">
+                      <div className="text-foreground">
                         <span className="font-medium text-[#000000]">Иловакунанда:</span> {getSenderName(message.forwardedById)}
                       </div>
                     </div>
