@@ -2606,9 +2606,24 @@ export function registerRoutes(app: Express) {
           const messageDocs = await storage.getMessageDocuments(sourceMessageId);
           if (messageDocs.length > 0) {
             const { asBlob } = await import('html-docx-js-typescript');
+            const sharp = (await import('sharp')).default;
             await Promise.all(
               messageDocs.map(async (doc) => {
-                const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:14pt;}</style></head><body>${doc.htmlContent}</body></html>`;
+                let html = doc.htmlContent;
+                const svgDataUrlRegex = /<img([^>]*?)src="data:image\/svg\+xml,([^"]+)"([^>]*?)>/gi;
+                const matches = [...html.matchAll(svgDataUrlRegex)];
+                for (const match of matches) {
+                  try {
+                    const svgContent = decodeURIComponent(match[2]);
+                    const pngBuffer = await sharp(Buffer.from(svgContent), { density: 150 }).png().toBuffer();
+                    const pngBase64 = pngBuffer.toString('base64');
+                    const newImg = `<img${match[1]}src="data:image/png;base64,${pngBase64}"${match[3]}>`;
+                    html = html.replace(match[0], newImg);
+                  } catch (svgErr) {
+                    console.error('Failed to convert SVG stamp to PNG:', svgErr);
+                  }
+                }
+                const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:14pt;}</style></head><body>${html}</body></html>`;
                 const docxBuffer = Buffer.from(await asBlob(fullHtml) as Buffer);
                 await storage.createAssignmentAttachment({
                   assignmentId: assignment.id,
