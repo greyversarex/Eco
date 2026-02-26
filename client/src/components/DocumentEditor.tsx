@@ -732,7 +732,9 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
   const outerRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(1);
   const [dims, setDims] = useState({ pageH: 0, mT: 0, mB: 0, mL: 0, mR: 0, contentH: 0 });
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafRef = useRef(0);
+  const editorRef = useRef(editor);
+  editorRef.current = editor;
 
   const doLayout = useCallback(() => {
     const outer = outerRef.current;
@@ -772,6 +774,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
 
     let page = 0;
     let totalPush = 0;
+    let didPush = false;
 
     for (let i = 0; i < blocks.length; i++) {
       const el = blocks[i];
@@ -790,6 +793,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
           el.dataset.pagebreak = '1';
           totalPush += push;
           page++;
+          didPush = true;
         }
       }
     }
@@ -800,11 +804,32 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
 
     setPageCount(pages);
     setDims({ pageH, mT, mB, mL, mR, contentH });
+
+    if (didPush) {
+      requestAnimationFrame(() => {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          const caretRect = range.getBoundingClientRect();
+          const scrollParent = outer.closest('.overflow-auto') as HTMLElement;
+          if (scrollParent && caretRect.height > 0) {
+            const spRect = scrollParent.getBoundingClientRect();
+            if (caretRect.bottom > spRect.bottom || caretRect.top < spRect.top) {
+              const scrollTarget = caretRect.top - spRect.top + scrollParent.scrollTop - spRect.height / 2;
+              scrollParent.scrollTo({ top: Math.max(0, scrollTarget), behavior: 'instant' });
+            }
+          }
+        }
+      });
+    }
   }, []);
 
   const scheduleLayout = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(doLayout, 40);
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = 0;
+      doLayout();
+    });
   }, [doLayout]);
 
   useEffect(() => {
@@ -815,7 +840,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
     const ro = new ResizeObserver(scheduleLayout);
     if (outerRef.current) ro.observe(outerRef.current);
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       editor.off('update', scheduleLayout);
       editor.off('create', scheduleLayout);
       ro.disconnect();
