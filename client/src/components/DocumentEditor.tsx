@@ -733,6 +733,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
   const [pageCount, setPageCount] = useState(1);
   const [pageHPx, setPageHPx] = useState(() => mmToPx(PAGE_HEIGHT_MM));
   const [totalHeight, setTotalHeight] = useState(() => mmToPx(PAGE_HEIGHT_MM));
+  const [debugText, setDebugText] = useState('');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isRunning = useRef(false);
   const layoutPass = useRef(0);
@@ -764,31 +765,39 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
       const blocks = Array.from(pm.querySelectorAll(':scope > *')) as HTMLElement[];
       for (const el of blocks) {
         if (el.dataset.pbm) {
-          el.style.removeProperty('margin-top');
+          el.style.paddingTop = '';
           delete el.dataset.pbm;
         }
       }
 
-      void pm.offsetHeight;
+      const pmRect = pm.getBoundingClientRect();
+      const pmTop = pmRect.top;
 
       let page = 0;
       let added = 0;
+      let debugInfo = `cH=${contentH.toFixed(0)} mT=${mTop.toFixed(0)} mB=${mBottom.toFixed(0)} n=${blocks.length} pmPos=${getComputedStyle(pm).position} pmW=${pm.offsetWidth}`;
 
-      for (const el of blocks) {
-        if (el.offsetHeight === 0) continue;
+      for (let i = 0; i < blocks.length; i++) {
+        const el = blocks[i];
+        const rect = el.getBoundingClientRect();
+        if (rect.height === 0) continue;
 
-        const blockTopInContent = el.offsetTop - mTop - added;
-        const blockBottomInContent = blockTopInContent + el.offsetHeight;
+        const topInContent = rect.top - pmTop - mTop - added;
+        const botInContent = topInContent + rect.height;
         const pageBoundary = (page + 1) * contentH;
 
-        if (blockBottomInContent > pageBoundary - 1) {
-          const push = (pageBoundary - blockTopInContent) + mBottom + GAP_PX + mTop;
-          el.style.setProperty('margin-top', `${push}px`, 'important');
+        if (botInContent > pageBoundary - 1) {
+          const push = (pageBoundary - topInContent) + mBottom + GAP_PX + mTop;
+          el.style.paddingTop = `${push}px`;
           el.dataset.pbm = '1';
           added += push;
           page++;
+          debugInfo += ` | #${i}:PUSH=${push.toFixed(0)}(t=${topInContent.toFixed(0)},b=${botInContent.toFixed(0)},bnd=${pageBoundary.toFixed(0)})`;
         }
       }
+      
+      console.log('[LAYOUT]', debugInfo);
+      setDebugText(debugInfo);
 
       const pages = page + 1;
       const pmOffset = pm.offsetTop;
@@ -857,15 +866,10 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
           z-index: 1;
           overflow-x: hidden;
         }
-        .doc-paged .ProseMirror > *:not([data-pbm]) {
-          margin-top: 0 !important;
-        }
         .doc-paged .ProseMirror p {
           display: block !important;
           min-height: 1.2em !important;
-          margin-bottom: 0 !important;
-          margin-left: 0 !important;
-          margin-right: 0 !important;
+          margin: 0 !important;
           white-space: pre-wrap;
           padding-left: var(--left-indent, 0);
           padding-right: var(--right-indent, 0);
@@ -927,6 +931,9 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
           </div>
           <div style={{ textAlign: 'center', padding: '8px', fontSize: '11px', color: '#999' }}>
             {pageCount} саҳ.
+          </div>
+          <div style={{ padding: '4px 8px', fontSize: '9px', color: '#c00', wordBreak: 'break-all', maxHeight: '80px', overflow: 'auto', background: '#fff3f3' }} data-testid="layout-debug">
+            {debugText || 'no layout yet'}
           </div>
         </div>
       </div>
