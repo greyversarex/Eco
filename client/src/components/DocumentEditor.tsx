@@ -952,15 +952,6 @@ export function DocumentEditor({
   }, [title]);
 
   useEffect(() => {
-    if (!editor) return;
-    const pm = document.querySelector('.doc-paged .ProseMirror') as HTMLElement;
-    if (!pm) return;
-    pm.style.setProperty('--left-indent', `${leftIndentMm}mm`);
-    pm.style.setProperty('--right-indent', `${rightIndentMm}mm`);
-    pm.style.setProperty('--first-line-indent', `${firstLineIndentMm}mm`);
-  }, [editor, leftIndentMm, rightIndentMm, firstLineIndentMm]);
-
-  useEffect(() => {
     if (isEditingTitle && titleInputRef.current) {
       titleInputRef.current.focus();
       titleInputRef.current.select();
@@ -1058,6 +1049,15 @@ export function DocumentEditor({
       editor.commands.setContent(content);
     }
   }, [content, editor]);
+
+  useEffect(() => {
+    if (!editor) return;
+    const pm = document.querySelector('.doc-paged .ProseMirror') as HTMLElement;
+    if (!pm) return;
+    pm.style.setProperty('--left-indent', `${leftIndentMm}mm`);
+    pm.style.setProperty('--right-indent', `${rightIndentMm}mm`);
+    pm.style.setProperty('--first-line-indent', `${firstLineIndentMm}mm`);
+  }, [editor, leftIndentMm, rightIndentMm, firstLineIndentMm]);
 
   const handleImageUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
