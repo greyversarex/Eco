@@ -731,15 +731,9 @@ function mmToPx(mm: number): number {
 function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Editor | null; lineSpacing: string; showFormattingMarks: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(1);
+  const [pageHPx, setPageHPx] = useState(() => mmToPx(PAGE_HEIGHT_MM));
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isRunning = useRef(false);
-
-  const contentH = mmToPx(PAGE_HEIGHT_MM - MARGIN_TOP_MM - MARGIN_BOTTOM_MM);
-  const pageH = mmToPx(PAGE_HEIGHT_MM);
-  const mTop = mmToPx(MARGIN_TOP_MM);
-  const mBottom = mmToPx(MARGIN_BOTTOM_MM);
-  const mLeft = mmToPx(MARGIN_LEFT_MM);
-  const mRight = mmToPx(MARGIN_RIGHT_MM);
 
   const doLayout = useCallback(() => {
     if (isRunning.current) return;
@@ -750,6 +744,14 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
       if (!container) return;
       const pm = container.querySelector('.ProseMirror') as HTMLElement;
       if (!pm) return;
+
+      const pxPerMm = container.offsetWidth / 210;
+      const pageH = PAGE_HEIGHT_MM * pxPerMm;
+      const mTop = MARGIN_TOP_MM * pxPerMm;
+      const mBottom = MARGIN_BOTTOM_MM * pxPerMm;
+      const mLeft = MARGIN_LEFT_MM * pxPerMm;
+      const mRight = MARGIN_RIGHT_MM * pxPerMm;
+      const contentH = (PAGE_HEIGHT_MM - MARGIN_TOP_MM - MARGIN_BOTTOM_MM) * pxPerMm;
 
       pm.style.paddingTop = `${mTop}px`;
       pm.style.paddingBottom = `${mBottom}px`;
@@ -792,13 +794,14 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
       const pages = page + 1;
       setPageCount(pages);
 
+      setPageHPx(pageH);
       const totalH = pages * pageH + (pages - 1) * GAP_PX;
       pm.style.minHeight = `${totalH}px`;
       container.style.height = `${totalH}px`;
     } finally {
       isRunning.current = false;
     }
-  }, [contentH, pageH, mTop, mBottom, mLeft, mRight]);
+  }, []);
 
   const scheduleLayout = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -824,9 +827,9 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
   const sheets = [];
   const gaps = [];
   for (let i = 0; i < pageCount; i++) {
-    sheets.push({ top: i * (pageH + GAP_PX), height: pageH });
+    sheets.push({ top: i * (pageHPx + GAP_PX), height: pageHPx });
     if (i < pageCount - 1) {
-      gaps.push({ top: i * (pageH + GAP_PX) + pageH, height: GAP_PX });
+      gaps.push({ top: i * (pageHPx + GAP_PX) + pageHPx, height: GAP_PX });
     }
   }
 
