@@ -1612,74 +1612,89 @@ export function DocumentEditor({
         </div>
       </div>
 
-      <div className="overflow-auto flex-1" style={{ minHeight: 0, background: '#808080' }}>
-        <div className="flex flex-col items-center py-3">
-          <style dangerouslySetInnerHTML={{ __html: `
-            .doc-page-editor {
-              position: relative;
-            }
-            .doc-page-editor .ProseMirror {
-              outline: none;
-              overflow-wrap: anywhere;
-              word-break: break-word;
-              font-family: 'Noto Sans', sans-serif;
-              font-size: 14pt;
-              white-space: pre-wrap;
-              min-height: calc(297mm - 40mm);
-              position: relative;
-              z-index: 1;
-            }
-            .doc-page-editor .ProseMirror p {
-              display: block !important;
-              width: 100% !important;
-              min-height: 1.2em !important;
-              margin: 0 !important;
-              white-space: pre-wrap;
-            }
-            .doc-page-editor .ProseMirror .text-center,
-            .doc-page-editor .ProseMirror [data-align=center] { text-align: center !important; }
-            .doc-page-editor .ProseMirror .text-right,
-            .doc-page-editor .ProseMirror [data-align=right] { text-align: right !important; }
-            .doc-page-editor .ProseMirror .text-justify,
-            .doc-page-editor .ProseMirror [data-align=justify] { text-align: justify !important; }
-            .doc-page-editor .ProseMirror h1 { font-size: 1.5rem; font-weight: bold; margin: 1rem 0; }
-            .doc-page-editor .ProseMirror h2 { font-size: 1.25rem; font-weight: bold; margin: 0.75rem 0; }
-            .doc-page-editor .ProseMirror h3 { font-size: 1.125rem; font-weight: bold; margin: 0.5rem 0; }
-            .doc-page-editor .ProseMirror table { border-collapse: collapse; width: 100%; }
-            .doc-page-editor .ProseMirror th { border: 1px solid #d1d5db; padding: 0.5rem; background: #f3f4f6; }
-            .doc-page-editor .ProseMirror td { border: 1px solid #d1d5db; padding: 0.5rem; }
-            .doc-page-editor .ProseMirror blockquote { border-left: 4px solid #d1d5db; padding-left: 1rem; font-style: italic; }
-            .doc-page-editor .ProseMirror hr { border-top: 2px solid #d1d5db; margin: 1rem 0; }
-            .doc-page-editor .ProseMirror img { max-width: 100%; height: auto; }
-            .doc-page-editor .ProseMirror ul { list-style: disc; padding-left: 1.5rem; }
-            .doc-page-editor .ProseMirror ol { list-style: decimal; padding-left: 1.5rem; }
-            .doc-page-editor .ProseMirror .page-break {
-              margin: 2rem 0; padding: 1rem 0;
-              border-top: 2px dashed #9ca3af; border-bottom: 2px dashed #9ca3af;
-              background: #f9fafb; text-align: center; color: #6b7280;
-              font-size: 0.875rem; font-weight: 500;
-            }
-            ${showFormattingMarks ? `
-            .doc-page-editor .ProseMirror p::after { content: '¶'; color: #93c5fd; font-size: 0.875rem; }
-            ` : ''}
-          `}} />
-          <div 
-            className="doc-page-editor bg-white"
-            style={{
-              width: '210mm',
-              maxWidth: '100%',
-              minHeight: '297mm',
-              padding: '20mm 25mm',
-              boxSizing: 'border-box',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05)',
-            }}
-          >
+      <style dangerouslySetInnerHTML={{ __html: `
+        .doc-pages-scroll {
+          overflow-x: auto;
+          overflow-y: scroll;
+          flex: 1;
+          min-height: 0;
+          background: #808080;
+        }
+        .doc-pages-wrapper {
+          padding: 12px 0;
+          width: fit-content;
+          min-width: 100%;
+          display: flex;
+          justify-content: flex-start;
+        }
+        .doc-page-columns {
+          width: 210mm;
+          column-width: 210mm;
+          column-gap: 12px;
+          column-fill: auto;
+          height: 297mm;
+          padding: 0;
+          box-sizing: border-box;
+          margin: 0 auto;
+        }
+        .doc-page-columns .ProseMirror {
+          outline: none;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+          font-family: 'Noto Sans', sans-serif;
+          font-size: 14pt;
+          white-space: pre-wrap;
+          height: 100%;
+          padding: 20mm 25mm;
+          box-sizing: border-box;
+          background: white;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+          column-width: 210mm;
+          column-gap: 12px;
+          column-fill: auto;
+        }
+        .doc-page-columns .ProseMirror > * {
+          break-inside: avoid-column;
+        }
+        .doc-page-columns .ProseMirror p {
+          display: block !important;
+          width: 100% !important;
+          min-height: 1.2em !important;
+          margin: 0 !important;
+          white-space: pre-wrap;
+        }
+        .doc-page-columns .ProseMirror .text-center,
+        .doc-page-columns .ProseMirror [data-align=center] { text-align: center !important; }
+        .doc-page-columns .ProseMirror .text-right,
+        .doc-page-columns .ProseMirror [data-align=right] { text-align: right !important; }
+        .doc-page-columns .ProseMirror .text-justify,
+        .doc-page-columns .ProseMirror [data-align=justify] { text-align: justify !important; }
+        .doc-page-columns .ProseMirror h1 { font-size: 1.5rem; font-weight: bold; margin: 1rem 0; }
+        .doc-page-columns .ProseMirror h2 { font-size: 1.25rem; font-weight: bold; margin: 0.75rem 0; }
+        .doc-page-columns .ProseMirror h3 { font-size: 1.125rem; font-weight: bold; margin: 0.5rem 0; }
+        .doc-page-columns .ProseMirror table { border-collapse: collapse; width: 100%; }
+        .doc-page-columns .ProseMirror th { border: 1px solid #d1d5db; padding: 0.5rem; background: #f3f4f6; }
+        .doc-page-columns .ProseMirror td { border: 1px solid #d1d5db; padding: 0.5rem; }
+        .doc-page-columns .ProseMirror blockquote { border-left: 4px solid #d1d5db; padding-left: 1rem; font-style: italic; }
+        .doc-page-columns .ProseMirror hr { border-top: 2px solid #d1d5db; margin: 1rem 0; }
+        .doc-page-columns .ProseMirror img { max-width: 100%; height: auto; }
+        .doc-page-columns .ProseMirror ul { list-style: disc; padding-left: 1.5rem; }
+        .doc-page-columns .ProseMirror ol { list-style: decimal; padding-left: 1.5rem; }
+        .doc-page-columns .ProseMirror .page-break {
+          break-after: column;
+          margin: 0; padding: 0; border: none; height: 0;
+        }
+        ${showFormattingMarks ? `
+        .doc-page-columns .ProseMirror p::after { content: '¶'; color: #93c5fd; font-size: 0.875rem; }
+        ` : ''}
+      `}} />
+      <div className="doc-pages-scroll">
+        <div className="doc-pages-wrapper">
+          <div className="doc-page-columns">
             <EditorContent 
               editor={editor} 
               className="prose prose-sm max-w-none focus:outline-none"
-              style={{
-                lineHeight: lineSpacing,
-              }}
+              style={{ lineHeight: lineSpacing }}
               data-testid="document-editor-content"
             />
           </div>
