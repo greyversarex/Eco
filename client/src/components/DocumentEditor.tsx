@@ -1581,67 +1581,114 @@ export function DocumentEditor({
         </div>
       )}
 
-      {/* Ruler */}
-      <div className="bg-white border-b flex justify-center shrink-0 overflow-hidden" style={{ minHeight: '24px' }}>
-        <div style={{ width: '210mm', maxWidth: '100%', position: 'relative' }}>
-          <svg width="100%" height="24" viewBox="0 0 794 24" preserveAspectRatio="none" className="select-none">
-            <rect x="0" y="0" width="794" height="24" fill="#f8f9fa" />
-            <rect x="95" y="0" width="604" height="24" fill="#ffffff" />
-            <line x1="95" y1="0" x2="95" y2="24" stroke="#d1d5db" strokeWidth="1" />
-            <line x1="699" y1="0" x2="699" y2="24" stroke="#d1d5db" strokeWidth="1" />
-            {Array.from({ length: 21 }, (_, i) => {
-              const x = Math.round(i * (794 / 20));
-              const isCm = i % 2 === 0;
-              return (
-                <g key={i}>
-                  <line x1={x} y1={isCm ? 8 : 14} x2={x} y2={24} stroke="#9ca3af" strokeWidth={isCm ? 1.5 : 0.75} />
-                  {isCm && i > 0 && (
-                    <text x={x} y={7} textAnchor="middle" fontSize="8" fill="#6b7280" fontFamily="sans-serif">
-                      {i / 2}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
-          </svg>
+      {/* Ruler - Word style */}
+      <div className="border-b shrink-0 overflow-hidden select-none" style={{ background: '#e8e8e8' }}>
+        <div className="mx-auto" style={{ width: '210mm', maxWidth: '100%', height: '20px', position: 'relative' }}>
+          <div style={{
+            position: 'absolute',
+            left: '25mm',
+            right: '25mm',
+            top: 0,
+            bottom: 0,
+            background: '#fff',
+          }} />
+          <div style={{
+            position: 'absolute',
+            left: '25mm',
+            top: 0,
+            bottom: 0,
+            width: '1px',
+            background: '#4b5563',
+          }} />
+          <div style={{
+            position: 'absolute',
+            right: '25mm',
+            top: 0,
+            bottom: 0,
+            width: '1px',
+            background: '#4b5563',
+          }} />
+          {Array.from({ length: 17 }, (_, i) => {
+            const cm = i;
+            const leftMm = 25 + i * 10;
+            if (leftMm > 185) return null;
+            return (
+              <div key={i} style={{ position: 'absolute', left: `${leftMm}mm`, top: 0, height: '100%' }}>
+                <div style={{ position: 'absolute', left: 0, bottom: 0, width: '1px', height: cm % 2 === 0 ? '10px' : '6px', background: '#6b7280' }} />
+                {cm % 2 === 0 && cm > 0 && (
+                  <span style={{ position: 'absolute', left: '2px', top: '1px', fontSize: '8px', color: '#6b7280', lineHeight: 1 }}>
+                    {cm}
+                  </span>
+                )}
+                <div style={{ position: 'absolute', left: '5mm', bottom: 0, width: '1px', height: '4px', background: '#9ca3af' }} />
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      <div className="bg-gray-200 p-4 overflow-auto flex-1" style={{ minHeight: 0 }}>
-        <div className="flex justify-center">
+      <div className="bg-gray-300 overflow-auto flex-1" style={{ minHeight: 0 }}>
+        <div className="flex flex-col items-center py-4 gap-3">
+          <style dangerouslySetInnerHTML={{ __html: `
+            .doc-page-container .ProseMirror {
+              min-height: auto !important;
+              outline: none;
+              overflow-wrap: anywhere;
+              word-break: break-word;
+              font-family: 'Noto Sans', sans-serif;
+              font-size: 14pt;
+              white-space: pre-wrap;
+            }
+            .doc-page-container .ProseMirror p {
+              display: block !important;
+              width: 100% !important;
+              min-height: 1.2em !important;
+              margin: 0 !important;
+              white-space: pre-wrap;
+            }
+            .doc-page-container .ProseMirror .text-center,
+            .doc-page-container .ProseMirror [data-align=center] { text-align: center !important; }
+            .doc-page-container .ProseMirror .text-right,
+            .doc-page-container .ProseMirror [data-align=right] { text-align: right !important; }
+            .doc-page-container .ProseMirror .text-justify,
+            .doc-page-container .ProseMirror [data-align=justify] { text-align: justify !important; }
+            .doc-page-container .ProseMirror h1 { font-size: 1.5rem; font-weight: bold; margin: 1rem 0; }
+            .doc-page-container .ProseMirror h2 { font-size: 1.25rem; font-weight: bold; margin: 0.75rem 0; }
+            .doc-page-container .ProseMirror h3 { font-size: 1.125rem; font-weight: bold; margin: 0.5rem 0; }
+            .doc-page-container .ProseMirror table { border-collapse: collapse; width: 100%; }
+            .doc-page-container .ProseMirror th { border: 1px solid #d1d5db; padding: 0.5rem; background: #f3f4f6; }
+            .doc-page-container .ProseMirror td { border: 1px solid #d1d5db; padding: 0.5rem; }
+            .doc-page-container .ProseMirror blockquote { border-left: 4px solid #d1d5db; padding-left: 1rem; font-style: italic; }
+            .doc-page-container .ProseMirror hr { border-top: 2px solid #d1d5db; margin: 1rem 0; }
+            .doc-page-container .ProseMirror img { max-width: 100%; height: auto; }
+            .doc-page-container .ProseMirror ul { list-style: disc; padding-left: 1.5rem; }
+            .doc-page-container .ProseMirror ol { list-style: decimal; padding-left: 1.5rem; }
+            .doc-page-container .ProseMirror .page-break {
+              margin: 2rem 0; padding: 1rem 0;
+              border-top: 2px dashed #9ca3af; border-bottom: 2px dashed #9ca3af;
+              background: #f9fafb; text-align: center; color: #6b7280;
+              font-size: 0.875rem; font-weight: 500;
+            }
+            ${showFormattingMarks ? `
+            .doc-page-container .ProseMirror p::after { content: '¶'; color: #93c5fd; font-size: 0.875rem; }
+            ` : ''}
+          `}} />
           <div 
-            className="bg-white shadow-lg"
+            className="bg-white shadow-lg doc-page-container"
             style={{
               width: '210mm',
               maxWidth: '100%',
               minHeight: '297mm',
               padding: '20mm 25mm',
+              boxSizing: 'border-box',
+              backgroundImage: 'linear-gradient(to bottom, transparent calc(297mm - 20mm), #e5e7eb calc(297mm - 20mm), #e5e7eb calc(297mm - 20mm + 3px), transparent calc(297mm - 20mm + 3px))',
+              backgroundSize: '100% 297mm',
+              backgroundPosition: '0 0',
             }}
           >
             <EditorContent 
               editor={editor} 
-              className={cn(
-                "prose prose-sm max-w-none focus:outline-none",
-                "[&_.ProseMirror]:min-h-[257mm] [&_.ProseMirror]:outline-none [&_.ProseMirror]:[overflow-wrap:anywhere] [&_.ProseMirror]:[word-break:break-word]",
-                "[&_.ProseMirror]:font-['Noto_Sans',sans-serif] [&_.ProseMirror]:[font-size:14pt]",
-                "[&_.ProseMirror]:whitespace-pre-wrap [&_.ProseMirror_p]:whitespace-pre-wrap",
-                "[&_.ProseMirror_p]:!block [&_.ProseMirror_p]:!w-full [&_.ProseMirror_p]:!min-h-[1.2em] [&_.ProseMirror_p]:!m-0",
-                "[&_.ProseMirror_.text-center]:!text-center [&_.ProseMirror_.text-right]:!text-right [&_.ProseMirror_.text-justify]:!text-justify",
-                "[&_.ProseMirror_[data-align=center]]:!text-center [&_.ProseMirror_[data-align=right]]:!text-right [&_.ProseMirror_[data-align=justify]]:!text-justify",
-                "[&_.ProseMirror_h1]:text-2xl [&_.ProseMirror_h1]:font-bold [&_.ProseMirror_h1]:my-4",
-                "[&_.ProseMirror_h2]:text-xl [&_.ProseMirror_h2]:font-bold [&_.ProseMirror_h2]:my-3",
-                "[&_.ProseMirror_h3]:text-lg [&_.ProseMirror_h3]:font-bold [&_.ProseMirror_h3]:my-2",
-                "[&_.ProseMirror_table]:border-collapse [&_.ProseMirror_table]:w-full",
-                "[&_.ProseMirror_th]:border [&_.ProseMirror_th]:border-gray-300 [&_.ProseMirror_th]:p-2 [&_.ProseMirror_th]:bg-gray-100",
-                "[&_.ProseMirror_td]:border [&_.ProseMirror_td]:border-gray-300 [&_.ProseMirror_td]:p-2",
-                "[&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-gray-300 [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:italic",
-                "[&_.ProseMirror_hr]:border-t-2 [&_.ProseMirror_hr]:border-gray-300 [&_.ProseMirror_hr]:my-4",
-                "[&_.ProseMirror_img]:max-w-full [&_.ProseMirror_img]:h-auto",
-                "[&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-6 [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-6",
-                "[&_.ProseMirror_.page-break]:my-8 [&_.ProseMirror_.page-break]:py-4 [&_.ProseMirror_.page-break]:border-t-2 [&_.ProseMirror_.page-break]:border-b-2 [&_.ProseMirror_.page-break]:border-dashed [&_.ProseMirror_.page-break]:border-gray-400 [&_.ProseMirror_.page-break]:bg-gray-50 [&_.ProseMirror_.page-break]:text-center [&_.ProseMirror_.page-break]:text-gray-500 [&_.ProseMirror_.page-break]:text-sm [&_.ProseMirror_.page-break]:font-medium",
-                showFormattingMarks && "[&_.ProseMirror_p]:after:content-['¶'] [&_.ProseMirror_p]:after:text-blue-300 [&_.ProseMirror_p]:after:text-sm",
-                showFormattingMarks && "[&_.ProseMirror]:whitespace-pre-wrap"
-              )}
+              className="prose prose-sm max-w-none focus:outline-none"
               style={{
                 lineHeight: lineSpacing,
               }}
@@ -1653,7 +1700,7 @@ export function DocumentEditor({
 
       {/* Page info footer */}
       <div className="border-t bg-muted/30 px-4 py-1 text-xs text-muted-foreground flex items-center justify-between shrink-0">
-        <span>Формат: A4 (210 × 297 мм)</span>
+        <span>A4 (210 × 297 мм) · Ҳошия: 25/20 мм</span>
         <span>Фосилаи сатрҳо: {lineSpacing}</span>
       </div>
     </div>
