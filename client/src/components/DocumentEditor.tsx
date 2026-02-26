@@ -732,6 +732,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
   const containerRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(1);
   const [pageHPx, setPageHPx] = useState(() => mmToPx(PAGE_HEIGHT_MM));
+  const [pmOffsetTop, setPmOffsetTop] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isRunning = useRef(false);
 
@@ -769,7 +770,10 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
 
       void pm.offsetHeight;
 
-      const pmTop = pm.getBoundingClientRect().top;
+      const containerRect = container.getBoundingClientRect();
+      const pmRect = pm.getBoundingClientRect();
+      const offset = pmRect.top - containerRect.top;
+      const pmTop = pmRect.top;
       let page = 0;
       let added = 0;
 
@@ -793,10 +797,11 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
 
       const pages = page + 1;
       setPageCount(pages);
-
       setPageHPx(pageH);
-      const totalH = pages * pageH + (pages - 1) * GAP_PX;
-      pm.style.minHeight = `${totalH}px`;
+      setPmOffsetTop(offset);
+
+      const totalH = offset + pages * pageH + (pages - 1) * GAP_PX;
+      pm.style.minHeight = `${pages * pageH + (pages - 1) * GAP_PX}px`;
       container.style.height = `${totalH}px`;
     } finally {
       isRunning.current = false;
@@ -827,9 +832,9 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
   const sheets = [];
   const gaps = [];
   for (let i = 0; i < pageCount; i++) {
-    sheets.push({ top: i * (pageHPx + GAP_PX), height: pageHPx });
+    sheets.push({ top: pmOffsetTop + i * (pageHPx + GAP_PX), height: pageHPx });
     if (i < pageCount - 1) {
-      gaps.push({ top: i * (pageHPx + GAP_PX) + pageHPx, height: GAP_PX });
+      gaps.push({ top: pmOffsetTop + i * (pageHPx + GAP_PX) + pageHPx, height: GAP_PX });
     }
   }
 
