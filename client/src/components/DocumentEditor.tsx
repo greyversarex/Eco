@@ -548,6 +548,175 @@ const DraggableImage = Image.extend({
 
 
 
+function DocumentRuler({ 
+  editor, 
+  leftIndentMm, 
+  rightIndentMm, 
+  firstLineIndentMm,
+  onLeftIndentChange,
+  onRightIndentChange,
+  onFirstLineIndentChange,
+}: {
+  editor: Editor | null;
+  leftIndentMm: number;
+  rightIndentMm: number;
+  firstLineIndentMm: number;
+  onLeftIndentChange: (mm: number) => void;
+  onRightIndentChange: (mm: number) => void;
+  onFirstLineIndentChange: (mm: number) => void;
+}) {
+  const rulerRef = useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = useState<'left' | 'right' | 'firstLine' | null>(null);
+  const contentWidthMm = 210 - MARGIN_LEFT_MM - MARGIN_RIGHT_MM;
+
+  const handleMouseDown = (type: 'left' | 'right' | 'firstLine') => (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(type);
+  };
+
+  useEffect(() => {
+    if (!dragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const ruler = rulerRef.current;
+      if (!ruler) return;
+      const rect = ruler.getBoundingClientRect();
+      const contentStartPx = rect.width * (MARGIN_LEFT_MM / 210);
+      const contentEndPx = rect.width * ((210 - MARGIN_RIGHT_MM) / 210);
+      const contentWidthPx = contentEndPx - contentStartPx;
+      const relX = e.clientX - rect.left;
+
+      if (dragging === 'left') {
+        const mm = Math.max(0, Math.min(contentWidthMm - rightIndentMm - 10, ((relX - contentStartPx) / contentWidthPx) * contentWidthMm));
+        onLeftIndentChange(Math.round(mm));
+      } else if (dragging === 'right') {
+        const fromRight = contentEndPx - relX;
+        const mm = Math.max(0, Math.min(contentWidthMm - leftIndentMm - 10, (fromRight / contentWidthPx) * contentWidthMm));
+        onRightIndentChange(Math.round(mm));
+      } else if (dragging === 'firstLine') {
+        const mm = Math.max(-leftIndentMm, Math.min(contentWidthMm - rightIndentMm - leftIndentMm, ((relX - contentStartPx) / contentWidthPx) * contentWidthMm - leftIndentMm));
+        onFirstLineIndentChange(Math.round(mm));
+      }
+    };
+
+    const handleMouseUp = () => setDragging(null);
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragging, contentWidthMm, leftIndentMm, rightIndentMm, onLeftIndentChange, onRightIndentChange, onFirstLineIndentChange]);
+
+  const leftPct = MARGIN_LEFT_MM / 210 * 100;
+  const rightPct = MARGIN_RIGHT_MM / 210 * 100;
+  const leftIndentPct = (MARGIN_LEFT_MM + leftIndentMm) / 210 * 100;
+  const rightIndentPct = (MARGIN_RIGHT_MM + rightIndentMm) / 210 * 100;
+  const firstLinePct = (MARGIN_LEFT_MM + leftIndentMm + firstLineIndentMm) / 210 * 100;
+
+  const ticks = [];
+  for (let cm = 0; cm <= 16; cm++) {
+    const mm = cm * 10;
+    const pct = (MARGIN_LEFT_MM + mm) / 210 * 100;
+    if (pct > (100 - rightPct + 0.5)) break;
+    ticks.push(
+      <div key={`cm${cm}`} style={{ position: 'absolute', left: `${pct}%`, top: 0, bottom: 0 }}>
+        <div style={{ position: 'absolute', left: '-0.5px', bottom: 0, width: '1px', height: '8px', background: '#666' }} />
+        {cm > 0 && (
+          <span style={{ position: 'absolute', left: '50%', top: '1px', transform: 'translateX(-50%)', fontSize: '8px', color: '#666', fontFamily: 'Arial', lineHeight: 1 }}>
+            {cm}
+          </span>
+        )}
+      </div>
+    );
+    if (mm + 5 <= contentWidthMm) {
+      const halfPct = (MARGIN_LEFT_MM + mm + 5) / 210 * 100;
+      ticks.push(
+        <div key={`h${cm}`} style={{ position: 'absolute', left: `${halfPct}%`, bottom: 0 }}>
+          <div style={{ position: 'absolute', left: '-0.5px', bottom: 0, width: '1px', height: '4px', background: '#999' }} />
+        </div>
+      );
+    }
+  }
+
+  return (
+    <div
+      ref={rulerRef}
+      className="shrink-0 select-none"
+      style={{
+        height: '24px',
+        background: '#e0e0e0',
+        borderBottom: '1px solid #bbb',
+        position: 'relative',
+        width: '210mm',
+        maxWidth: '100%',
+        margin: '0 auto',
+        cursor: dragging ? 'col-resize' : 'default',
+      }}
+    >
+      <div style={{ position: 'absolute', left: `${leftPct}%`, right: `${rightPct}%`, top: 0, bottom: 0, background: '#fff' }} />
+
+      {ticks}
+
+      <div
+        onMouseDown={handleMouseDown('firstLine')}
+        title="Отступи сатри аввал"
+        style={{
+          position: 'absolute',
+          left: `${firstLinePct}%`,
+          top: '0px',
+          transform: 'translateX(-50%)',
+          cursor: 'col-resize',
+          zIndex: 5,
+          width: '0',
+          height: '0',
+          borderLeft: '6px solid transparent',
+          borderRight: '6px solid transparent',
+          borderTop: '8px solid #4a7ccc',
+        }}
+      />
+
+      <div
+        onMouseDown={handleMouseDown('left')}
+        title="Канори чап"
+        style={{
+          position: 'absolute',
+          left: `${leftIndentPct}%`,
+          bottom: '0px',
+          transform: 'translateX(-50%)',
+          cursor: 'col-resize',
+          zIndex: 5,
+          width: '0',
+          height: '0',
+          borderLeft: '6px solid transparent',
+          borderRight: '6px solid transparent',
+          borderBottom: '8px solid #4a7ccc',
+        }}
+      />
+
+      <div
+        onMouseDown={handleMouseDown('right')}
+        title="Канори рост"
+        style={{
+          position: 'absolute',
+          right: `${rightIndentPct}%`,
+          bottom: '0px',
+          transform: 'translateX(50%)',
+          cursor: 'col-resize',
+          zIndex: 5,
+          width: '0',
+          height: '0',
+          borderLeft: '6px solid transparent',
+          borderRight: '6px solid transparent',
+          borderBottom: '8px solid #4a7ccc',
+        }}
+      />
+    </div>
+  );
+}
+
 const PAGE_HEIGHT_MM = 297;
 const MARGIN_TOP_MM = 20;
 const MARGIN_BOTTOM_MM = 20;
@@ -679,6 +848,9 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
           min-height: 1.2em !important;
           margin: 0 !important;
           white-space: pre-wrap;
+          margin-left: var(--left-indent, 0) !important;
+          margin-right: var(--right-indent, 0) !important;
+          text-indent: var(--first-line-indent, 0);
         }
         .doc-paged .ProseMirror .text-center,
         .doc-paged .ProseMirror [data-align=center] { text-align: center !important; }
@@ -761,6 +933,9 @@ export function DocumentEditor({
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [showFormattingMarks, setShowFormattingMarks] = useState(false);
   const [lineSpacing, setLineSpacingState] = useState('1.5');
+  const [leftIndentMm, setLeftIndentMm] = useState(0);
+  const [rightIndentMm, setRightIndentMm] = useState(0);
+  const [firstLineIndentMm, setFirstLineIndentMm] = useState(0);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editableTitle, setEditableTitle] = useState(title || 'Ҳуҷҷати нав');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -775,6 +950,15 @@ export function DocumentEditor({
       setEditableTitle(title);
     }
   }, [title]);
+
+  useEffect(() => {
+    if (!editor) return;
+    const pm = document.querySelector('.doc-paged .ProseMirror') as HTMLElement;
+    if (!pm) return;
+    pm.style.setProperty('--left-indent', `${leftIndentMm}mm`);
+    pm.style.setProperty('--right-indent', `${rightIndentMm}mm`);
+    pm.style.setProperty('--first-line-indent', `${firstLineIndentMm}mm`);
+  }, [editor, leftIndentMm, rightIndentMm, firstLineIndentMm]);
 
   useEffect(() => {
     if (isEditingTitle && titleInputRef.current) {
@@ -1777,6 +1961,19 @@ export function DocumentEditor({
         </div>
       )}
 
+      {!isReadOnly && (
+        <div style={{ display: 'flex', justifyContent: 'center', background: '#e8e8e8' }}>
+          <DocumentRuler
+            editor={editor}
+            leftIndentMm={leftIndentMm}
+            rightIndentMm={rightIndentMm}
+            firstLineIndentMm={firstLineIndentMm}
+            onLeftIndentChange={setLeftIndentMm}
+            onRightIndentChange={setRightIndentMm}
+            onFirstLineIndentChange={setFirstLineIndentMm}
+          />
+        </div>
+      )}
       <PagedEditor editor={editor} lineSpacing={lineSpacing} showFormattingMarks={showFormattingMarks} />
 
       {/* Page info footer */}
