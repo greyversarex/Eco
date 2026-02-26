@@ -1956,8 +1956,7 @@ export function registerRoutes(app: Express) {
         return res.status(403).json({ error: 'Only departments can access this endpoint' });
       }
 
-      const depts = await storage.getDepartments();
-      const dept = depts.find(d => d.id === req.session.departmentId);
+      const dept = await storage.getDepartmentById(req.session.departmentId);
       if (!dept?.canMonitor) {
         return res.status(403).json({ error: 'No monitoring permission' });
       }
@@ -1975,8 +1974,7 @@ export function registerRoutes(app: Express) {
   });
 
   async function hasMonitoringPermission(sessionDeptId: number, assignmentId: number): Promise<boolean> {
-    const depts = await storage.getDepartments();
-    const dept = depts.find(d => d.id === sessionDeptId);
+    const dept = await storage.getDepartmentById(sessionDeptId);
     if (!dept?.canMonitor && (!dept?.monitoredAssignmentDeptIds || dept.monitoredAssignmentDeptIds.length === 0)) {
       return false;
     }
