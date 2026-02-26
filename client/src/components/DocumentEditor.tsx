@@ -1750,36 +1750,6 @@ export function DocumentEditor({
         </div>
       )}
 
-      {/* Ruler - Word style */}
-      <div className="shrink-0 select-none" style={{ background: '#dcdcdc', borderBottom: '1px solid #b0b0b0', height: '18px', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: '210mm', maxWidth: '100%', height: '100%', position: 'relative' }}>
-          <div style={{ position: 'absolute', left: '25mm', right: '25mm', top: 0, bottom: 0, background: '#fff', borderLeft: '1px solid #888', borderRight: '1px solid #888' }} />
-          {Array.from({ length: 33 }, (_, i) => {
-            const mm = i * 5;
-            const posFromLeft = 25 + mm;
-            if (posFromLeft > 185) return null;
-            const isCm = mm % 10 === 0;
-            const cmNum = mm / 10;
-            return (
-              <div key={i} style={{ position: 'absolute', left: `${posFromLeft}mm`, bottom: 0 }}>
-                {isCm ? (
-                  <>
-                    <div style={{ position: 'absolute', left: '-0.5px', bottom: 0, width: '1px', height: '8px', background: '#555' }} />
-                    {cmNum > 0 && (
-                      <span style={{ position: 'absolute', left: '50%', top: '0px', transform: 'translateX(-50%)', fontSize: '7px', color: '#555', fontFamily: 'Arial, sans-serif', lineHeight: 1, fontWeight: 500 }}>
-                        {cmNum}
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <div style={{ position: 'absolute', left: '-0.5px', bottom: 0, width: '1px', height: '4px', background: '#999' }} />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       <style dangerouslySetInnerHTML={{ __html: `
         .doc-pages-scroll {
           overflow-y: auto;
