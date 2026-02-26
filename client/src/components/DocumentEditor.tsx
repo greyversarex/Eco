@@ -547,79 +547,106 @@ const DraggableImage = Image.extend({
 });
 
 function PageBreakContainer({ lineSpacing, editor, children }: { lineSpacing: string; editor: Editor | null; children: React.ReactNode }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [pageBreaks, setPageBreaks] = useState<number[]>([]);
+  const outerRef = useRef<HTMLDivElement>(null);
+  const [pageCount, setPageCount] = useState(1);
+  const [contentAreaPx, setContentAreaPx] = useState(0);
+  const [pageTotalPx, setPageTotalPx] = useState(0);
+  const [marginTopPx, setMarginTopPx] = useState(0);
+  const [marginBottomPx, setMarginBottomPx] = useState(0);
 
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
+    const outer = outerRef.current;
+    if (!outer) return;
 
-    const mmToPx = () => {
+    const measure = () => {
       const testDiv = document.createElement('div');
-      testDiv.style.width = '297mm';
+      testDiv.style.height = '297mm';
       testDiv.style.position = 'absolute';
       testDiv.style.visibility = 'hidden';
-      el.appendChild(testDiv);
-      const px = testDiv.offsetWidth;
-      el.removeChild(testDiv);
-      return px;
+      outer.appendChild(testDiv);
+      const fullPagePx = testDiv.offsetHeight;
+      outer.removeChild(testDiv);
+
+      const mTop = fullPagePx * (20 / 297);
+      const mBottom = fullPagePx * (20 / 297);
+      const contentArea = fullPagePx - mTop - mBottom;
+      setPageTotalPx(fullPagePx);
+      setMarginTopPx(mTop);
+      setMarginBottomPx(mBottom);
+      setContentAreaPx(contentArea);
     };
 
-    const recalc = () => {
-      const pageHeightPx = mmToPx();
-      const paddingTopPx = pageHeightPx * (20 / 297);
-      const paddingBottomPx = pageHeightPx * (20 / 297);
-      const proseMirror = el.querySelector('.ProseMirror') as HTMLElement;
-      if (!proseMirror) return;
-      const contentHeight = proseMirror.scrollHeight;
-      const contentAreaPerPage = pageHeightPx - paddingTopPx - paddingBottomPx;
+    measure();
 
-      const breaks: number[] = [];
-      let pos = contentAreaPerPage;
-      while (pos < contentHeight) {
-        breaks.push(paddingTopPx + pos);
-        pos += contentAreaPerPage;
-      }
-      setPageBreaks(breaks);
+    const proseMirror = outer.querySelector('.ProseMirror') as HTMLElement;
+    if (!proseMirror) return;
+
+    const recalc = () => {
+      if (contentAreaPx <= 0) return;
+      const h = proseMirror.scrollHeight;
+      const pages = Math.max(1, Math.ceil(h / contentAreaPx));
+      setPageCount(pages);
     };
 
     recalc();
     const ro = new ResizeObserver(recalc);
-    const proseMirror = el.querySelector('.ProseMirror');
-    if (proseMirror) ro.observe(proseMirror);
-
+    ro.observe(proseMirror);
     return () => ro.disconnect();
-  }, [editor, lineSpacing]);
+  }, [editor, lineSpacing, contentAreaPx]);
 
-  const totalPages = pageBreaks.length + 1;
+  const gapPx = 10;
+  const totalHeight = pageCount > 0 && pageTotalPx > 0
+    ? pageCount * pageTotalPx + (pageCount - 1) * gapPx
+    : undefined;
 
   return (
-    <div 
-      ref={containerRef}
-      className="doc-page-editor bg-white"
-      style={{
-        width: '210mm',
-        maxWidth: '100%',
-        minHeight: '297mm',
-        padding: '20mm 25mm',
-        boxSizing: 'border-box',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05)',
-        position: 'relative',
-      }}
-    >
-      {children}
-      {pageBreaks.map((top, i) => (
-        <div
-          key={i}
-          className="page-break-overlay"
-          style={{ top: `${top}px` }}
-        />
-      ))}
-      {totalPages > 1 && (
-        <div style={{ position: 'absolute', bottom: '-20px', right: '4px', fontSize: '10px', color: '#ccc', zIndex: 3 }}>
-          {totalPages} саҳ.
-        </div>
-      )}
+    <div ref={outerRef} style={{ width: '210mm', maxWidth: '100%', position: 'relative' }}>
+      <div
+        className="doc-page-editor"
+        style={{
+          width: '100%',
+          minHeight: totalHeight ? `${totalHeight}px` : '297mm',
+          padding: `${marginTopPx}px 25mm ${marginBottomPx}px`,
+          boxSizing: 'border-box',
+          position: 'relative',
+          background: 'white',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+        }}
+      >
+        {children}
+
+        {pageCount > 1 && Array.from({ length: pageCount - 1 }, (_, i) => {
+          const breakTop = (i + 1) * pageTotalPx + i * gapPx - marginBottomPx;
+          return (
+            <div
+              key={i}
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: `${breakTop}px`,
+                height: `${marginBottomPx + gapPx + marginTopPx}px`,
+                background: '#808080',
+                zIndex: 2,
+                pointerEvents: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <div style={{ height: `${marginBottomPx}px`, background: 'white' }} />
+              <div style={{
+                flex: 1,
+                background: '#808080',
+                boxShadow: 'inset 0 3px 4px rgba(0,0,0,0.15), inset 0 -3px 4px rgba(0,0,0,0.15)',
+              }} />
+              <div style={{ height: `${marginTopPx}px`, background: 'white' }} />
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ textAlign: 'right', padding: '4px 8px', fontSize: '10px', color: '#aaa' }}>
+        {pageCount > 1 ? `${pageCount} саҳ.` : '1 саҳ.'}
+      </div>
     </div>
   );
 }
@@ -1702,7 +1729,7 @@ export function DocumentEditor({
               font-family: 'Noto Sans', sans-serif;
               font-size: 14pt;
               white-space: pre-wrap;
-              min-height: 257mm;
+              min-height: calc(297mm - 40mm);
               position: relative;
               z-index: 1;
             }
@@ -1735,16 +1762,6 @@ export function DocumentEditor({
               border-top: 2px dashed #9ca3af; border-bottom: 2px dashed #9ca3af;
               background: #f9fafb; text-align: center; color: #6b7280;
               font-size: 0.875rem; font-weight: 500;
-            }
-            .page-break-overlay {
-              position: absolute;
-              left: 0;
-              right: 0;
-              height: 12px;
-              background: #808080;
-              z-index: 2;
-              pointer-events: none;
-              box-shadow: inset 0 2px 3px rgba(0,0,0,0.2), inset 0 -2px 3px rgba(0,0,0,0.2);
             }
             ${showFormattingMarks ? `
             .doc-page-editor .ProseMirror p::after { content: '¶'; color: #93c5fd; font-size: 0.875rem; }
