@@ -547,6 +547,174 @@ const DraggableImage = Image.extend({
 });
 
 
+function PagedEditorArea({ lineSpacing, editor }: { lineSpacing: string; editor: Editor | null }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [pageSheets, setPageSheets] = useState<{ top: number; height: number }[]>([]);
+  const [pageGaps, setPageGaps] = useState<{ top: number; height: number }[]>([]);
+  const [pageCount, setPageCount] = useState(1);
+  const rafRef = useRef<number>(0);
+  const measuredMm = useRef<number>(0);
+
+  const getMmPx = useCallback(() => {
+    if (measuredMm.current > 0) return measuredMm.current;
+    const wrap = wrapRef.current;
+    if (!wrap) return 3.78;
+    const testEl = document.createElement('div');
+    testEl.style.width = '100mm';
+    testEl.style.position = 'absolute';
+    testEl.style.visibility = 'hidden';
+    wrap.appendChild(testEl);
+    const px = testEl.offsetWidth / 100;
+    wrap.removeChild(testEl);
+    measuredMm.current = px;
+    return px;
+  }, []);
+
+  const recalcPages = useCallback(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const pm = wrap.querySelector('.ProseMirror') as HTMLElement;
+    if (!pm) return;
+
+    const mmPx = getMmPx();
+    const marginTopPx = Math.round(20 * mmPx);
+    const marginBottomPx = Math.round(20 * mmPx);
+    const marginLeftPx = Math.round(25 * mmPx);
+    const marginRightPx = Math.round(25 * mmPx);
+    const pageHeightPx = Math.round(297 * mmPx);
+    const contentHeightPx = pageHeightPx - marginTopPx - marginBottomPx;
+    const gapPx = 16;
+
+    pm.style.paddingLeft = `${marginLeftPx}px`;
+    pm.style.paddingRight = `${marginRightPx}px`;
+    pm.style.paddingTop = `${marginTopPx}px`;
+    pm.style.paddingBottom = '0';
+
+    const children = Array.from(pm.children) as HTMLElement[];
+    children.forEach(child => {
+      if (child.dataset.pageBreakMargin) {
+        child.style.marginTop = '';
+        delete child.dataset.pageBreakMargin;
+      }
+    });
+
+    void pm.offsetHeight;
+
+    const pmRect = pm.getBoundingClientRect();
+    const contentStartY = pmRect.top + marginTopPx;
+
+    let currentPage = 0;
+    let extraSpace = 0;
+
+    for (const child of children) {
+      const rect = child.getBoundingClientRect();
+      const childTopInContent = rect.top - contentStartY - extraSpace;
+      const childBottomInContent = childTopInContent + rect.height;
+      const pageBottomY = (currentPage + 1) * contentHeightPx;
+
+      if (rect.height > 0 && childBottomInContent > pageBottomY && childTopInContent < pageBottomY) {
+        const remainingOnPage = pageBottomY - childTopInContent;
+        const pushDown = remainingOnPage + marginBottomPx + gapPx + marginTopPx;
+        child.style.marginTop = `${pushDown}px`;
+        child.dataset.pageBreakMargin = 'true';
+        extraSpace += pushDown;
+        currentPage++;
+      } else if (rect.height > 0 && childTopInContent >= (currentPage + 1) * contentHeightPx) {
+        while (childTopInContent >= (currentPage + 1) * contentHeightPx) {
+          currentPage++;
+        }
+      }
+    }
+
+    const totalPages = Math.max(1, currentPage + 1);
+    setPageCount(totalPages);
+
+    const sheets: { top: number; height: number }[] = [];
+    const gaps: { top: number; height: number }[] = [];
+    for (let i = 0; i < totalPages; i++) {
+      const sheetTop = i * (pageHeightPx + gapPx);
+      sheets.push({ top: sheetTop, height: pageHeightPx });
+      if (i < totalPages - 1) {
+        gaps.push({ top: sheetTop + pageHeightPx, height: gapPx });
+      }
+    }
+    setPageSheets(sheets);
+    setPageGaps(gaps);
+
+    const totalH = totalPages * pageHeightPx + (totalPages - 1) * gapPx;
+    pm.style.minHeight = `${totalH}px`;
+    wrap.style.height = `${totalH}px`;
+  }, [getMmPx]);
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const handler = () => {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(recalcPages);
+    };
+
+    editor.on('update', handler);
+    editor.on('create', handler);
+
+    const wrap = wrapRef.current;
+    let ro: ResizeObserver | null = null;
+    if (wrap) {
+      const pm = wrap.querySelector('.ProseMirror') as HTMLElement;
+      if (pm) {
+        ro = new ResizeObserver(handler);
+        ro.observe(pm);
+      }
+    }
+
+    handler();
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      ro?.disconnect();
+      editor.off('update', handler);
+      editor.off('create', handler);
+    };
+  }, [editor, recalcPages]);
+
+  useEffect(() => {
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(recalcPages);
+  }, [lineSpacing, recalcPages]);
+
+  return (
+    <div className="doc-pages-scroll">
+      <div className="doc-pages-area">
+        <div className="doc-page-editor-wrap" ref={wrapRef}>
+          {pageSheets.map((sheet, i) => (
+            <div
+              key={`sheet-${i}`}
+              className="doc-page-sheet"
+              style={{ top: `${sheet.top}px`, height: `${sheet.height}px` }}
+            />
+          ))}
+          {pageGaps.map((gap, i) => (
+            <div
+              key={`gap-${i}`}
+              className="doc-page-gap"
+              style={{ top: `${gap.top}px`, height: `${gap.height}px` }}
+            />
+          ))}
+          <EditorContent
+            editor={editor}
+            className="prose prose-sm max-w-none focus:outline-none"
+            style={{ lineHeight: lineSpacing }}
+            data-testid="document-editor-content"
+          />
+        </div>
+        <div style={{ textAlign: 'center', padding: '8px', fontSize: '11px', color: '#bbb' }}>
+          {pageCount} {pageCount === 1 ? 'саҳифа' : 'саҳифа'}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function DocumentEditor({
   content,
   onChange,
@@ -1614,92 +1782,88 @@ export function DocumentEditor({
 
       <style dangerouslySetInnerHTML={{ __html: `
         .doc-pages-scroll {
-          overflow-x: auto;
-          overflow-y: scroll;
+          overflow-y: auto;
           flex: 1;
           min-height: 0;
           background: #808080;
         }
-        .doc-pages-wrapper {
-          padding: 12px 0;
-          width: fit-content;
-          min-width: 100%;
+        .doc-pages-area {
           display: flex;
-          justify-content: flex-start;
+          flex-direction: column;
+          align-items: center;
+          padding: 16px 0;
+          position: relative;
         }
-        .doc-page-columns {
+        .doc-page-editor-wrap {
           width: 210mm;
-          column-width: 210mm;
-          column-gap: 12px;
-          column-fill: auto;
-          height: 297mm;
-          padding: 0;
-          box-sizing: border-box;
-          margin: 0 auto;
+          max-width: 100%;
+          position: relative;
         }
-        .doc-page-columns .ProseMirror {
+        .doc-page-editor-wrap .ProseMirror {
           outline: none;
           overflow-wrap: anywhere;
           word-break: break-word;
           font-family: 'Noto Sans', sans-serif;
           font-size: 14pt;
           white-space: pre-wrap;
-          height: 100%;
-          padding: 20mm 25mm;
-          box-sizing: border-box;
-          background: white;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-          column-width: 210mm;
-          column-gap: 12px;
-          column-fill: auto;
+          position: relative;
+          z-index: 1;
+          padding: 0;
+          margin: 0;
         }
-        .doc-page-columns .ProseMirror > * {
-          break-inside: avoid-column;
-        }
-        .doc-page-columns .ProseMirror p {
+        .doc-page-editor-wrap .ProseMirror p {
           display: block !important;
           width: 100% !important;
           min-height: 1.2em !important;
           margin: 0 !important;
           white-space: pre-wrap;
         }
-        .doc-page-columns .ProseMirror .text-center,
-        .doc-page-columns .ProseMirror [data-align=center] { text-align: center !important; }
-        .doc-page-columns .ProseMirror .text-right,
-        .doc-page-columns .ProseMirror [data-align=right] { text-align: right !important; }
-        .doc-page-columns .ProseMirror .text-justify,
-        .doc-page-columns .ProseMirror [data-align=justify] { text-align: justify !important; }
-        .doc-page-columns .ProseMirror h1 { font-size: 1.5rem; font-weight: bold; margin: 1rem 0; }
-        .doc-page-columns .ProseMirror h2 { font-size: 1.25rem; font-weight: bold; margin: 0.75rem 0; }
-        .doc-page-columns .ProseMirror h3 { font-size: 1.125rem; font-weight: bold; margin: 0.5rem 0; }
-        .doc-page-columns .ProseMirror table { border-collapse: collapse; width: 100%; }
-        .doc-page-columns .ProseMirror th { border: 1px solid #d1d5db; padding: 0.5rem; background: #f3f4f6; }
-        .doc-page-columns .ProseMirror td { border: 1px solid #d1d5db; padding: 0.5rem; }
-        .doc-page-columns .ProseMirror blockquote { border-left: 4px solid #d1d5db; padding-left: 1rem; font-style: italic; }
-        .doc-page-columns .ProseMirror hr { border-top: 2px solid #d1d5db; margin: 1rem 0; }
-        .doc-page-columns .ProseMirror img { max-width: 100%; height: auto; }
-        .doc-page-columns .ProseMirror ul { list-style: disc; padding-left: 1.5rem; }
-        .doc-page-columns .ProseMirror ol { list-style: decimal; padding-left: 1.5rem; }
-        .doc-page-columns .ProseMirror .page-break {
-          break-after: column;
-          margin: 0; padding: 0; border: none; height: 0;
+        .doc-page-editor-wrap .ProseMirror .text-center,
+        .doc-page-editor-wrap .ProseMirror [data-align=center] { text-align: center !important; }
+        .doc-page-editor-wrap .ProseMirror .text-right,
+        .doc-page-editor-wrap .ProseMirror [data-align=right] { text-align: right !important; }
+        .doc-page-editor-wrap .ProseMirror .text-justify,
+        .doc-page-editor-wrap .ProseMirror [data-align=justify] { text-align: justify !important; }
+        .doc-page-editor-wrap .ProseMirror h1 { font-size: 1.5rem; font-weight: bold; margin: 1rem 0; }
+        .doc-page-editor-wrap .ProseMirror h2 { font-size: 1.25rem; font-weight: bold; margin: 0.75rem 0; }
+        .doc-page-editor-wrap .ProseMirror h3 { font-size: 1.125rem; font-weight: bold; margin: 0.5rem 0; }
+        .doc-page-editor-wrap .ProseMirror table { border-collapse: collapse; width: 100%; }
+        .doc-page-editor-wrap .ProseMirror th { border: 1px solid #d1d5db; padding: 0.5rem; background: #f3f4f6; }
+        .doc-page-editor-wrap .ProseMirror td { border: 1px solid #d1d5db; padding: 0.5rem; }
+        .doc-page-editor-wrap .ProseMirror blockquote { border-left: 4px solid #d1d5db; padding-left: 1rem; font-style: italic; }
+        .doc-page-editor-wrap .ProseMirror hr { border-top: 2px solid #d1d5db; margin: 1rem 0; }
+        .doc-page-editor-wrap .ProseMirror img { max-width: 100%; height: auto; }
+        .doc-page-editor-wrap .ProseMirror ul { list-style: disc; padding-left: 1.5rem; }
+        .doc-page-editor-wrap .ProseMirror ol { list-style: decimal; padding-left: 1.5rem; }
+        .doc-page-editor-wrap .ProseMirror .page-break {
+          margin: 2rem 0; padding: 1rem 0;
+          border-top: 2px dashed #9ca3af; border-bottom: 2px dashed #9ca3af;
+          background: #f9fafb; text-align: center; color: #6b7280;
+          font-size: 0.875rem; font-weight: 500;
+        }
+        .doc-page-sheet {
+          position: absolute;
+          left: 0;
+          right: 0;
+          background: white;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.06);
+          pointer-events: none;
+          z-index: 0;
+        }
+        .doc-page-gap {
+          position: absolute;
+          left: -20px;
+          right: -20px;
+          background: #808080;
+          z-index: 2;
+          pointer-events: none;
+          box-shadow: inset 0 4px 6px rgba(0,0,0,0.2), inset 0 -4px 6px rgba(0,0,0,0.2);
         }
         ${showFormattingMarks ? `
-        .doc-page-columns .ProseMirror p::after { content: '¶'; color: #93c5fd; font-size: 0.875rem; }
+        .doc-page-editor-wrap .ProseMirror p::after { content: '¶'; color: #93c5fd; font-size: 0.875rem; }
         ` : ''}
       `}} />
-      <div className="doc-pages-scroll">
-        <div className="doc-pages-wrapper">
-          <div className="doc-page-columns">
-            <EditorContent 
-              editor={editor} 
-              className="prose prose-sm max-w-none focus:outline-none"
-              style={{ lineHeight: lineSpacing }}
-              data-testid="document-editor-content"
-            />
-          </div>
-        </div>
-      </div>
+      <PagedEditorArea lineSpacing={lineSpacing} editor={editor} />
 
       {/* Page info footer */}
       <div className="border-t bg-muted/30 px-4 py-1 text-xs text-muted-foreground flex items-center justify-between shrink-0">
