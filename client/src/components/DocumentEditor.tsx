@@ -548,6 +548,200 @@ const DraggableImage = Image.extend({
 
 
 
+const PAGE_HEIGHT_MM = 297;
+const MARGIN_TOP_MM = 20;
+const MARGIN_BOTTOM_MM = 20;
+const MARGIN_LEFT_MM = 25;
+const MARGIN_RIGHT_MM = 25;
+const GAP_PX = 16;
+
+function mmToPx(mm: number): number {
+  return mm * 3.7795275591;
+}
+
+function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Editor | null; lineSpacing: string; showFormattingMarks: boolean }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [pageCount, setPageCount] = useState(1);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isRunning = useRef(false);
+
+  const contentH = mmToPx(PAGE_HEIGHT_MM - MARGIN_TOP_MM - MARGIN_BOTTOM_MM);
+  const pageH = mmToPx(PAGE_HEIGHT_MM);
+  const mTop = mmToPx(MARGIN_TOP_MM);
+  const mBottom = mmToPx(MARGIN_BOTTOM_MM);
+  const mLeft = mmToPx(MARGIN_LEFT_MM);
+  const mRight = mmToPx(MARGIN_RIGHT_MM);
+
+  const doLayout = useCallback(() => {
+    if (isRunning.current) return;
+    isRunning.current = true;
+
+    try {
+      const container = containerRef.current;
+      if (!container) return;
+      const pm = container.querySelector('.ProseMirror') as HTMLElement;
+      if (!pm) return;
+
+      pm.style.paddingTop = `${mTop}px`;
+      pm.style.paddingBottom = `0`;
+      pm.style.paddingLeft = `${mLeft}px`;
+      pm.style.paddingRight = `${mRight}px`;
+
+      const blocks = pm.querySelectorAll(':scope > *');
+      blocks.forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        if (htmlEl.dataset.pbm) {
+          htmlEl.style.marginTop = '';
+          delete htmlEl.dataset.pbm;
+        }
+      });
+
+      void pm.offsetHeight;
+
+      const pmTop = pm.getBoundingClientRect().top;
+      let page = 0;
+      let added = 0;
+
+      blocks.forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        const rect = htmlEl.getBoundingClientRect();
+        if (rect.height === 0) return;
+
+        const relTop = rect.top - pmTop - mTop - added;
+        const relBottom = relTop + rect.height;
+        const boundary = (page + 1) * contentH;
+
+        if (relBottom > boundary && relTop < boundary) {
+          const push = (boundary - relTop) + mBottom + GAP_PX + mTop;
+          htmlEl.style.marginTop = `${push}px`;
+          htmlEl.dataset.pbm = '1';
+          added += push;
+          page++;
+        }
+      });
+
+      const pages = page + 1;
+      setPageCount(pages);
+
+      const totalH = pages * pageH + (pages - 1) * GAP_PX;
+      container.style.height = `${totalH}px`;
+    } finally {
+      isRunning.current = false;
+    }
+  }, [contentH, pageH, mTop, mBottom, mLeft, mRight]);
+
+  const scheduleLayout = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(doLayout, 50);
+  }, [doLayout]);
+
+  useEffect(() => {
+    if (!editor) return;
+    editor.on('update', scheduleLayout);
+    editor.on('create', scheduleLayout);
+    scheduleLayout();
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      editor.off('update', scheduleLayout);
+      editor.off('create', scheduleLayout);
+    };
+  }, [editor, scheduleLayout]);
+
+  useEffect(() => {
+    scheduleLayout();
+  }, [lineSpacing, scheduleLayout]);
+
+  const sheets = [];
+  const gaps = [];
+  for (let i = 0; i < pageCount; i++) {
+    sheets.push({ top: i * (pageH + GAP_PX), height: pageH });
+    if (i < pageCount - 1) {
+      gaps.push({ top: i * (pageH + GAP_PX) + pageH, height: GAP_PX });
+    }
+  }
+
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .doc-paged .ProseMirror {
+          outline: none;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+          font-family: 'Noto Sans', sans-serif;
+          font-size: 14pt;
+          white-space: pre-wrap;
+          position: relative;
+          z-index: 1;
+        }
+        .doc-paged .ProseMirror p {
+          display: block !important;
+          width: 100% !important;
+          min-height: 1.2em !important;
+          margin: 0 !important;
+          white-space: pre-wrap;
+        }
+        .doc-paged .ProseMirror .text-center,
+        .doc-paged .ProseMirror [data-align=center] { text-align: center !important; }
+        .doc-paged .ProseMirror .text-right,
+        .doc-paged .ProseMirror [data-align=right] { text-align: right !important; }
+        .doc-paged .ProseMirror .text-justify,
+        .doc-paged .ProseMirror [data-align=justify] { text-align: justify !important; }
+        .doc-paged .ProseMirror h1 { font-size: 1.5rem; font-weight: bold; margin: 1rem 0; }
+        .doc-paged .ProseMirror h2 { font-size: 1.25rem; font-weight: bold; margin: 0.75rem 0; }
+        .doc-paged .ProseMirror h3 { font-size: 1.125rem; font-weight: bold; margin: 0.5rem 0; }
+        .doc-paged .ProseMirror table { border-collapse: collapse; width: 100%; }
+        .doc-paged .ProseMirror th { border: 1px solid #d1d5db; padding: 0.5rem; background: #f3f4f6; }
+        .doc-paged .ProseMirror td { border: 1px solid #d1d5db; padding: 0.5rem; }
+        .doc-paged .ProseMirror blockquote { border-left: 4px solid #d1d5db; padding-left: 1rem; font-style: italic; }
+        .doc-paged .ProseMirror hr { border-top: 2px solid #d1d5db; margin: 1rem 0; }
+        .doc-paged .ProseMirror img { max-width: 100%; height: auto; }
+        .doc-paged .ProseMirror ul { list-style: disc; padding-left: 1.5rem; }
+        .doc-paged .ProseMirror ol { list-style: decimal; padding-left: 1.5rem; }
+        .doc-paged .ProseMirror .page-break {
+          margin: 2rem 0; padding: 1rem 0;
+          border-top: 2px dashed #9ca3af; border-bottom: 2px dashed #9ca3af;
+          background: #f9fafb; text-align: center; color: #6b7280;
+          font-size: 0.875rem; font-weight: 500;
+        }
+        ${showFormattingMarks ? `.doc-paged .ProseMirror p::after { content: '¶'; color: #93c5fd; font-size: 0.875rem; }` : ''}
+      `}} />
+      <div className="overflow-auto flex-1" style={{ minHeight: 0, background: '#e8e8e8' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 0' }}>
+          <div
+            ref={containerRef}
+            className="doc-paged"
+            style={{ width: '210mm', maxWidth: '100%', position: 'relative', height: `${pageH}px` }}
+          >
+            {sheets.map((s, i) => (
+              <div key={`s${i}`} style={{
+                position: 'absolute', left: 0, right: 0, top: s.top, height: s.height,
+                background: 'white',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
+                pointerEvents: 'none', zIndex: 0,
+              }} />
+            ))}
+            {gaps.map((g, i) => (
+              <div key={`g${i}`} style={{
+                position: 'absolute', left: -16, right: -16, top: g.top, height: g.height,
+                background: '#e8e8e8', zIndex: 2, pointerEvents: 'none',
+              }} />
+            ))}
+            <EditorContent
+              editor={editor}
+              className="prose prose-sm max-w-none focus:outline-none"
+              style={{ lineHeight: lineSpacing }}
+              data-testid="document-editor-content"
+            />
+          </div>
+          <div style={{ textAlign: 'center', padding: '8px', fontSize: '11px', color: '#999' }}>
+            {pageCount} саҳ.
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export function DocumentEditor({
   content,
   onChange,
@@ -1583,72 +1777,7 @@ export function DocumentEditor({
         </div>
       )}
 
-      <style dangerouslySetInnerHTML={{ __html: `
-        .doc-page-editor .ProseMirror {
-          outline: none;
-          overflow-wrap: anywhere;
-          word-break: break-word;
-          font-family: 'Noto Sans', sans-serif;
-          font-size: 14pt;
-          white-space: pre-wrap;
-          min-height: calc(297mm - 40mm);
-        }
-        .doc-page-editor .ProseMirror p {
-          display: block !important;
-          width: 100% !important;
-          min-height: 1.2em !important;
-          margin: 0 !important;
-          white-space: pre-wrap;
-        }
-        .doc-page-editor .ProseMirror .text-center,
-        .doc-page-editor .ProseMirror [data-align=center] { text-align: center !important; }
-        .doc-page-editor .ProseMirror .text-right,
-        .doc-page-editor .ProseMirror [data-align=right] { text-align: right !important; }
-        .doc-page-editor .ProseMirror .text-justify,
-        .doc-page-editor .ProseMirror [data-align=justify] { text-align: justify !important; }
-        .doc-page-editor .ProseMirror h1 { font-size: 1.5rem; font-weight: bold; margin: 1rem 0; }
-        .doc-page-editor .ProseMirror h2 { font-size: 1.25rem; font-weight: bold; margin: 0.75rem 0; }
-        .doc-page-editor .ProseMirror h3 { font-size: 1.125rem; font-weight: bold; margin: 0.5rem 0; }
-        .doc-page-editor .ProseMirror table { border-collapse: collapse; width: 100%; }
-        .doc-page-editor .ProseMirror th { border: 1px solid #d1d5db; padding: 0.5rem; background: #f3f4f6; }
-        .doc-page-editor .ProseMirror td { border: 1px solid #d1d5db; padding: 0.5rem; }
-        .doc-page-editor .ProseMirror blockquote { border-left: 4px solid #d1d5db; padding-left: 1rem; font-style: italic; }
-        .doc-page-editor .ProseMirror hr { border-top: 2px solid #d1d5db; margin: 1rem 0; }
-        .doc-page-editor .ProseMirror img { max-width: 100%; height: auto; }
-        .doc-page-editor .ProseMirror ul { list-style: disc; padding-left: 1.5rem; }
-        .doc-page-editor .ProseMirror ol { list-style: decimal; padding-left: 1.5rem; }
-        .doc-page-editor .ProseMirror .page-break {
-          margin: 2rem 0; padding: 1rem 0;
-          border-top: 2px dashed #9ca3af; border-bottom: 2px dashed #9ca3af;
-          background: #f9fafb; text-align: center; color: #6b7280;
-          font-size: 0.875rem; font-weight: 500;
-        }
-        ${showFormattingMarks ? `
-        .doc-page-editor .ProseMirror p::after { content: '¶'; color: #93c5fd; font-size: 0.875rem; }
-        ` : ''}
-      `}} />
-      <div className="overflow-auto flex-1" style={{ minHeight: 0, background: '#e8e8e8' }}>
-        <div className="flex flex-col items-center py-4">
-          <div
-            className="doc-page-editor bg-white"
-            style={{
-              width: '210mm',
-              maxWidth: '100%',
-              minHeight: '297mm',
-              padding: '20mm 25mm',
-              boxSizing: 'border-box',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
-            }}
-          >
-            <EditorContent
-              editor={editor}
-              className="prose prose-sm max-w-none focus:outline-none"
-              style={{ lineHeight: lineSpacing }}
-              data-testid="document-editor-content"
-            />
-          </div>
-        </div>
-      </div>
+      <PagedEditor editor={editor} lineSpacing={lineSpacing} showFormattingMarks={showFormattingMarks} />
 
       {/* Page info footer */}
       <div className="border-t bg-muted/30 px-4 py-1 text-xs text-muted-foreground flex items-center justify-between shrink-0">
