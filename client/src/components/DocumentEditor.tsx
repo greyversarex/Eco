@@ -733,6 +733,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
   const [pageCount, setPageCount] = useState(1);
   const [pageHPx, setPageHPx] = useState(() => mmToPx(PAGE_HEIGHT_MM));
   const [pmOffsetTop, setPmOffsetTop] = useState(0);
+  const [totalHeight, setTotalHeight] = useState(() => mmToPx(PAGE_HEIGHT_MM));
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isRunning = useRef(false);
 
@@ -796,13 +797,13 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
       });
 
       const pages = page + 1;
+      const pmTotalH = pages * pageH + (pages - 1) * GAP_PX;
+      pm.style.minHeight = `${pmTotalH}px`;
+
       setPageCount(pages);
       setPageHPx(pageH);
       setPmOffsetTop(offset);
-
-      const totalH = offset + pages * pageH + (pages - 1) * GAP_PX;
-      pm.style.minHeight = `${pages * pageH + (pages - 1) * GAP_PX}px`;
-      container.style.height = `${totalH}px`;
+      setTotalHeight(offset + pmTotalH);
     } finally {
       isRunning.current = false;
     }
@@ -892,7 +893,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
           <div
             ref={containerRef}
             className="doc-paged"
-            style={{ width: '210mm', maxWidth: '100%', position: 'relative', height: `${pageHPx}px` }}
+            style={{ width: '210mm', maxWidth: '100%', position: 'relative', height: `${totalHeight}px` }}
           >
             {sheets.map((s, i) => (
               <div key={`s${i}`} style={{
