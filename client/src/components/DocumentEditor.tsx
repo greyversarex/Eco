@@ -198,13 +198,14 @@ const cleanWordHtml = (html: string): string => {
   cleaned = cleaned.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
   cleaned = cleaned.replace(/class="Mso[^"]*"/gi, '');
   cleaned = cleaned.replace(/class='Mso[^']*'/gi, '');
-  cleaned = cleaned.replace(/\s*mso-[^;":]+:[^;":]+;?/gi, '');
-  cleaned = cleaned.replace(/\s*font-family:\s*["']?Symbol["']?[^;]*;?/gi, '');
   cleaned = cleaned.replace(/lang="[^"]*"/gi, '');
   const fontStylePattern = /style="([^"]*)"/gi;
   cleaned = cleaned.replace(fontStylePattern, (match, styleContent) => {
+    let rawStyle: string = styleContent;
+    rawStyle = rawStyle.replace(/\s*mso-[^;":]+:[^;":]+;?/gi, '');
+    rawStyle = rawStyle.replace(/\s*font-family:\s*["']?Symbol["']?[^;]*;?/gi, '');
     const preservedStyles: string[] = [];
-    const fontFamilyMatch = styleContent.match(/font-family:\s*([^;]+)/i);
+    const fontFamilyMatch = rawStyle.match(/font-family:\s*([^;]+)/i);
     if (fontFamilyMatch) {
       let fontFamily = fontFamilyMatch[1].trim();
       fontFamily = fontFamily.replace(/["']/g, '').split(',')[0].trim();
@@ -212,92 +213,82 @@ const cleanWordHtml = (html: string): string => {
         preservedStyles.push(`font-family: '${fontFamily}'`);
       }
     }
-    const fontSizeMatch = styleContent.match(/font-size:\s*([^;]+)/i);
+    const fontSizeMatch = rawStyle.match(/font-size:\s*([^;]+)/i);
     if (fontSizeMatch) {
-      let fontSize = fontSizeMatch[1].trim();
+      const fontSize = fontSizeMatch[1].trim();
       const ptMatch = fontSize.match(/(\d+(?:\.\d+)?)\s*pt/i);
       if (ptMatch) {
         preservedStyles.push(`font-size: ${ptMatch[1]}pt`);
       }
     }
-    const fontWeightMatch = styleContent.match(/font-weight:\s*([^;]+)/i);
+    const fontWeightMatch = rawStyle.match(/font-weight:\s*([^;]+)/i);
     if (fontWeightMatch) {
       preservedStyles.push(`font-weight: ${fontWeightMatch[1].trim()}`);
     }
-    const fontStyleMatch = styleContent.match(/font-style:\s*([^;]+)/i);
+    const fontStyleMatch = rawStyle.match(/font-style:\s*([^;]+)/i);
     if (fontStyleMatch) {
       preservedStyles.push(`font-style: ${fontStyleMatch[1].trim()}`);
     }
-    const textDecorationMatch = styleContent.match(/text-decoration:\s*([^;]+)/i);
+    const textDecorationMatch = rawStyle.match(/text-decoration:\s*([^;]+)/i);
     if (textDecorationMatch) {
       preservedStyles.push(`text-decoration: ${textDecorationMatch[1].trim()}`);
     }
-    const colorMatch = styleContent.match(/(?:^|[^-])color:\s*([^;]+)/i);
+    const colorMatch = rawStyle.match(/(?:^|[^-])color:\s*([^;]+)/i);
     if (colorMatch) {
       preservedStyles.push(`color: ${colorMatch[1].trim()}`);
     }
-    const bgColorMatch = styleContent.match(/background(?:-color)?:\s*([^;]+)/i);
+    const bgColorMatch = rawStyle.match(/background(?:-color)?:\s*([^;]+)/i);
     if (bgColorMatch) {
       preservedStyles.push(`background-color: ${bgColorMatch[1].trim()}`);
     }
-    const textAlignMatch = styleContent.match(/text-align:\s*([^;]+)/i);
+    const textAlignMatch = rawStyle.match(/text-align:\s*([^;]+)/i);
     if (textAlignMatch) {
       const alignment = textAlignMatch[1].trim().toLowerCase();
       if (['left', 'center', 'right', 'justify'].includes(alignment)) {
-        preservedStyles.push(`text-align: ${alignment} !important`);
-        preservedStyles.push(`display: block !important`);
-        preservedStyles.push(`width: 100% !important`);
-        preservedStyles.push(`min-height: 1.2em !important`);
+        preservedStyles.push(`text-align: ${alignment}`);
       }
     }
-    const marginMatch = styleContent.match(/margin(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
-    if (marginMatch) {
-      (marginMatch as string[]).forEach((m: string) => {
-        const style = m.trim().toLowerCase();
-        if (style.startsWith('margin-left')) {
-          const val = style.split(':')[1].trim();
-          if (val.endsWith('pt')) {
-            const px = parseFloat(val) * 1.33;
-            preservedStyles.push(`padding-left: ${px}px`);
-          } else {
-            preservedStyles.push(`padding-left: ${val}`);
-          }
-        } else {
-          preservedStyles.push(style);
-        }
-      });
-    }
-    const paddingMatch = styleContent.match(/padding(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
-    if (paddingMatch) {
-      (paddingMatch as string[]).forEach((p: string) => preservedStyles.push(p.trim()));
-    }
-    const textIndentMatch = styleContent.match(/text-indent:\s*([^;]+)/i);
+    const textIndentMatch = rawStyle.match(/text-indent:\s*([^;]+)/i);
     if (textIndentMatch) {
-      preservedStyles.push(`text-indent: ${textIndentMatch[1].trim()}`);
+      let val = textIndentMatch[1].trim();
+      const cmMatch = val.match(/([\d.]+)\s*cm/i);
+      const ptIndentMatch = val.match(/([\d.]+)\s*pt/i);
+      if (cmMatch) {
+        const px = parseFloat(cmMatch[1]) * 37.8;
+        preservedStyles.push(`text-indent: ${Math.round(px)}px`);
+      } else if (ptIndentMatch) {
+        const px = parseFloat(ptIndentMatch[1]) * 1.33;
+        preservedStyles.push(`text-indent: ${Math.round(px)}px`);
+      } else {
+        preservedStyles.push(`text-indent: ${val}`);
+      }
     }
-    const lineHeightMatch = styleContent.match(/line-height:\s*([^;]+)/i);
+    const marginLeftMatch = rawStyle.match(/margin-left:\s*([^;]+)/i);
+    if (marginLeftMatch) {
+      let val = marginLeftMatch[1].trim();
+      const cmMatch = val.match(/([\d.]+)\s*cm/i);
+      const ptMatch2 = val.match(/([\d.]+)\s*pt/i);
+      if (cmMatch) {
+        const px = parseFloat(cmMatch[1]) * 37.8;
+        preservedStyles.push(`padding-left: ${Math.round(px)}px`);
+      } else if (ptMatch2) {
+        const px = parseFloat(ptMatch2[1]) * 1.33;
+        preservedStyles.push(`padding-left: ${Math.round(px)}px`);
+      } else {
+        preservedStyles.push(`padding-left: ${val}`);
+      }
+    }
+    const marginRightMatch = rawStyle.match(/margin-right:\s*([^;]+)/i);
+    if (marginRightMatch) {
+      preservedStyles.push(`margin-right: ${marginRightMatch[1].trim()}`);
+    }
+    const lineHeightMatch = rawStyle.match(/line-height:\s*([^;]+)/i);
     if (lineHeightMatch) {
       preservedStyles.push(`line-height: ${lineHeightMatch[1].trim()}`);
     }
-    const marginTopMatch = styleContent.match(/margin-top:\s*([^;]+)/i);
-    if (marginTopMatch) {
-      preservedStyles.push(`margin-top: ${marginTopMatch[1].trim()}`);
-    }
-    const marginBottomMatch = styleContent.match(/margin-bottom:\s*([^;]+)/i);
-    if (marginBottomMatch) {
-      preservedStyles.push(`margin-bottom: ${marginBottomMatch[1].trim()}`);
-    }
-    const msoMarginTopMatch = styleContent.match(/mso-margin-top-alt:\s*([^;]+)/i);
-    if (msoMarginTopMatch) {
-      preservedStyles.push(`margin-top: ${msoMarginTopMatch[1].trim()}`);
-    }
-    const msoMarginBottomMatch = styleContent.match(/mso-margin-bottom-alt:\s*([^;]+)/i);
-    if (msoMarginBottomMatch) {
-      preservedStyles.push(`margin-bottom: ${msoMarginBottomMatch[1].trim()}`);
-    }
-    const msoLineHeightMatch = styleContent.match(/mso-line-height-alt:\s*([^;]+)/i);
-    if (msoLineHeightMatch) {
-      preservedStyles.push(`line-height: ${msoLineHeightMatch[1].trim()}`);
+    const paddingMatch = rawStyle.match(/padding(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
+    if (paddingMatch) {
+      (paddingMatch as string[]).forEach((p: string) => preservedStyles.push(p.trim()));
     }
     if (preservedStyles.length > 0) {
       return `style="${preservedStyles.join('; ')}"`;
@@ -306,7 +297,6 @@ const cleanWordHtml = (html: string): string => {
   });
   cleaned = cleaned.replace(/<span[^>]*>\s*<\/span>/gi, '');
   cleaned = cleaned.replace(/<p[^>]*>\s*(&nbsp;|\u00A0)?\s*<\/p>/gi, '<p><br></p>');
-  cleaned = cleaned.replace(/>\s+</g, '><');
   return cleaned.trim();
 };
 
