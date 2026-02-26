@@ -185,119 +185,173 @@ const PageBreak = Extension.create({
   },
 });
 
+const convertToPx = (val: string): number | null => {
+  if (!val) return null;
+  val = val.trim();
+  const cmMatch = val.match(/([-\d.]+)\s*cm/i);
+  if (cmMatch) return Math.round(parseFloat(cmMatch[1]) * 37.8);
+  const mmMatch = val.match(/([-\d.]+)\s*mm/i);
+  if (mmMatch) return Math.round(parseFloat(mmMatch[1]) * 3.78);
+  const ptMatch = val.match(/([-\d.]+)\s*pt/i);
+  if (ptMatch) return Math.round(parseFloat(ptMatch[1]) * 1.33);
+  const pxMatch = val.match(/([-\d.]+)\s*px/i);
+  if (pxMatch) return Math.round(parseFloat(pxMatch[1]));
+  const inMatch = val.match(/([-\d.]+)\s*in/i);
+  if (inMatch) return Math.round(parseFloat(inMatch[1]) * 96);
+  return null;
+};
+
 const cleanWordHtml = (html: string): string => {
   let cleaned = html;
-  cleaned = cleaned.replace(/<o:p[^>]*>[\s\S]*?<\/o:p>/gi, '');
+  cleaned = cleaned.replace(/<!--\[if[^>]*>[\s\S]*?<!\[endif\]-->/gi, '');
+  cleaned = cleaned.replace(/<!--[\s\S]*?-->/g, '');
+  cleaned = cleaned.replace(/<xml[^>]*>[\s\S]*?<\/xml>/gi, '');
   cleaned = cleaned.replace(/<\/?o:[^>]*>/gi, '');
   cleaned = cleaned.replace(/<\/?w:[^>]*>/gi, '');
   cleaned = cleaned.replace(/<\/?m:[^>]*>/gi, '');
   cleaned = cleaned.replace(/<\/?v:[^>]*>/gi, '');
-  cleaned = cleaned.replace(/<!--\[if[^>]*>[\s\S]*?<!\[endif\]-->/gi, '');
-  cleaned = cleaned.replace(/<!--[\s\S]*?-->/g, '');
-  cleaned = cleaned.replace(/<xml[^>]*>[\s\S]*?<\/xml>/gi, '');
-  cleaned = cleaned.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-  cleaned = cleaned.replace(/class="Mso[^"]*"/gi, '');
-  cleaned = cleaned.replace(/class='Mso[^']*'/gi, '');
-  cleaned = cleaned.replace(/lang="[^"]*"/gi, '');
-  const fontStylePattern = /style="([^"]*)"/gi;
-  cleaned = cleaned.replace(fontStylePattern, (match, styleContent) => {
-    let rawStyle: string = styleContent;
-    rawStyle = rawStyle.replace(/\s*mso-[^;":]+:[^;":]+;?/gi, '');
-    rawStyle = rawStyle.replace(/\s*font-family:\s*["']?Symbol["']?[^;]*;?/gi, '');
-    const preservedStyles: string[] = [];
-    const fontFamilyMatch = rawStyle.match(/font-family:\s*([^;]+)/i);
-    if (fontFamilyMatch) {
-      let fontFamily = fontFamilyMatch[1].trim();
-      fontFamily = fontFamily.replace(/["']/g, '').split(',')[0].trim();
-      if (fontFamily && !fontFamily.toLowerCase().includes('symbol')) {
-        preservedStyles.push(`font-family: '${fontFamily}'`);
+
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'absolute';
+  iframe.style.left = '-9999px';
+  iframe.style.width = '1px';
+  iframe.style.height = '1px';
+  document.body.appendChild(iframe);
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!iframeDoc) {
+    document.body.removeChild(iframe);
+    const fallback = document.createElement('div');
+    fallback.innerHTML = cleaned.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+    return fallback.innerHTML;
+  }
+  iframeDoc.open();
+  iframeDoc.write('<!DOCTYPE html><html><head></head><body>' + cleaned + '</body></html>');
+  iframeDoc.close();
+
+  const tempDiv = iframeDoc.body;
+
+  const iframeWin = iframe.contentWindow!;
+
+  const processElement = (el: HTMLElement) => {
+    const cs = iframeWin.getComputedStyle(el);
+    const newStyles: string[] = [];
+
+    const tag = el.tagName.toLowerCase();
+    const isBlock = tag === 'p' || tag === 'div' || tag === 'li' || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4';
+
+    if (isBlock) {
+      const align = cs.textAlign;
+      if (align && align !== 'start' && ['left', 'center', 'right', 'justify'].includes(align)) {
+        newStyles.push(`text-align: ${align}`);
+      }
+
+      const ti = cs.textIndent;
+      if (ti && ti !== '0px') {
+        const px = parseInt(ti);
+        if (px > 0) newStyles.push(`text-indent: ${px}px`);
+      }
+
+      const ml = cs.marginLeft;
+      if (ml && ml !== '0px') {
+        const px = parseInt(ml);
+        if (px > 0) newStyles.push(`padding-left: ${px}px`);
+      }
+
+      const mr = cs.marginRight;
+      if (mr && mr !== '0px') {
+        const px = parseInt(mr);
+        if (px > 0) newStyles.push(`padding-right: ${px}px`);
+      }
+
+      const lh = cs.lineHeight;
+      if (lh && lh !== 'normal') {
+        newStyles.push(`line-height: ${lh}`);
       }
     }
-    const fontSizeMatch = rawStyle.match(/font-size:\s*([^;]+)/i);
-    if (fontSizeMatch) {
-      const fontSize = fontSizeMatch[1].trim();
-      const ptMatch = fontSize.match(/(\d+(?:\.\d+)?)\s*pt/i);
-      if (ptMatch) {
-        preservedStyles.push(`font-size: ${ptMatch[1]}pt`);
+
+    const ff = cs.fontFamily;
+    if (ff && !ff.toLowerCase().includes('symbol')) {
+      const primary = ff.replace(/["']/g, '').split(',')[0].trim();
+      if (primary && primary.toLowerCase() !== 'times new roman' && primary.toLowerCase() !== 'serif') {
+        newStyles.push(`font-family: '${primary}'`);
       }
     }
-    const fontWeightMatch = rawStyle.match(/font-weight:\s*([^;]+)/i);
-    if (fontWeightMatch) {
-      preservedStyles.push(`font-weight: ${fontWeightMatch[1].trim()}`);
-    }
-    const fontStyleMatch = rawStyle.match(/font-style:\s*([^;]+)/i);
-    if (fontStyleMatch) {
-      preservedStyles.push(`font-style: ${fontStyleMatch[1].trim()}`);
-    }
-    const textDecorationMatch = rawStyle.match(/text-decoration:\s*([^;]+)/i);
-    if (textDecorationMatch) {
-      preservedStyles.push(`text-decoration: ${textDecorationMatch[1].trim()}`);
-    }
-    const colorMatch = rawStyle.match(/(?:^|[^-])color:\s*([^;]+)/i);
-    if (colorMatch) {
-      preservedStyles.push(`color: ${colorMatch[1].trim()}`);
-    }
-    const bgColorMatch = rawStyle.match(/background(?:-color)?:\s*([^;]+)/i);
-    if (bgColorMatch) {
-      preservedStyles.push(`background-color: ${bgColorMatch[1].trim()}`);
-    }
-    const textAlignMatch = rawStyle.match(/text-align:\s*([^;]+)/i);
-    if (textAlignMatch) {
-      const alignment = textAlignMatch[1].trim().toLowerCase();
-      if (['left', 'center', 'right', 'justify'].includes(alignment)) {
-        preservedStyles.push(`text-align: ${alignment}`);
+
+    const fs = cs.fontSize;
+    if (fs) {
+      const pxVal = parseFloat(fs);
+      if (pxVal) {
+        const pt = Math.round(pxVal * 0.75 * 10) / 10;
+        if (pt !== 14 && pt !== 12) {
+          newStyles.push(`font-size: ${pt}pt`);
+        }
       }
     }
-    const textIndentMatch = rawStyle.match(/text-indent:\s*([^;]+)/i);
-    if (textIndentMatch) {
-      let val = textIndentMatch[1].trim();
-      const cmMatch = val.match(/([\d.]+)\s*cm/i);
-      const ptIndentMatch = val.match(/([\d.]+)\s*pt/i);
-      if (cmMatch) {
-        const px = parseFloat(cmMatch[1]) * 37.8;
-        preservedStyles.push(`text-indent: ${Math.round(px)}px`);
-      } else if (ptIndentMatch) {
-        const px = parseFloat(ptIndentMatch[1]) * 1.33;
-        preservedStyles.push(`text-indent: ${Math.round(px)}px`);
-      } else {
-        preservedStyles.push(`text-indent: ${val}`);
+
+    const fw = cs.fontWeight;
+    if (fw && fw !== 'normal' && fw !== '400') {
+      newStyles.push(`font-weight: ${fw}`);
+    }
+
+    const fst = cs.fontStyle;
+    if (fst && fst !== 'normal') {
+      newStyles.push(`font-style: ${fst}`);
+    }
+
+    const td = cs.textDecorationLine || cs.getPropertyValue('text-decoration-line');
+    if (td && td !== 'none') {
+      newStyles.push(`text-decoration: ${td}`);
+    }
+
+    const col = cs.color;
+    if (col && col !== 'rgb(0, 0, 0)') {
+      newStyles.push(`color: ${col}`);
+    }
+
+    const bg = cs.backgroundColor;
+    if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
+      newStyles.push(`background-color: ${bg}`);
+    }
+
+    el.removeAttribute('class');
+    el.removeAttribute('lang');
+    el.removeAttribute('data-ccp-props');
+    el.removeAttribute('data-ccp-parastyle');
+
+    if (newStyles.length > 0) {
+      el.setAttribute('style', newStyles.join('; '));
+    } else {
+      el.removeAttribute('style');
+    }
+
+    const children = Array.from(el.children) as HTMLElement[];
+    children.forEach(child => processElement(child));
+
+    if (tag === 'span' && !el.hasAttributes() && el.childNodes.length > 0) {
+      const parent = el.parentNode;
+      if (parent) {
+        while (el.firstChild) {
+          parent.insertBefore(el.firstChild, el);
+        }
+        parent.removeChild(el);
       }
     }
-    const marginLeftMatch = rawStyle.match(/margin-left:\s*([^;]+)/i);
-    if (marginLeftMatch) {
-      let val = marginLeftMatch[1].trim();
-      const cmMatch = val.match(/([\d.]+)\s*cm/i);
-      const ptMatch2 = val.match(/([\d.]+)\s*pt/i);
-      if (cmMatch) {
-        const px = parseFloat(cmMatch[1]) * 37.8;
-        preservedStyles.push(`padding-left: ${Math.round(px)}px`);
-      } else if (ptMatch2) {
-        const px = parseFloat(ptMatch2[1]) * 1.33;
-        preservedStyles.push(`padding-left: ${Math.round(px)}px`);
-      } else {
-        preservedStyles.push(`padding-left: ${val}`);
-      }
+  };
+
+  const children = Array.from(tempDiv.children) as HTMLElement[];
+  children.forEach(child => processElement(child));
+
+  const emptyParagraphs = tempDiv.querySelectorAll('p');
+  emptyParagraphs.forEach(p => {
+    const text = p.textContent?.trim();
+    if (!text && !p.querySelector('img, br, table')) {
+      p.innerHTML = '<br>';
     }
-    const marginRightMatch = rawStyle.match(/margin-right:\s*([^;]+)/i);
-    if (marginRightMatch) {
-      preservedStyles.push(`margin-right: ${marginRightMatch[1].trim()}`);
-    }
-    const lineHeightMatch = rawStyle.match(/line-height:\s*([^;]+)/i);
-    if (lineHeightMatch) {
-      preservedStyles.push(`line-height: ${lineHeightMatch[1].trim()}`);
-    }
-    const paddingMatch = rawStyle.match(/padding(?:-left|-right|-top|-bottom)?:\s*([^;]+)/gi);
-    if (paddingMatch) {
-      (paddingMatch as string[]).forEach((p: string) => preservedStyles.push(p.trim()));
-    }
-    if (preservedStyles.length > 0) {
-      return `style="${preservedStyles.join('; ')}"`;
-    }
-    return '';
   });
-  cleaned = cleaned.replace(/<span[^>]*>\s*<\/span>/gi, '');
-  cleaned = cleaned.replace(/<p[^>]*>\s*(&nbsp;|\u00A0)?\s*<\/p>/gi, '<p><br></p>');
-  return cleaned.trim();
+
+  const result = tempDiv.innerHTML;
+  document.body.removeChild(iframe);
+  return result;
 };
 
 import { Button } from '@/components/ui/button';
