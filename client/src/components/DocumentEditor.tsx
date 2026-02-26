@@ -553,6 +553,7 @@ function PagedEditorArea({ lineSpacing, editor }: { lineSpacing: string; editor:
   const [pageGaps, setPageGaps] = useState<{ top: number; height: number }[]>([]);
   const [pageCount, setPageCount] = useState(1);
   const rafRef = useRef<number>(0);
+  const isRecalculating = useRef(false);
   const measuredMm = useRef<number>(0);
 
   const getMmPx = useCallback(() => {
@@ -571,10 +572,13 @@ function PagedEditorArea({ lineSpacing, editor }: { lineSpacing: string; editor:
   }, []);
 
   const recalcPages = useCallback(() => {
+    if (isRecalculating.current) return;
+    isRecalculating.current = true;
+
     const wrap = wrapRef.current;
-    if (!wrap) return;
+    if (!wrap) { isRecalculating.current = false; return; }
     const pm = wrap.querySelector('.ProseMirror') as HTMLElement;
-    if (!pm) return;
+    if (!pm) { isRecalculating.current = false; return; }
 
     const mmPx = getMmPx();
     const marginTopPx = Math.round(20 * mmPx);
@@ -644,6 +648,8 @@ function PagedEditorArea({ lineSpacing, editor }: { lineSpacing: string; editor:
     const totalH = totalPages * pageHeightPx + (totalPages - 1) * gapPx;
     pm.style.minHeight = `${totalH}px`;
     wrap.style.height = `${totalH}px`;
+
+    isRecalculating.current = false;
   }, [getMmPx]);
 
   useEffect(() => {
@@ -657,21 +663,10 @@ function PagedEditorArea({ lineSpacing, editor }: { lineSpacing: string; editor:
     editor.on('update', handler);
     editor.on('create', handler);
 
-    const wrap = wrapRef.current;
-    let ro: ResizeObserver | null = null;
-    if (wrap) {
-      const pm = wrap.querySelector('.ProseMirror') as HTMLElement;
-      if (pm) {
-        ro = new ResizeObserver(handler);
-        ro.observe(pm);
-      }
-    }
-
     handler();
 
     return () => {
       cancelAnimationFrame(rafRef.current);
-      ro?.disconnect();
       editor.off('update', handler);
       editor.off('create', handler);
     };
