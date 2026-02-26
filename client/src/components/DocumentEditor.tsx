@@ -732,10 +732,10 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
   const containerRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(1);
   const [pageHPx, setPageHPx] = useState(() => mmToPx(PAGE_HEIGHT_MM));
-  const [pmOffsetTop, setPmOffsetTop] = useState(0);
   const [totalHeight, setTotalHeight] = useState(() => mmToPx(PAGE_HEIGHT_MM));
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isRunning = useRef(false);
+  const layoutPass = useRef(0);
 
   const doLayout = useCallback(() => {
     if (isRunning.current) return;
@@ -748,6 +748,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
       if (!pm) return;
 
       const pxPerMm = container.offsetWidth / 210;
+      if (pxPerMm <= 0) return;
       const pageH = PAGE_HEIGHT_MM * pxPerMm;
       const mTop = MARGIN_TOP_MM * pxPerMm;
       const mBottom = MARGIN_BOTTOM_MM * pxPerMm;
@@ -760,53 +761,54 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
       pm.style.paddingLeft = `${mLeft}px`;
       pm.style.paddingRight = `${mRight}px`;
 
-      const blocks = pm.querySelectorAll(':scope > *');
-      blocks.forEach((el) => {
-        const htmlEl = el as HTMLElement;
-        if (htmlEl.dataset.pbm) {
-          htmlEl.style.marginTop = '';
-          delete htmlEl.dataset.pbm;
+      const blocks = Array.from(pm.querySelectorAll(':scope > *')) as HTMLElement[];
+      for (const el of blocks) {
+        if (el.dataset.pbm) {
+          el.style.marginTop = '';
+          delete el.dataset.pbm;
         }
-      });
+      }
 
       void pm.offsetHeight;
 
-      const containerRect = container.getBoundingClientRect();
-      const pmRect = pm.getBoundingClientRect();
-      const offset = pmRect.top - containerRect.top;
-      const pmTop = pmRect.top;
       let page = 0;
       let added = 0;
 
-      blocks.forEach((el) => {
-        const htmlEl = el as HTMLElement;
-        const rect = htmlEl.getBoundingClientRect();
-        if (rect.height === 0) return;
+      for (const el of blocks) {
+        if (el.offsetHeight === 0) continue;
 
-        const blockTopInContent = rect.top - pmTop - mTop - added;
-        const blockBottomInContent = blockTopInContent + rect.height;
+        const blockTopInContent = el.offsetTop - mTop - added;
+        const blockBottomInContent = blockTopInContent + el.offsetHeight;
         const pageBoundary = (page + 1) * contentH;
 
         if (blockBottomInContent > pageBoundary) {
           const push = (pageBoundary - blockTopInContent) + mBottom + GAP_PX + mTop;
-          htmlEl.style.marginTop = `${push}px`;
-          htmlEl.dataset.pbm = '1';
+          el.style.marginTop = `${push}px`;
+          el.dataset.pbm = '1';
           added += push;
           page++;
         }
-      });
+      }
 
       const pages = page + 1;
+      const pmOffset = pm.offsetTop;
       const pmTotalH = pages * pageH + (pages - 1) * GAP_PX;
       pm.style.minHeight = `${pmTotalH}px`;
 
       setPageCount(pages);
       setPageHPx(pageH);
-      setPmOffsetTop(offset);
-      setTotalHeight(offset + pmTotalH);
+      setTotalHeight(pmOffset + pmTotalH);
     } finally {
       isRunning.current = false;
     }
+
+    const pass = ++layoutPass.current;
+    requestAnimationFrame(() => {
+      if (layoutPass.current === pass) {
+        isRunning.current = false;
+        doLayout();
+      }
+    });
   }, []);
 
   const scheduleLayout = useCallback(() => {
@@ -830,17 +832,12 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
     scheduleLayout();
   }, [lineSpacing, scheduleLayout]);
 
-  const mTopPx = pageHPx * (MARGIN_TOP_MM / PAGE_HEIGHT_MM);
-  const mBottomPx = pageHPx * (MARGIN_BOTTOM_MM / PAGE_HEIGHT_MM);
-
+  const pmOffset = containerRef.current?.querySelector('.ProseMirror')?.offsetTop ?? 0;
   const sheets = [];
   const gaps = [];
-  const marginMasks: Array<{ top: number; height: number }> = [];
   for (let i = 0; i < pageCount; i++) {
-    const pageTop = pmOffsetTop + i * (pageHPx + GAP_PX);
+    const pageTop = pmOffset + i * (pageHPx + GAP_PX);
     sheets.push({ top: pageTop, height: pageHPx });
-    marginMasks.push({ top: pageTop, height: mTopPx });
-    marginMasks.push({ top: pageTop + pageHPx - mBottomPx, height: mBottomPx });
     if (i < pageCount - 1) {
       gaps.push({ top: pageTop + pageHPx, height: GAP_PX });
     }
@@ -913,13 +910,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
             {gaps.map((g, i) => (
               <div key={`g${i}`} style={{
                 position: 'absolute', left: -16, right: -16, top: g.top, height: g.height,
-                background: '#e8e8e8', zIndex: 4, pointerEvents: 'none',
-              }} />
-            ))}
-            {marginMasks.map((m, i) => (
-              <div key={`m${i}`} style={{
-                position: 'absolute', left: 0, right: 0, top: m.top, height: m.height,
-                background: 'white', zIndex: 3, pointerEvents: 'none',
+                background: '#e8e8e8', zIndex: 2, pointerEvents: 'none',
               }} />
             ))}
             <EditorContent
