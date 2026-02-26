@@ -546,6 +546,84 @@ const DraggableImage = Image.extend({
   },
 });
 
+function PageBreakContainer({ lineSpacing, editor, children }: { lineSpacing: string; editor: Editor | null; children: React.ReactNode }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [pageBreaks, setPageBreaks] = useState<number[]>([]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const mmToPx = () => {
+      const testDiv = document.createElement('div');
+      testDiv.style.width = '297mm';
+      testDiv.style.position = 'absolute';
+      testDiv.style.visibility = 'hidden';
+      el.appendChild(testDiv);
+      const px = testDiv.offsetWidth;
+      el.removeChild(testDiv);
+      return px;
+    };
+
+    const recalc = () => {
+      const pageHeightPx = mmToPx();
+      const paddingTopPx = pageHeightPx * (20 / 297);
+      const paddingBottomPx = pageHeightPx * (20 / 297);
+      const proseMirror = el.querySelector('.ProseMirror') as HTMLElement;
+      if (!proseMirror) return;
+      const contentHeight = proseMirror.scrollHeight;
+      const contentAreaPerPage = pageHeightPx - paddingTopPx - paddingBottomPx;
+
+      const breaks: number[] = [];
+      let pos = contentAreaPerPage;
+      while (pos < contentHeight) {
+        breaks.push(paddingTopPx + pos);
+        pos += contentAreaPerPage;
+      }
+      setPageBreaks(breaks);
+    };
+
+    recalc();
+    const ro = new ResizeObserver(recalc);
+    const proseMirror = el.querySelector('.ProseMirror');
+    if (proseMirror) ro.observe(proseMirror);
+
+    return () => ro.disconnect();
+  }, [editor, lineSpacing]);
+
+  const totalPages = pageBreaks.length + 1;
+
+  return (
+    <div 
+      ref={containerRef}
+      className="doc-page-editor bg-white"
+      style={{
+        width: '210mm',
+        maxWidth: '100%',
+        minHeight: '297mm',
+        padding: '20mm 25mm',
+        boxSizing: 'border-box',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05)',
+        position: 'relative',
+      }}
+    >
+      {children}
+      {pageBreaks.map((top, i) => (
+        <div
+          key={i}
+          className="page-break-overlay"
+          style={{ top: `${top}px` }}
+        />
+      ))}
+      {totalPages > 1 && (
+        <div style={{ position: 'absolute', bottom: '-20px', right: '4px', fontSize: '10px', color: '#ccc', zIndex: 3 }}>
+          {totalPages} саҳ.
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function DocumentEditor({
   content,
   onChange,
@@ -1614,6 +1692,9 @@ export function DocumentEditor({
       <div className="overflow-auto flex-1" style={{ minHeight: 0, background: '#808080' }}>
         <div className="flex flex-col items-center py-3">
           <style dangerouslySetInnerHTML={{ __html: `
+            .doc-page-editor {
+              position: relative;
+            }
             .doc-page-editor .ProseMirror {
               outline: none;
               overflow-wrap: anywhere;
@@ -1622,6 +1703,8 @@ export function DocumentEditor({
               font-size: 14pt;
               white-space: pre-wrap;
               min-height: 257mm;
+              position: relative;
+              z-index: 1;
             }
             .doc-page-editor .ProseMirror p {
               display: block !important;
@@ -1653,21 +1736,21 @@ export function DocumentEditor({
               background: #f9fafb; text-align: center; color: #6b7280;
               font-size: 0.875rem; font-weight: 500;
             }
+            .page-break-overlay {
+              position: absolute;
+              left: 0;
+              right: 0;
+              height: 12px;
+              background: #808080;
+              z-index: 2;
+              pointer-events: none;
+              box-shadow: inset 0 2px 3px rgba(0,0,0,0.2), inset 0 -2px 3px rgba(0,0,0,0.2);
+            }
             ${showFormattingMarks ? `
             .doc-page-editor .ProseMirror p::after { content: '¶'; color: #93c5fd; font-size: 0.875rem; }
             ` : ''}
           `}} />
-          <div 
-            className="doc-page-editor bg-white"
-            style={{
-              width: '210mm',
-              maxWidth: '100%',
-              minHeight: '297mm',
-              padding: '20mm 25mm',
-              boxSizing: 'border-box',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05)',
-            }}
-          >
+          <PageBreakContainer lineSpacing={lineSpacing} editor={editor}>
             <EditorContent 
               editor={editor} 
               className="prose prose-sm max-w-none focus:outline-none"
@@ -1676,7 +1759,7 @@ export function DocumentEditor({
               }}
               data-testid="document-editor-content"
             />
-          </div>
+          </PageBreakContainer>
         </div>
       </div>
 
