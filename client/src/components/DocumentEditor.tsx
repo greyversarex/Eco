@@ -887,7 +887,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
           <div
             ref={containerRef}
             className="doc-paged"
-            style={{ width: '210mm', maxWidth: '100%', position: 'relative', height: `${pageH}px` }}
+            style={{ width: '210mm', maxWidth: '100%', position: 'relative', height: `${pageHPx}px` }}
           >
             {sheets.map((s, i) => (
               <div key={`s${i}`} style={{
