@@ -764,7 +764,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
       const blocks = Array.from(pm.querySelectorAll(':scope > *')) as HTMLElement[];
       for (const el of blocks) {
         if (el.dataset.pbm) {
-          el.style.marginTop = '';
+          el.style.removeProperty('margin-top');
           delete el.dataset.pbm;
         }
       }
@@ -781,9 +781,9 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
         const blockBottomInContent = blockTopInContent + el.offsetHeight;
         const pageBoundary = (page + 1) * contentH;
 
-        if (blockBottomInContent > pageBoundary) {
+        if (blockBottomInContent > pageBoundary - 1) {
           const push = (pageBoundary - blockTopInContent) + mBottom + GAP_PX + mTop;
-          el.style.marginTop = `${push}px`;
+          el.style.setProperty('margin-top', `${push}px`, 'important');
           el.dataset.pbm = '1';
           added += push;
           page++;
@@ -857,10 +857,15 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
           z-index: 1;
           overflow-x: hidden;
         }
+        .doc-paged .ProseMirror > *:not([data-pbm]) {
+          margin-top: 0 !important;
+        }
         .doc-paged .ProseMirror p {
           display: block !important;
           min-height: 1.2em !important;
-          margin: 0 !important;
+          margin-bottom: 0 !important;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
           white-space: pre-wrap;
           padding-left: var(--left-indent, 0);
           padding-right: var(--right-indent, 0);
