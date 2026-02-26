@@ -730,12 +730,10 @@ function mmToPx(mm: number): number {
 
 function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Editor | null; lineSpacing: string; showFormattingMarks: boolean }) {
   const outerRef = useRef<HTMLDivElement>(null);
-  const [pageCount, setPageCount] = useState(1);
-  const [pageHPx, setPageHPx] = useState(0);
-  const [mTopPx, setMTopPx] = useState(0);
-  const [mBottomPx, setMBottomPx] = useState(0);
-  const [totalH, setTotalH] = useState(0);
+  const layoutRef = useRef({ pages: 1, pageH: 0, mT: 0, mB: 0, totalH: 0 });
+  const [, forceUpdate] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   const doLayout = useCallback(() => {
     const outer = outerRef.current;
@@ -745,66 +743,74 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
 
     const w = outer.offsetWidth;
     if (w <= 0) return;
-    const pxMm = w / 210;
-    const pageH = PAGE_HEIGHT_MM * pxMm;
-    const mT = MARGIN_TOP_MM * pxMm;
-    const mB = MARGIN_BOTTOM_MM * pxMm;
-    const mL = MARGIN_LEFT_MM * pxMm;
-    const mR = MARGIN_RIGHT_MM * pxMm;
+    const pxPerMm = w / 210;
+    const pageH = PAGE_HEIGHT_MM * pxPerMm;
+    const mT = MARGIN_TOP_MM * pxPerMm;
+    const mB = MARGIN_BOTTOM_MM * pxPerMm;
+    const mL = MARGIN_LEFT_MM * pxPerMm;
+    const mR = MARGIN_RIGHT_MM * pxPerMm;
     const contentH = pageH - mT - mB;
     const skipH = mB + GAP_PX + mT;
 
     pm.style.paddingLeft = `${mL}px`;
     pm.style.paddingRight = `${mR}px`;
-    pm.style.paddingTop = '0';
-    pm.style.paddingBottom = '0';
+    pm.style.paddingTop = `${mT}px`;
+    pm.style.paddingBottom = `${mB}px`;
+    pm.style.boxSizing = 'border-box';
 
     const blocks = Array.from(pm.querySelectorAll(':scope > *')) as HTMLElement[];
     for (const el of blocks) {
       if (el.dataset.pbm) {
-        el.style.paddingTop = '';
+        el.style.removeProperty('margin-top');
         delete el.dataset.pbm;
       }
     }
 
     void pm.offsetHeight;
 
-    let page = 0;
-    let pushTotal = 0;
+    const pmRect = pm.getBoundingClientRect();
+    const contentStart = pmRect.top + mT;
 
-    for (const el of blocks) {
-      const h = el.offsetHeight;
-      if (h === 0) continue;
-      const naturalTop = el.offsetTop - pushTotal;
-      const naturalBot = naturalTop + h;
+    let page = 0;
+    let accumulatedPush = 0;
+
+    for (let i = 0; i < blocks.length; i++) {
+      const el = blocks[i];
+      const rect = el.getBoundingClientRect();
+      if (rect.height === 0) continue;
+
+      const topInContent = rect.top - contentStart - accumulatedPush;
+      const botInContent = topInContent + rect.height;
       const boundary = (page + 1) * contentH;
 
-      if (naturalBot > boundary - 0.5) {
-        const remainder = boundary - naturalTop;
-        const push = remainder + skipH;
-        el.style.paddingTop = `${push}px`;
+      if (botInContent > boundary + 0.5) {
+        const push = boundary - topInContent + skipH;
+        el.style.setProperty('margin-top', `${push}px`, 'important');
         el.dataset.pbm = '1';
-        pushTotal += push;
+        accumulatedPush += push;
         page++;
       }
     }
 
     const pages = page + 1;
-    const pmH = pages * contentH + pushTotal;
-    pm.style.minHeight = `${pages * contentH}px`;
+    const totalH = pages * pageH + (pages - 1) * GAP_PX;
+    pm.style.minHeight = `${totalH}px`;
 
-    const outerH = pages * pageH + (pages - 1) * GAP_PX;
-
-    setPageCount(pages);
-    setPageHPx(pageH);
-    setMTopPx(mT);
-    setMBottomPx(mB);
-    setTotalH(outerH);
+    const prev = layoutRef.current;
+    if (prev.pages !== pages || Math.abs(prev.totalH - totalH) > 1) {
+      layoutRef.current = { pages, pageH, mT, mB, totalH };
+      forceUpdate(n => n + 1);
+    } else {
+      layoutRef.current = { pages, pageH, mT, mB, totalH };
+    }
   }, []);
 
   const scheduleLayout = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(doLayout, 40);
+    timerRef.current = setTimeout(() => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(doLayout);
+    }, 30);
   }, [doLayout]);
 
   useEffect(() => {
@@ -812,19 +818,28 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
     editor.on('update', scheduleLayout);
     editor.on('create', scheduleLayout);
     scheduleLayout();
+    const ro = new ResizeObserver(scheduleLayout);
+    if (outerRef.current) ro.observe(outerRef.current);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       editor.off('update', scheduleLayout);
       editor.off('create', scheduleLayout);
+      ro.disconnect();
     };
   }, [editor, scheduleLayout]);
 
   useEffect(() => { scheduleLayout(); }, [lineSpacing, scheduleLayout]);
 
+  const { pages, pageH, mT, mB, totalH } = layoutRef.current;
+  const effectivePageH = pageH || mmToPx(PAGE_HEIGHT_MM);
+  const effectiveMT = mT || mmToPx(MARGIN_TOP_MM);
+  const effectiveMB = mB || mmToPx(MARGIN_BOTTOM_MM);
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        .doc-paged-outer { position: relative; }
+        .doc-paged-outer { position: relative; overflow: visible; }
         .doc-paged-outer .ProseMirror {
           outline: none;
           overflow-wrap: anywhere;
@@ -833,8 +848,10 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
           font-size: 14pt;
           white-space: pre-wrap;
           position: relative;
-          z-index: 1;
-          overflow-x: hidden;
+          z-index: 2;
+        }
+        .doc-paged-outer .ProseMirror > * {
+          position: relative;
         }
         .doc-paged-outer .ProseMirror p {
           display: block !important;
@@ -852,9 +869,9 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
         .doc-paged-outer .ProseMirror [data-align=right] { text-align: right !important; }
         .doc-paged-outer .ProseMirror .text-justify,
         .doc-paged-outer .ProseMirror [data-align=justify] { text-align: justify !important; }
-        .doc-paged-outer .ProseMirror h1 { font-size: 1.5rem; font-weight: bold; margin: 1rem 0; }
-        .doc-paged-outer .ProseMirror h2 { font-size: 1.25rem; font-weight: bold; margin: 0.75rem 0; }
-        .doc-paged-outer .ProseMirror h3 { font-size: 1.125rem; font-weight: bold; margin: 0.5rem 0; }
+        .doc-paged-outer .ProseMirror h1 { font-size: 1.5rem; font-weight: bold; margin: 1rem 0 !important; }
+        .doc-paged-outer .ProseMirror h2 { font-size: 1.25rem; font-weight: bold; margin: 0.75rem 0 !important; }
+        .doc-paged-outer .ProseMirror h3 { font-size: 1.125rem; font-weight: bold; margin: 0.5rem 0 !important; }
         .doc-paged-outer .ProseMirror table { border-collapse: collapse; width: 100%; }
         .doc-paged-outer .ProseMirror th { border: 1px solid #d1d5db; padding: 0.5rem; background: #f3f4f6; }
         .doc-paged-outer .ProseMirror td { border: 1px solid #d1d5db; padding: 0.5rem; }
@@ -869,6 +886,9 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
           background: #f9fafb; text-align: center; color: #6b7280;
           font-size: 0.875rem; font-weight: 500;
         }
+        .doc-paged-outer .ProseMirror [data-pbm] {
+          /* pushed blocks - margin-top set via JS */
+        }
         ${showFormattingMarks ? `.doc-paged-outer .ProseMirror p::after { content: '¶'; color: #93c5fd; font-size: 0.875rem; }` : ''}
       `}} />
       <div className="overflow-auto flex-1" style={{ minHeight: 0, background: '#e8e8e8' }}>
@@ -878,45 +898,48 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
             className="doc-paged-outer"
             style={{ width: '210mm', maxWidth: '100%', height: `${totalH || mmToPx(PAGE_HEIGHT_MM)}px` }}
           >
-            {Array.from({ length: pageCount }).map((_, i) => {
-              const top = i * (pageHPx + GAP_PX);
+            {Array.from({ length: pages }).map((_, i) => {
+              const top = i * (effectivePageH + GAP_PX);
               return (
                 <div key={`pg${i}`}>
+                  {/* page sheet */}
                   <div style={{
-                    position: 'absolute', left: 0, right: 0, top, height: pageHPx || mmToPx(PAGE_HEIGHT_MM),
+                    position: 'absolute', left: 0, right: 0, top, height: effectivePageH,
                     background: 'white',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
                     pointerEvents: 'none', zIndex: 0,
                   }} />
+                  {/* top margin mask */}
                   <div style={{
                     position: 'absolute', left: 0, right: 0, top,
-                    height: mTopPx, background: 'white', zIndex: 3, pointerEvents: 'none',
+                    height: effectiveMT, background: 'white', zIndex: 5, pointerEvents: 'none',
                   }} />
+                  {/* bottom margin mask */}
                   <div style={{
-                    position: 'absolute', left: 0, right: 0, top: top + (pageHPx || mmToPx(PAGE_HEIGHT_MM)) - mBottomPx,
-                    height: mBottomPx, background: 'white', zIndex: 3, pointerEvents: 'none',
+                    position: 'absolute', left: 0, right: 0, top: top + effectivePageH - effectiveMB,
+                    height: effectiveMB, background: 'white', zIndex: 5, pointerEvents: 'none',
                   }} />
-                  {i < pageCount - 1 && (
+                  {/* gap between pages */}
+                  {i < pages - 1 && (
                     <div style={{
                       position: 'absolute', left: -16, right: -16,
-                      top: top + (pageHPx || mmToPx(PAGE_HEIGHT_MM)),
-                      height: GAP_PX, background: '#e8e8e8', zIndex: 4, pointerEvents: 'none',
+                      top: top + effectivePageH,
+                      height: GAP_PX, background: '#e8e8e8', zIndex: 6, pointerEvents: 'none',
                     }} />
                   )}
                 </div>
               );
             })}
-            <div style={{ position: 'absolute', left: 0, right: 0, top: mTopPx || mmToPx(MARGIN_TOP_MM), zIndex: 1 }}>
-              <EditorContent
-                editor={editor}
-                className="prose prose-sm max-w-none focus:outline-none"
-                style={{ lineHeight: lineSpacing }}
-                data-testid="document-editor-content"
-              />
-            </div>
+            {/* ProseMirror - normal flow, padding = margins */}
+            <EditorContent
+              editor={editor}
+              className="prose prose-sm max-w-none focus:outline-none"
+              style={{ lineHeight: lineSpacing, position: 'relative', zIndex: 2 }}
+              data-testid="document-editor-content"
+            />
           </div>
           <div style={{ textAlign: 'center', padding: '8px', fontSize: '11px', color: '#999' }}>
-            {pageCount} саҳ.
+            {pages} саҳ.
           </div>
         </div>
       </div>
