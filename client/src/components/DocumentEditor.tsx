@@ -1627,8 +1627,8 @@ export function DocumentEditor({
         </div>
       </div>
 
-      <div className="bg-gray-300 overflow-auto flex-1" style={{ minHeight: 0 }}>
-        <div className="flex flex-col items-center py-4 gap-3">
+      <div className="overflow-auto flex-1" style={{ minHeight: 0, background: '#808080' }}>
+        <div className="flex flex-col items-center py-4">
           <style dangerouslySetInnerHTML={{ __html: `
             .doc-page-container .ProseMirror {
               min-height: auto !important;
@@ -1674,16 +1674,25 @@ export function DocumentEditor({
             ` : ''}
           `}} />
           <div 
-            className="bg-white shadow-lg doc-page-container"
+            className="doc-page-container"
             style={{
               width: '210mm',
               maxWidth: '100%',
               minHeight: '297mm',
               padding: '20mm 25mm',
               boxSizing: 'border-box',
-              backgroundImage: 'linear-gradient(to bottom, transparent calc(297mm - 20mm), #e5e7eb calc(297mm - 20mm), #e5e7eb calc(297mm - 20mm + 3px), transparent calc(297mm - 20mm + 3px))',
-              backgroundSize: '100% 297mm',
-              backgroundPosition: '0 0',
+              background: `repeating-linear-gradient(
+                to bottom,
+                white 0px,
+                white calc(297mm - 2px),
+                rgba(0,0,0,0.12) calc(297mm - 2px),
+                rgba(0,0,0,0.18) 297mm,
+                #808080 297mm,
+                #808080 calc(297mm + 10px),
+                rgba(0,0,0,0.06) calc(297mm + 10px),
+                white calc(297mm + 12px)
+              )`,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
             }}
           >
             <EditorContent 
