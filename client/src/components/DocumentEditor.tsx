@@ -780,7 +780,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
         const blockBottomInContent = blockTopInContent + rect.height;
         const pageBoundary = (page + 1) * contentH;
 
-        if (blockBottomInContent > pageBoundary && blockTopInContent < pageBoundary) {
+        if (blockBottomInContent > pageBoundary) {
           const push = (pageBoundary - blockTopInContent) + mBottom + GAP_PX + mTop;
           htmlEl.style.marginTop = `${push}px`;
           htmlEl.dataset.pbm = '1';
