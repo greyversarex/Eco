@@ -734,14 +734,16 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
   const [dims, setDims] = useState({ pageH: 0, mT: 0, mB: 0, mL: 0, mR: 0, contentH: 0 });
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const debugRef = useRef<string>('waiting...');
+
   const doLayout = useCallback(() => {
     const outer = outerRef.current;
-    if (!outer) return;
+    if (!outer) { debugRef.current = 'no outer'; return; }
     const pm = outer.querySelector('.ProseMirror') as HTMLElement;
-    if (!pm) return;
+    if (!pm) { debugRef.current = 'no PM found'; return; }
 
     const w = outer.offsetWidth;
-    if (w <= 0) return;
+    if (w <= 0) { debugRef.current = 'w<=0'; return; }
     const pxPerMm = w / 210;
     const pageH = PAGE_HEIGHT_MM * pxPerMm;
     const mT = MARGIN_TOP_MM * pxPerMm;
@@ -772,7 +774,10 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
 
     let page = 0;
     let totalPush = 0;
+    const debugLines: string[] = [];
+    debugLines.push(`w=${w.toFixed(0)} pageH=${pageH.toFixed(0)} mT=${mT.toFixed(0)} contentH=${contentH.toFixed(0)} skipH=${skipH.toFixed(0)} blocks=${blocks.length}`);
 
+    let lastNatBot = 0;
     for (let i = 0; i < blocks.length; i++) {
       const el = blocks[i];
       const rect = el.getBoundingClientRect();
@@ -781,6 +786,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
       const naturalTop = rect.top - contentStartY - totalPush;
       const naturalBot = naturalTop + rect.height;
       const boundary = (page + 1) * contentH;
+      lastNatBot = naturalBot;
 
       if (naturalBot > boundary + 0.5) {
         const remainder = boundary - naturalTop;
@@ -788,6 +794,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
         if (push > 0) {
           el.style.paddingTop = `${push}px`;
           el.dataset.pagebreak = '1';
+          debugLines.push(`PUSH block#${i} tag=${el.tagName} natTop=${naturalTop.toFixed(0)} natBot=${naturalBot.toFixed(0)} boundary=${boundary.toFixed(0)} push=${push.toFixed(0)} computedPT=${getComputedStyle(el).paddingTop}`);
           totalPush += push;
           page++;
         }
@@ -797,6 +804,8 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
     const pages = page + 1;
     const totalH = pages * pageH + (pages - 1) * GAP_PX;
     pm.style.minHeight = `${totalH}px`;
+    debugLines.push(`pages=${pages} totalPush=${totalPush.toFixed(0)} lastNatBot=${lastNatBot.toFixed(0)} pm.scrollH=${pm.scrollHeight}`);
+    debugRef.current = debugLines.join(' | ');
 
     setPageCount(pages);
     setDims({ pageH, mT, mB, mL, mR, contentH });
@@ -931,6 +940,9 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
           </div>
           <div style={{ textAlign: 'center', padding: '8px', fontSize: '11px', color: '#999' }}>
             {pageCount} саҳ.
+          </div>
+          <div style={{ background: '#ffeb3b', color: '#000', padding: '8px', fontSize: '10px', fontFamily: 'monospace', maxWidth: '100%', wordBreak: 'break-all', whiteSpace: 'pre-wrap', margin: '4px 0', borderRadius: '4px' }}>
+            DEBUG: {debugRef.current}
           </div>
         </div>
       </div>
