@@ -1036,7 +1036,7 @@ export function DocumentEditor({
   );
 
   return (
-    <div className={cn("border rounded-lg overflow-hidden bg-background", className)}>
+    <div className={cn("border rounded-lg overflow-hidden bg-background flex flex-col", className)}>
       {/* Document Title Header */}
       {(title !== undefined || onTitleChange) && (
         <div className="border-b bg-gradient-to-r from-green-600 to-green-700 px-4 py-3 flex items-center gap-2">
@@ -1581,11 +1581,12 @@ export function DocumentEditor({
         </div>
       )}
 
-      <div className="bg-gray-200 p-4 overflow-auto max-h-[70vh] flex justify-center">
+      <div className="bg-gray-200 p-4 overflow-auto flex-1 flex justify-center">
         <div 
-          className="bg-white shadow-lg"
+          className="bg-white shadow-lg overflow-hidden"
           style={{
             width: '210mm',
+            maxWidth: '100%',
             minHeight: '297mm',
             padding: '20mm 25mm',
           }}
@@ -1594,7 +1595,7 @@ export function DocumentEditor({
             editor={editor} 
             className={cn(
               "prose prose-sm max-w-none focus:outline-none",
-              "[&_.ProseMirror]:min-h-[257mm] [&_.ProseMirror]:outline-none",
+              "[&_.ProseMirror]:min-h-[257mm] [&_.ProseMirror]:outline-none [&_.ProseMirror]:overflow-wrap-anywhere [&_.ProseMirror]:break-words",
               "[&_.ProseMirror]:font-['Noto_Sans',sans-serif] [&_.ProseMirror]:[font-size:14pt]",
               "[&_.ProseMirror]:whitespace-pre-wrap [&_.ProseMirror_p]:whitespace-pre-wrap",
               "[&_.ProseMirror_p]:!block [&_.ProseMirror_p]:!w-full [&_.ProseMirror_p]:!min-h-[1.2em] [&_.ProseMirror_p]:!m-0",
