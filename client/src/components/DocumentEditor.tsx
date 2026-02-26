@@ -732,9 +732,16 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
   const outerRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(1);
   const [dims, setDims] = useState({ pageH: 0, mT: 0, mB: 0, mL: 0, mR: 0, contentH: 0 });
-  const rafRef = useRef(0);
-  const editorRef = useRef(editor);
-  editorRef.current = editor;
+  const breakStyleRef = useRef<HTMLStyleElement | null>(null);
+  const rafPending = useRef(false);
+
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.setAttribute('data-page-breaks', '');
+    document.head.appendChild(style);
+    breakStyleRef.current = style;
+    return () => { style.remove(); };
+  }, []);
 
   const doLayout = useCallback(() => {
     const outer = outerRef.current;
@@ -758,45 +765,45 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
     pm.style.paddingTop = `${mT}px`;
     pm.style.paddingBottom = `${mB}px`;
 
-    const blocks = Array.from(pm.querySelectorAll(':scope > *')) as HTMLElement[];
-
-    for (const el of blocks) {
-      if (el.dataset.pagebreak) {
-        el.style.paddingTop = '';
-        delete el.dataset.pagebreak;
-      }
-    }
-
+    if (breakStyleRef.current) breakStyleRef.current.textContent = '';
     void pm.offsetHeight;
 
     const pmRect = pm.getBoundingClientRect();
     const contentStartY = pmRect.top + mT;
+    const blocks = Array.from(pm.querySelectorAll(':scope > *')) as HTMLElement[];
+
+    const measured: { top: number; height: number }[] = [];
+    for (const el of blocks) {
+      const rect = el.getBoundingClientRect();
+      measured.push({ top: rect.top - contentStartY, height: rect.height });
+    }
 
     let page = 0;
     let totalPush = 0;
     let didPush = false;
+    const rules: string[] = [];
 
-    for (let i = 0; i < blocks.length; i++) {
-      const el = blocks[i];
-      const rect = el.getBoundingClientRect();
-      if (rect.height === 0) continue;
+    for (let i = 0; i < measured.length; i++) {
+      const m = measured[i];
+      if (m.height === 0) continue;
 
-      const naturalTop = rect.top - contentStartY - totalPush;
-      const naturalBot = naturalTop + rect.height;
-      const boundary = (page + 1) * contentH;
+      const visualTop = m.top + totalPush;
+      const visualBot = visualTop + m.height;
+      const boundary = (page + 1) * contentH + page * skipH;
 
-      if (naturalBot > boundary + 0.5) {
-        const remainder = boundary - naturalTop;
-        const push = remainder + skipH;
+      if (visualBot > boundary + 0.5) {
+        const target = boundary + skipH;
+        const push = target - visualTop;
         if (push > 0) {
-          el.style.paddingTop = `${push}px`;
-          el.dataset.pagebreak = '1';
+          rules.push(`.doc-paged-outer .ProseMirror > :nth-child(${i + 1}) { margin-top: ${push}px !important; }`);
           totalPush += push;
           page++;
           didPush = true;
         }
       }
     }
+
+    if (breakStyleRef.current) breakStyleRef.current.textContent = rules.join('\n');
 
     const pages = page + 1;
     const totalH = pages * pageH + (pages - 1) * GAP_PX;
@@ -825,29 +832,31 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
   }, []);
 
   const scheduleLayout = useCallback(() => {
-    if (rafRef.current) return;
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = 0;
+    if (rafPending.current) return;
+    rafPending.current = true;
+    requestAnimationFrame(() => {
+      rafPending.current = false;
       doLayout();
     });
   }, [doLayout]);
 
   useEffect(() => {
     if (!editor) return;
-    editor.on('update', scheduleLayout);
-    editor.on('create', scheduleLayout);
-    scheduleLayout();
+    const onUpdate = () => { doLayout(); };
+    editor.on('update', onUpdate);
+    editor.on('create', onUpdate);
+    doLayout();
     const ro = new ResizeObserver(scheduleLayout);
     if (outerRef.current) ro.observe(outerRef.current);
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      editor.off('update', scheduleLayout);
-      editor.off('create', scheduleLayout);
+      if (rafPending.current) rafPending.current = false;
+      editor.off('update', onUpdate);
+      editor.off('create', onUpdate);
       ro.disconnect();
     };
-  }, [editor, scheduleLayout]);
+  }, [editor, doLayout, scheduleLayout]);
 
-  useEffect(() => { scheduleLayout(); }, [lineSpacing, scheduleLayout]);
+  useEffect(() => { doLayout(); }, [lineSpacing, doLayout]);
 
   const { pageH, mT, mB } = dims;
   const effectivePageH = pageH || mmToPx(PAGE_HEIGHT_MM);
