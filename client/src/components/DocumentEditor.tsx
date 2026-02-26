@@ -752,7 +752,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
       if (!pm) return;
 
       pm.style.paddingTop = `${mTop}px`;
-      pm.style.paddingBottom = `0`;
+      pm.style.paddingBottom = `${mBottom}px`;
       pm.style.paddingLeft = `${mLeft}px`;
       pm.style.paddingRight = `${mRight}px`;
 
@@ -776,12 +776,12 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
         const rect = htmlEl.getBoundingClientRect();
         if (rect.height === 0) return;
 
-        const relTop = rect.top - pmTop - mTop - added;
-        const relBottom = relTop + rect.height;
-        const boundary = (page + 1) * contentH;
+        const blockTopInContent = rect.top - pmTop - mTop - added;
+        const blockBottomInContent = blockTopInContent + rect.height;
+        const pageBoundary = (page + 1) * contentH;
 
-        if (relBottom > boundary && relTop < boundary) {
-          const push = (boundary - relTop) + mBottom + GAP_PX + mTop;
+        if (blockBottomInContent > pageBoundary && blockTopInContent < pageBoundary) {
+          const push = (pageBoundary - blockTopInContent) + mBottom + GAP_PX + mTop;
           htmlEl.style.marginTop = `${push}px`;
           htmlEl.dataset.pbm = '1';
           added += push;
@@ -793,6 +793,7 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
       setPageCount(pages);
 
       const totalH = pages * pageH + (pages - 1) * GAP_PX;
+      pm.style.minHeight = `${totalH}px`;
       container.style.height = `${totalH}px`;
     } finally {
       isRunning.current = false;
