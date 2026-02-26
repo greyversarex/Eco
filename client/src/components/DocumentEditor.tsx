@@ -841,16 +841,17 @@ function PagedEditor({ editor, lineSpacing, showFormattingMarks }: { editor: Edi
           white-space: pre-wrap;
           position: relative;
           z-index: 1;
+          overflow-x: hidden;
         }
         .doc-paged .ProseMirror p {
           display: block !important;
-          width: 100% !important;
           min-height: 1.2em !important;
           margin: 0 !important;
           white-space: pre-wrap;
-          margin-left: var(--left-indent, 0) !important;
-          margin-right: var(--right-indent, 0) !important;
+          padding-left: var(--left-indent, 0);
+          padding-right: var(--right-indent, 0);
           text-indent: var(--first-line-indent, 0);
+          box-sizing: border-box;
         }
         .doc-paged .ProseMirror .text-center,
         .doc-paged .ProseMirror [data-align=center] { text-align: center !important; }
