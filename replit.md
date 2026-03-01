@@ -1,20 +1,19 @@
 # EcoDoc Project Progress
 
-## Document Types & Assignment Types Fix
-- **Issue**: Document types added in the admin panel were appearing in assignment types.
-- **Root Cause**: Backend API routes were not handling the `category` field, defaulting everything to `message` (or whatever the DB default was), and the frontend was using non-strict filters (`!== 'assignment'`).
-- **Fixes Applied**:
-  1. Updated `server/routes.ts`: POST and PATCH routes now explicitly handle the `category` field.
-  2. Updated `client/src/pages/AdminDocumentTypes.tsx`:
-     - Changed filter to strict `dt.category === 'message'`.
-     - Added `category: 'message'` to create and update mutations.
-  3. Updated `client/src/pages/AdminAssignmentTypes.tsx`:
-     - Added `category: 'assignment'` to update mutations (create already had it).
-     - Standardized `handleSubmit` to ensure `category` is always sent.
-  4. Database Cleanup: Ran SQL to ensure all existing records have valid categories.
+## Разделение типов документов и задач (Намуди ҳуҷҷат ва Намуди супоришҳо)
+- **Проблема**: При добавлении типа документа он мог появляться в списке типов задач.
+- **Причина**: Недостаточная фильтрация на фронтенде и отсутствие явной передачи категории в API-запросах.
+- **Решение**:
+  1. **Бэкенд (`server/routes.ts`)**: Маршруты создания (`POST`) и обновления (`PATCH`) теперь явно обрабатывают поле `category`. По умолчанию для новых записей устанавливается `message` (тип документа).
+  2. **Фронтенд (`AdminDocumentTypes.tsx`)**:
+     - Введен строгий фильтр: `dt.category === 'message'`.
+     - В мутации добавления и редактирования добавлена принудительная передача `category: 'message'`.
+  3. **Фронтенд (`AdminAssignmentTypes.tsx`)**:
+     - Введен строгий фильтр: `dt.category === 'assignment'`.
+     - В мутации обновления добавлена передача `category: 'assignment'`, чтобы категория не терялась при редактировании.
+  4. **База данных**: Проведено обновление всех существующих записей. Теперь каждая запись имеет четкую привязку к своей категории.
 
-## Environment & Deployment
-- **Port**: 5000
-- **Admin**: `admin` / `admin123`
-- **VAPID Keys**: Need to be configured for push notifications in production.
-- **Deployment**: Sync to Git and deploy to Timeweb.
+## Текущее состояние
+- Приложение работает на порту 5000.
+- Админ-панель: `admin` / `admin123`.
+- Типы документов и типы задач теперь полностью изолированы друг от друга.
