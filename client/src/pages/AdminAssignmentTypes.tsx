@@ -172,7 +172,7 @@ export default function AdminAssignmentTypes() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<FormData> }) => {
-      return await apiRequest('PATCH', `/api/document-types/${id}`, data);
+      return await apiRequest('PATCH', `/api/document-types/${id}`, { ...data, category: 'assignment' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/document-types'] });
@@ -242,10 +242,16 @@ export default function AdminAssignmentTypes() {
       toast({ title: 'Номи намуди супориш ҳатмист', variant: 'destructive' });
       return;
     }
+    
+    const submissionData = {
+      ...formData,
+      category: 'assignment'
+    };
+
     if (editingType) {
-      updateMutation.mutate({ id: editingType.id, data: formData });
+      updateMutation.mutate({ id: editingType.id, data: submissionData });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(submissionData);
     }
   };
 

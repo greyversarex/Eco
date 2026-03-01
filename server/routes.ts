@@ -795,7 +795,7 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/document-types", requireAdmin, async (req: Request, res: Response) => {
     try {
-      const { name, description, sortOrder, isActive } = req.body;
+      const { name, description, sortOrder, isActive, category } = req.body;
       if (!name || typeof name !== 'string' || name.trim().length === 0) {
         return res.status(400).json({ error: "Номи намуди ҳуҷҷат ҳатмист" });
       }
@@ -804,6 +804,7 @@ export function registerRoutes(app: Express) {
         description: description || null,
         sortOrder: sortOrder || 0,
         isActive: isActive !== false,
+        category: category || 'message',
       });
       res.status(201).json(documentType);
     } catch (error: any) {
@@ -817,13 +818,14 @@ export function registerRoutes(app: Express) {
   app.patch("/api/document-types/:id", requireAdmin, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const { name, description, sortOrder, isActive } = req.body;
+      const { name, description, sortOrder, isActive, category } = req.body;
       const updates: any = {};
       if (name !== undefined) updates.name = name.trim();
       if (description !== undefined) updates.description = description;
       if (sortOrder !== undefined) updates.sortOrder = sortOrder;
       if (isActive !== undefined) updates.isActive = isActive;
-      
+      if (category !== undefined) updates.category = category;
+
       const documentType = await storage.updateDocumentType(id, updates);
       if (!documentType) {
         return res.status(404).json({ error: "Намуди ҳуҷҷат ёфт нашуд" });

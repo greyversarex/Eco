@@ -152,11 +152,11 @@ export default function AdminDocumentTypes() {
   const { data: allTypes = [], isLoading } = useQuery<DocumentType[]>({
     queryKey: ['/api/document-types/all'],
   });
-  const documentTypes = allTypes.filter(dt => dt.category !== 'assignment');
+  const documentTypes = allTypes.filter(dt => dt.category === 'message');
 
   const createMutation = useMutation({
     mutationFn: async (data: DocumentTypeFormData) => {
-      return await apiRequest('POST', '/api/document-types', data);
+      return await apiRequest('POST', '/api/document-types', { ...data, category: 'message' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/document-types'] });
@@ -171,7 +171,7 @@ export default function AdminDocumentTypes() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<DocumentTypeFormData> }) => {
-      return await apiRequest('PATCH', `/api/document-types/${id}`, data);
+      return await apiRequest('PATCH', `/api/document-types/${id}`, { ...data, category: 'message' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/document-types'] });
@@ -228,10 +228,16 @@ export default function AdminDocumentTypes() {
       return;
     }
 
+    // Force category to 'message' for this page
+    const submissionData = {
+      ...formData,
+      category: 'message'
+    };
+
     if (editingType) {
-      updateMutation.mutate({ id: editingType.id, data: formData });
+      updateMutation.mutate({ id: editingType.id, data: submissionData });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(submissionData);
     }
   };
 

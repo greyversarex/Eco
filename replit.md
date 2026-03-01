@@ -1,31 +1,20 @@
-# EcoDoc Project Information
+# EcoDoc Project Progress
 
-## Project Overview
-EcoDoc is a critical document management and assignment tracking system for environmental protection departments. It is currently being improved in this Replit environment before being deployed to production on Timeweb. Every task must be performed with maximum quality and responsibility as this is a high-stakes production project.
+## Document Types & Assignment Types Fix
+- **Issue**: Document types added in the admin panel were appearing in assignment types.
+- **Root Cause**: Backend API routes were not handling the `category` field, defaulting everything to `message` (or whatever the DB default was), and the frontend was using non-strict filters (`!== 'assignment'`).
+- **Fixes Applied**:
+  1. Updated `server/routes.ts`: POST and PATCH routes now explicitly handle the `category` field.
+  2. Updated `client/src/pages/AdminDocumentTypes.tsx`:
+     - Changed filter to strict `dt.category === 'message'`.
+     - Added `category: 'message'` to create and update mutations.
+  3. Updated `client/src/pages/AdminAssignmentTypes.tsx`:
+     - Added `category: 'assignment'` to update mutations (create already had it).
+     - Standardized `handleSubmit` to ensure `category` is always sent.
+  4. Database Cleanup: Ran SQL to ensure all existing records have valid categories.
 
-## Core Tech Stack
-- **Frontend**: React, Vite, Tailwind CSS, Shadcn UI, TanStack Query, Wouter.
-- **Backend**: Node.js, Express, Drizzle ORM, PostgreSQL.
-- **Mobile**: Capacitor (Android/iOS).
-- **Other**: Push Notifications (web-push), Document Editing (OnlyOffice/Tiptap), i18n (Tajik/Russian).
-
-## Key Instructions & Standards
-- **Responsibility**: Absolute accuracy and full implementation for every task. No placeholders or half-measures.
-- **Database Management**: 
-  - Use `npm run db:push --force` for schema synchronization.
-  - **CRITICAL**: Never change primary key ID column types (e.g., serial ↔ varchar).
-- **Initialization**: 
-  - Admin: `admin` / `admin123`
-  - Seed data: `npm run db:seed` (Initializes 120+ departments and core staff).
-  - Migration: `npm run db:migrate` (Runs `safe-migrate.ts` for structural integrity).
-- **Deployment Flow**: Improvements in Replit -> Sync with Repository -> Deploy to Timeweb production.
-
-## Project Structure
-- `client/`: Frontend React application.
-- `server/`: Express backend and storage logic.
-- `shared/`: Shared Zod schemas and Drizzle table definitions.
-- `migrations/`: Database migration files.
-
-## Functional Roles
-- **Admin**: Complete oversight of departments, document types, and system users.
-- **Departments**: Interaction-based roles handling messaging, assignments, and announcements based on granular permissions.
+## Environment & Deployment
+- **Port**: 5000
+- **Admin**: `admin` / `admin123`
+- **VAPID Keys**: Need to be configured for push notifications in production.
+- **Deployment**: Sync to Git and deploy to Timeweb.
