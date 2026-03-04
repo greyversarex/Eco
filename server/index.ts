@@ -233,7 +233,8 @@ app.use((req, res, next) => {
       await pool.query(
         `INSERT INTO document_types (name, category, sort_order, is_active)
          VALUES ($1, 'assignment', $2, true)
-         ON CONFLICT (name) DO UPDATE SET category = 'assignment'`,
+         ON CONFLICT (name) DO UPDATE SET category = 'assignment'
+         WHERE document_types.category != 'assignment'`,
         [dt.name, dt.order]
       );
     }
