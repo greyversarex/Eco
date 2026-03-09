@@ -321,6 +321,11 @@ export default function AssignmentsPage() {
 
   // Filter out subdepartments - only show main departments for recipient selection
   const departments = allDepartments.filter(d => !d.parentDepartmentId);
+  // Sub-departments belonging only to the currently logged-in department
+  const currentDeptId = user?.userType === 'department' ? user.department?.id : undefined;
+  const subDepartments = currentDeptId != null
+    ? allDepartments.filter(d => d.parentDepartmentId === currentDeptId)
+    : [];
 
   const { data: allPeople = [] } = useQuery<Person[]>({
     queryKey: ['/api/people'],
@@ -875,7 +880,7 @@ export default function AssignmentsPage() {
                           type="button"
                           size="sm"
                           onClick={() => {
-                            const allDeptIds = departments.map(dept => dept.id);
+                            const allDeptIds = [...departments, ...subDepartments].map(dept => dept.id);
                             if (selectedRecipients.length === allDeptIds.length) {
                               setSelectedRecipients([]);
                             } else {
@@ -885,7 +890,7 @@ export default function AssignmentsPage() {
                           className="bg-green-600 hover:bg-green-700 text-white"
                           data-testid="button-select-all-recipients"
                         >
-                          {selectedRecipients.length === departments.length
+                          {selectedRecipients.length === [...departments, ...subDepartments].length
                             ? 'Бекор кардан'
                             : 'Ҳамаро қайд кардан'}
                         </Button>
@@ -902,35 +907,72 @@ export default function AssignmentsPage() {
                           className="mb-2"
                           data-testid="input-recipient-search"
                         />
-                        <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {departments
-                              .filter((dept: any) => 
-                                !recipientSearch || dept.name.toLowerCase().includes(recipientSearch.toLowerCase())
-                              )
-                              .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
-                              .map((dept: any) => (
-                                <div key={dept.id} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`recipient-${dept.id}`}
-                                    checked={selectedRecipients.includes(dept.id)}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        setSelectedRecipients([...selectedRecipients, dept.id]);
-                                      } else {
-                                        // Remove department and clear its executors
-                                        setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
-                                        const deptPeopleIds = allPeople.filter(p => p.departmentId === dept.id).map(p => p.id);
-                                        setSelectedExecutorIds(selectedExecutorIds.filter(id => !deptPeopleIds.includes(id)));
-                                      }
-                                    }}
-                                    data-testid={`checkbox-recipient-${dept.id}`}
-                                  />
-                                  <label htmlFor={`recipient-${dept.id}`} className="text-sm cursor-pointer">{dept.name}</label>
-                                </div>
-                              ))
-                            }
+                        <div className="border rounded-md p-4 max-h-60 overflow-y-auto space-y-3">
+                          {/* Шуъбахо — all top-level departments */}
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Шуъбахо</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {departments
+                                .filter((dept: any) =>
+                                  !recipientSearch || dept.name.toLowerCase().includes(recipientSearch.toLowerCase())
+                                )
+                                .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
+                                .map((dept: any) => (
+                                  <div key={dept.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`recipient-${dept.id}`}
+                                      checked={selectedRecipients.includes(dept.id)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setSelectedRecipients([...selectedRecipients, dept.id]);
+                                        } else {
+                                          setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
+                                          const deptPeopleIds = allPeople.filter(p => p.departmentId === dept.id).map(p => p.id);
+                                          setSelectedExecutorIds(selectedExecutorIds.filter(id => !deptPeopleIds.includes(id)));
+                                        }
+                                      }}
+                                      data-testid={`checkbox-recipient-${dept.id}`}
+                                    />
+                                    <label htmlFor={`recipient-${dept.id}`} className="text-sm cursor-pointer">{dept.name}</label>
+                                  </div>
+                                ))
+                              }
+                            </div>
                           </div>
+
+                          {/* Зершуъбахо — sub-departments of the current logged-in department */}
+                          {subDepartments.length > 0 && (
+                            <div>
+                              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 mt-3 border-t pt-3">Зершуъбахо</p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {subDepartments
+                                  .filter((dept: any) =>
+                                    !recipientSearch || dept.name.toLowerCase().includes(recipientSearch.toLowerCase())
+                                  )
+                                  .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
+                                  .map((dept: any) => (
+                                    <div key={dept.id} className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`recipient-${dept.id}`}
+                                        checked={selectedRecipients.includes(dept.id)}
+                                        onCheckedChange={(checked) => {
+                                          if (checked) {
+                                            setSelectedRecipients([...selectedRecipients, dept.id]);
+                                          } else {
+                                            setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
+                                            const deptPeopleIds = allPeople.filter(p => p.departmentId === dept.id).map(p => p.id);
+                                            setSelectedExecutorIds(selectedExecutorIds.filter(id => !deptPeopleIds.includes(id)));
+                                          }
+                                        }}
+                                        data-testid={`checkbox-recipient-sub-${dept.id}`}
+                                      />
+                                      <label htmlFor={`recipient-${dept.id}`} className="text-sm cursor-pointer">{dept.name}</label>
+                                    </div>
+                                  ))
+                                }
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -956,7 +998,7 @@ export default function AssignmentsPage() {
                             // Только первый выбранный человек в Даъват
                             const firstPerson = allPeople.find(p => p.id === selectedExecutorIds[0]);
                             if (!firstPerson) return null;
-                            const dept = departments.find(d => d.id === firstPerson.departmentId);
+                            const dept = allDepartments.find(d => d.id === firstPerson.departmentId);
                             
                             return (
                               <div className="flex items-center justify-between space-x-2 py-1">
@@ -1021,7 +1063,7 @@ export default function AssignmentsPage() {
                     ) : (
                       <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
                         {selectedRecipients.map(recipientId => {
-                          const dept = departments.find(d => d.id === recipientId);
+                          const dept = allDepartments.find(d => d.id === recipientId);
                           // Первый выбранный человек показывается в Даъват, не здесь
                           const firstSelectedId = selectedExecutorIds[0];
                           const peopleInDept = allPeople.filter(p => 
