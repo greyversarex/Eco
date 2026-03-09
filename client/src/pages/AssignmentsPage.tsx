@@ -927,7 +927,7 @@ export default function AssignmentsPage() {
                             }`}
                             data-testid="tab-shuabaho"
                           >
-                            Шуъбахо
+                            Шӯъбаҳо
                           </button>
                           <button
                             type="button"
@@ -942,7 +942,7 @@ export default function AssignmentsPage() {
                             }`}
                             data-testid="tab-zershuabaho"
                           >
-                            Зершуъбахо
+                            Зершӯъбаҳо
                           </button>
                         </div>
                         <Input

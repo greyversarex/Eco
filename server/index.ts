@@ -220,25 +220,30 @@ app.use((req, res, next) => {
     log('Category column check: ' + (e as Error).message);
   }
 
-  // Auto-seed assignment document types on startup
+  // Auto-seed assignment document types only on first run (if none exist yet)
   try {
-    const assignmentTypes = [
-      { name: 'Супоришҳои Роҳбарият', order: 0 },
-      { name: 'Протоколҳои чаласаи назоратӣ', order: 1 },
-      { name: 'Протоколҳои ҳайяти мушовара', order: 2 },
-      { name: 'Кумита - иҷрои нақша / чорабиниҳо', order: 3 },
-      { name: 'Ҳукумат - иҷрои нақша / чорабиниҳо', order: 4 },
-    ];
-    for (const dt of assignmentTypes) {
-      await pool.query(
-        `INSERT INTO document_types (name, category, sort_order, is_active)
-         VALUES ($1, 'assignment', $2, true)
-         ON CONFLICT (name) DO UPDATE SET category = 'assignment'
-         WHERE document_types.category != 'assignment'`,
-        [dt.name, dt.order]
-      );
+    const existingCount = await pool.query(`SELECT COUNT(*) FROM document_types WHERE category = 'assignment'`);
+    const count = parseInt(existingCount.rows[0].count, 10);
+    if (count === 0) {
+      const assignmentTypes = [
+        { name: 'Супоришҳои Роҳбарият', order: 0 },
+        { name: 'Протоколҳои чаласаи назоратӣ', order: 1 },
+        { name: 'Протоколҳои ҳайяти мушовара', order: 2 },
+        { name: 'Кумита - иҷрои нақша / чорабиниҳо', order: 3 },
+        { name: 'Ҳукумат - иҷрои нақша / чорабиниҳо', order: 4 },
+      ];
+      for (const dt of assignmentTypes) {
+        await pool.query(
+          `INSERT INTO document_types (name, category, sort_order, is_active)
+           VALUES ($1, 'assignment', $2, true)
+           ON CONFLICT (name) DO NOTHING`,
+          [dt.name, dt.order]
+        );
+      }
+      log('Assignment document types seeded (first run)');
+    } else {
+      log('Assignment document types already exist, skipping seed');
     }
-    log('Assignment document types seeded/updated');
 
     // Migrate old assignmentType field to documentTypeId
     const typeMapping = [
