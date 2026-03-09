@@ -307,6 +307,7 @@ export default function AssignmentsPage() {
   const [replyFiles, setReplyFiles] = useState<File[]>([]);
   const [expandedReplies, setExpandedReplies] = useState<Set<number>>(new Set());
   const [recipientSearch, setRecipientSearch] = useState('');
+  const [recipientTab, setRecipientTab] = useState<'shuabaho' | 'zershuabaho'>('shuabaho');
   const [composeMessageDialogOpen, setComposeMessageDialogOpen] = useState(false);
   const [composeForAssignment, setComposeForAssignment] = useState<Assignment | null>(null);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
@@ -392,6 +393,7 @@ export default function AssignmentsPage() {
       setSelectedExecutorIds([]);
       setDeadline('');
       setSelectedFiles([]);
+      setRecipientTab('shuabaho');
     },
     onError: (error: any) => {
       toast({
@@ -580,6 +582,7 @@ export default function AssignmentsPage() {
       setSelectedExecutorIds([]);
       setDeadline('');
       setSelectedFiles([]);
+      setRecipientTab('shuabaho');
     },
     onError: (error: any) => {
       toast({
@@ -812,6 +815,7 @@ export default function AssignmentsPage() {
               setSelectedExecutorIds([]);
               setDeadline('');
               setSelectedFiles([]);
+              setRecipientTab('shuabaho');
               setIsDialogOpen(true);
             }}>
               <Plus className="h-4 w-4" />
@@ -880,19 +884,30 @@ export default function AssignmentsPage() {
                           type="button"
                           size="sm"
                           onClick={() => {
-                            const allDeptIds = [...departments, ...subDepartments].map(dept => dept.id);
-                            if (selectedRecipients.length === allDeptIds.length) {
-                              setSelectedRecipients([]);
+                            const activeList = recipientTab === 'shuabaho' ? departments : subDepartments;
+                            const activeIds = activeList.map(dept => dept.id);
+                            const allActiveSelected = activeIds.every(id => selectedRecipients.includes(id));
+                            if (allActiveSelected && activeIds.length > 0) {
+                              const remaining = selectedRecipients.filter(id => !activeIds.includes(id));
+                              const removedPeopleIds = allPeople
+                                .filter(p => activeIds.includes(p.departmentId!))
+                                .map(p => p.id);
+                              setSelectedRecipients(remaining);
+                              setSelectedExecutorIds(selectedExecutorIds.filter(id => !removedPeopleIds.includes(id)));
                             } else {
-                              setSelectedRecipients(allDeptIds);
+                              setSelectedRecipients(Array.from(new Set([...selectedRecipients, ...activeIds])));
                             }
                           }}
                           className="bg-green-600 hover:bg-green-700 text-white"
                           data-testid="button-select-all-recipients"
                         >
-                          {selectedRecipients.length === [...departments, ...subDepartments].length
-                            ? 'Бекор кардан'
-                            : 'Ҳамаро қайд кардан'}
+                          {(() => {
+                            const activeList = recipientTab === 'shuabaho' ? departments : subDepartments;
+                            const activeIds = activeList.map(d => d.id);
+                            return activeIds.length > 0 && activeIds.every(id => selectedRecipients.includes(id))
+                              ? 'Бекор кардан'
+                              : 'Ҳамаро қайд кардан';
+                          })()}
                         </Button>
                       )}
                     </div>
@@ -900,6 +915,36 @@ export default function AssignmentsPage() {
                       <div className="text-sm text-muted-foreground">Боргирӣ...</div>
                     ) : (
                       <div>
+                        {/* Tab toggles */}
+                        <div className="flex rounded-md border overflow-hidden mb-2">
+                          <button
+                            type="button"
+                            onClick={() => { setRecipientTab('shuabaho'); setRecipientSearch(''); }}
+                            className={`flex-1 py-1.5 text-sm font-medium transition-colors ${
+                              recipientTab === 'shuabaho'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-white text-gray-600 hover:bg-gray-50'
+                            }`}
+                            data-testid="tab-shuabaho"
+                          >
+                            Шуъбахо
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setRecipientTab('zershuabaho'); setRecipientSearch(''); }}
+                            disabled={subDepartments.length === 0}
+                            className={`flex-1 py-1.5 text-sm font-medium transition-colors border-l ${
+                              recipientTab === 'zershuabaho'
+                                ? 'bg-green-600 text-white'
+                                : subDepartments.length === 0
+                                  ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                                  : 'bg-white text-gray-600 hover:bg-gray-50'
+                            }`}
+                            data-testid="tab-zershuabaho"
+                          >
+                            Зершуъбахо
+                          </button>
+                        </div>
                         <Input
                           placeholder="Ҷустуҷӯ..."
                           value={recipientSearch}
@@ -907,72 +952,34 @@ export default function AssignmentsPage() {
                           className="mb-2"
                           data-testid="input-recipient-search"
                         />
-                        <div className="border rounded-md p-4 max-h-60 overflow-y-auto space-y-3">
-                          {/* Шуъбахо — all top-level departments */}
-                          <div>
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Шуъбахо</p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              {departments
-                                .filter((dept: any) =>
-                                  !recipientSearch || dept.name.toLowerCase().includes(recipientSearch.toLowerCase())
-                                )
-                                .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
-                                .map((dept: any) => (
-                                  <div key={dept.id} className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={`recipient-${dept.id}`}
-                                      checked={selectedRecipients.includes(dept.id)}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          setSelectedRecipients([...selectedRecipients, dept.id]);
-                                        } else {
-                                          setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
-                                          const deptPeopleIds = allPeople.filter(p => p.departmentId === dept.id).map(p => p.id);
-                                          setSelectedExecutorIds(selectedExecutorIds.filter(id => !deptPeopleIds.includes(id)));
-                                        }
-                                      }}
-                                      data-testid={`checkbox-recipient-${dept.id}`}
-                                    />
-                                    <label htmlFor={`recipient-${dept.id}`} className="text-sm cursor-pointer">{dept.name}</label>
-                                  </div>
-                                ))
-                              }
-                            </div>
+                        <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {(recipientTab === 'shuabaho' ? departments : subDepartments)
+                              .filter((dept: any) =>
+                                !recipientSearch || dept.name.toLowerCase().includes(recipientSearch.toLowerCase())
+                              )
+                              .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
+                              .map((dept: any) => (
+                                <div key={dept.id} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`recipient-${dept.id}`}
+                                    checked={selectedRecipients.includes(dept.id)}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        setSelectedRecipients([...selectedRecipients, dept.id]);
+                                      } else {
+                                        setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
+                                        const deptPeopleIds = allPeople.filter(p => p.departmentId === dept.id).map(p => p.id);
+                                        setSelectedExecutorIds(selectedExecutorIds.filter(id => !deptPeopleIds.includes(id)));
+                                      }
+                                    }}
+                                    data-testid={`checkbox-recipient-${dept.id}`}
+                                  />
+                                  <label htmlFor={`recipient-${dept.id}`} className="text-sm cursor-pointer">{dept.name}</label>
+                                </div>
+                              ))
+                            }
                           </div>
-
-                          {/* Зершуъбахо — sub-departments of the current logged-in department */}
-                          {subDepartments.length > 0 && (
-                            <div>
-                              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 mt-3 border-t pt-3">Зершуъбахо</p>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {subDepartments
-                                  .filter((dept: any) =>
-                                    !recipientSearch || dept.name.toLowerCase().includes(recipientSearch.toLowerCase())
-                                  )
-                                  .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
-                                  .map((dept: any) => (
-                                    <div key={dept.id} className="flex items-center space-x-2">
-                                      <Checkbox
-                                        id={`recipient-${dept.id}`}
-                                        checked={selectedRecipients.includes(dept.id)}
-                                        onCheckedChange={(checked) => {
-                                          if (checked) {
-                                            setSelectedRecipients([...selectedRecipients, dept.id]);
-                                          } else {
-                                            setSelectedRecipients(selectedRecipients.filter(id => id !== dept.id));
-                                            const deptPeopleIds = allPeople.filter(p => p.departmentId === dept.id).map(p => p.id);
-                                            setSelectedExecutorIds(selectedExecutorIds.filter(id => !deptPeopleIds.includes(id)));
-                                          }
-                                        }}
-                                        data-testid={`checkbox-recipient-sub-${dept.id}`}
-                                      />
-                                      <label htmlFor={`recipient-${dept.id}`} className="text-sm cursor-pointer">{dept.name}</label>
-                                    </div>
-                                  ))
-                                }
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
                     )}
