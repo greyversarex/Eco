@@ -1445,7 +1445,7 @@ export default function AssignmentsPage() {
                 onClick={() => { setDocumentTypeFilterId(dt.id.toString()); setActiveFilter('all'); }}
                 data-testid={`tab-doctype-${dt.id}`}
                 className={`flex-1 min-w-0 rounded-lg border text-xs leading-snug py-2 px-1.5 text-center font-medium transition-colors ${
-                  documentTypeFilterId === dt.id.toString() && activeFilter === 'all'
+                  documentTypeFilterId === dt.id.toString()
                     ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                     : 'bg-background text-foreground border-border hover:bg-muted'
                 }`}
@@ -1455,7 +1455,7 @@ export default function AssignmentsPage() {
               </button>
             ))}
             <button
-              onClick={() => { setActiveFilter('completed'); setDocumentTypeFilterId('all'); }}
+              onClick={() => setActiveFilter(prev => prev === 'completed' ? 'all' : 'completed')}
               data-testid="tab-completed-assignments"
               className={`flex-1 min-w-0 rounded-lg border text-xs leading-snug py-2 px-1.5 text-center font-medium transition-colors ${
                 activeFilter === 'completed'
@@ -1464,10 +1464,10 @@ export default function AssignmentsPage() {
               }`}
             >
               Иҷрошуда
-              <span className="block text-[11px] opacity-80">({assignments.filter(a => a.isCompleted || a.approvalStatus === 'approved').length})</span>
+              <span className="block text-[11px] opacity-80">({filteredAssignments.filter(a => a.isCompleted || a.approvalStatus === 'approved').length})</span>
             </button>
             <button
-              onClick={() => { setActiveFilter('overdue'); setDocumentTypeFilterId('all'); }}
+              onClick={() => setActiveFilter(prev => prev === 'overdue' ? 'all' : 'overdue')}
               data-testid="tab-overdue-assignments"
               className={`flex-1 min-w-0 rounded-lg border text-xs leading-snug py-2 px-1.5 text-center font-medium transition-colors ${
                 activeFilter === 'overdue'
@@ -1476,10 +1476,10 @@ export default function AssignmentsPage() {
               }`}
             >
               Иҷронашуда
-              <span className="block text-[11px] opacity-80">({assignments.filter(a => !a.isRestored && !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length})</span>
+              <span className="block text-[11px] opacity-80">({filteredAssignments.filter(a => !a.isRestored && !a.isCompleted && (a.approvalStatus === 'rejected' || new Date(a.deadline) < new Date(new Date().setHours(0,0,0,0)))).length})</span>
             </button>
             <button
-              onClick={() => { setActiveFilter('restored'); setDocumentTypeFilterId('all'); }}
+              onClick={() => setActiveFilter(prev => prev === 'restored' ? 'all' : 'restored')}
               data-testid="tab-restored-assignments"
               className={`flex-1 min-w-0 rounded-lg border text-xs leading-snug py-2 px-1.5 text-center font-medium transition-colors ${
                 activeFilter === 'restored'
@@ -1488,7 +1488,7 @@ export default function AssignmentsPage() {
               }`}
             >
               Ба таъхир иҷро гардид
-              <span className="block text-[11px] opacity-80">({assignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})</span>
+              <span className="block text-[11px] opacity-80">({filteredAssignments.filter(a => a.isRestored && !a.isCompleted && a.approvalStatus !== 'approved' && a.approvalStatus !== 'rejected').length})</span>
             </button>
           </div>
 
