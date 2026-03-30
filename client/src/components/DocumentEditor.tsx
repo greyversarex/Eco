@@ -1904,17 +1904,12 @@ export function DocumentEditor({
 
             {/* Undo/Redo */}
             <ToolbarGroup>
-              <Button
-                type="button"
-                variant="ghost"
+              <ToolbarButton
                 onClick={handlePrint}
-                title="Чоп кардан / Муҳр"
-                disabled={readOnly}
-                className="h-8 px-2 flex items-center gap-1"
+                title="Чоп кардан"
               >
                 <Printer className="h-4 w-4" />
-                <span className="text-xs font-medium">Муҳр</span>
-              </Button>
+              </ToolbarButton>
               <Separator orientation="vertical" className="h-6 mx-1" />
               <ToolbarButton
                 onClick={() => editor.chain().focus().undo().run()}
@@ -1976,12 +1971,19 @@ export function DocumentEditor({
             )}
 
             {departmentName && (
-              <ToolbarButton
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
                 onClick={insertDepartmentStampGraphic}
                 title="Мӯҳри шӯъба"
+                disabled={readOnly}
+                className="h-8 px-2 flex items-center gap-1"
+                data-testid="button-department-stamp"
               >
                 <Stamp className="h-4 w-4" />
-              </ToolbarButton>
+                <span className="text-xs font-medium">Муҳр</span>
+              </Button>
             )}
 
             {/* Export buttons */}
