@@ -1170,35 +1170,15 @@ export default function MessageView() {
                           </Button>
                         </>
                       ) : (
-                        <>
-                          <Button
-                            variant="outline"
-                            onClick={handleDownloadDocument}
-                            className="gap-1"
-                            data-testid="button-download-document"
-                          >
-                            <Download className="h-4 w-4" />
-                            Боргирӣ
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={handlePrintDocument}
-                            className="gap-1"
-                            data-testid="button-print-document"
-                          >
-                            <Printer className="h-4 w-4" />
-                            Муҳр / Чоп
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              setIsDocumentEditorOpen(false);
-                              setEditingDocument(null);
-                              setEditedContent('');
-                            }}
-                          >
-                            Пӯшидан
-                          </Button>
-                        </>
+                        <Button
+                          onClick={() => {
+                            setIsDocumentEditorOpen(false);
+                            setEditingDocument(null);
+                            setEditedContent('');
+                          }}
+                        >
+                          Пӯшидан
+                        </Button>
                       )}
                     </div>
                   </DialogContent>
