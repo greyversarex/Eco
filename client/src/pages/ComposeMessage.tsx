@@ -703,7 +703,7 @@ export default function ComposeMessage() {
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder={t.enterContent}
-                  rows={8}
+                  rows={4}
                   data-testid="textarea-content"
                 />
               </div>
@@ -721,6 +721,25 @@ export default function ComposeMessage() {
                       data-testid="input-files"
                       className="hidden"
                     />
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => {
+                          const selectedType = documentTypes.find(dt => dt.id.toString() === documentTypeId);
+                          setDocumentTitle(selectedType ? selectedType.name : 'Ҳуҷҷати нав');
+                          setDocumentContent('<p></p>');
+                          setSelectedTemplateId(null);
+                          setShowDocumentEditor(true);
+                        }}
+                        disabled={sendMessageMutation.isPending || isUploadingFiles}
+                        className="gap-2 bg-red-600 hover:bg-red-700 text-white"
+                        data-testid="button-create-document-new"
+                      >
+                        <FileEdit className="h-4 w-4" />
+                        Сохтани Ҳуҷҷат
+                      </Button>
+                    </div>
                     <Button
                       type="button"
                       variant="default"
@@ -748,26 +767,6 @@ export default function ComposeMessage() {
                         </Button>
                       </div>
                     )}
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const selectedType = documentTypes.find(dt => dt.id.toString() === documentTypeId);
-                          setDocumentTitle(selectedType ? selectedType.name : 'Ҳуҷҷати нав');
-                          setDocumentContent('<p></p>');
-                          setSelectedTemplateId(null);
-                          setShowDocumentEditor(true);
-                        }}
-                        disabled={sendMessageMutation.isPending || isUploadingFiles}
-                        className="gap-2"
-                        data-testid="button-create-document-new"
-                      >
-                        <FileEdit className="h-4 w-4" />
-                        Сохтани Ҳуҷҷат
-                      </Button>
-                    </div>
                     {uploadedFiles.length > 0 && (
                       <span className="text-sm text-muted-foreground">
                         Файлҳои интихобшуда: {uploadedFiles.length}/5
