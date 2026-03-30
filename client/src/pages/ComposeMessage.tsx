@@ -695,6 +695,151 @@ export default function ComposeMessage() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="content">
+                  {t.content}
+                </Label>
+                <Textarea
+                  id="content"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder={t.enterContent}
+                  rows={8}
+                  data-testid="textarea-content"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Илова кардани файл</Label>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="files"
+                      type="file"
+                      multiple
+                      onChange={handleFileSelect}
+                      disabled={uploadedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
+                      data-testid="input-files"
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      onClick={() => document.getElementById('files')?.click()}
+                      disabled={uploadedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
+                      className="gap-2"
+                    >
+                      <Paperclip className="h-4 w-4" />
+                      Интихоб кардани файлҳо
+                    </Button>
+                    {documentTemplates.length > 0 && (
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowTemplateDialog(true)}
+                          disabled={sendMessageMutation.isPending || isUploadingFiles}
+                          className="gap-2"
+                          data-testid="button-create-document"
+                        >
+                          <FileText className="h-4 w-4" />
+                          Ҳуҷҷат аз намуна
+                        </Button>
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const selectedType = documentTypes.find(dt => dt.id.toString() === documentTypeId);
+                          setDocumentTitle(selectedType ? selectedType.name : 'Ҳуҷҷати нав');
+                          setDocumentContent('<p></p>');
+                          setSelectedTemplateId(null);
+                          setShowDocumentEditor(true);
+                        }}
+                        disabled={sendMessageMutation.isPending || isUploadingFiles}
+                        className="gap-2"
+                        data-testid="button-create-document-new"
+                      >
+                        <FileEdit className="h-4 w-4" />
+                        Сохтани Ҳуҷҷат
+                      </Button>
+                    </div>
+                    {uploadedFiles.length > 0 && (
+                      <span className="text-sm text-muted-foreground">
+                        Файлҳои интихобшуда: {uploadedFiles.length}/5
+                      </span>
+                    )}
+                  </div>
+                  {uploadedFiles.length > 0 && (
+                    <div className="space-y-2">
+                      {uploadedFiles.map((uploadedFile, index) => {
+                        const { file, attachmentId, progress, loaded, error } = uploadedFile;
+                        const isUploading = attachmentId === null && !error;
+                        const isComplete = attachmentId !== null;
+                        
+                        // Format bytes to MB/GB
+                        const formatBytes = (bytes: number) => {
+                          if (bytes >= 1024 * 1024 * 1024) {
+                            return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' ГБ';
+                          }
+                          return (bytes / 1024 / 1024).toFixed(2) + ' МБ';
+                        };
+                        
+                        return (
+                          <div key={index} className="rounded-md border border-border bg-muted/30 p-3">
+                            <div className="flex items-center gap-3">
+                              {isUploading ? (
+                                <Loader2 className="h-4 w-4 text-green-600 animate-spin flex-shrink-0" />
+                              ) : (
+                                <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate" data-testid={`text-selected-file-${index}`}>
+                                  {file.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {isUploading ? (
+                                    <span className="text-green-500 font-semibold">
+                                      {formatBytes(loaded)} / {formatBytes(file.size)} ({progress}%)
+                                    </span>
+                                  ) : error ? (
+                                    <span className="text-red-600">Хато дар боркунӣ!</span>
+                                  ) : isComplete ? (
+                                    <span className="text-green-500 font-semibold">✓ {formatBytes(file.size)} - Бор шуд</span>
+                                  ) : (
+                                    formatBytes(file.size)
+                                  )}
+                                </p>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeFile(index)}
+                                data-testid={`button-remove-file-${index}`}
+                                disabled={sendMessageMutation.isPending || isUploading}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            {isUploading && (
+                              <div className="mt-2">
+                                <Progress value={progress} className="h-2" />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>
                     {t.recipient} <span className="text-destructive">*</span>
@@ -884,151 +1029,6 @@ export default function ComposeMessage() {
                   )}
                 </div>
               )}
-
-              <div className="space-y-2">
-                <Label htmlFor="content">
-                  {t.content}
-                </Label>
-                <Textarea
-                  id="content"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder={t.enterContent}
-                  rows={8}
-                  data-testid="textarea-content"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Илова кардани файл</Label>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <input
-                      id="files"
-                      type="file"
-                      multiple
-                      onChange={handleFileSelect}
-                      disabled={uploadedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
-                      data-testid="input-files"
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="default"
-                      size="sm"
-                      onClick={() => document.getElementById('files')?.click()}
-                      disabled={uploadedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
-                      className="gap-2"
-                    >
-                      <Paperclip className="h-4 w-4" />
-                      Интихоб кардани файлҳо
-                    </Button>
-                    {documentTemplates.length > 0 && (
-                      <div className="flex flex-col gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowTemplateDialog(true)}
-                          disabled={sendMessageMutation.isPending || isUploadingFiles}
-                          className="gap-2"
-                          data-testid="button-create-document"
-                        >
-                          <FileText className="h-4 w-4" />
-                          Ҳуҷҷат аз намуна
-                        </Button>
-                      </div>
-                    )}
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const selectedType = documentTypes.find(dt => dt.id.toString() === documentTypeId);
-                          setDocumentTitle(selectedType ? selectedType.name : 'Ҳуҷҷати нав');
-                          setDocumentContent('<p></p>');
-                          setSelectedTemplateId(null);
-                          setShowDocumentEditor(true);
-                        }}
-                        disabled={sendMessageMutation.isPending || isUploadingFiles}
-                        className="gap-2"
-                        data-testid="button-create-document-new"
-                      >
-                        <FileEdit className="h-4 w-4" />
-                        Сохтани Ҳуҷҷат
-                      </Button>
-                    </div>
-                    {uploadedFiles.length > 0 && (
-                      <span className="text-sm text-muted-foreground">
-                        Файлҳои интихобшуда: {uploadedFiles.length}/5
-                      </span>
-                    )}
-                  </div>
-                  {uploadedFiles.length > 0 && (
-                    <div className="space-y-2">
-                      {uploadedFiles.map((uploadedFile, index) => {
-                        const { file, attachmentId, progress, loaded, error } = uploadedFile;
-                        const isUploading = attachmentId === null && !error;
-                        const isComplete = attachmentId !== null;
-                        
-                        // Format bytes to MB/GB
-                        const formatBytes = (bytes: number) => {
-                          if (bytes >= 1024 * 1024 * 1024) {
-                            return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' ГБ';
-                          }
-                          return (bytes / 1024 / 1024).toFixed(2) + ' МБ';
-                        };
-                        
-                        return (
-                          <div key={index} className="rounded-md border border-border bg-muted/30 p-3">
-                            <div className="flex items-center gap-3">
-                              {isUploading ? (
-                                <Loader2 className="h-4 w-4 text-green-600 animate-spin flex-shrink-0" />
-                              ) : (
-                                <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate" data-testid={`text-selected-file-${index}`}>
-                                  {file.name}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {isUploading ? (
-                                    <span className="text-green-500 font-semibold">
-                                      {formatBytes(loaded)} / {formatBytes(file.size)} ({progress}%)
-                                    </span>
-                                  ) : error ? (
-                                    <span className="text-red-600">Хато дар боркунӣ!</span>
-                                  ) : isComplete ? (
-                                    <span className="text-green-500 font-semibold">✓ {formatBytes(file.size)} - Бор шуд</span>
-                                  ) : (
-                                    formatBytes(file.size)
-                                  )}
-                                </p>
-                              </div>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeFile(index)}
-                                data-testid={`button-remove-file-${index}`}
-                                disabled={sendMessageMutation.isPending || isUploading}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                            {isUploading && (
-                              <div className="mt-2">
-                                <Progress value={progress} className="h-2" />
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:justify-end">
                 <Button 
