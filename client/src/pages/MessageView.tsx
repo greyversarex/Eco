@@ -334,7 +334,7 @@ export default function MessageView() {
     setEditedContent(content);
   };
 
-  const handlePrintDocument = () => {
+  const printDocContent = (htmlContent: string) => {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(`
@@ -362,7 +362,7 @@ export default function MessageView() {
             </style>
           </head>
           <body>
-            <div class="ProseMirror">${editedContent}</div>
+            <div class="ProseMirror">${htmlContent}</div>
             <script>
               window.onload = () => {
                 const images = document.getElementsByTagName('img');
@@ -380,10 +380,9 @@ export default function MessageView() {
     }
   };
 
-  const handleDownloadDocument = () => {
-    const docTitle = editingDocument?.title || 'huchchat';
-    const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${docTitle}</title><style>body{font-family:Arial,sans-serif;line-height:1.5;font-size:14pt;color:#000;padding:20mm;}p{margin:0;min-height:1.2em;}table{border-collapse:collapse;width:100%;}table,th,td{border:1px solid #000;}th,td{padding:8px;}</style></head><body>${editedContent}</body></html>`;
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  const downloadDocContent = (docTitle: string, htmlContent: string) => {
+    const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${docTitle}</title><style>body{font-family:Arial,sans-serif;line-height:1.5;font-size:14pt;color:#000;padding:20mm;}p{margin:0;min-height:1.2em;}table{border-collapse:collapse;width:100%;}table,th,td{border:1px solid #000;}th,td{padding:8px;}</style></head><body>${htmlContent}</body></html>`;
+    const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -393,6 +392,9 @@ export default function MessageView() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
+
+  const handlePrintDocument = () => printDocContent(editedContent);
+  const handleDownloadDocument = () => downloadDocContent(editingDocument?.title || 'huchchat', editedContent);
 
   // Check if attachment can be edited in document editor
   const isEditableAttachment = (mimeType: string, filename: string) => {
@@ -1025,25 +1027,53 @@ export default function MessageView() {
                                 <FileText className="h-5 w-5 text-green-600" />
                                 <span className="font-medium">{doc.title}</span>
                               </div>
-                              <Button 
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleOpenDocumentEditor(doc)}
-                                data-testid={`button-edit-document-${index}`}
-                                className="gap-1"
-                              >
-                                {canEditDoc ? (
+                              <div className="flex items-center gap-1.5">
+                                {!canEditDoc && (
                                   <>
-                                    <Edit className="h-4 w-4" />
-                                    Таҳрир
-                                  </>
-                                ) : (
-                                  <>
-                                    <Eye className="h-4 w-4" />
-                                    Дидан
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => downloadDocContent(doc.title, doc.htmlContent)}
+                                      data-testid={`button-download-document-${index}`}
+                                      className="gap-1 h-8"
+                                      title="Боргирӣ кардан"
+                                    >
+                                      <Download className="h-4 w-4" />
+                                      Боргирӣ
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => printDocContent(doc.htmlContent)}
+                                      data-testid={`button-print-document-${index}`}
+                                      className="gap-1 h-8"
+                                      title="Чоп кардан"
+                                    >
+                                      <Printer className="h-4 w-4" />
+                                      Чоп
+                                    </Button>
                                   </>
                                 )}
-                              </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleOpenDocumentEditor(doc)}
+                                  data-testid={`button-edit-document-${index}`}
+                                  className="gap-1 h-8"
+                                >
+                                  {canEditDoc ? (
+                                    <>
+                                      <Edit className="h-4 w-4" />
+                                      Таҳрир
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Eye className="h-4 w-4" />
+                                      Дидан
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
                             </CardHeader>
                           </Card>
                         );
