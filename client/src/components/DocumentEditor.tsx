@@ -1904,12 +1904,17 @@ export function DocumentEditor({
 
             {/* Undo/Redo */}
             <ToolbarGroup>
-              <ToolbarButton
+              <Button
+                type="button"
+                variant="ghost"
                 onClick={handlePrint}
-                title="Чоп кардан"
+                title="Чоп кардан / Муҳр"
+                disabled={readOnly}
+                className="h-8 px-2 flex items-center gap-1"
               >
                 <Printer className="h-4 w-4" />
-              </ToolbarButton>
+                <span className="text-xs font-medium">Муҳр</span>
+              </Button>
               <Separator orientation="vertical" className="h-6 mx-1" />
               <ToolbarButton
                 onClick={() => editor.chain().focus().undo().run()}

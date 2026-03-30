@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { t } from '@/lib/i18n';
-import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X, Forward, Check, XCircle, Eye, Edit, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Download, Reply, Paperclip, Leaf, Trash2, LogOut, FileText, X, Forward, Check, XCircle, Eye, Edit, Save, Loader2, Printer } from 'lucide-react';
 const DocumentEditor = lazy(() => import('@/components/DocumentEditor').then(m => ({ default: m.DocumentEditor })));
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -332,6 +332,66 @@ export default function MessageView() {
   const handleDocumentChange = (content: string) => {
     if (isReadOnly) return;
     setEditedContent(content);
+  };
+
+  const handlePrintDocument = () => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title></title>
+            <style>
+              @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Roboto:wght@400;700&display=swap');
+              @page { size: A4; margin: 20mm; }
+              html, body { height: 100%; margin: 0 !important; padding: 0 !important; }
+              body { font-family: 'Noto Sans', Arial, sans-serif; line-height: 1.5; font-size: 14pt; color: #000; background: #fff; }
+              @media print { body { padding: 0; margin: 0 !important; } button, .no-print { display: none !important; } }
+              img { max-width: 100%; height: auto; display: block; margin: 1em 0; }
+              table { border-collapse: collapse; width: 100%; margin-bottom: 1em; table-layout: fixed; }
+              table, th, td { border: 1px solid #000; }
+              th, td { padding: 8px; text-align: left; vertical-align: top; overflow-wrap: break-word; }
+              p { margin: 0; min-height: 1.2em; white-space: pre-wrap; word-break: break-word; }
+              .text-center { text-align: center !important; }
+              .text-right { text-align: right !important; }
+              .text-justify { text-align: justify !important; }
+              .ProseMirror { white-space: pre-wrap; }
+              [data-align="center"] { text-align: center !important; }
+              [data-align="right"] { text-align: right !important; }
+              [data-align="justify"] { text-align: justify !important; }
+            </style>
+          </head>
+          <body>
+            <div class="ProseMirror">${editedContent}</div>
+            <script>
+              window.onload = () => {
+                const images = document.getElementsByTagName('img');
+                const imagePromises = Array.from(images).map(img => {
+                  if (img.complete) return Promise.resolve();
+                  return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+                });
+                Promise.all(imagePromises).then(() => { setTimeout(() => { window.print(); }, 500); });
+              };
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
+  const handleDownloadDocument = () => {
+    const docTitle = editingDocument?.title || 'huchchat';
+    const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${docTitle}</title><style>body{font-family:Arial,sans-serif;line-height:1.5;font-size:14pt;color:#000;padding:20mm;}p{margin:0;min-height:1.2em;}table{border-collapse:collapse;width:100%;}table,th,td{border:1px solid #000;}th,td{padding:8px;}</style></head><body>${editedContent}</body></html>`;
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${docTitle}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // Check if attachment can be edited in document editor
@@ -1080,15 +1140,35 @@ export default function MessageView() {
                           </Button>
                         </>
                       ) : (
-                        <Button
-                          onClick={() => {
-                            setIsDocumentEditorOpen(false);
-                            setEditingDocument(null);
-                            setEditedContent('');
-                          }}
-                        >
-                          Пӯшидан
-                        </Button>
+                        <>
+                          <Button
+                            variant="outline"
+                            onClick={handleDownloadDocument}
+                            className="gap-1"
+                            data-testid="button-download-document"
+                          >
+                            <Download className="h-4 w-4" />
+                            Боргирӣ
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={handlePrintDocument}
+                            className="gap-1"
+                            data-testid="button-print-document"
+                          >
+                            <Printer className="h-4 w-4" />
+                            Муҳр / Чоп
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setIsDocumentEditorOpen(false);
+                              setEditingDocument(null);
+                              setEditedContent('');
+                            }}
+                          >
+                            Пӯшидан
+                          </Button>
+                        </>
                       )}
                     </div>
                   </DialogContent>
