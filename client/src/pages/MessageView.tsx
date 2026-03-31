@@ -380,17 +380,22 @@ export default function MessageView() {
     }
   };
 
-  const downloadDocContent = (docTitle: string, htmlContent: string) => {
-    const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${docTitle}</title><style>body{font-family:Arial,sans-serif;line-height:1.5;font-size:14pt;color:#000;padding:20mm;}p{margin:0;min-height:1.2em;}table{border-collapse:collapse;width:100%;}table,th,td{border:1px solid #000;}th,td{padding:8px;}</style></head><body>${htmlContent}</body></html>`;
-    const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${docTitle}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  const downloadDocContent = async (docTitle: string, htmlContent: string) => {
+    try {
+      const { asBlob } = await import('html-docx-js-typescript');
+      const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${docTitle}</title><style>body{font-family:Arial,sans-serif;line-height:1.5;font-size:14pt;color:#000;}p{margin:0;min-height:1.2em;}table{border-collapse:collapse;width:100%;}table,th,td{border:1px solid #000;}th,td{padding:8px;}</style></head><body>${htmlContent}</body></html>`;
+      const blob = await asBlob(fullHtml, { orientation: 'portrait', margins: { top: 1134, right: 1134, bottom: 1134, left: 1134 } }) as Blob;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${docTitle}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('DOCX export failed:', e);
+    }
   };
 
   const handlePrintDocument = () => printDocContent(editedContent);
@@ -1028,32 +1033,28 @@ export default function MessageView() {
                                 <span className="font-medium">{doc.title}</span>
                               </div>
                               <div className="flex items-center gap-1.5">
-                                {!canEditDoc && (
-                                  <>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => downloadDocContent(doc.title, doc.htmlContent)}
-                                      data-testid={`button-download-document-${index}`}
-                                      className="gap-1 h-8"
-                                      title="Боргирӣ кардан"
-                                    >
-                                      <Download className="h-4 w-4" />
-                                      Боргирӣ
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => printDocContent(doc.htmlContent)}
-                                      data-testid={`button-print-document-${index}`}
-                                      className="gap-1 h-8"
-                                      title="Чоп кардан"
-                                    >
-                                      <Printer className="h-4 w-4" />
-                                      Чоп
-                                    </Button>
-                                  </>
-                                )}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => downloadDocContent(doc.title, doc.htmlContent)}
+                                  data-testid={`button-download-document-${index}`}
+                                  className="gap-1 h-8"
+                                  title="Боргирӣ кардан"
+                                >
+                                  <Download className="h-4 w-4" />
+                                  Боргирӣ
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => printDocContent(doc.htmlContent)}
+                                  data-testid={`button-print-document-${index}`}
+                                  className="gap-1 h-8"
+                                  title="Чоп кардан"
+                                >
+                                  <Printer className="h-4 w-4" />
+                                  Чоп
+                                </Button>
                                 <Button
                                   size="sm"
                                   variant="outline"
