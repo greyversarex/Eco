@@ -63,11 +63,20 @@ const ALLOWED_MIME_TYPES = [
   'audio/flac',
   // Archives
   'application/zip',
+  'application/x-zip-compressed', // Windows ZIP variant (Chrome/Edge on Windows)
+  'application/x-zip',
+  'multipart/x-zip',
   'application/x-rar-compressed',
   'application/vnd.rar',
+  'application/rar',
+  'application/x-rar',
   'application/x-7z-compressed',
+  'application/x-7zip',
   'application/gzip',
+  'application/x-gzip',
   'application/x-tar',
+  'application/x-bzip',
+  'application/x-bzip2',
   // Other
   'application/json',
   'text/csv',
