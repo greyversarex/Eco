@@ -39,12 +39,13 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "NODE_ENV=development npx --no-install tsx server/index.ts"
+args = "npm run dev"
 waitForPort = 5000
 
 [agent]
 integrations = ["javascript_database:1.0.0", "javascript_object_storage:1.0.0"]
 expertMode = true
+stack = "FULLSTACK_JS"
 
 [objectStorage]
 defaultBucketID = "replit-objstore-dd97d272-777b-4338-bf8c-2e0918ffb888"
