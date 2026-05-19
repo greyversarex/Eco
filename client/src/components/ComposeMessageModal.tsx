@@ -186,8 +186,8 @@ function ComposeForm({
     }
     
     const newFiles = [...selectedFiles, ...fileArray];
-    if (newFiles.length > 5) {
-      toast({ title: 'Хато', description: 'Шумо наметавонед зиёда аз 5 файл илова кунед', variant: 'destructive' });
+    if (newFiles.length > 25) {
+      toast({ title: 'Хато', description: 'Шумо наметавонед зиёда аз 25 файл илова кунед', variant: 'destructive' });
       return;
     }
     
@@ -303,7 +303,7 @@ function ComposeForm({
       </div>
 
       <div className="space-y-2">
-        <Label>Файлҳо (то 5 файл, ҳар яке то 100МБ)</Label>
+        <Label>Файлҳо (то 25 файл, ҳар яке то 100МБ)</Label>
         <div className="flex items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById('file-input-modal')?.click()} data-testid="button-attach-file">
             <Paperclip className="h-4 w-4 mr-2" />

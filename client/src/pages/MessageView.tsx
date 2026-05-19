@@ -740,10 +740,10 @@ export default function MessageView() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
-      if (assignmentFiles.length + filesArray.length > 5) {
+      if (assignmentFiles.length + filesArray.length > 25) {
         toast({
           title: 'Хато',
-          description: 'Шумо танҳо то 5 файл метавонед илова кунед',
+          description: 'Шумо танҳо то 25 файл метавонед илова кунед',
           variant: 'destructive',
         });
         return;

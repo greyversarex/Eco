@@ -669,10 +669,10 @@ export default function AssignmentsPage() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
-      if (selectedFiles.length + filesArray.length > 5) {
+      if (selectedFiles.length + filesArray.length > 25) {
         toast({
           title: 'Хато',
-          description: 'Шумо танҳо то 5 файл метавонед илова кунед',
+          description: 'Шумо танҳо то 25 файл метавонед илова кунед',
           variant: 'destructive',
         });
         return;
@@ -1324,7 +1324,7 @@ export default function AssignmentsPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Файлҳо (то 5 файл)</Label>
+                  <Label>Файлҳо (то 25 файл)</Label>
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2">
                       <input
@@ -1334,12 +1334,12 @@ export default function AssignmentsPage() {
                         className="hidden"
                         onChange={(e) => {
                           const files = Array.from(e.target.files || []);
-                          if (replyFiles.length + files.length <= 5) {
+                          if (replyFiles.length + files.length <= 25) {
                             setReplyFiles(prev => [...prev, ...files]);
                           } else {
                             toast({
                               title: 'Хато',
-                              description: 'Ҳадди аксар 5 файл иҷозат дода мешавад',
+                              description: 'Ҳадди аксар 25 файл иҷозат дода мешавад',
                               variant: 'destructive',
                             });
                           }
@@ -1351,14 +1351,14 @@ export default function AssignmentsPage() {
                         type="button"
                         variant="outline"
                         onClick={() => document.getElementById('reply-file-upload')?.click()}
-                        disabled={replyFiles.length >= 5}
+                        disabled={replyFiles.length >= 25}
                         data-testid="button-add-reply-files"
                       >
                         <Upload className="h-4 w-4 mr-2" />
                         Илова кардан
                       </Button>
                       <span className="text-sm text-muted-foreground">
-                        {replyFiles.length}/5 файл
+                        {replyFiles.length}/25 файл
                       </span>
                     </div>
                     {replyFiles.length > 0 && (

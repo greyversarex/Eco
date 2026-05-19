@@ -1429,7 +1429,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Broadcast message to multiple recipients with file attachments
-  app.post("/api/messages/broadcast", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
+  app.post("/api/messages/broadcast", requireAuth, upload.array('files', 25), async (req: Request, res: Response) => {
     try {
       // Parse recipient IDs from JSON field
       const recipientIdsRaw = JSON.parse(req.body.recipientIds || '[]');
@@ -2425,7 +2425,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Create assignment (departments with canCreateAssignment permission or admins)
-  app.post("/api/assignments", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
+  app.post("/api/assignments", requireAuth, upload.array('files', 25), async (req: Request, res: Response) => {
     try {
       // Check permissions
       if (req.session.departmentId) {
@@ -2696,7 +2696,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Edit assignment (creator department or admin)
-  app.patch("/api/assignments/:id", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
+  app.patch("/api/assignments/:id", requireAuth, upload.array('files', 25), async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const assignment = await storage.getAssignmentById(id);
@@ -2948,7 +2948,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Create assignment reply with attachments (Чавоб додан)
-  app.post("/api/assignments/:id/replies", requireAuth, upload.array('files', 5), async (req: Request, res: Response) => {
+  app.post("/api/assignments/:id/replies", requireAuth, upload.array('files', 25), async (req: Request, res: Response) => {
     try {
       const assignmentId = parseInt(req.params.id);
       const { replyText, documentContent, documentFilename, responderPersonId } = req.body;

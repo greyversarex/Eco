@@ -426,10 +426,10 @@ export default function ComposeMessage() {
     
     // Check total files
     const currentCount = uploadedFiles.length;
-    if (currentCount + fileArray.length > 5) {
+    if (currentCount + fileArray.length > 25) {
       toast({
         title: 'Хато',
-        description: 'Шумо наметавонед зиёда аз 5 файл илова кунед',
+        description: 'Шумо наметавонед зиёда аз 25 файл илова кунед',
         variant: 'destructive',
       });
       e.target.value = '';
@@ -717,7 +717,7 @@ export default function ComposeMessage() {
                       type="file"
                       multiple
                       onChange={handleFileSelect}
-                      disabled={uploadedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
+                      disabled={uploadedFiles.length >= 25 || sendMessageMutation.isPending || isUploadingFiles}
                       data-testid="input-files"
                       className="hidden"
                     />
@@ -745,7 +745,7 @@ export default function ComposeMessage() {
                       variant="default"
                       size="sm"
                       onClick={() => document.getElementById('files')?.click()}
-                      disabled={uploadedFiles.length >= 5 || sendMessageMutation.isPending || isUploadingFiles}
+                      disabled={uploadedFiles.length >= 25 || sendMessageMutation.isPending || isUploadingFiles}
                       className="gap-2"
                     >
                       <Paperclip className="h-4 w-4" />
