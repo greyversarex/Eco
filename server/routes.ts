@@ -83,6 +83,50 @@ const ALLOWED_MIME_TYPES = [
   'application/octet-stream',
 ];
 
+// Allowed file extensions (fallback when MIME type is non-standard).
+// Browsers (especially Yandex/Edge on Windows) send unpredictable or empty
+// MIME types for archives — we accept by extension as well to avoid false rejects.
+const ALLOWED_FILE_EXTENSIONS = new Set([
+  // Documents
+  'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+  'odt', 'ods', 'odp', 'rtf', 'txt', 'html', 'htm', 'xml',
+  // Images
+  'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tif', 'tiff',
+  'svg', 'heic', 'heif', 'avif', 'ico',
+  // Videos
+  'mp4', 'mpeg', 'mpg', 'mov', 'avi', 'wmv', 'webm', '3gp', 'flv', 'mkv',
+  // Audio
+  'mp3', 'wav', 'ogg', 'oga', 'aac', 'm4a', 'flac', 'weba',
+  // Archives
+  'zip', 'rar', '7z', 'gz', 'tar', 'tgz', 'bz', 'bz2', 'tbz', 'tbz2', 'xz',
+  // Other
+  'json', 'csv',
+]);
+
+function getFileExtension(filename: string): string {
+  const idx = filename.lastIndexOf('.');
+  if (idx < 0 || idx === filename.length - 1) return '';
+  return filename.slice(idx + 1).toLowerCase();
+}
+
+// Accept the file if either its MIME type OR its extension is in the allowlist.
+// This handles browsers that send unexpected or empty MIME types for archives.
+function isFileTypeAllowed(file: Express.Multer.File): boolean {
+  if (ALLOWED_MIME_TYPES.includes(file.mimetype)) return true;
+  const ext = getFileExtension(file.originalname);
+  if (ext && ALLOWED_FILE_EXTENSIONS.has(ext)) return true;
+  return false;
+}
+
+function logRejectedFile(context: string, file: Express.Multer.File): void {
+  console.warn(`[FILE_REJECTED] ${context}`, {
+    fileName: file.originalname,
+    mimeType: file.mimetype,
+    extension: getFileExtension(file.originalname),
+    size: file.size,
+  });
+}
+
 // Helper function to properly decode filename with UTF-8 support
 function decodeFilename(filename: string): string {
   try {
@@ -1487,7 +1531,8 @@ export function registerRoutes(app: Express) {
       // Validate files
       const files = req.files as Express.Multer.File[] || [];
       for (const file of files) {
-        if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+        if (!isFileTypeAllowed(file)) {
+          logRejectedFile('broadcast message', file);
           return res.status(400).json({ 
             error: `File type not allowed: ${file.originalname}. Please upload documents, images, or archives only.` 
           });
@@ -2053,8 +2098,9 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      // Validate MIME type
-      if (!ALLOWED_MIME_TYPES.includes(req.file.mimetype)) {
+      // Validate MIME type (with extension fallback)
+      if (!isFileTypeAllowed(req.file)) {
+        logRejectedFile('standalone upload', req.file);
         return res.status(400).json({ 
           error: 'File type not allowed. Please upload documents, images, or archives only.' 
         });
@@ -2155,8 +2201,9 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      // Validate MIME type
-      if (!ALLOWED_MIME_TYPES.includes(req.file.mimetype)) {
+      // Validate MIME type (with extension fallback)
+      if (!isFileTypeAllowed(req.file)) {
+        logRejectedFile('reply attachment', req.file);
         return res.status(400).json({ 
           error: 'File type not allowed. Please upload documents, images, or archives only.' 
         });
@@ -2583,7 +2630,8 @@ export function registerRoutes(app: Express) {
       // Validate files
       const files = req.files as Express.Multer.File[] || [];
       for (const file of files) {
-        if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+        if (!isFileTypeAllowed(file)) {
+          logRejectedFile('assignment create', file);
           return res.status(400).json({ 
             error: `File type not allowed: ${file.originalname}. Please upload documents, images, or archives only.` 
           });
@@ -2814,7 +2862,8 @@ export function registerRoutes(app: Express) {
 
       const files = req.files as Express.Multer.File[] || [];
       for (const file of files) {
-        if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+        if (!isFileTypeAllowed(file)) {
+          logRejectedFile('assignment update', file);
           return res.status(400).json({ 
             error: `File type not allowed: ${file.originalname}` 
           });
