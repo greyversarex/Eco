@@ -769,7 +769,7 @@ export default function ComposeMessage() {
                     )}
                     {uploadedFiles.length > 0 && (
                       <span className="text-sm text-muted-foreground">
-                        Файлҳои интихобшуда: {uploadedFiles.length}/5
+                        Файлҳои интихобшуда: {uploadedFiles.length}/25
                       </span>
                     )}
                   </div>
