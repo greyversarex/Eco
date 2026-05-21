@@ -1,0 +1,52 @@
+root@5862137-le73231:~/Eco# pm2 logs
+[TAILING] Tailing last 15 lines for [all] processes (change the value with --lines option)
+/root/.pm2/pm2.log last 15 lines:
+PM2        | 2026-05-19T15:41:34: PM2 log: App [ecotajikistan:0] online
+PM2        | 2026-05-20T09:21:14: PM2 log: [PM2] This PM2 is not UP TO DATE
+PM2        | 2026-05-20T09:21:14: PM2 log: [PM2] Upgrade to version 7.0.1
+PM2        | 2026-05-21T09:21:14: PM2 log: [PM2] This PM2 is not UP TO DATE
+PM2        | 2026-05-21T09:21:14: PM2 log: [PM2] Upgrade to version 7.0.1
+PM2        | 2026-05-21T12:01:30: PM2 log: Stopping app:ecotajikistan id:0
+PM2        | 2026-05-21T12:01:30: PM2 log: App [ecotajikistan:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-05-21T12:01:30: PM2 log: pid=1033606 msg=process killed
+PM2        | 2026-05-21T12:01:30: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-05-21T12:01:30: PM2 log: App [ecotajikistan:0] online
+PM2        | 2026-05-21T12:09:37: PM2 log: Stopping app:ecotajikistan id:0
+PM2        | 2026-05-21T12:09:37: PM2 log: App [ecotajikistan:0] exited with code [0] via signal [SIGINT]
+PM2        | 2026-05-21T12:09:37: PM2 log: pid=1071910 msg=process killed
+PM2        | 2026-05-21T12:09:37: PM2 log: App [ecotajikistan:0] starting in -fork mode-
+PM2        | 2026-05-21T12:09:37: PM2 log: App [ecotajikistan:0] online
+
+/root/.pm2/logs/ecotajikistan-error.log last 15 lines:
+0|ecotajik | }
+0|ecotajik | [AUTH_MIDDLEWARE] Rejected: No session or user ID {
+0|ecotajik |   hasDepartmentId: false,
+0|ecotajik |   hasAdminId: false,
+0|ecotajik |   sessionExists: true,
+0|ecotajik |   path: '/api/attachments/upload',
+0|ecotajik |   method: 'GET'
+0|ecotajik | }
+0|ecotajik | [AUTH_MIDDLEWARE] Rejected: No session or user ID {
+0|ecotajik |   hasDepartmentId: false,
+0|ecotajik |   hasAdminId: false,
+0|ecotajik |   sessionExists: true,
+0|ecotajik |   path: '/api/messages/bulk-delete',
+0|ecotajik |   method: 'GET'
+0|ecotajik | }
+
+/root/.pm2/logs/ecotajikistan-out.log last 15 lines:
+0|ecotajik | 2:15:06 PM [express] GET /api/messages/unread/by-department 200 in 11ms :: {"61":2}
+0|ecotajik | 2:15:06 PM [express] GET /api/counters 200 in 16ms :: {"unreadAnnouncements":0,"uncompletedAssignmen…
+0|ecotajik | 2:15:06 PM [express] GET /api/department-files/56 200 in 128ms :: [{"id":1582,"departmentId":56,"fil…
+0|ecotajik | [AUTH_MIDDLEWARE] Authenticated: {
+0|ecotajik |   userType: 'department',
+0|ecotajik |   userId: 56,
+0|ecotajik |   path: '/api/department-files/56',
+0|ecotajik |   method: 'POST'
+0|ecotajik | }
+0|ecotajik | 2:15:08 PM [express] POST /api/department-files/56 200 in 20ms :: {"id":1583,"fileName":"17793549086…
+0|ecotajik | 2:15:08 PM [express] GET /api/department-files/56 200 in 114ms :: [{"id":1583,"departmentId":56,"fil…
+0|ecotajik | 2:15:10 PM [express] GET /api/auth/me 200 in 3ms :: {"userType":"department","department":{"id":56,"…
+0|ecotajik | 2:15:10 PM [express] GET /api/messages/unread/by-department 200 in 4ms :: {"61":2}
+0|ecotajik | 2:15:10 PM [express] GET /api/counters 200 in 7ms :: {"unreadAnnouncements":0,"uncompletedAssignment…
+0|ecotajik | 2:15:10 PM [express] GET /api/department-files/56 200 in 125ms :: [{"id":1583,"departmentId":56,"fil…
