@@ -70,6 +70,7 @@ export interface IStorage {
   getAttachmentById(id: number): Promise<Attachment | undefined>;
   deleteAttachmentsByMessageId(messageId: number): Promise<boolean>;
   linkAttachmentToMessage(attachmentId: number, messageId: number): Promise<boolean>;
+  linkUnlinkedAttachmentToMessage(attachmentId: number, messageId: number): Promise<boolean>;
   
   // Assignments
   getAssignments(): Promise<Assignment[]>;
@@ -181,7 +182,7 @@ export interface IStorage {
 // Database storage implementation
 import { db } from './db';
 import { departments, admins, messages, attachments, assignments, assignmentAttachments, assignmentReplies, assignmentReplyAttachments, announcements, announcementAttachments, people, departmentIcons, pushSubscriptions, documentTypes, documentTemplates, messageDocuments, departmentFiles, adminNotifications, notificationDismissals } from '@shared/schema';
-import { eq, or, and, desc, asc, sql, inArray } from 'drizzle-orm';
+import { eq, or, and, desc, asc, sql, inArray, isNull } from 'drizzle-orm';
 
 export class DbStorage implements IStorage {
   // Departments
@@ -705,6 +706,16 @@ export class DbStorage implements IStorage {
     const result = await db.update(attachments)
       .set({ messageId })
       .where(eq(attachments.id, attachmentId))
+      .returning();
+    return result.length > 0;
+  }
+
+  // Link an attachment to a message ONLY if it is not already linked (message_id IS NULL).
+  // Prevents silently re-linking (stealing) attachments that already belong to another message.
+  async linkUnlinkedAttachmentToMessage(attachmentId: number, messageId: number): Promise<boolean> {
+    const result = await db.update(attachments)
+      .set({ messageId })
+      .where(and(eq(attachments.id, attachmentId), isNull(attachments.messageId)))
       .returning();
     return result.length > 0;
   }

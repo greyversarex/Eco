@@ -1,0 +1,1 @@
+- [Attachment linking flow](attachment-linking.md) — message attachments must be linked server-side in the create request, never via client follow-up fetch; note orphan-ownership IDOR gap.

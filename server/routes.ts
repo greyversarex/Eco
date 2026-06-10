@@ -1426,6 +1426,33 @@ export function registerRoutes(app: Express) {
       
       const message = await storage.createMessage(parsedData);
 
+      // Link pre-uploaded attachments to this message atomically (server-side).
+      // Mirrors the broadcast endpoint so attachments can never be left orphaned
+      // by a failed/lost client-side link request.
+      const attachmentIdsRaw = req.body.attachmentIds;
+      const preUploadedIds: number[] = [];
+      if (attachmentIdsRaw !== undefined && attachmentIdsRaw !== null) {
+        const ids = Array.isArray(attachmentIdsRaw) ? attachmentIdsRaw : [attachmentIdsRaw];
+        for (const id of ids) {
+          const numId = parseInt(String(id), 10);
+          if (!isNaN(numId)) {
+            preUploadedIds.push(numId);
+          }
+        }
+      }
+
+      let linkedAttachments = 0;
+      if (preUploadedIds.length > 0) {
+        for (const attachmentId of preUploadedIds) {
+          const linked = await storage.linkUnlinkedAttachmentToMessage(attachmentId, message.id);
+          if (linked) {
+            linkedAttachments++;
+          } else {
+            console.error('[MESSAGES] Could not link attachment (missing or already linked):', { attachmentId, messageId: message.id });
+          }
+        }
+      }
+
       // Send push notification to recipient(s)
       const sendPushNotification = (app as any).sendPushNotification;
       if (sendPushNotification) {
@@ -1463,7 +1490,7 @@ export function registerRoutes(app: Express) {
         }
       }
 
-      res.json(message);
+      res.json({ ...message, linkedAttachments });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.errors });
@@ -1563,7 +1590,10 @@ export function registerRoutes(app: Express) {
 
       if (preUploadedIds.length > 0) {
         for (const attachmentId of preUploadedIds) {
-          await storage.linkAttachmentToMessage(attachmentId, message.id);
+          const linked = await storage.linkUnlinkedAttachmentToMessage(attachmentId, message.id);
+          if (!linked) {
+            console.error('[BROADCAST] Could not link attachment (missing or already linked):', { attachmentId, messageId: message.id });
+          }
         }
       }
 

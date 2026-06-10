@@ -315,6 +315,11 @@ export default function ComposeMessage() {
         });
       } else {
         // Single recipient - use original endpoint
+        // Attachments are linked server-side (atomically) by passing attachmentIds,
+        // so they can never be left orphaned by a failed client-side link request.
+        const successfulUploads = uploadedFiles.filter(f => f.attachmentId !== null);
+        const attachmentIds = successfulUploads.map(f => f.attachmentId as number);
+
         const messageData = {
           subject: docTypeName,
           content,
@@ -326,6 +331,7 @@ export default function ComposeMessage() {
           recipientId: selectedRecipients[0],
           documentDate: new Date().toISOString(),
           replyToId: null,
+          attachmentIds,
         };
 
         const message = await apiRequest('POST', '/api/messages', messageData);
@@ -345,25 +351,11 @@ export default function ComposeMessage() {
           }
         }
 
-        // Link pre-uploaded files to message
-        const successfulUploads = uploadedFiles.filter(f => f.attachmentId !== null);
-        if (successfulUploads.length > 0) {
-          let linkSuccess = true;
-          
-          for (const uploadedFile of successfulUploads) {
-            try {
-              await fetch(`/api/messages/${message.id}/attachments/link`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ attachmentId: uploadedFile.attachmentId }),
-              });
-            } catch {
-              linkSuccess = false;
-            }
-          }
-          
-          if (!linkSuccess) {
+        if (attachmentIds.length > 0) {
+          const linkedCount = typeof message.linkedAttachments === 'number'
+            ? message.linkedAttachments
+            : attachmentIds.length;
+          if (linkedCount < attachmentIds.length) {
             toast({
               title: 'Огоҳӣ',
               description: 'Паём фиристода шуд, вале баъзе файлҳо пайваст нашуданд',
