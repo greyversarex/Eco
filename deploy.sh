@@ -2,6 +2,10 @@
 set -e
 
 echo "=== Обновление кода ==="
+# npm install на сервере перегенерирует package-lock.json, и его локальные
+# изменения блокируют git pull. Сбрасываем только этот файл (версия из репозитория
+# авторитетна), чтобы pull всегда проходил чисто.
+git checkout -- package-lock.json 2>/dev/null || true
 git pull origin main
 
 echo "=== Установка зависимостей ==="
