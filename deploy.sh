@@ -9,7 +9,11 @@ git checkout -- package-lock.json 2>/dev/null || true
 git pull origin main
 
 echo "=== Установка зависимостей ==="
-npm install
+# package-lock.json генерируется на Replit и содержит внутренние URL
+# (package-firewall.replit.local), недоступные с внешнего сервера. Удаляем его
+# и ставим зависимости напрямую с публичного реестра npm.
+rm -f package-lock.json
+npm install --registry=https://registry.npmjs.org/
 
 echo "=== Сборка проекта ==="
 NODE_OPTIONS="--max-old-space-size=4096" npm run build

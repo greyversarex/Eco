@@ -1,2 +1,3 @@
 - [Attachment linking flow](attachment-linking.md) — message attachments must be linked server-side in the create request (never client follow-up fetch); orphan ownership guard prevents cross-department claiming.
 - [Dev server does not hot-reload](dev-server-restart.md) — `tsx` runs without `--watch`; restart the workflow after any backend/schema edit before testing.
+- [Replit lock breaks external deploys](replit-lockfile-external-deploy.md) — Replit npm install pins package-firewall.replit.local URLs; external servers must reinstall from the public registry.
