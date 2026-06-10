@@ -188,6 +188,9 @@ export const attachments = pgTable("attachments", {
   fileData: bytea("file_data").notNull(),
   fileSize: integer("file_size").notNull(),
   mimeType: text("mime_type").notNull(),
+  // Department that uploaded a standalone (not-yet-linked) file. Nullable for
+  // backward compatibility with rows created before this column existed.
+  uploadedByDepartmentId: integer("uploaded_by_department_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   messageIdx: index("attachments_message_id_idx").on(table.messageId),
@@ -199,6 +202,7 @@ export const insertAttachmentSchema = z.object({
   fileData: z.instanceof(Buffer),
   fileSize: z.number(),
   mimeType: z.string(),
+  uploadedByDepartmentId: z.number().nullable().optional(),
 });
 export type InsertAttachment = z.infer<typeof insertAttachmentSchema>;
 export type Attachment = typeof attachments.$inferSelect;

@@ -70,7 +70,7 @@ export interface IStorage {
   getAttachmentById(id: number): Promise<Attachment | undefined>;
   deleteAttachmentsByMessageId(messageId: number): Promise<boolean>;
   linkAttachmentToMessage(attachmentId: number, messageId: number): Promise<boolean>;
-  linkUnlinkedAttachmentToMessage(attachmentId: number, messageId: number): Promise<boolean>;
+  linkUnlinkedAttachmentToMessage(attachmentId: number, messageId: number, ownerDepartmentId?: number | null): Promise<boolean>;
   
   // Assignments
   getAssignments(): Promise<Assignment[]>;
@@ -712,10 +712,20 @@ export class DbStorage implements IStorage {
 
   // Link an attachment to a message ONLY if it is not already linked (message_id IS NULL).
   // Prevents silently re-linking (stealing) attachments that already belong to another message.
-  async linkUnlinkedAttachmentToMessage(attachmentId: number, messageId: number): Promise<boolean> {
+  // When ownerDepartmentId is provided, also requires the attachment to belong to that
+  // department (or have no recorded owner — legacy rows), preventing one department from
+  // claiming another department's in-flight upload. Admins (no departmentId) bypass the
+  // ownership check by passing null/undefined.
+  async linkUnlinkedAttachmentToMessage(attachmentId: number, messageId: number, ownerDepartmentId?: number | null): Promise<boolean> {
+    const ownershipClause = (ownerDepartmentId === undefined || ownerDepartmentId === null)
+      ? undefined
+      : or(isNull(attachments.uploadedByDepartmentId), eq(attachments.uploadedByDepartmentId, ownerDepartmentId));
+    const whereClause = ownershipClause
+      ? and(eq(attachments.id, attachmentId), isNull(attachments.messageId), ownershipClause)
+      : and(eq(attachments.id, attachmentId), isNull(attachments.messageId));
     const result = await db.update(attachments)
       .set({ messageId })
-      .where(and(eq(attachments.id, attachmentId), isNull(attachments.messageId)))
+      .where(whereClause)
       .returning();
     return result.length > 0;
   }

@@ -1444,11 +1444,11 @@ export function registerRoutes(app: Express) {
       let linkedAttachments = 0;
       if (preUploadedIds.length > 0) {
         for (const attachmentId of preUploadedIds) {
-          const linked = await storage.linkUnlinkedAttachmentToMessage(attachmentId, message.id);
+          const linked = await storage.linkUnlinkedAttachmentToMessage(attachmentId, message.id, req.session.departmentId ?? null);
           if (linked) {
             linkedAttachments++;
           } else {
-            console.error('[MESSAGES] Could not link attachment (missing or already linked):', { attachmentId, messageId: message.id });
+            console.error('[MESSAGES] Could not link attachment (missing, already linked, or not owned):', { attachmentId, messageId: message.id });
           }
         }
       }
@@ -1590,9 +1590,9 @@ export function registerRoutes(app: Express) {
 
       if (preUploadedIds.length > 0) {
         for (const attachmentId of preUploadedIds) {
-          const linked = await storage.linkUnlinkedAttachmentToMessage(attachmentId, message.id);
+          const linked = await storage.linkUnlinkedAttachmentToMessage(attachmentId, message.id, req.session.departmentId ?? null);
           if (!linked) {
-            console.error('[BROADCAST] Could not link attachment (missing or already linked):', { attachmentId, messageId: message.id });
+            console.error('[BROADCAST] Could not link attachment (missing, already linked, or not owned):', { attachmentId, messageId: message.id });
           }
         }
       }
@@ -2144,6 +2144,7 @@ export function registerRoutes(app: Express) {
         fileData: req.file.buffer,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
+        uploadedByDepartmentId: req.session.departmentId ?? null, // Owner for later link-time verification
       });
 
       console.log('[ATTACHMENT_UPLOAD_STANDALONE] Upload successful:', {
@@ -2196,10 +2197,12 @@ export function registerRoutes(app: Express) {
         return res.status(403).json({ error: 'Access denied' });
       }
 
-      // Link the attachment to the message
-      await storage.linkAttachmentToMessage(attachmentId, messageId);
+      // Link the attachment to the message (ownership-aware; admins bypass via null).
+      // Returns success even if not newly linked (e.g. already linked) to preserve
+      // backward compatibility with cached PWA/mobile clients.
+      const linked = await storage.linkUnlinkedAttachmentToMessage(attachmentId, messageId, req.session.departmentId ?? null);
 
-      console.log('[ATTACHMENT_LINK] Successfully linked attachment:', { attachmentId, messageId });
+      console.log('[ATTACHMENT_LINK] Link attempt complete:', { attachmentId, messageId, linked });
       res.json({ success: true });
     } catch (error: any) {
       console.error('[ATTACHMENT_LINK] Error:', error);
