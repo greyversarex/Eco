@@ -1,0 +1,204 @@
+root@5862137-le73231:~/Eco# cd ~/Eco
+rm -f package-lock.json
+npm install --registry=https://registry.npmjs.org/
+NODE_OPTIONS="--max-old-space-size=4096" npm run build
+npm run db:push
+pm2 restart all
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated git-semver-tags@4.1.1: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
+npm warn deprecated git-raw-commits@2.0.11: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
+npm warn deprecated q@1.5.1: You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+npm warn deprecated
+npm warn deprecated (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+npm warn deprecated prebuild-install@7.1.3: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
+npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated source-map@0.8.0-beta.0: The work that was done in this beta branch won't be included in future versions
+npm warn deprecated uuid@7.0.3: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm warn deprecated glob@9.3.5: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated glob@11.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated recharts@2.15.4: 1.x and 2.x branches are no longer active. Bump to Recharts v3 to receive latest features and bugfixes. See https://github.com/recharts/recharts/wiki/3.0-migration-guide
+
+added 994 packages, removed 810 packages, changed 436 packages, and audited 1444 packages in 5m
+
+239 packages are looking for funding
+  run `npm fund` for details
+
+14 vulnerabilities (7 moderate, 7 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues possible (including breaking changes), run:
+  npm audit fix --force
+
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
+npm warn allow-scripts 8 packages have install scripts not yet covered by allowScripts:
+npm warn allow-scripts   bcrypt@6.0.0 (install: node-gyp-build)
+npm warn allow-scripts   bufferutil@4.1.0 (install: node-gyp-build)
+npm warn allow-scripts   esbuild@0.25.12 (postinstall: node install.js)
+npm warn allow-scripts   sharp@0.34.5 (install: node install/check.js || npm run build)
+npm warn allow-scripts   sharp@0.32.6 (install: (node install/libvips && node install/dll-copy && prebuild-install) || (node install/can-compile && node-gyp rebuild && node install/dll-copy))
+npm warn allow-scripts   esbuild@0.28.0 (postinstall: node install.js)
+npm warn allow-scripts   esbuild@0.21.5 (postinstall: node install.js)
+npm warn allow-scripts   esbuild@0.18.20 (postinstall: node install.js)
+npm warn allow-scripts
+npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
+
+> rest-express@1.0.4 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.21 building for production...
+transforming (7) src/App.tsx
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+✓ 3160 modules transformed.
+../dist/public/manifest.webmanifest                                                                      0.67 kB
+../dist/public/index.html                                                                                7.02 kB │ gzip:   1.85 kB
+../dist/public/assets/logo-optimized-B1zGXNhP.webp                                                      16.56 kB
+../dist/public/assets/eco-mobile-bg--UH-gaYc.webp                                                       60.57 kB
+../dist/public/assets/eco-bg-wide-CzQNBZHF.webp                                                         75.40 kB
+../dist/public/assets/eco-background-light-C9fnBE4q.webp                                               174.88 kB
+../dist/public/assets/pngtree-beautiful-green-forest-picture-image_3184540_1771530863713-Cv-s515C.jpg  513.93 kB
+../dist/public/assets/index-BFAGnEqe.css                                                               119.15 kB │ gzip:  18.25 kB
+../dist/public/assets/index-BdQq_4o_.js                                                                  0.06 kB │ gzip:   0.08 kB
+../dist/public/assets/eco-background-light-DYjC9CQJ.js                                                   0.07 kB │ gzip:   0.09 kB
+../dist/public/assets/index-ExnrPdJS.js                                                                  0.14 kB │ gzip:   0.14 kB
+../dist/public/assets/index-X7MPbEcg.js                                                                  0.23 kB │ gzip:   0.17 kB
+../dist/public/assets/check-BdYac_o5.js                                                                  0.29 kB │ gzip:   0.24 kB
+../dist/public/assets/offline-indicator-DzmHlC4J.js                                                      0.31 kB │ gzip:   0.26 kB
+../dist/public/assets/loader-circle-DT-PoGuX.js                                                          0.31 kB │ gzip:   0.26 kB
+../dist/public/assets/plus-BC1KpV3D.js                                                                   0.32 kB │ gzip:   0.25 kB
+../dist/public/assets/arrow-left-CwmSlm9F.js                                                             0.33 kB │ gzip:   0.27 kB
+../dist/public/assets/search-75YHb33v.js                                                                 0.34 kB │ gzip:   0.27 kB
+../dist/public/assets/circle-check-B6_Kq_yl.js                                                           0.35 kB │ gzip:   0.27 kB
+../dist/public/assets/check-check-q0bbov1h.js                                                            0.35 kB │ gzip:   0.27 kB
+../dist/public/assets/circle-check-big-BU74wRFO.js                                                       0.36 kB │ gzip:   0.28 kB
+../dist/public/assets/rotate-ccw-D9YWx1vC.js                                                             0.37 kB │ gzip:   0.29 kB
+../dist/public/assets/circle-x-F_K1ykcR.js                                                               0.38 kB │ gzip:   0.28 kB
+../dist/public/assets/mail-C7uZksqI.js                                                                   0.38 kB │ gzip:   0.30 kB
+../dist/public/assets/file-DXjIRtIZ.js                                                                   0.39 kB │ gzip:   0.28 kB
+../dist/public/assets/paperclip-CDepwasf.js                                                              0.39 kB │ gzip:   0.30 kB
+../dist/public/assets/circle-alert-jr04YO4q.js                                                           0.42 kB │ gzip:   0.29 kB
+../dist/public/assets/eye-BKcOUR9_.js                                                                    0.43 kB │ gzip:   0.30 kB
+../dist/public/assets/calendar-CaiRgLFz.js                                                               0.43 kB │ gzip:   0.30 kB
+../dist/public/assets/upload-HHPwQwfX.js                                                                 0.43 kB │ gzip:   0.32 kB
+../dist/public/assets/log-out-DCaxXQ4s.js                                                                0.43 kB │ gzip:   0.32 kB
+../dist/public/assets/download-BoCkEeyj.js                                                               0.43 kB │ gzip:   0.32 kB
+../dist/public/assets/pencil-JwJB2XR4.js                                                                 0.45 kB │ gzip:   0.33 kB
+../dist/public/assets/pen-line-DIFCDwvW.js                                                               0.45 kB │ gzip:   0.33 kB
+../dist/public/assets/users-Ugne-JBl.js                                                                  0.47 kB │ gzip:   0.33 kB
+../dist/public/assets/square-pen-Ccyq1YTr.js                                                             0.49 kB │ gzip:   0.34 kB
+../dist/public/assets/printer-CmtZWyyo.js                                                                0.49 kB │ gzip:   0.34 kB
+../dist/public/assets/refresh-cw-C9xBOL-h.js                                                             0.49 kB │ gzip:   0.33 kB
+../dist/public/assets/textarea-CkgK6Kfs.js                                                               0.50 kB │ gzip:   0.33 kB
+../dist/public/assets/save-CF46HT-v.js                                                                   0.50 kB │ gzip:   0.33 kB
+../dist/public/assets/file-text-DBkuKkRq.js                                                              0.50 kB │ gzip:   0.32 kB
+../dist/public/assets/trash-2-DIXVZ8Uh.js                                                                0.53 kB │ gzip:   0.35 kB
+../dist/public/assets/image-plus-D6c77AzY.js                                                             0.53 kB │ gzip:   0.36 kB
+../dist/public/assets/grip-vertical-BT4IiYyh.js                                                          0.54 kB │ gzip:   0.30 kB
+../dist/public/assets/file-pen-B4kL6dTC.js                                                               0.54 kB │ gzip:   0.36 kB
+../dist/public/assets/chevron-up-CSwDHyes.js                                                             0.54 kB │ gzip:   0.28 kB
+../dist/public/assets/clipboard-list-DJKWMUAn.js                                                         0.58 kB │ gzip:   0.36 kB
+../dist/public/assets/building-2-ZprT13ik.js                                                             0.61 kB │ gzip:   0.35 kB
+../dist/public/assets/wifi-off-DNp_RsiU.js                                                               0.63 kB │ gzip:   0.38 kB
+../dist/public/assets/not-found-D5REPQJG.js                                                              0.63 kB │ gzip:   0.36 kB
+../dist/public/assets/reply-Dm56SOPN.js                                                                  0.66 kB │ gzip:   0.35 kB
+../dist/public/assets/separator-CpqHj8Ou.js                                                              0.67 kB │ gzip:   0.40 kB
+../dist/public/assets/badge-D2waVYkl.js                                                                  0.73 kB │ gzip:   0.40 kB
+../dist/public/assets/send-DDXnO8jX.js                                                                   0.76 kB │ gzip:   0.41 kB
+../dist/public/assets/use-department-icon-Db89lbpR.js                                                    0.79 kB │ gzip:   0.53 kB
+../dist/public/assets/message-square-C9VCbME4.js                                                         0.96 kB │ gzip:   0.43 kB
+../dist/public/assets/sparkles-Wrh29Jyu.js                                                               0.98 kB │ gzip:   0.46 kB
+../dist/public/assets/PageHeader-BGud1iOb.js                                                             0.99 kB │ gzip:   0.46 kB
+../dist/public/assets/shield-BI1J4cfx.js                                                                 1.13 kB │ gzip:   0.50 kB
+../dist/public/assets/zoom-out-C76PcoHV.js                                                               1.17 kB │ gzip:   0.42 kB
+../dist/public/assets/key-B1M5AMwy.js                                                                    1.18 kB │ gzip:   0.50 kB
+../dist/public/assets/Footer-rZdvpkYQ.js                                                                 1.67 kB │ gzip:   0.86 kB
+../dist/public/assets/progress-BG_wMwL3.js                                                               1.90 kB │ gzip:   0.95 kB
+../dist/public/assets/switch-D23AFVgQ.js                                                                 3.48 kB │ gzip:   1.52 kB
+../dist/public/assets/checkbox-QOoWzNx8.js                                                               3.89 kB │ gzip:   1.72 kB
+../dist/public/assets/popover-DM3z2H51.js                                                                5.37 kB │ gzip:   1.95 kB
+../dist/public/assets/workbox-window.prod.es5-BqEJf4Xk.js                                                5.71 kB │ gzip:   2.34 kB
+../dist/public/assets/DraftsPage-BNXEUKZv.js                                                             6.09 kB │ gzip:   2.17 kB
+../dist/public/assets/tabs-BZf2wKY-.js                                                                   6.59 kB │ gzip:   2.62 kB
+../dist/public/assets/MessageListItem-DrO82IR8.js                                                        6.81 kB │ gzip:   1.92 kB
+../dist/public/assets/AdminDepartments-8NUIIbK2.js                                                       7.03 kB │ gzip:   2.33 kB
+../dist/public/assets/dialog-DAg7Idg4.js                                                                 7.30 kB │ gzip:   2.69 kB
+../dist/public/assets/MonitoringPage-FKG1W3oS.js                                                         7.67 kB │ gzip:   2.59 kB
+../dist/public/assets/MubodilaPage-DZ3mjkLI.js                                                           8.12 kB │ gzip:   3.18 kB
+../dist/public/assets/TrashPage-Bjajtrif.js                                                              8.26 kB │ gzip:   2.05 kB
+../dist/public/assets/AdminDocumentTypes-yxnPz9Ye.js                                                     8.62 kB │ gzip:   3.25 kB
+../dist/public/assets/DepartmentMessages-pEXl53HT.js                                                     8.70 kB │ gzip:   2.91 kB
+../dist/public/assets/Inbox-BklxrGnx.js                                                                  8.75 kB │ gzip:   3.60 kB
+../dist/public/assets/AdminAssignmentTypes-DIz3_KGZ.js                                                   8.82 kB │ gzip:   3.30 kB
+../dist/public/assets/CelebrationEffects-uZ8H0WQ_.js                                                     8.84 kB │ gzip:   3.11 kB
+../dist/public/assets/AdminPeople-B0XBHqJ4.js                                                            9.83 kB │ gzip:   3.25 kB
+../dist/public/assets/AnnouncementsPage-BdjJn5JX.js                                                     10.07 kB │ gzip:   3.71 kB
+../dist/public/assets/undo-BPogwBLm.js                                                                  10.59 kB │ gzip:   2.18 kB
+../dist/public/assets/scroll-area-D7DPMSBD.js                                                           12.54 kB │ gzip:   3.95 kB
+../dist/public/assets/AdminDepartmentMessages-CWobC7Yb.js                                               12.81 kB │ gzip:   3.51 kB
+../dist/public/assets/AdminNotifications-B7qaNfzb.js                                                    13.16 kB │ gzip:   4.71 kB
+../dist/public/assets/AdminDocumentTemplates-DnEPrWzo.js                                                14.27 kB │ gzip:   4.66 kB
+../dist/public/assets/index-DrSg2Say.js                                                                 15.14 kB │ gzip:   5.39 kB
+../dist/public/assets/PrivacyPolicy-DK_O_jdX.js                                                         15.26 kB │ gzip:   4.13 kB
+../dist/public/assets/index-DMtcyXvO.js                                                                 17.11 kB │ gzip:   6.52 kB
+../dist/public/assets/format-SmSpYad1.js                                                                20.69 kB │ gzip:   5.84 kB
+../dist/public/assets/select-ALpwTA0o.js                                                                22.13 kB │ gzip:   7.62 kB
+../dist/public/assets/ComposeMessage--575IHRt.js                                                        25.36 kB │ gzip:   7.98 kB
+../dist/public/assets/ImageCropDialog-CM-0nWvd.js                                                       34.95 kB │ gzip:  11.40 kB
+../dist/public/assets/AdminDashboard-C9sOeMBd.js                                                        35.96 kB │ gzip:   8.88 kB
+../dist/public/assets/date-picker-BDCIt05P.js                                                           36.76 kB │ gzip:  11.84 kB
+../dist/public/assets/DepartmentMain-DuLCmGQP.js                                                        40.02 kB │ gzip:  10.48 kB
+../dist/public/assets/MessageView-B9ed_Hub.js                                                           41.09 kB │ gzip:  11.69 kB
+../dist/public/assets/sortable.esm-257o9blJ.js                                                          45.87 kB │ gzip:  15.27 kB
+../dist/public/assets/jszip.min-Dwlu1osX.js                                                             97.00 kB │ gzip:  30.07 kB
+../dist/public/assets/AssignmentsPage-BTqcmmGK.js                                                       98.29 kB │ gzip:  25.23 kB
+../dist/public/assets/index-D81Uoa97.js                                                                317.41 kB │ gzip: 102.58 kB
+../dist/public/assets/index-DRzDVV_s.js                                                                398.03 kB │ gzip: 100.85 kB
+../dist/public/assets/DocumentEditor-BC4Q6M8V.js                                                       519.66 kB │ gzip: 161.39 kB
+../dist/public/assets/DepartmentCard-CrGSEshG.js                                                       745.40 kB │ gzip: 132.76 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 21.86s
+
+PWA v1.3.0
+Building public/sw.js service worker ("es" format)...
+vite v5.4.21 building for production...
+✓ 1 modules transformed.
+x Build failed in 1.25s
+error during build:
+[vite]: Rollup failed to resolve import "workbox-precaching" from "/root/Eco/client/public/sw.js".
+This is most likely unintended because it can break your application at runtime.
+If you do want to externalize this module explicitly add it to
+`build.rollupOptions.external`
+    at viteWarn (file:///root/Eco/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:65855:17)
+    at onRollupWarning (file:///root/Eco/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:65887:5)
+    at onwarn (file:///root/Eco/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:65550:7)
+    at file:///root/Eco/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:21404:13
+    at Object.logger [as onLog] (file:///root/Eco/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:23374:9)
+    at ModuleLoader.handleInvalidResolvedId (file:///root/Eco/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:22121:26)
+    at file:///root/Eco/node_modules/vite/node_modules/rollup/dist/es/shared/node-entry.js:22079:26
+
+> rest-express@1.0.4 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/root/Eco/drizzle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
+[✓] Changes applied
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [all](ids: [ 0 ])
+[PM2] [ecotajikistan](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ ecotajikistan      │ fork     │ 1    │ online    │ 0%       │ 18.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+root@5862137-le73231:~/Eco#
